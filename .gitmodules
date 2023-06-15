@@ -1,0 +1,3 @@
+[submodule "InworldAI/inworld-ndk"]
+	path = InworldAI/inworld-ndk
+	url = https://github.com/inworld-ai/inworld-ndk.git
