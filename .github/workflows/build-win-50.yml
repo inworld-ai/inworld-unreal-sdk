@@ -1,5 +1,5 @@
 
-name: 02 - build UE.5.0
+name: Build Win UE.5.0
 
 on:
   pull_request:
@@ -32,7 +32,7 @@ jobs:
           Copy-Item -Path "InworldAI\inworld-ndk\src" -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\InworldAINdk\Public\NDK" -Recurse
           Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
           Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
-    - name: BuildEditor
+    - name: BuildEditor-Win-50
       shell: pwsh
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
@@ -47,7 +47,7 @@ jobs:
           {
             exit 1
           }
-    - name: BuildGame
+    - name: BuildGame-Win-50
       shell: pwsh
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"

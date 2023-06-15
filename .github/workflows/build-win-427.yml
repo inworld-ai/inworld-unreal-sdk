@@ -1,4 +1,4 @@
-name: 01 - build UE.4.27
+name: Build Win UE.4.27
 
 on:
   pull_request:
@@ -31,7 +31,7 @@ jobs:
           Copy-Item -Path "InworldAI\inworld-ndk\src" -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\InworldAINdk\Public\NDK" -Recurse
           Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
           Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
-    - name: BuildEditor
+    - name: BuildEditor-Win-427
       shell: pwsh
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_4.27"
@@ -46,7 +46,7 @@ jobs:
           {
             exit 1
           }
-    - name: BuildGame
+    - name: BuildGame-Win-427
       shell: pwsh
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_4.27"
