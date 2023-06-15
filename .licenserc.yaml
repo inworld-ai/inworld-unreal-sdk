@@ -96,13 +96,17 @@ header:
     - '**/*.gn'     
     - '**/*.lib'     
     - '**/*.a'     
-    - '**/*.dll'     
+    - '**/*.dll'  
+    - '**/*.uplugin'
+    - '**/*.Build.cs'
     - 'README'
     - 'CHANGELOG'
     - '**/*.cmake'
     - '**/DEPS'
     - '**/proto/**'
     - '**/include/**'
+    - 'InworldMetahuman/**'
+    - 'InworldReadyPlayerMe/**'
     
   comment: on-failure
 
