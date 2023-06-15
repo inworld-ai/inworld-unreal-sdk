@@ -1,0 +1,71 @@
+name: 01 - build UE.4.27
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**/README.md'
+      - '**/gitignore'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [ self-hosted, Windows, X64, w10-1344 ]
+    steps:
+    - uses: actions/checkout@v2
+    - name: git-update-dependecies
+      run: git submodule update --init --recursive | Write-Host
+    - run: mkdir -p TestInworldFPS 
+    - uses: actions/checkout@v2
+      with:
+        ref: 'TestInworldFPS'
+        path: 'TestInworldFPS'
+    - name: Copy Plugins & Remove Assets
+      shell: pwsh
+      run: |
+          Remove-Item "InworldAI\Content\*" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse -ErrorAction SilentlyContinue
+          Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
+          Copy-Item -Path "InworldAI\inworld-ndk\src" -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\InworldAINdk\Public\NDK" -Recurse
+          Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
+          Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
+    - name: BuildEditor
+      shell: pwsh
+      run: |
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_4.27"
+          [string]$ProjectPath = "$pwd"
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildEditor,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildEditorLog.txt" -Wait -NoNewWindow -PassThru 
+          cat BuildEditorLog.txt
+          if (Select-String -Path BuildEditorLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
+          {
+            exit 0
+          }
+          else
+          {
+            exit 1
+          }
+    - name: BuildGame
+      shell: pwsh
+      run: |
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_4.27"
+          [string]$ProjectPath = "$pwd"
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru 
+          cat BuildGameLog.txt
+          if (Select-String -Path BuildGameLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
+          {
+            exit 0
+          }
+          else
+          {
+            exit 1
+          }
+    - uses: actions/upload-artifact@v3
+      if: github.event_name == 'workflow_dispatch'
+      with:
+        name: UE.4.27
+        path: |
+          InworldAI
+          InworldMetahuman
+          InworldReadyPlayerMe
