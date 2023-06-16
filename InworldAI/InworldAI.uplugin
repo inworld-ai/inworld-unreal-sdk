@@ -1,0 +1,69 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.3.0",
+	"FriendlyName": "InworldAI",
+	"Description": "Integrate Characters from https://studio.inworld.ai",
+	"Category": "AI",
+	"CreatedBy": "InworldAI",
+	"CanContainContent": true,
+	"EnabledByDefault": true,
+	"Modules": [
+		{
+			"Name": "InworldAIClient",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Mac",
+				"IOS"
+			]
+		},
+		{
+			"Name": "InworldAIIntegration",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Mac",
+				"IOS"
+			]
+		},
+		{
+			"Name": "InworldAIPlatform",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Mac",
+				"IOS"
+			]
+		},
+		{
+			"Name": "InworldAINdk",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Mac",
+				"IOS"
+			]
+		},
+		{
+			"Name": "InworldAIEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Mac"
+			]
+		}
+	],
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false
+}
