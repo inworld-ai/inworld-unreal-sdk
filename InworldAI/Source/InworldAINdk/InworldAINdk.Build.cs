@@ -105,19 +105,11 @@ public class InworldAINdk : ModuleRules
                 "absl_raw_logging_internal",
                 "absl_spinlock_wait",
                 "absl_throw_delegate",
-                "absl_strerror",
                 "absl_bad_optional_access",
-                "absl_bad_variant_access",
-                "absl_city",
-                "absl_hash",
-                "absl_low_level_hash",
-                "absl_cordz_handle",
                 "absl_cord",
-                "absl_cordz_info",
                 "absl_str_format_internal",
                 "absl_strings",
                 "absl_strings_internal",
-                "absl_cord_internal",
                 "absl_symbolize",
                 "absl_stacktrace",
                 "absl_graphcycles_internal",
@@ -127,18 +119,6 @@ public class InworldAINdk : ModuleRules
                 "absl_statusor",
                 "absl_time",
                 "absl_time_zone",
-                "absl_raw_hash_set",
-                "absl_random_internal_pool_urbg",
-                "absl_random_internal_randen",
-                "absl_random_internal_randen_hwaes_impl",
-                "absl_random_internal_randen_slow",
-                "absl_random_internal_seed_material",
-                "absl_random_seed_gen_exception",
-                "absl_random_internal_randen_hwaes",
-                "absl_random_internal_platform",
-                "absl_crc_cord_state",
-                "absl_crc32c",
-                "absl_crc_internal",
                 "address_sorting",
                 "gpr",
                 "grpc",
@@ -148,11 +128,6 @@ public class InworldAINdk : ModuleRules
                 "re2",
                 "upb",
             });
-
-        if (Target.Platform == UnrealTargetPlatform.Mac)
-        {
-            NdkLibs.Add("absl_demangle_internal");
-        }
 
         foreach (string NdkLib in NdkLibs)
         {
