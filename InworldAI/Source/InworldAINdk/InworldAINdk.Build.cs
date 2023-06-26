@@ -92,7 +92,7 @@ public class InworldAINdk : ModuleRules
         PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/grpc/include"));
         PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/grpc/third_party"));
         PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/grpc/third_party/abseil-cpp"));
-        PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/grpc/third_party/protobuf/src"));
+        PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/include/protobuf/src"));
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public/NDK/Proto"));
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public/NDK/ThirdParty"));
 
