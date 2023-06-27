@@ -99,6 +99,7 @@ header:
     - '**/*.dll'  
     - '**/*.uplugin'
     - '**/*.Build.cs'
+    - '**/*.py'
     - 'README'
     - 'CHANGELOG'
     - '**/*.cmake'
