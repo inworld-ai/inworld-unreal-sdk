@@ -1,8 +1,15 @@
 import os
 import shutil
+import json
 
 CurDir = os.getcwd()
-ReleaseDir = CurDir + "/package-release"
+
+PluginFile = open(CurDir + "/InworldAI/InworldAI.uplugin")
+PluginData = json.load(PluginFile)
+VerName = PluginData["VersionName"]
+VersionDir = CurDir + "/package-release/inworld-unreal-sdk-" + VerName
+
+ReleaseDir = VersionDir + "/InworldAI"
 
 def CreateDir(Subdir):
     print("create directory " + Subdir)
@@ -19,9 +26,10 @@ def CopyFile(Subpath):
     print("copy file " + Subpath)
     shutil.copyfile(CurDir + Subpath, ReleaseDir + Subpath)
 
-if os.path.exists(ReleaseDir):
-    shutil.rmtree(ReleaseDir)
-    
+if os.path.exists(CurDir + "/package-release"):
+    shutil.rmtree(CurDir + "/package-release")
+os.mkdir(CurDir + "/package-release")
+os.mkdir(VersionDir)
 os.mkdir(ReleaseDir)
 
 CopyFile("/LICENSE.md")
@@ -80,3 +88,7 @@ CopyFolder("/InworldReadyPlayerMe/InworldRPM/Content")
 CopyFolder("/InworldReadyPlayerMe/InworldRPM/Resources")
 CopyFolder("/InworldReadyPlayerMe/InworldRPM/Source")
 CopyFile("/InworldReadyPlayerMe/InworldRPM/InworldRPM.uplugin")
+
+# zip
+print("zip...")
+shutil.make_archive(VersionDir, 'zip', VersionDir)
