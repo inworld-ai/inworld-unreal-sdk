@@ -91,8 +91,4 @@ CopyFile("/InworldReadyPlayerMe/InworldRPM/InworldRPM.uplugin")
 
 # zip
 print("zip...")
-PluginFile = open(CurDir + "/InworldAI/InworldAI.uplugin")
-PluginData = json.load(PluginFile)
-
-VerName = PluginData["VersionName"]
 shutil.make_archive(VersionDir, 'zip', VersionDir)
