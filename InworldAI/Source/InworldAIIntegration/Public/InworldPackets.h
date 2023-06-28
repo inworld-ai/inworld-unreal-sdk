@@ -87,6 +87,7 @@ struct FInworldCancelResponseEvent;
 struct FInworldSimpleGestureEvent;
 struct FInworldCustomGestureEvent;
 struct FInworldCustomEvent;
+struct FInworldChangeSceneEvent;
 
 class InworldPacketVisitor
 {
@@ -101,6 +102,7 @@ public:
 	virtual void Visit(const FInworldSimpleGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomEvent& Event) {  }
+	virtual void Visit(const FInworldChangeSceneEvent& Event) {  }
 };
 
 USTRUCT()
@@ -268,6 +270,21 @@ struct FInworldCustomEvent : public FInworldPacket
 	FString Name;
 };
 
+USTRUCT()
+struct FInworldChangeSceneEvent : public FInworldPacket
+{
+	GENERATED_BODY()
+
+	FInworldChangeSceneEvent() = default;
+	FInworldChangeSceneEvent(const Inworld::ChangeSceneEvent& Event)
+		: AgentInfos(Event.GetAgentInfos())
+	{}
+	virtual ~FInworldChangeSceneEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	std::vector<Inworld::AgentInfo> AgentInfos;
+};
 
 class InworldPacketCreator : public Inworld::PacketVisitor
 {
@@ -281,6 +298,7 @@ public:
 	virtual void Visit(const Inworld::ControlEvent& Event) override { Create<FInworldControlEvent, Inworld::ControlEvent>(Event); }
 	virtual void Visit(const Inworld::EmotionEvent& Event) override { Create<FInworldEmotionEvent, Inworld::EmotionEvent>(Event); }
 	virtual void Visit(const Inworld::CustomEvent& Event) override { Create<FInworldCustomEvent, Inworld::CustomEvent>(Event); }
+	virtual void Visit(const Inworld::ChangeSceneEvent& Event) override { Create<FInworldChangeSceneEvent, Inworld::ChangeSceneEvent>(Event); }
 
 	std::shared_ptr<FInworldPacket> GetPacket() { return Packet; }
 
