@@ -28,7 +28,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnectionStateChanged, EInworldC
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
 UCLASS(BlueprintType, Config = Engine)
-class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem
+class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor
 {
 	GENERATED_BODY()
 
@@ -66,6 +66,11 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void StopSession();
 
+private:
+    void PossessAgents(const std::vector<Inworld::AgentInfo>& AgentInfos);
+    void UnpossessAgents();
+
+public:
     /**
      * Register Character component
      * call before StartSession
@@ -122,6 +127,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Audio")
     void StopAudioSession(const FString& AgentId);
 
+    /** Change scene */
+    UFUNCTION(BlueprintCallable, Category = "Messages")
+    void ChangeScene(const FString& SceneId);
+
     /** Get current connection state */
     UFUNCTION(BlueprintCallable, Category = "Connection")
 	EInworldConnectionState GetConnectionState() const { return static_cast<EInworldConnectionState>(Client->GetConnectionState()); }
@@ -173,6 +182,8 @@ public:
 
 private:
 	void DispatchPacket(std::shared_ptr<FInworldPacket> InworldPacket);
+
+    virtual void Visit(const FInworldChangeSceneEvent& Event) override;
 
     UPROPERTY(EditAnywhere, config, Category = "Connection")
     FString SentryDSN;
