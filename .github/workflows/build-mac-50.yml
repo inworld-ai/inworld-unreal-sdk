@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-mac-50:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:
     - uses: actions/checkout@v2
