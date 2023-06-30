@@ -66,33 +66,7 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     Client->StartClient(Options, Info,
         [this](const auto& AgentInfos)
         {
-            for (const auto& AgentInfo : AgentInfos)
-            {
-                FString BrainName = UTF8_TO_TCHAR(AgentInfo.BrainName.c_str());
-                AgentInfoByBrain.Add(BrainName, AgentInfo);
-                if (CharacterComponentByBrainName.Contains(BrainName))
-                {
-                    auto Component = CharacterComponentByBrainName[BrainName];
-                    CharacterComponentByAgentId.Add(UTF8_TO_TCHAR(AgentInfo.AgentId.c_str()), Component);
-                    Component->Possess(AgentInfo);
-                    CharacterComponentByAgentId.Add(Component->GetAgentId(), Component);
-                }
-                else if(BrainName != FString("__DUMMY__"))
-                {
-                    Inworld::LogWarning("No component found for BrainName: %s", *BrainName);
-                }
-            }
-
-            for (const auto& CharacterComponent : CharacterComponentRegistry)
-            {
-                auto BrainName = CharacterComponent->GetBrainName();
-                if (!AgentInfoByBrain.Contains(BrainName))
-                {
-                    Inworld::LogError("No agent found for BrainName: %s", *BrainName);
-                }
-            }
-
-            bCharactersInitialized = true;
+            PossessAgents(AgentInfos);
         });
 }
 
@@ -108,17 +82,52 @@ void UInworldApiSubsystem::ResumeSession()
 
 void UInworldApiSubsystem::StopSession()
 {
+    UnpossessAgents();
+
+    Client->StopClient();
+}
+
+void UInworldApiSubsystem::PossessAgents(const std::vector<Inworld::AgentInfo>& AgentInfos)
+{
+    for (const auto& AgentInfo : AgentInfos)
+    {
+        FString BrainName = UTF8_TO_TCHAR(AgentInfo.BrainName.c_str());
+        AgentInfoByBrain.Add(BrainName, AgentInfo);
+        if (CharacterComponentByBrainName.Contains(BrainName))
+        {
+            auto Component = CharacterComponentByBrainName[BrainName];
+            CharacterComponentByAgentId.Add(UTF8_TO_TCHAR(AgentInfo.AgentId.c_str()), Component);
+            Component->Possess(AgentInfo);
+            CharacterComponentByAgentId.Add(Component->GetAgentId(), Component);
+        }
+        else if (BrainName != FString("__DUMMY__"))
+        {
+            Inworld::LogWarning("No component found for BrainName: %s", *BrainName);
+        }
+    }
+
+    for (const auto& CharacterComponent : CharacterComponentRegistry)
+    {
+        auto BrainName = CharacterComponent->GetBrainName();
+        if (!AgentInfoByBrain.Contains(BrainName))
+        {
+            Inworld::LogError("No agent found for BrainName: %s", *BrainName);
+        }
+    }
+
+    bCharactersInitialized = true;
+}
+
+void UInworldApiSubsystem::UnpossessAgents()
+{
     auto ComponentsToUnpossess = CharacterComponentRegistry;
     for (auto* Component : ComponentsToUnpossess)
     {
         Component->Unpossess();
     }
-
     CharacterComponentByAgentId.Empty();
     AgentInfoByBrain.Empty();
     bCharactersInitialized = false;
-
-    Client->StopClient();
 }
 
 void UInworldApiSubsystem::RegisterCharacterComponent(Inworld::ICharacterComponent* Component)
@@ -290,6 +299,12 @@ void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
     Client->StopAudioSession(TCHAR_TO_UTF8(*AgentId));
 }
 
+void UInworldApiSubsystem::ChangeScene(const FString& SceneId)
+{
+    UnpossessAgents();
+    Client->SendChangeSceneEvent(TCHAR_TO_UTF8(*SceneId));
+}
+
 void UInworldApiSubsystem::GetConnectionError(FString& Message, int32& Code)
 {
     std::string OutErrorString;
@@ -431,6 +446,17 @@ void UInworldApiSubsystem::DispatchPacket(std::shared_ptr<FInworldPacket> Inworl
 	{
 		(*TargetComponentPtr)->HandlePacket(InworldPacket);
 	}
+
+    if (ensure(InworldPacket))
+    {
+        InworldPacket->Accept(*this);
+    }
+}
+
+void UInworldApiSubsystem::Visit(const FInworldChangeSceneEvent& Event)
+{
+    UnpossessAgents();
+    PossessAgents(Event.AgentInfos);
 }
 
 void UInworldApiSubsystem::ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet)
