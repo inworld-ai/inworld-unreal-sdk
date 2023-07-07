@@ -15,19 +15,10 @@ void UInworldPlayerComponent::BeginPlay()
     Super::BeginPlay();
 
     InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
-    if (InworldSubsystem.IsValid())
-    {
-        InworldSubsystem->RegisterPlayerComponent(this);
-    }
 }
 
 void UInworldPlayerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    if (InworldSubsystem.IsValid())
-    {
-        InworldSubsystem->UnregisterPlayerComponent();
-    }
-
     Super::EndPlay(EndPlayReason);
 }
 

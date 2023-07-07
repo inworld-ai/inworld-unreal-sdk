@@ -49,10 +49,10 @@ struct FCharacterMessage
 	virtual bool IsReady() const { return true; }
 
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) PURE_VIRTUAL(FCharacterMessage::AcceptHandle)
-
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) PURE_VIRTUAL(FCharacterMessage::AcceptInterrupt)
-
 	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) PURE_VIRTUAL(FCharacterMessage::AcceptCancel)
+
+	virtual FString ToDebugString() const PURE_VIRTUAL(FCharacterMessage::ToDebugString, return FString();)
 };
 
 USTRUCT(BlueprintType)
@@ -87,6 +87,8 @@ struct FCharacterMessageUtterance : public FCharacterMessage
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { Visitor.Interrupt(*this); }
 	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override { }
+
+	virtual FString ToDebugString() const override { return FString::Printf(TEXT("Utterance. Text: %s"), *Text); }
 };
 
 USTRUCT(BlueprintType)
@@ -103,6 +105,8 @@ struct FCharacterMessagePlayerTalk : public FCharacterMessage
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { }
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { }
 	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override { }
+
+	virtual FString ToDebugString() const override { return FString::Printf(TEXT("PlayerTalk. Text: %s"), *Text); }
 };
 
 USTRUCT(BlueprintType)
@@ -118,6 +122,8 @@ struct FCharacterMessageSilence : public FCharacterMessage
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { Visitor.Interrupt(*this); }
 	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override { }
+
+	virtual FString ToDebugString() const override { return FString::Printf(TEXT("Silence. Duration: %f"), Duration); }
 };
 
 USTRUCT(BlueprintType)
@@ -133,6 +139,8 @@ struct FCharacterMessageTrigger : public FCharacterMessage
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { }
 	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
+
+	virtual FString ToDebugString() const override { return FString::Printf(TEXT("Trigger. Name: %s"), *Name); }
 };
 
 USTRUCT(BlueprintType)
@@ -143,6 +151,8 @@ struct FCharacterMessageInteractionEnd : public FCharacterMessage
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { }
 	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
+
+	virtual FString ToDebugString() const override { return TEXT("InteractionEnd"); }
 };
 
 struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
