@@ -64,6 +64,7 @@ public class InworldAIIntegration : ModuleRules
             );
 
         PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/Include"));
+        PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/grpc/include"));
 
         AddEngineThirdPartyPrivateStaticDependencies(Target, "zlib");
     }

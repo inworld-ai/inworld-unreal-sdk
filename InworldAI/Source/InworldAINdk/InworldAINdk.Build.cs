@@ -30,6 +30,10 @@ public class InworldAINdk : ModuleRules
             {
                 return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/iOS/Clang-1300");
             }
+            else if (Target.Platform == UnrealTargetPlatform.Android)
+            {
+                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Android/arm64-v8a/api-31");
+            }
             else
             {
                 return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Unknown");
@@ -82,8 +86,8 @@ public class InworldAINdk : ModuleRules
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_UNREAL=1");
 
-        // IOS & Mac Platforms do not support Audio Echo Cancellation (AEC)
-        if (Target.Platform != UnrealTargetPlatform.IOS && Target.Platform != UnrealTargetPlatform.Mac)
+        // Audio Echo Cancellation (AEC) supported on Winddows only
+        if (Target.Platform == UnrealTargetPlatform.Win64)
         {
             PublicDefinitions.Add("INWORLD_AEC=1");
         }
@@ -136,7 +140,9 @@ public class InworldAINdk : ModuleRules
             {
                 Name = string.Concat(Name, ".lib");
             }
-            else if (Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.IOS)
+            else if (Target.Platform == UnrealTargetPlatform.Mac || 
+                Target.Platform == UnrealTargetPlatform.IOS || 
+                Target.Platform == UnrealTargetPlatform.Android)
             {
                 Name = Name.IndexOf("lib") != 0 ?
                     string.Concat("lib", Name, ".a") : string.Concat(Name, ".a");
@@ -150,7 +156,7 @@ public class InworldAINdk : ModuleRules
             RuntimeDependencies.Add(Path.Combine("$(BinaryOutputDir)", "webrtc_aec_plugin.dll"), Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.dll"));
         }
 
-        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac)
+        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android)
         {
             AddEngineThirdPartyPrivateStaticDependencies(Target, "zlib");
         }
