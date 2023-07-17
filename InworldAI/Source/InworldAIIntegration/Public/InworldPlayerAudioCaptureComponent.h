@@ -12,6 +12,7 @@
 #include "AudioCaptureCore.h"
 #include "AudioDevice.h"
 #include "Containers/ContainerAllocationPolicies.h"
+#include "InworldGameplayDebuggerCategory.h"
 #include "InworldPlayerAudioCaptureComponent.generated.h"
 
 class UInworldApiSubsystem;
@@ -102,4 +103,6 @@ private:
 
     FDelegateHandle PlayerTargetSetHandle;
     FDelegateHandle PlayerTargetClearHandle;
+
+    friend class FInworldGameplayDebuggerCategory;
 };

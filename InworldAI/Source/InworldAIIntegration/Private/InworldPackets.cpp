@@ -7,6 +7,12 @@
 
 #include "InworldPackets.h"
 
+void AppendToDebugString(FString& DbgStr, const FString& Str)
+{
+	DbgStr.Append(Str);
+	DbgStr.Append(TEXT(". "));
+}
+
 FInworldAudioDataEvent::FInworldAudioDataEvent(const Inworld::AudioDataEvent& Event)
 	: FInworldDataEvent(Event)
 {
@@ -107,10 +113,38 @@ void FInworldActor::Serialize(FMemoryArchive& Ar)
 	SerializeString(Ar, Name);
 }
 
+void FInworldActor::AppendDebugString(FString& Str) const
+{
+	switch (Type)
+	{
+	case EInworldActorType::UNKNOWN:
+		AppendToDebugString(Str, TEXT("UNKNOWN"));
+		break;
+	case EInworldActorType::PLAYER:
+		AppendToDebugString(Str, TEXT("PLAYER"));
+		break;
+	case EInworldActorType::AGENT:
+		AppendToDebugString(Str, TEXT("AGENT"));
+		break;
+	default:
+		break;
+	}
+	AppendToDebugString(Str, Name);
+}
+
 void FInworldRouting::Serialize(FMemoryArchive& Ar)
 {
 	Source.Serialize(Ar);
 	Target.Serialize(Ar);
+}
+
+void FInworldRouting::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("Source"));
+	Source.AppendDebugString(Str);
+
+	AppendToDebugString(Str, TEXT("Target"));
+	Target.AppendDebugString(Str);
 }
 
 void FInworldPacketId::Serialize(FMemoryArchive& Ar)
@@ -120,10 +154,26 @@ void FInworldPacketId::Serialize(FMemoryArchive& Ar)
 	SerializeString(Ar, InteractionId);
 }
 
+void FInworldPacketId::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, UID);
+	AppendToDebugString(Str, UtteranceId);
+	AppendToDebugString(Str, InteractionId);
+}
+
 void FInworldPacket::Serialize(FMemoryArchive& Ar)
 {
 	PacketId.Serialize(Ar);
 	Routing.Serialize(Ar);
+}
+
+FString FInworldPacket::ToDebugString() const
+{
+	FString Str;
+	AppendDebugString(Str);
+	Routing.AppendDebugString(Str);
+	PacketId.AppendDebugString(Str);
+	return Str;
 }
 
 void FInworldDataEvent::Serialize(FMemoryArchive& Ar)
@@ -131,6 +181,12 @@ void FInworldDataEvent::Serialize(FMemoryArchive& Ar)
 	FInworldPacket::Serialize(Ar);
 
 	SerializeString(Ar, Chunk);
+}
+
+void FInworldDataEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("Data"));
+	AppendToDebugString(Str, FString::FromInt(Chunk.size()));
 }
 
 void FInworldAudioDataEvent::Serialize(FMemoryArchive& Ar)
@@ -141,8 +197,58 @@ void FInworldAudioDataEvent::Serialize(FMemoryArchive& Ar)
 	SerializeValue<bool>(Ar, bFinal);
 }
 
+void FInworldAudioDataEvent::AppendDebugString(FString& Str) const
+{
+	FInworldDataEvent::AppendDebugString(Str);
+
+	AppendToDebugString(Str, TEXT("Audio"));
+	AppendToDebugString(Str, FString::FromInt(PhonemeInfos.Num()));
+	AppendToDebugString(Str, bFinal ? TEXT("Final") : TEXT("Not final"));
+}
+
 void FInworldPhonemeInfo::Serialize(FMemoryArchive& Ar)
 {
 	SerializeString(Ar, Code);
 	SerializeValue<float>(Ar, Timestamp);
+}
+
+void FInworldTextEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("Text"));
+	AppendToDebugString(Str, Text);
+	AppendToDebugString(Str, Final ? TEXT("Final") : TEXT("Not final"));
+}
+
+void FInworldSilenceEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("Silence"));
+	AppendToDebugString(Str, FString::SanitizeFloat(Duration));
+}
+
+void FInworldControlEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("Control"));
+	AppendToDebugString(Str, FString::FromInt(static_cast<int32>(Action)));
+}
+
+void FInworldEmotionEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("Emotion"));
+	AppendToDebugString(Str, FString::FromInt(static_cast<int32>(Behavior)));
+	AppendToDebugString(Str, FString::FromInt(static_cast<int32>(Strength)));
+}
+
+void FInworldCustomEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("Custom"));
+	AppendToDebugString(Str, Name);
+}
+
+void FInworldChangeSceneEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("ChangeScene"));
+	for (auto& Agent : AgentInfos)
+	{
+		AppendToDebugString(Str, UTF8_TO_TCHAR(Agent.GivenName.c_str()));
+	}
 }
