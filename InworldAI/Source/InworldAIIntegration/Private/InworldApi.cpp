@@ -36,7 +36,7 @@ UInworldApiSubsystem::UInworldApiSubsystem()
 {
 }
 
-void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride, const FString& TargetUrlOverride, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)
+void UInworldApiSubsystem::StartSession(FInworldCapabilitySet Capabilities, const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride, const FString& TargetUrlOverride, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)
 {
     if (!ensure(GetWorld()->GetNetMode() < NM_Client))
     {
@@ -62,6 +62,18 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     Options.ApiKey = TCHAR_TO_UTF8(*ApiKey);
     Options.ApiSecret = TCHAR_TO_UTF8(*ApiSecret);
     Options.PlayerName = TCHAR_TO_UTF8(*PlayerName);
+
+	Options.Capabilities.Animations = Capabilities.Animations;
+	Options.Capabilities.Text = Capabilities.Text;
+	Options.Capabilities.Audio = Capabilities.Audio;
+	Options.Capabilities.Emotions = Capabilities.Emotions;
+	Options.Capabilities.Gestures = Capabilities.Gestures;
+	Options.Capabilities.Interruptions = Capabilities.Interruptions;
+	Options.Capabilities.Triggers = Capabilities.Triggers;
+	Options.Capabilities.EmotionStreaming = Capabilities.EmotionStreaming;
+	Options.Capabilities.SilenceEvents = Capabilities.SilenceEvents;
+	Options.Capabilities.PhonemeInfo = Capabilities.PhonemeInfo;
+	Options.Capabilities.LoadSceneInSession = Capabilities.LoadSceneInSession;
 
     Inworld::SessionInfo Info;
     Info.Token = TCHAR_TO_UTF8(*Token);

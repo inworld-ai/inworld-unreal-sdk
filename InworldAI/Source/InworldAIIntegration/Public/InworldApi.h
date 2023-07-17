@@ -28,6 +28,45 @@ class UInworldAudioRepl;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnectionStateChanged, EInworldConnectionState, State);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
+USTRUCT(BlueprintType)
+struct FInworldCapabilitySet
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Animations = false;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Text = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Audio = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Emotions = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Gestures = true;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Interruptions = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Triggers = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool EmotionStreaming = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool SilenceEvents = true;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool PhonemeInfo = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool LoadSceneInSession = true;
+};
+
 UCLASS(BlueprintType, Config = Engine)
 class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor
 {
@@ -44,7 +83,7 @@ public:
      * @param SessionId : optional, will be generated if empty
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AdvancedDisplay = "4"))
-    void StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride = "", const FString& TargetUrlOverride = "", const FString& Token = "", int64 TokenExpiration = 0, const FString& SessionId = "");
+    void StartSession(FInworldCapabilitySet Capabilities, const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride = "", const FString& TargetUrlOverride = "", const FString& Token = "", int64 TokenExpiration = 0, const FString& SessionId = "");
 
     /**
      * Pause InworldAI session
