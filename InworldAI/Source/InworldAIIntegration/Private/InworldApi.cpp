@@ -23,6 +23,11 @@
 #include <string>
 #include <vector>
 
+static TAutoConsoleVariable<bool> CVarLogAllPackets(
+TEXT("Inworld.Debug.LogAllPackets"), false,
+TEXT("Enable/Disable logging all packets going from server")
+);
+
 const FString DefaultAuthUrl = "api-studio.inworld.ai";
 const FString DefaultTargetUrl = "api-engine.inworld.ai:443";
 
@@ -203,16 +208,6 @@ void UInworldApiSubsystem::UpdateCharacterComponentRegistrationOnClient(Inworld:
         CharacterComponentByAgentId.Add(NewAgentId, Component);
         CharacterComponentRegistry.AddUnique(Component);
     }
-}
-
-void UInworldApiSubsystem::RegisterPlayerComponent(Inworld::IPlayerComponent* Component)
-{
-    PlayerComponent = Component;
-}
-
-void UInworldApiSubsystem::UnregisterPlayerComponent()
-{
-    PlayerComponent = nullptr;
 }
 
 void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)
@@ -421,7 +416,12 @@ void UInworldApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
             InworldPacketCreator PacketCreator;
             Packet->Accept(PacketCreator);
             auto InworldPacket = PacketCreator.GetPacket();
-
+#if !UE_BUILD_SHIPPING
+            if (CVarLogAllPackets.GetValueOnGameThread())
+            {
+                Inworld::Log("PACKET: %s", *InworldPacket->ToDebugString());
+            }
+#endif
             DispatchPacket(InworldPacket);
         });
 }

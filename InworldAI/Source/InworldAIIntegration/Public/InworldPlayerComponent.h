@@ -12,6 +12,7 @@
 #include "InworldCharacterComponent.h"
 #include "InworldUtils.h"
 #include "NDK/Client.h"
+#include "InworldGameplayDebuggerCategory.h"
 
 #include "InworldPlayerComponent.generated.h"
 
@@ -72,5 +73,7 @@ private:
 
     TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
 
-    FString TargetCharacterAgentId;
+	FString TargetCharacterAgentId;
+
+	friend class FInworldGameplayDebuggerCategory;
 };

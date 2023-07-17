@@ -14,6 +14,7 @@
 #include "InworldState.h"
 #include "InworldComponentInterface.h"
 #include "NDK/Client.h"
+#include "InworldGameplayDebuggerCategory.h"
 #include "InworldApi.generated.h"
 
 namespace Inworld
@@ -122,13 +123,6 @@ public:
 	void UpdateCharacterComponentRegistrationOnClient(Inworld::ICharacterComponent* Component, const FString& NewAgentId, const FString& OldAgentId);
 
 public:
-    /**
-     * Register Player component
-     * call before StartSession
-     */
-	void RegisterPlayerComponent(Inworld::IPlayerComponent* Component);
-	void UnregisterPlayerComponent();
-
     /** Send text to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages")
     void SendTextMessage(const FString& AgentId, const FString& Text);
@@ -251,9 +245,9 @@ private:
     TArray<Inworld::ICharacterComponent*> CharacterComponentRegistry;
     TMap<FString, Inworld::AgentInfo> AgentInfoByBrain;
 
-    Inworld::IPlayerComponent* PlayerComponent;
-
     Inworld::FClient::SharedPtr Client;
 
-    bool bCharactersInitialized = false;
+	bool bCharactersInitialized = false;
+
+	friend class FInworldGameplayDebuggerCategory;
 };

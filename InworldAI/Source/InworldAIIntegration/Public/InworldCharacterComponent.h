@@ -18,6 +18,7 @@
 #include "InworldPackets.h"
 #include "InworldSockets.h"
 #include <GameFramework/OnlineReplStructs.h>
+#include "InworldGameplayDebuggerCategory.h"
 
 #include "InworldCharacterComponent.generated.h"
 
@@ -241,4 +242,6 @@ private:
 	FString AgentId;
 	
 	FString GivenName;
+
+	friend class FInworldGameplayDebuggerCategory;
 };
