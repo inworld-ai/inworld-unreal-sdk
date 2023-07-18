@@ -128,10 +128,10 @@ public:
     void SendTextMessage(const FString& AgentId, const FString& Text);
 
     /** Send trigger to agent */
-	UFUNCTION(BlueprintCallable, Category = "Messages")
-	void SendTrigger(FString AgentId, const FString& Name);
+	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
+	void SendTrigger(FString AgentId, const FString& Name, const TMap<FString, FString>& Params);
     [[deprecated("UInworldApiSubsystem::SendCustomEvent is deprecated, please use UInworldApiSubsystem::SendTrigger")]]
-    void SendCustomEvent(FString AgentId, const FString& Name) { SendTrigger(AgentId, Name); }
+    void SendCustomEvent(FString AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
 
     /**
      * Send audio to agent

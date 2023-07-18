@@ -8,10 +8,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InworldUtils.h"
 
 #include "InworldPlayerTargetingComponent.generated.h"
 
+class UInworldApiSubsystem;
 class UInworldPlayerComponent;
+class UInworldCharacterComponent;
 
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
 class INWORLDAIINTEGRATION_API UInworldPlayerTargetingComponent : public UActorComponent

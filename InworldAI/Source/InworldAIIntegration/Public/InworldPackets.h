@@ -289,10 +289,7 @@ struct FInworldCustomEvent : public FInworldPacket
 	GENERATED_BODY()
 
 	FInworldCustomEvent() = default;
-	FInworldCustomEvent(const Inworld::CustomEvent& Event)
-		: FInworldPacket(Event)
-		, Name(UTF8_TO_TCHAR(Event.GetName().c_str()))
-	{}
+	FInworldCustomEvent(const Inworld::CustomEvent& Event);
 	virtual ~FInworldCustomEvent() = default;
 
 	virtual void Accept(InworldPacketVisitor & Visitor) override { Visitor.Visit(*this); }
@@ -300,8 +297,46 @@ struct FInworldCustomEvent : public FInworldPacket
 	UPROPERTY()
 	FString Name;
 
+	UPROPERTY(NotReplicated)
+	TMap<FString, FString> Params;
+	
+	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
+	{
+		TArray<FString> ParamKeys;
+		TArray<FString> ParamValues;
+
+		if (Ar.IsLoading())
+		{
+			Ar << ParamKeys;
+			Ar << ParamValues;
+			for (auto It = ParamKeys.CreateConstIterator(); It; ++It)
+			{
+				Params.Add(ParamKeys[It.GetIndex()], ParamValues[It.GetIndex()]);
+			}
+		}
+		else
+		{
+			Params.GenerateKeyArray(ParamKeys);
+			Params.GenerateValueArray(ParamValues);
+			Ar << ParamKeys;
+			Ar << ParamValues;
+		}
+
+		bOutSuccess = true;
+		return true;
+	}
+	
 protected:
 	virtual void AppendDebugString(FString& Str) const;
+};
+
+template<>
+struct TStructOpsTypeTraits<FInworldCustomEvent> : public TStructOpsTypeTraitsBase2<FInworldCustomEvent>
+{
+	enum
+	{
+		WithNetSerializer = true
+	};
 };
 
 USTRUCT()

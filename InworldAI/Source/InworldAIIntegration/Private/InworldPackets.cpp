@@ -238,10 +238,28 @@ void FInworldEmotionEvent::AppendDebugString(FString& Str) const
 	AppendToDebugString(Str, FString::FromInt(static_cast<int32>(Strength)));
 }
 
+FInworldCustomEvent::FInworldCustomEvent(const Inworld::CustomEvent& Event)
+	: FInworldPacket(Event)
+{
+	Name = UTF8_TO_TCHAR(Event.GetName().c_str());
+	for (const auto& param : Event.GetParams())
+	{
+		Params.Add(UTF8_TO_TCHAR(param.first.c_str()), UTF8_TO_TCHAR(param.second.c_str()));
+	}
+}
+
 void FInworldCustomEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Custom"));
 	AppendToDebugString(Str, Name);
+	if (Params.Num() > 0)
+	{
+		AppendToDebugString(Str, TEXT("Params"));
+	}
+	for (const auto& Param : Params)
+	{
+		AppendToDebugString(Str, Param.Key + ":" + Param.Value);
+	}
 }
 
 void FInworldChangeSceneEvent::AppendDebugString(FString& Str) const

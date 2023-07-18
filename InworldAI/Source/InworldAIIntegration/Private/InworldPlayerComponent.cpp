@@ -68,11 +68,11 @@ void UInworldPlayerComponent::SendTextMessageToTarget(const FString& Message)
     }
 }
 
-void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name)
+void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params)
 {
     if (!TargetCharacterAgentId.IsEmpty())
     {
-        InworldSubsystem->SendTrigger(TargetCharacterAgentId, Name);
+        InworldSubsystem->SendTrigger(TargetCharacterAgentId, Name, Params);
     }
 }
 
