@@ -230,11 +230,11 @@ void UInworldCharacterComponent::SendTextMessage(const FString& Text) const
     }
 }
 
-void UInworldCharacterComponent::SendTrigger(const FString& Name) const
+void UInworldCharacterComponent::SendTrigger(const FString& Name, const TMap<FString, FString>& Params) const
 {
     if (ensure(!AgentId.IsEmpty()))
     {
-        InworldSubsystem->SendTrigger(AgentId, Name);
+        InworldSubsystem->SendTrigger(AgentId, Name, Params);
     }
 }
 
@@ -472,6 +472,7 @@ void UInworldCharacterComponent::Multicast_VisitCustom_Implementation(const FInw
 
 	MessageQueue->AddOrUpdateMessage<FCharacterMessageTrigger>(GetWorld()->GetTimeSeconds(), Event.PacketId.InteractionId, Event.PacketId.UtteranceId, [Event](auto MessageToUpdate) {
 		MessageToUpdate->Name = Event.Name;
+		MessageToUpdate->Params = Event.Params;
 	});
 }
 

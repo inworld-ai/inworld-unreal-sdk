@@ -134,6 +134,9 @@ struct FCharacterMessageTrigger : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString Name;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Message")
+	TMap<FString, FString> Params;
+
 	virtual bool IsReady() const override { return !Name.IsEmpty(); }
 
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }

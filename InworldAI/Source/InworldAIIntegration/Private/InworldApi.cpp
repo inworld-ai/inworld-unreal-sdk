@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 static TAutoConsoleVariable<bool> CVarLogAllPackets(
 TEXT("Inworld.Debug.LogAllPackets"), false,
@@ -228,14 +229,21 @@ void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString
     }
 }
 
-void UInworldApiSubsystem::SendTrigger(FString AgentId, const FString& Name)
+void UInworldApiSubsystem::SendTrigger(FString AgentId, const FString& Name, const TMap<FString, FString>& Params)
 {
 	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
 	{
 		return;
 	}
 
-    Client->SendCustomEvent(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*Name));
+    std::unordered_map<std::string, std::string> params;
+
+    for (const TPair<FString, FString>& Param : Params)
+    {
+        params.insert(std::make_pair<std::string, std::string>(TCHAR_TO_UTF8(*Param.Key), TCHAR_TO_UTF8(*Param.Value)));
+    }
+
+    Client->SendCustomEvent(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*Name), params);
 }
 
 void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, USoundWave* SoundWave)

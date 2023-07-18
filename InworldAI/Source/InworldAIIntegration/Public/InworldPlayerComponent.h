@@ -49,10 +49,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     void SendTextMessageToTarget(const FString& Message);
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction")
-    void SendTriggerToTarget(const FString& Name);
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (AutoCreateRefTerm = "Params"))
+    void SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params);
     [[deprecated("UInworldPlayerComponent::SendCustomEventToTarget is deprecated, please use UInworldPlayerComponent::SendTriggerToTarget")]]
-    void SendCustomEventToTarget(const FString& Name) { SendTriggerToTarget(Name); }
+    void SendCustomEventToTarget(const FString& Name) { SendTriggerToTarget(Name, {}); }
 
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     void StartAudioSessionWithTarget();
