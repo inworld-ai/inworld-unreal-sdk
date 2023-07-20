@@ -37,7 +37,7 @@ UInworldApiSubsystem::UInworldApiSubsystem()
 {
 }
 
-void UInworldApiSubsystem::StartSession(FInworldCapabilitySet Capabilities, const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride, const FString& TargetUrlOverride, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)
+void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride, const FString& TargetUrlOverride, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)
 {
     if (!ensure(GetWorld()->GetNetMode() < NM_Client))
     {
@@ -64,22 +64,69 @@ void UInworldApiSubsystem::StartSession(FInworldCapabilitySet Capabilities, cons
     Options.ApiSecret = TCHAR_TO_UTF8(*ApiSecret);
     Options.PlayerName = TCHAR_TO_UTF8(*PlayerName);
 
-	Options.Capabilities.Animations = Capabilities.Animations;
-	Options.Capabilities.Text = Capabilities.Text;
-	Options.Capabilities.Audio = Capabilities.Audio;
-	Options.Capabilities.Emotions = Capabilities.Emotions;
-	Options.Capabilities.Gestures = Capabilities.Gestures;
-	Options.Capabilities.Interruptions = Capabilities.Interruptions;
-	Options.Capabilities.Triggers = Capabilities.Triggers;
-	Options.Capabilities.EmotionStreaming = Capabilities.EmotionStreaming;
-	Options.Capabilities.SilenceEvents = Capabilities.SilenceEvents;
-	Options.Capabilities.PhonemeInfo = Capabilities.PhonemeInfo;
-	Options.Capabilities.LoadSceneInSession = Capabilities.LoadSceneInSession;
-
     Inworld::SessionInfo Info;
     Info.Token = TCHAR_TO_UTF8(*Token);
     Info.ExpirationTime = TokenExpirationTime;
     Info.SessionId = TCHAR_TO_UTF8(*SessionId);
+
+    Client->StartClient(Options, Info,
+        [this](const auto& AgentInfos)
+        {
+            PossessAgents(AgentInfos);
+        });
+}
+
+void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment)
+{
+    if (!ensure(GetWorld()->GetNetMode() < NM_Client))
+    {
+        Inworld::LogError("UInworldApiSubsystem::StartSession shouldn't be called on client");
+        return;
+    }
+
+    if (Auth.ApiKey.IsEmpty())
+    {
+        Inworld::LogError("Can't Start Session, ApiKey is empty");
+        return;
+    }
+    if (Auth.ApiSecret.IsEmpty())
+    {
+        Inworld::LogError("Can't Start Session, ApiSecret is empty");
+        return;
+    }
+
+    Inworld::ClientOptions Options;
+    Options.AuthUrl = TCHAR_TO_UTF8(*(!Environment.AuthUrl.IsEmpty() ? Environment.AuthUrl : DefaultAuthUrl));
+    Options.LoadSceneUrl = TCHAR_TO_UTF8(*(!Environment.TargetUrl.IsEmpty() ? Environment.TargetUrl : DefaultTargetUrl));
+    Options.SceneName = TCHAR_TO_UTF8(*SceneName);
+    Options.ApiKey = TCHAR_TO_UTF8(*Auth.ApiKey);
+    Options.ApiSecret = TCHAR_TO_UTF8(*Auth.ApiSecret);
+    Options.PlayerName = TCHAR_TO_UTF8(*PlayerProfile.Name);
+    Options.UserSettings.Profile.Fields.reserve(PlayerProfile.Fields.Num());
+    for (const auto& ProfileField : PlayerProfile.Fields)
+    {
+        Inworld::UserSettings::PlayerProfile::PlayerField PlayerField;
+        PlayerField.Id = TCHAR_TO_UTF8(*ProfileField.Key);
+        PlayerField.Value = TCHAR_TO_UTF8(*ProfileField.Value);
+        Options.UserSettings.Profile.Fields.push_back(PlayerField);
+    }
+
+    Options.Capabilities.Animations = Capabilities.Animations;
+    Options.Capabilities.Text = Capabilities.Text;
+    Options.Capabilities.Audio = Capabilities.Audio;
+    Options.Capabilities.Emotions = Capabilities.Emotions;
+    Options.Capabilities.Gestures = Capabilities.Gestures;
+    Options.Capabilities.Interruptions = Capabilities.Interruptions;
+    Options.Capabilities.Triggers = Capabilities.Triggers;
+    Options.Capabilities.EmotionStreaming = Capabilities.EmotionStreaming;
+    Options.Capabilities.SilenceEvents = Capabilities.SilenceEvents;
+    Options.Capabilities.PhonemeInfo = Capabilities.PhonemeInfo;
+    Options.Capabilities.LoadSceneInSession = Capabilities.LoadSceneInSession;
+
+    Inworld::SessionInfo Info;
+    Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);
+    Info.ExpirationTime = SessionToken.ExpirationTime;
+    Info.SessionId = TCHAR_TO_UTF8(*SessionToken.SessionId);
 
     Client->StartClient(Options, Info,
         [this](const auto& AgentInfos)

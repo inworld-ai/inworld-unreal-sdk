@@ -29,6 +29,18 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnectionStateChanged, EInworldC
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
 USTRUCT(BlueprintType)
+struct FInworldPlayerProfile
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "Player")
+    FString Name = "";
+
+    UPROPERTY(BlueprintReadWrite, Category = "Player")
+    TMap<FString, FString> Fields = {};
+};
+
+USTRUCT(BlueprintType)
 struct FInworldCapabilitySet
 {
 	GENERATED_BODY()
@@ -67,6 +79,45 @@ struct FInworldCapabilitySet
 	bool LoadSceneInSession = true;
 };
 
+USTRUCT(BlueprintType)
+struct FInworldAuth
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    FString ApiKey = "";
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    FString ApiSecret = "";
+};
+
+USTRUCT(BlueprintType)
+struct FInworldSessionToken
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "Token")
+    FString Token = "";
+
+    UPROPERTY(BlueprintReadWrite, Category = "Token")
+    int64 ExpirationTime = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Token")
+    FString SessionId = "";
+};
+
+USTRUCT(BlueprintType)
+struct FInworldEnvironment
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "Environment")
+    FString AuthUrl = "";
+
+    UPROPERTY(BlueprintReadWrite, Category = "Environment")
+    FString TargetUrl = "";
+};
+
 UCLASS(BlueprintType, Config = Engine)
 class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor
 {
@@ -82,8 +133,11 @@ public:
      * @param Token : optional, will be generated if empty
      * @param SessionId : optional, will be generated if empty
      */
-    UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AdvancedDisplay = "4"))
-    void StartSession(FInworldCapabilitySet Capabilities, const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride = "", const FString& TargetUrlOverride = "", const FString& Token = "", int64 TokenExpiration = 0, const FString& SessionId = "");
+    UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DisplayName = "StartSession", AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Capabilities, Auth, SessionToken, Environment"))
+    void StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment);
+
+    UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AdvancedDisplay = "4", DeprecatedFunction, DeprecationMessage = "Please recreate 'Start Session' node with updated parameters."))
+    void StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride = "", const FString& TargetUrlOverride = "", const FString& Token = "", int64 TokenExpiration = 0, const FString& SessionId = "");
 
     /**
      * Pause InworldAI session
