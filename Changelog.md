@@ -1,3 +1,8 @@
+# 1.3.1
+- Dynamic scene change
+- Trigger parameters
+- Player profile
+
 # 1.3.0
 - UE 5.2 support
 - Inworld NDK as a submodule
