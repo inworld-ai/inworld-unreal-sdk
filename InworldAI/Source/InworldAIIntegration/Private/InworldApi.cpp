@@ -69,6 +69,20 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     Info.ExpirationTime = TokenExpirationTime;
     Info.SessionId = TCHAR_TO_UTF8(*SessionId);
 
+    const FInworldCapabilitySet Capabilities;
+
+    Options.Capabilities.Animations = Capabilities.Animations;
+    Options.Capabilities.Text = Capabilities.Text;
+    Options.Capabilities.Audio = Capabilities.Audio;
+    Options.Capabilities.Emotions = Capabilities.Emotions;
+    Options.Capabilities.Gestures = Capabilities.Gestures;
+    Options.Capabilities.Interruptions = Capabilities.Interruptions;
+    Options.Capabilities.Triggers = Capabilities.Triggers;
+    Options.Capabilities.EmotionStreaming = Capabilities.EmotionStreaming;
+    Options.Capabilities.SilenceEvents = Capabilities.SilenceEvents;
+    Options.Capabilities.PhonemeInfo = Capabilities.PhonemeInfo;
+    Options.Capabilities.LoadSceneInSession = Capabilities.LoadSceneInSession;
+
     Client->StartClient(Options, Info,
         [this](const auto& AgentInfos)
         {
