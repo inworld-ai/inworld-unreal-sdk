@@ -22,6 +22,12 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <unordered_map>
+
+static TAutoConsoleVariable<bool> CVarLogAllPackets(
+TEXT("Inworld.Debug.LogAllPackets"), false,
+TEXT("Enable/Disable logging all packets going from server")
+);
 
 const FString DefaultAuthUrl = "api-studio.inworld.ai";
 const FString DefaultTargetUrl = "api-engine.inworld.ai:443";
@@ -74,6 +80,79 @@ void UInworldApiSubsystem::StartSession(FInworldCapabilitySet Capabilities, cons
     Info.Token = TCHAR_TO_UTF8(*Token);
     Info.ExpirationTime = TokenExpirationTime;
     Info.SessionId = TCHAR_TO_UTF8(*SessionId);
+
+    const FInworldCapabilitySet Capabilities;
+
+    Options.Capabilities.Animations = Capabilities.Animations;
+    Options.Capabilities.Text = Capabilities.Text;
+    Options.Capabilities.Audio = Capabilities.Audio;
+    Options.Capabilities.Emotions = Capabilities.Emotions;
+    Options.Capabilities.Gestures = Capabilities.Gestures;
+    Options.Capabilities.Interruptions = Capabilities.Interruptions;
+    Options.Capabilities.Triggers = Capabilities.Triggers;
+    Options.Capabilities.EmotionStreaming = Capabilities.EmotionStreaming;
+    Options.Capabilities.SilenceEvents = Capabilities.SilenceEvents;
+    Options.Capabilities.PhonemeInfo = Capabilities.PhonemeInfo;
+    Options.Capabilities.LoadSceneInSession = Capabilities.LoadSceneInSession;
+
+    Client->StartClient(Options, Info,
+        [this](const auto& AgentInfos)
+        {
+            PossessAgents(AgentInfos);
+        });
+}
+
+void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment)
+{
+    if (!ensure(GetWorld()->GetNetMode() < NM_Client))
+    {
+        Inworld::LogError("UInworldApiSubsystem::StartSession shouldn't be called on client");
+        return;
+    }
+
+    if (Auth.ApiKey.IsEmpty())
+    {
+        Inworld::LogError("Can't Start Session, ApiKey is empty");
+        return;
+    }
+    if (Auth.ApiSecret.IsEmpty())
+    {
+        Inworld::LogError("Can't Start Session, ApiSecret is empty");
+        return;
+    }
+
+    Inworld::ClientOptions Options;
+    Options.AuthUrl = TCHAR_TO_UTF8(*(!Environment.AuthUrl.IsEmpty() ? Environment.AuthUrl : DefaultAuthUrl));
+    Options.LoadSceneUrl = TCHAR_TO_UTF8(*(!Environment.TargetUrl.IsEmpty() ? Environment.TargetUrl : DefaultTargetUrl));
+    Options.SceneName = TCHAR_TO_UTF8(*SceneName);
+    Options.ApiKey = TCHAR_TO_UTF8(*Auth.ApiKey);
+    Options.ApiSecret = TCHAR_TO_UTF8(*Auth.ApiSecret);
+    Options.PlayerName = TCHAR_TO_UTF8(*PlayerProfile.Name);
+    Options.UserSettings.Profile.Fields.reserve(PlayerProfile.Fields.Num());
+    for (const auto& ProfileField : PlayerProfile.Fields)
+    {
+        Inworld::UserSettings::PlayerProfile::PlayerField PlayerField;
+        PlayerField.Id = TCHAR_TO_UTF8(*ProfileField.Key);
+        PlayerField.Value = TCHAR_TO_UTF8(*ProfileField.Value);
+        Options.UserSettings.Profile.Fields.push_back(PlayerField);
+    }
+
+    Options.Capabilities.Animations = Capabilities.Animations;
+    Options.Capabilities.Text = Capabilities.Text;
+    Options.Capabilities.Audio = Capabilities.Audio;
+    Options.Capabilities.Emotions = Capabilities.Emotions;
+    Options.Capabilities.Gestures = Capabilities.Gestures;
+    Options.Capabilities.Interruptions = Capabilities.Interruptions;
+    Options.Capabilities.Triggers = Capabilities.Triggers;
+    Options.Capabilities.EmotionStreaming = Capabilities.EmotionStreaming;
+    Options.Capabilities.SilenceEvents = Capabilities.SilenceEvents;
+    Options.Capabilities.PhonemeInfo = Capabilities.PhonemeInfo;
+    Options.Capabilities.LoadSceneInSession = Capabilities.LoadSceneInSession;
+
+    Inworld::SessionInfo Info;
+    Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);
+    Info.ExpirationTime = SessionToken.ExpirationTime;
+    Info.SessionId = TCHAR_TO_UTF8(*SessionToken.SessionId);
 
     Client->StartClient(Options, Info,
         [this](const auto& AgentInfos)
@@ -205,16 +284,6 @@ void UInworldApiSubsystem::UpdateCharacterComponentRegistrationOnClient(Inworld:
     }
 }
 
-void UInworldApiSubsystem::RegisterPlayerComponent(Inworld::IPlayerComponent* Component)
-{
-    PlayerComponent = Component;
-}
-
-void UInworldApiSubsystem::UnregisterPlayerComponent()
-{
-    PlayerComponent = nullptr;
-}
-
 void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)
 {
     if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
@@ -233,14 +302,21 @@ void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString
     }
 }
 
-void UInworldApiSubsystem::SendTrigger(FString AgentId, const FString& Name)
+void UInworldApiSubsystem::SendTrigger(FString AgentId, const FString& Name, const TMap<FString, FString>& Params)
 {
 	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
 	{
 		return;
 	}
 
-    Client->SendCustomEvent(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*Name));
+    std::unordered_map<std::string, std::string> params;
+
+    for (const TPair<FString, FString>& Param : Params)
+    {
+        params.insert(std::make_pair<std::string, std::string>(TCHAR_TO_UTF8(*Param.Key), TCHAR_TO_UTF8(*Param.Value)));
+    }
+
+    Client->SendCustomEvent(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*Name), params);
 }
 
 void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, USoundWave* SoundWave)
@@ -421,7 +497,12 @@ void UInworldApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
             InworldPacketCreator PacketCreator;
             Packet->Accept(PacketCreator);
             auto InworldPacket = PacketCreator.GetPacket();
-
+#if !UE_BUILD_SHIPPING
+            if (CVarLogAllPackets.GetValueOnGameThread())
+            {
+                Inworld::Log("PACKET: %s", *InworldPacket->ToDebugString());
+            }
+#endif
             DispatchPacket(InworldPacket);
         });
 }

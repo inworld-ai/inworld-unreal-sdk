@@ -446,7 +446,7 @@ void UInworldPlayerAudioCaptureComponent::OnPlayerTargetClear(UInworldCharacterC
     if (Target)
     {
         InworldSubsystem->StopAudioSession(Target->GetAgentId());
-        bServerCapturingVoice = true;
+        bServerCapturingVoice = false;
     }
 
     if (IsLocallyControlled())
