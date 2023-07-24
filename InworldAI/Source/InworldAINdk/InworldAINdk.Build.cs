@@ -32,7 +32,7 @@ public class InworldAINdk : ModuleRules
             }
             else if (Target.Platform == UnrealTargetPlatform.Android)
             {
-                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Android/arm64-v8a/api-31");
+                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Android/arm64-v8a");
             }
             else
             {
