@@ -21,6 +21,11 @@ public class InworldAIPlatform : ModuleRules
         {
             PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public/Apple"));
         }
+        else if (Target.Platform == UnrealTargetPlatform.Android)
+        {
+            PublicDependencyModuleNames.Add("AndroidPermission");
+            PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public/Android"));
+        }
         else
         {
             PrivateDefinitions.Add("INWORLD_PLATFORM_GENERIC=1");
