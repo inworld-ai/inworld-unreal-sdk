@@ -63,12 +63,14 @@ public class InworldAIIntegration : ModuleRules
             }
             );
 
-        SetupGameplayDebuggerSupport(Target);
-
-        PrivateDefinitions.Add("INWORLD_DEBUGGER_SLOT=5");
-
         PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/Include"));
 
         AddEngineThirdPartyPrivateStaticDependencies(Target, "zlib");
+
+        if (Target.bBuildDeveloperTools || (Target.Configuration != UnrealTargetConfiguration.Shipping && Target.Configuration != UnrealTargetConfiguration.Test))
+        {
+            PrivateDependencyModuleNames.Add("GameplayDebugger");
+            PrivateDefinitions.Add("INWORLD_DEBUGGER_SLOT=5");
+        }
     }
 }
