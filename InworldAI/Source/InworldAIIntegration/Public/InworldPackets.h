@@ -14,6 +14,8 @@
 
 #include "InworldPackets.generated.h"
 
+void AppendToDebugString(FString& DbgStr, const FString& Str);
+
 USTRUCT()
 struct FInworldActor
 {
@@ -27,6 +29,8 @@ struct FInworldActor
 	{}
 
 	void Serialize(FMemoryArchive& Ar);
+
+	void AppendDebugString(FString& Str) const;
 
 	UPROPERTY()
 	EInworldActorType Type =  EInworldActorType::UNKNOWN;
@@ -46,7 +50,9 @@ struct FInworldRouting
 		, Target(Routing._Target)
 	{}
 
-	void Serialize(FMemoryArchive & Ar);
+	void Serialize(FMemoryArchive& Ar);
+
+	void AppendDebugString(FString& Str) const;
 
 	UPROPERTY()
 	FInworldActor Source;
@@ -69,6 +75,8 @@ struct FInworldPacketId
 
 	void Serialize(FMemoryArchive & Ar);
 
+	void AppendDebugString(FString& Str) const;
+
 	UPROPERTY()
 	FString UID;
 	UPROPERTY()
@@ -87,6 +95,7 @@ struct FInworldCancelResponseEvent;
 struct FInworldSimpleGestureEvent;
 struct FInworldCustomGestureEvent;
 struct FInworldCustomEvent;
+struct FInworldChangeSceneEvent;
 
 class InworldPacketVisitor
 {
@@ -101,6 +110,7 @@ public:
 	virtual void Visit(const FInworldSimpleGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomEvent& Event) {  }
+	virtual void Visit(const FInworldChangeSceneEvent& Event) {  }
 };
 
 USTRUCT()
@@ -108,7 +118,7 @@ struct FInworldPacket
 {
 	GENERATED_BODY()
 
-	FInworldPacket() = default;
+		FInworldPacket() = default;
 	FInworldPacket(const Inworld::Packet& Packet)
 		: PacketId(Packet._PacketId)
 		, Routing(Packet._Routing)
@@ -119,10 +129,15 @@ struct FInworldPacket
 
 	virtual void Serialize(FMemoryArchive& Ar);
 
+	FString ToDebugString() const;
+
 	UPROPERTY()
 	FInworldPacketId PacketId;
 	UPROPERTY()
 	FInworldRouting Routing;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const PURE_VIRTUAL(FInworldPacket::AppendDebugString);
 };
 
 USTRUCT()
@@ -144,6 +159,9 @@ struct FInworldTextEvent : public FInworldPacket
 	FString Text;
 	UPROPERTY()
 	bool Final = false;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const override;
 };
 
 struct FInworldDataEvent : public FInworldPacket
@@ -161,6 +179,9 @@ struct FInworldDataEvent : public FInworldPacket
 	virtual void Serialize(FMemoryArchive& Ar) override;
 
 	std::string Chunk;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const;
 };
 
 struct FInworldPhonemeInfo
@@ -191,6 +212,9 @@ struct FInworldAudioDataEvent : public FInworldDataEvent
 
 	TArray<FInworldPhonemeInfo> PhonemeInfos;
 	bool bFinal = true;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const;
 };
 
 USTRUCT()
@@ -209,6 +233,9 @@ struct FInworldSilenceEvent : public FInworldPacket
 
 	UPROPERTY()
 	float Duration = 0.f;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const;
 };
 
 USTRUCT()
@@ -227,6 +254,9 @@ struct FInworldControlEvent : public FInworldPacket
 
 	UPROPERTY()
 	EInworldControlEventAction Action = EInworldControlEventAction::UNKNOWN;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const;
 };
 
 USTRUCT()
@@ -248,6 +278,9 @@ struct FInworldEmotionEvent : public FInworldPacket
 	EInworldCharacterEmotionalBehavior Behavior = EInworldCharacterEmotionalBehavior::NEUTRAL;
 	UPROPERTY()
 	EInworldCharacterEmotionStrength Strength = EInworldCharacterEmotionStrength::NORMAL;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const;
 };
 
 USTRUCT()
@@ -256,18 +289,74 @@ struct FInworldCustomEvent : public FInworldPacket
 	GENERATED_BODY()
 
 	FInworldCustomEvent() = default;
-	FInworldCustomEvent(const Inworld::CustomEvent& Event)
-		: FInworldPacket(Event)
-		, Name(UTF8_TO_TCHAR(Event.GetName().c_str()))
-	{}
+	FInworldCustomEvent(const Inworld::CustomEvent& Event);
 	virtual ~FInworldCustomEvent() = default;
 
 	virtual void Accept(InworldPacketVisitor & Visitor) override { Visitor.Visit(*this); }
 		
 	UPROPERTY()
 	FString Name;
+
+	UPROPERTY(NotReplicated)
+	TMap<FString, FString> Params;
+	
+	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
+	{
+		TArray<FString> ParamKeys;
+		TArray<FString> ParamValues;
+
+		if (Ar.IsLoading())
+		{
+			Ar << ParamKeys;
+			Ar << ParamValues;
+			for (auto It = ParamKeys.CreateConstIterator(); It; ++It)
+			{
+				Params.Add(ParamKeys[It.GetIndex()], ParamValues[It.GetIndex()]);
+			}
+		}
+		else
+		{
+			Params.GenerateKeyArray(ParamKeys);
+			Params.GenerateValueArray(ParamValues);
+			Ar << ParamKeys;
+			Ar << ParamValues;
+		}
+
+		bOutSuccess = true;
+		return true;
+	}
+	
+protected:
+	virtual void AppendDebugString(FString& Str) const;
 };
 
+template<>
+struct TStructOpsTypeTraits<FInworldCustomEvent> : public TStructOpsTypeTraitsBase2<FInworldCustomEvent>
+{
+	enum
+	{
+		WithNetSerializer = true
+	};
+};
+
+USTRUCT()
+struct FInworldChangeSceneEvent : public FInworldPacket
+{
+	GENERATED_BODY()
+
+	FInworldChangeSceneEvent() = default;
+	FInworldChangeSceneEvent(const Inworld::ChangeSceneEvent& Event)
+		: AgentInfos(Event.GetAgentInfos())
+	{}
+	virtual ~FInworldChangeSceneEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	std::vector<Inworld::AgentInfo> AgentInfos;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const;
+};
 
 class InworldPacketCreator : public Inworld::PacketVisitor
 {
@@ -281,10 +370,11 @@ public:
 	virtual void Visit(const Inworld::ControlEvent& Event) override { Create<FInworldControlEvent, Inworld::ControlEvent>(Event); }
 	virtual void Visit(const Inworld::EmotionEvent& Event) override { Create<FInworldEmotionEvent, Inworld::EmotionEvent>(Event); }
 	virtual void Visit(const Inworld::CustomEvent& Event) override { Create<FInworldCustomEvent, Inworld::CustomEvent>(Event); }
+	virtual void Visit(const Inworld::ChangeSceneEvent& Event) override { Create<FInworldChangeSceneEvent, Inworld::ChangeSceneEvent>(Event); }
 
 	std::shared_ptr<FInworldPacket> GetPacket() { return Packet; }
 
-private:
+protected:
 	template<typename TNew, typename TOrig>
 	void Create(const TOrig& Event)
 	{

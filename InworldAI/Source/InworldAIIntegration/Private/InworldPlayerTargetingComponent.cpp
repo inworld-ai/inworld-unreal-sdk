@@ -5,8 +5,8 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
-
 #include "InworldPlayerTargetingComponent.h"
+#include "InworldPlayerComponent.h"
 #include "Camera/CameraComponent.h"
 
 

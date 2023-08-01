@@ -14,6 +14,7 @@
 #include "InworldState.h"
 #include "InworldComponentInterface.h"
 #include "NDK/Client.h"
+#include "InworldGameplayDebuggerCategory.h"
 #include "InworldApi.generated.h"
 
 namespace Inworld
@@ -27,8 +28,98 @@ class UInworldAudioRepl;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnectionStateChanged, EInworldConnectionState, State);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
+USTRUCT(BlueprintType)
+struct FInworldPlayerProfile
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "Player")
+    FString Name = "";
+
+    UPROPERTY(BlueprintReadWrite, Category = "Player")
+    TMap<FString, FString> Fields = {};
+};
+
+USTRUCT(BlueprintType)
+struct FInworldCapabilitySet
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Animations = false;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Text = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Audio = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Emotions = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Gestures = true;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Interruptions = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool Triggers = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool EmotionStreaming = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool SilenceEvents = true;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool PhonemeInfo = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	bool LoadSceneInSession = true;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldAuth
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    FString ApiKey = "";
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    FString ApiSecret = "";
+};
+
+USTRUCT(BlueprintType)
+struct FInworldSessionToken
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "Token")
+    FString Token = "";
+
+    UPROPERTY(BlueprintReadWrite, Category = "Token")
+    int64 ExpirationTime = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Token")
+    FString SessionId = "";
+};
+
+USTRUCT(BlueprintType)
+struct FInworldEnvironment
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "Environment")
+    FString AuthUrl = "";
+
+    UPROPERTY(BlueprintReadWrite, Category = "Environment")
+    FString TargetUrl = "";
+};
+
 UCLASS(BlueprintType, Config = Engine)
-class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem
+class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor
 {
 	GENERATED_BODY()
 
@@ -42,7 +133,10 @@ public:
      * @param Token : optional, will be generated if empty
      * @param SessionId : optional, will be generated if empty
      */
-    UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AdvancedDisplay = "4"))
+    UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DisplayName = "StartSession", AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Capabilities, Auth, SessionToken, Environment"))
+    void StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment);
+
+    UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AdvancedDisplay = "4", DeprecatedFunction, DeprecationMessage = "Please recreate 'Start Session' node with updated parameters."))
     void StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride = "", const FString& TargetUrlOverride = "", const FString& Token = "", int64 TokenExpiration = 0, const FString& SessionId = "");
 
     /**
@@ -66,6 +160,11 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void StopSession();
 
+private:
+    void PossessAgents(const std::vector<Inworld::AgentInfo>& AgentInfos);
+    void UnpossessAgents();
+
+public:
     /**
      * Register Character component
      * call before StartSession
@@ -78,22 +177,15 @@ public:
 	void UpdateCharacterComponentRegistrationOnClient(Inworld::ICharacterComponent* Component, const FString& NewAgentId, const FString& OldAgentId);
 
 public:
-    /**
-     * Register Player component
-     * call before StartSession
-     */
-	void RegisterPlayerComponent(Inworld::IPlayerComponent* Component);
-	void UnregisterPlayerComponent();
-
     /** Send text to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages")
     void SendTextMessage(const FString& AgentId, const FString& Text);
 
     /** Send trigger to agent */
-	UFUNCTION(BlueprintCallable, Category = "Messages")
-	void SendTrigger(FString AgentId, const FString& Name);
+	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
+	void SendTrigger(FString AgentId, const FString& Name, const TMap<FString, FString>& Params);
     [[deprecated("UInworldApiSubsystem::SendCustomEvent is deprecated, please use UInworldApiSubsystem::SendTrigger")]]
-    void SendCustomEvent(FString AgentId, const FString& Name) { SendTrigger(AgentId, Name); }
+    void SendCustomEvent(FString AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
 
     /**
      * Send audio to agent
@@ -121,6 +213,10 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
     void StopAudioSession(const FString& AgentId);
+
+    /** Change scene */
+    UFUNCTION(BlueprintCallable, Category = "Messages")
+    void ChangeScene(const FString& SceneId);
 
     /** Get current connection state */
     UFUNCTION(BlueprintCallable, Category = "Connection")
@@ -174,6 +270,8 @@ public:
 private:
 	void DispatchPacket(std::shared_ptr<FInworldPacket> InworldPacket);
 
+    virtual void Visit(const FInworldChangeSceneEvent& Event) override;
+
     UPROPERTY(EditAnywhere, config, Category = "Connection")
     FString SentryDSN;
 
@@ -201,9 +299,9 @@ private:
     TArray<Inworld::ICharacterComponent*> CharacterComponentRegistry;
     TMap<FString, Inworld::AgentInfo> AgentInfoByBrain;
 
-    Inworld::IPlayerComponent* PlayerComponent;
-
     Inworld::FClient::SharedPtr Client;
 
-    bool bCharactersInitialized = false;
+	bool bCharactersInitialized = false;
+
+	friend class FInworldGameplayDebuggerCategory;
 };

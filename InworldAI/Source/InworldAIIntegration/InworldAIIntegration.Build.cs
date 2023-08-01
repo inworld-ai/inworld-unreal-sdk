@@ -60,8 +60,11 @@ public class InworldAIIntegration : ModuleRules
                 "ApplicationCore",
                 "AudioMixer",
                 "Projects",
+                "GameplayDebugger",
             }
             );
+
+        PrivateDefinitions.Add("INWORLD_DEBUGGER_SLOT=5");
 
         PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/Include"));
 

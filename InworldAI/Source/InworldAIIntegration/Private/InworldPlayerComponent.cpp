@@ -15,19 +15,10 @@ void UInworldPlayerComponent::BeginPlay()
     Super::BeginPlay();
 
     InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
-    if (InworldSubsystem.IsValid())
-    {
-        InworldSubsystem->RegisterPlayerComponent(this);
-    }
 }
 
 void UInworldPlayerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    if (InworldSubsystem.IsValid())
-    {
-        InworldSubsystem->UnregisterPlayerComponent();
-    }
-
     Super::EndPlay(EndPlayReason);
 }
 
@@ -77,11 +68,11 @@ void UInworldPlayerComponent::SendTextMessageToTarget(const FString& Message)
     }
 }
 
-void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name)
+void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params)
 {
     if (!TargetCharacterAgentId.IsEmpty())
     {
-        InworldSubsystem->SendTrigger(TargetCharacterAgentId, Name);
+        InworldSubsystem->SendTrigger(TargetCharacterAgentId, Name, Params);
     }
 }
 

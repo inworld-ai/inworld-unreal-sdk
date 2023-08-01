@@ -18,6 +18,7 @@
 #include "InworldPackets.h"
 #include "InworldSockets.h"
 #include <GameFramework/OnlineReplStructs.h>
+#include "InworldGameplayDebuggerCategory.h"
 
 #include "InworldCharacterComponent.generated.h"
 
@@ -120,10 +121,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void SendTextMessage(const FString& Text) const;
 
-	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void SendTrigger(const FString& Name) const;
+	UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (AutoCreateRefTerm = "Params"))
+	void SendTrigger(const FString& Name, const TMap<FString, FString>& Params) const;
 	[[deprecated("UInworldCharacterComponent::SendCustomEvent is deprecated, please use UInworldCharacterComponent::SendTrigger")]]
-	void SendCustomEvent(const FString& Name) const { SendTrigger(Name); }
+	void SendCustomEvent(const FString& Name) const { SendTrigger(Name, {}); }
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void SendAudioMessage(USoundWave* SoundWave) const;
@@ -241,4 +242,6 @@ private:
 	FString AgentId;
 	
 	FString GivenName;
+
+	friend class FInworldGameplayDebuggerCategory;
 };
