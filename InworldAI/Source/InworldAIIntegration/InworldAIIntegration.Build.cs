@@ -60,9 +60,10 @@ public class InworldAIIntegration : ModuleRules
                 "ApplicationCore",
                 "AudioMixer",
                 "Projects",
-                "GameplayDebugger",
             }
             );
+
+        SetupGameplayDebuggerSupport(Target);
 
         PrivateDefinitions.Add("INWORLD_DEBUGGER_SLOT=5");
 
