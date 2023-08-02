@@ -24,14 +24,14 @@ jobs:
     - name: Copy Plugins & Remove Assets
       shell: bash
       run: |
-          rm -rf InworldAI\Content
-          rm -rf TestInworldFPS\TestInworldFPS\Plugins\InworldAI
-          rm -rf TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuma
-          rm -rf "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe
-          cp -r InworldAI TestInworldFPS\TestInworldFPS\Plugins\InworldAI
-          cp -r InworldAI\inworld-ndk\src TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\InworldAINdk\Public\NDK
-          cp -r InworldMetahuman TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman
-          cp -r InworldReadyPlayerMe TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe
+          rm -rf "InworldAI/Content"
+          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
+          rm -rf TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuma"
+          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
+          cp -r "InworldAI TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
+          cp -r "InworldAI/inworld-ndk/src TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
+          cp -r "InworldMetahuman TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
+          cp -r "InworldReadyPlayerMe TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
     - name: BuildEditor-ios-50
       shell: bash
       run: |
