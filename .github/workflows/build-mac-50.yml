@@ -26,18 +26,22 @@ jobs:
       run: |
           rm -rf "InworldAI/Content"
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
-          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuma"
+          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
+          mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
           cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
+          mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
           cp -r "InworldAI/inworld-ndk/src" "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
+          mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
           cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
+          mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
           cp -r "InworldReadyPlayerMe" "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
     - name: BuildEditor-Mac-50
       shell: bash
       run: |
           sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildEditorLog.txt BuildEditor -project="TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping
           cat BuildEditorLog.txt
-          if grep -Fxq "$BuildEditorLog.txt" "BUILD SUCCESSFULs"
+          if grep -Fxq "$BuildEditorLog.txt" "BUILD SUCCESSFUL"
           then
               exit 1
           fi
@@ -47,7 +51,7 @@ jobs:
       run: |
           sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping
           cat BuildGameLog.txt
-          if grep -Fxq "$BuildGameLog.txt" "BUILD SUCCESSFULs"
+          if grep -Fxq "$BuildGameLog.txt" "BUILD SUCCESSFUL"
           then
               exit 1
           fi
