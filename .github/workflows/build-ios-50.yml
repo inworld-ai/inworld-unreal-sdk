@@ -40,7 +40,7 @@ jobs:
           sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildEditor -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=iOS  -notools -configuration=Development+Shipping
           cat BuildGameLog.txt
           wait  
-          if (grep -Fxq "$BuildGameLog.txt" "BUILD SUCCESSFUL")
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
           then
               exit 0
           fi
