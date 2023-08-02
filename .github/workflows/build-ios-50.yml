@@ -37,8 +37,8 @@ jobs:
     - name: BuildGame-ios-50
       shell: bash
       run: |
-          UEPath = "/Users/Shared/Epic Games/UE_5.1"
-          sh "$UEPath/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=iOS  -notools -configuration=Development+Shipping -Wait -NoNewWindow -PassThru 
+          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=iOS  -notools -configuration=Development+Shipping
+          wait
           cat BuildGameLog.txt
           if (grep -Fxq "$BuildGameLog.txt" "BUILD SUCCESSFUL")
           then
