@@ -29,14 +29,11 @@ jobs:
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
           mkdir "TestInworldFPS/TestInworldFPS/Plugins"
-          mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
-          cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
+          cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins"
           mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
-          cp -r "InworldAI/inworld-ndk/src" "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
-          mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
-          cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
-          mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
-          cp -r "InworldReadyPlayerMe" "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
+          cp -r "InworldAI/inworld-ndk/src/." "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
+          cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
+          cp -r "InworldReadyPlayerMe" "TestInworldFPS/TestInworldFPS/Plugins"
     - name: BuildEditor-Mac-50
       shell: bash
       run: |
