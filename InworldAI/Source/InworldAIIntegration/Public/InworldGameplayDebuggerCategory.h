@@ -7,7 +7,7 @@
 
 #pragma once
 
-#if WITH_GAMEPLAY_DEBUGGER
+#ifdef WITH_GAMEPLAY_DEBUGGER
 
 #include "GameplayDebuggerCategory.h"
 

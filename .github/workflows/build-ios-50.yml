@@ -1,0 +1,48 @@
+
+name: Build iOS UE.5.0
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**/README.md'
+      - '**/gitignore'
+  workflow_dispatch:
+
+jobs:
+  build-ios-50:
+    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
+    steps:
+    - uses: actions/checkout@v2
+    - name: git-update-dependecies
+      run: git submodule update --init --recursive
+    - run: mkdir -p TestInworldFPS 
+    - uses: actions/checkout@v2
+      with:
+        ref: 'TestInworldFPS'
+        path: 'TestInworldFPS'
+    - name: Copy Plugins & Remove Assets
+      shell: bash
+      run: |
+          rm -rf "InworldAI/Content"
+          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
+          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
+          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
+          mkdir "TestInworldFPS/TestInworldFPS/Plugins"
+          cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins"
+          mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
+          cp -r "InworldAI/inworld-ndk/src/." "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
+          cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
+          cp -r "InworldReadyPlayerMe" "TestInworldFPS/TestInworldFPS/Plugins"
+    - name: BuildGame-ios-50
+      shell: bash
+      run: |
+          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=iOS  -notools -configuration=Development+Shipping
+          cat BuildGameLog.txt
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
+          then
+              exit 0
+          fi
+          exit 1
+
+         
