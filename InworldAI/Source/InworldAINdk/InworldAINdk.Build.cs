@@ -30,6 +30,10 @@ public class InworldAINdk : ModuleRules
             {
                 return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/iOS/Clang-1300");
             }
+            else if (Target.Platform == UnrealTargetPlatform.Android)
+            {
+                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Android/arm64-v8a");
+            }
             else
             {
                 return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Unknown");
@@ -44,7 +48,7 @@ public class InworldAINdk : ModuleRules
             Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
         }
 
-        foreach (string newPath in Directory.GetFiles(sourcePath, "*.*",SearchOption.AllDirectories))
+        foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
         {
             File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
         }
@@ -53,7 +57,7 @@ public class InworldAINdk : ModuleRules
     public InworldAINdk(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        
+
         // copy NDK source code
         if (!Directory.Exists(Path.Combine(ModuleDirectory, "Public/NDK")))
         {
@@ -78,12 +82,12 @@ public class InworldAINdk : ModuleRules
         PublicDefinitions.Add("GPR_FORBID_UNREACHABLE_CODE");
         PublicDefinitions.Add("GRPC_ALLOW_EXCEPTIONS=0");
         PublicDefinitions.Add("GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE=0");
-        
+
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_UNREAL=1");
 
-        // IOS & Mac Platforms do not support Audio Echo Cancellation (AEC)
-        if (Target.Platform != UnrealTargetPlatform.IOS && Target.Platform != UnrealTargetPlatform.Mac)
+        // Audio Echo Cancellation (AEC) supported on Winddows only
+        if (Target.Platform == UnrealTargetPlatform.Win64)
         {
             PublicDefinitions.Add("INWORLD_AEC=1");
         }
@@ -136,7 +140,9 @@ public class InworldAINdk : ModuleRules
             {
                 Name = string.Concat(Name, ".lib");
             }
-            else if (Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.IOS)
+            else if (Target.Platform == UnrealTargetPlatform.Mac ||
+                Target.Platform == UnrealTargetPlatform.IOS ||
+                Target.Platform == UnrealTargetPlatform.Android)
             {
                 Name = Name.IndexOf("lib") != 0 ?
                     string.Concat("lib", Name, ".a") : string.Concat(Name, ".a");
@@ -150,7 +156,7 @@ public class InworldAINdk : ModuleRules
             RuntimeDependencies.Add(Path.Combine("$(BinaryOutputDir)", "webrtc_aec_plugin.dll"), Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.dll"));
         }
 
-        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac)
+        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android)
         {
             AddEngineThirdPartyPrivateStaticDependencies(Target, "zlib");
         }

@@ -9,6 +9,8 @@
 
 #if PLATFORM_IOS || PLATFORM_MAC
 #include "AppleMicrophoneImpl.h"
+#elif PLATFORM_ANDROID
+#include "AndroidMicrophoneImpl.h"
 #else
 #include "GenericMicrophoneImpl.h"
 #endif
@@ -19,6 +21,8 @@ void FInworldAIPlatformModule::StartupModule()
 {
 #if PLATFORM_IOS || PLATFORM_MAC
     PlatformMicrophone = MakeUnique<Inworld::Platform::AppleMicrophoneImpl>();
+#elif PLATFORM_ANDROID
+    PlatformMicrophone = MakeUnique<Inworld::Platform::AndroidMicrophoneImpl>();
 #else
     PlatformMicrophone = MakeUnique<Inworld::Platform::GenericMicrophoneImpl>();
 #endif
