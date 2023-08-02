@@ -37,7 +37,7 @@ jobs:
     - name: BuildEditor-ios-50
       shell: bash
       run: |
-          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildEditorLog.txt BuildEditor -project="TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=iOS  -notools -configuration=Development+Shipping
+          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildEditorLog.txt BuildEditor -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=iOS  -notools -configuration=Development+Shipping
           cat BuildEditorLog.txt
           if grep -Fxq "$BuildEditorLog.txt" "BUILD SUCCESSFUL"
           then
@@ -47,7 +47,7 @@ jobs:
     - name: BuildGame-ios-50
       shell: bash
       run: |
-          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=iOS  -notools -configuration=Development+Shipping
+          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=iOS  -notools -configuration=Development+Shipping
           cat BuildGameLog.txt
           if grep -Fxq "$BuildGameLog.txt" "BUILD SUCCESSFUL"
           then
