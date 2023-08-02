@@ -28,6 +28,7 @@ jobs:
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
+          mkdir "TestInworldFPS/TestInworldFPS/Plugins"
           mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
           cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
           mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
