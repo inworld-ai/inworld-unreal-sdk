@@ -37,10 +37,9 @@ jobs:
     - name: BuildEditor-Mac-50
       shell: bash
       run: |
-          UEPath = "/Users/Shared/Epic Games/UE_5.1"
-          sh $UEPath/Engine/Build/BatchFiles/RunUAT.sh > BuildEditorLog.txt BuildEditor -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping -NoNewWindow -PassThru 
-          cat BuildEditorLog.txt
-          if (grep -Fxq "$BuildEditorLog.txt" "BUILD SUCCESSFUL")
+          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildEditor -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping
+          cat BuildGameLog.txt
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
           then
               exit 0
           fi
@@ -48,10 +47,9 @@ jobs:
     - name: BuildGame-Mac-50
       shell: bash
       run: |
-          UEPath = "/Users/Shared/Epic Games/UE_5.1"
-          sh $UEPath/Engine/Build/BatchFiles/RunUAT.sh > BuildGameLog.txt BuildGame -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping -NoNewWindow -PassThru 
+          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping
           cat BuildGameLog.txt
-          if (grep -Fxq "$BuildGameLog.txt" "BUILD SUCCESSFUL")
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
           then
               exit 0
           fi
