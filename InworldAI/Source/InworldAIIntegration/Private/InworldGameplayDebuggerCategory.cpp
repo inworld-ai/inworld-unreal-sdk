@@ -5,7 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
-#if WITH_GAMEPLAY_DEBUGGER
+#ifdef WITH_GAMEPLAY_DEBUGGER
 
 #include "InworldGameplayDebuggerCategory.h"
 #include "InworldApi.h"
