@@ -37,7 +37,7 @@ jobs:
     - name: BuildEditor-Mac-50
       shell: bash
       run: |
-          UEPath = /Users/Shared/Epic Games/UE_5.1
+          UEPath = "/Users/Shared/Epic Games/UE_5.1"
           sh $UEPath/Engine/Build/BatchFiles/RunUAT.sh > BuildEditorLog.txt BuildEditor -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping -NoNewWindow -PassThru 
           cat BuildEditorLog.txt
           if (grep -Fxq "$BuildEditorLog.txt" "BUILD SUCCESSFUL")
@@ -48,7 +48,7 @@ jobs:
     - name: BuildGame-Mac-50
       shell: bash
       run: |
-          UEPath = /Users/Shared/Epic Games/UE_5.1
+          UEPath = "/Users/Shared/Epic Games/UE_5.1"
           sh $UEPath/Engine/Build/BatchFiles/RunUAT.sh > BuildGameLog.txt BuildGame -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping -NoNewWindow -PassThru 
           cat BuildGameLog.txt
           if (grep -Fxq "$BuildGameLog.txt" "BUILD SUCCESSFUL")
