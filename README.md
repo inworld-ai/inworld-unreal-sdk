@@ -14,6 +14,9 @@ The **Inworld.AI Unreal Engine SDK** enables Developers to integrate Inworld.ai 
   <tr>
     <td><b>iOS</b></td>
   </tr>
+  <tr>
+    <td><b>Android</b></td>
+  </tr>
 </table>
 
 ## Getting started
