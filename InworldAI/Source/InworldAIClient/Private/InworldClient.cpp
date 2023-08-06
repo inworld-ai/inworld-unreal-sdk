@@ -8,9 +8,6 @@
 #include "InworldClient.h"
 #include "CoreMinimal.h"
 
-#include "SocketSubsystem.h"
-#include "IPAddress.h"
-
 #include "InworldUtils.h"
 
 #include "Async/Async.h"
@@ -36,9 +33,9 @@ Inworld::FClient::FOnAudioDumperCVarChanged Inworld::FClient::OnAudioDumperCVarC
 FAutoConsoleVariableSink Inworld::FClient::CVarSink(FConsoleCommandDelegate::CreateStatic(&Inworld::FClient::OnCVarsChanged));
 #endif
 
-void Inworld::FClient::InitClient(std::string UserId, std::string ClientId, std::string ClientVer, std::function<void(ConnectionState)> ConnectionStateCallback, std::function<void(std::shared_ptr<Inworld::Packet>)> PacketCallback)
+void Inworld::FClient::InitClient(std::string ClientId, std::string ClientVer, std::function<void(ConnectionState)> ConnectionStateCallback, std::function<void(std::shared_ptr<Inworld::Packet>)> PacketCallback)
 {
-	ClientBase::InitClient(GenerateUserId(), ClientId, ClientVer, ConnectionStateCallback, PacketCallback);
+	ClientBase::InitClient(ClientId, ClientVer, ConnectionStateCallback, PacketCallback);
 #if !UE_BUILD_SHIPPING
 	auto OnAudioDumperCVarChangedCallback = [this](bool bEnable, FString Path)
 	{
@@ -51,6 +48,20 @@ void Inworld::FClient::InitClient(std::string UserId, std::string ClientId, std:
 	OnAudioDumperCVarChangedHandle = OnAudioDumperCVarChanged.AddLambda(OnAudioDumperCVarChangedCallback);
 	OnAudioDumperCVarChangedCallback(CVarEnableSoundDump.GetValueOnGameThread(), CVarSoundDumpPath.GetValueOnGameThread());
 #endif
+}
+
+void Inworld::FClient::StartClient(const ClientOptions& Options, const SessionInfo& Info, std::function<void(const std::vector<AgentInfo>&)> LoadSceneCallback)
+{
+	if (Options.UserId.empty())
+	{
+		ClientOptions Opt = Options;
+		Opt.UserId = GenerateUserId();
+		Inworld::ClientBase::StartClient(Opt, Info, LoadSceneCallback);
+	}
+	else
+	{
+		Inworld::ClientBase::StartClient(Options, Info, LoadSceneCallback);
+	}
 }
 
 void Inworld::FClient::DestroyClient()
@@ -86,21 +97,26 @@ void Inworld::FClient::AddTaskToMainThread(std::function<void()> Task)
 
 std::string Inworld::FClient::GenerateUserId()
 {
-	bool CanBindAll;
-	TSharedRef<FInternetAddr> LocalIp = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetLocalHostAddr(*GLog, CanBindAll);
-	if (!LocalIp->IsValid())
+	FString Id = FPlatformMisc::GetDeviceId();
+	if (Id.IsEmpty())
 	{
-		Inworld::LogError("Couldn't generate user id, local ip isn't valid");
-		return "";
+		Id = FPlatformMisc::GetMacAddressString();
+	}
+	if (Id.IsEmpty())
+	{
+		Inworld::LogError("Couldn't generate user id.");
+		return std::string();
 	}
 
-	const std::string LocalIpStr = TCHAR_TO_UTF8(*LocalIp->ToString(false));
+	Inworld::Log("Device Id: %s", *Id);
 
+	std::string SId = TCHAR_TO_UTF8(*Id);
 	TArray<uint8> Data;
-	Data.SetNumZeroed(LocalIpStr.size());
-	FMemory::Memcpy(Data.GetData(), LocalIpStr.data(), LocalIpStr.size());
+	Data.SetNumZeroed(SId.size());
+	FMemory::Memcpy(Data.GetData(), SId.data(), SId.size());
 
 	Data = Inworld::Utils::HmacSha256(Data, Data);
+	SId = Utils::ToHex(Data);
 
 	return Utils::ToHex(Data);
 }
