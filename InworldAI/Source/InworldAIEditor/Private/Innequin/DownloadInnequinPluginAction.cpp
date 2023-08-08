@@ -34,7 +34,11 @@ void UDownloadInnequinPluginAction::Activate()
 				const FString TempPath = FDesktopPlatformModule::Get()->GetUserTempPath();
 				const FString ZipLocation = FString::Format(TEXT("{0}{1}"), { TempPath, TEXT("InworldInnequin.zip") });
 				const FString ZipURL = TEXT("https://storage.googleapis.com/assets-inworld-ai/models/innequin/unreal/InworldInnequin_1.0.0.zip");
-				const FString GetZipCommandLineArgs = FString::Format(TEXT("{0} \"{1}\" \"{2}\""), FStringFormatOrderedArguments({ "--output", ZipLocation, ZipURL }));
+				FStringFormatOrderedArguments GetZipFormattedArgs;
+				GetZipFormattedArgs.Add(FStringFormatArg(TEXT("--output")));
+				GetZipFormattedArgs.Add(FStringFormatArg(ZipLocation));
+				GetZipFormattedArgs.Add(FStringFormatArg(ZipURL));
+				const FString GetZipCommandLineArgs = FString::Format(TEXT("{0} \"{1}\" \"{2}\""), GetZipFormattedArgs);
 				TSharedPtr<FMonitoredProcess> GetZipProcess = MakeShareable(new FMonitoredProcess(TEXT("curl"), GetZipCommandLineArgs, true));
 				NotifyLog(TEXT("Downloading..."));
 				GetZipProcess->OnOutput().BindLambda([this](const FString& Output)
@@ -60,7 +64,12 @@ void UDownloadInnequinPluginAction::Activate()
 				NotifyLog(TEXT("Downloading Complete!"));
 
 				const FString PluginLocation = FPaths::ProjectPluginsDir();
-				const FString UnzipCommandLineArgs = FString::Format(TEXT("{0} \"{1}\" {2} \"{3}\""), FStringFormatOrderedArguments({ "-xf", ZipLocation, "-C", PluginLocation }));
+				FStringFormatOrderedArguments UnzipFormattedArgs;
+				UnzipFormattedArgs.Add(FStringFormatArg(TEXT("-xf")));
+				UnzipFormattedArgs.Add(FStringFormatArg(ZipLocation));
+				UnzipFormattedArgs.Add(FStringFormatArg(TEXT("-C")));
+				UnzipFormattedArgs.Add(FStringFormatArg(PluginLocation));
+				const FString UnzipCommandLineArgs = FString::Format(TEXT("{0} \"{1}\" {2} \"{3}\""), UnzipFormattedArgs);
 				TSharedPtr<FMonitoredProcess> UnzipProcess = MakeShareable(new FMonitoredProcess(TEXT("tar"), UnzipCommandLineArgs, true));
 				NotifyLog(TEXT("Extracting..."));
 				if (!UnzipProcess->Launch())
