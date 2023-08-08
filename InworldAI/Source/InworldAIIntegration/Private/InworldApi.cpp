@@ -57,8 +57,7 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     }
     
     Inworld::ClientOptions Options;
-    Options.AuthUrl = TCHAR_TO_UTF8(*(!AuthUrlOverride.IsEmpty() ? AuthUrlOverride : DefaultAuthUrl));
-    Options.LoadSceneUrl = TCHAR_TO_UTF8(*(!TargetUrlOverride.IsEmpty() ? TargetUrlOverride : DefaultTargetUrl));
+    Options.ServerUrl = TCHAR_TO_UTF8(*(!TargetUrlOverride.IsEmpty() ? TargetUrlOverride : DefaultTargetUrl));
     Options.SceneName = TCHAR_TO_UTF8(*SceneName);
     Options.ApiKey = TCHAR_TO_UTF8(*ApiKey);
     Options.ApiSecret = TCHAR_TO_UTF8(*ApiSecret);
@@ -110,8 +109,7 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
     }
 
     Inworld::ClientOptions Options;
-    Options.AuthUrl = TCHAR_TO_UTF8(*(!Environment.AuthUrl.IsEmpty() ? Environment.AuthUrl : DefaultAuthUrl));
-    Options.LoadSceneUrl = TCHAR_TO_UTF8(*(!Environment.TargetUrl.IsEmpty() ? Environment.TargetUrl : DefaultTargetUrl));
+    Options.ServerUrl = TCHAR_TO_UTF8(*(!Environment.TargetUrl.IsEmpty() ? Environment.TargetUrl : DefaultTargetUrl));
     Options.SceneName = TCHAR_TO_UTF8(*SceneName);
     Options.ApiKey = TCHAR_TO_UTF8(*Auth.ApiKey);
     Options.ApiSecret = TCHAR_TO_UTF8(*Auth.ApiSecret);
