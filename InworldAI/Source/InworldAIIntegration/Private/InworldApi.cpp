@@ -57,8 +57,7 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     }
     
     Inworld::ClientOptions Options;
-    Options.AuthUrl = TCHAR_TO_UTF8(*(!AuthUrlOverride.IsEmpty() ? AuthUrlOverride : DefaultAuthUrl));
-    Options.LoadSceneUrl = TCHAR_TO_UTF8(*(!TargetUrlOverride.IsEmpty() ? TargetUrlOverride : DefaultTargetUrl));
+    Options.ServerUrl = TCHAR_TO_UTF8(*(!TargetUrlOverride.IsEmpty() ? TargetUrlOverride : DefaultTargetUrl));
     Options.SceneName = TCHAR_TO_UTF8(*SceneName);
     Options.ApiKey = TCHAR_TO_UTF8(*ApiKey);
     Options.ApiSecret = TCHAR_TO_UTF8(*ApiSecret);
@@ -90,7 +89,7 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
         });
 }
 
-void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment)
+void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride)
 {
     if (!ensure(GetWorld()->GetNetMode() < NM_Client))
     {
@@ -110,12 +109,16 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
     }
 
     Inworld::ClientOptions Options;
-    Options.AuthUrl = TCHAR_TO_UTF8(*(!Environment.AuthUrl.IsEmpty() ? Environment.AuthUrl : DefaultAuthUrl));
-    Options.LoadSceneUrl = TCHAR_TO_UTF8(*(!Environment.TargetUrl.IsEmpty() ? Environment.TargetUrl : DefaultTargetUrl));
+    Options.ServerUrl = TCHAR_TO_UTF8(*(!Environment.TargetUrl.IsEmpty() ? Environment.TargetUrl : DefaultTargetUrl));
     Options.SceneName = TCHAR_TO_UTF8(*SceneName);
     Options.ApiKey = TCHAR_TO_UTF8(*Auth.ApiKey);
     Options.ApiSecret = TCHAR_TO_UTF8(*Auth.ApiSecret);
     Options.PlayerName = TCHAR_TO_UTF8(*PlayerProfile.Name);
+    if (!UniqueUserIdOverride.IsEmpty())
+    {
+        Options.UserId = TCHAR_TO_UTF8(*UniqueUserIdOverride);
+    }
+
     Options.UserSettings.Profile.Fields.reserve(PlayerProfile.Fields.Num());
     for (const auto& ProfileField : PlayerProfile.Fields)
     {
@@ -450,7 +453,6 @@ void UInworldApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     Client->SetSelfWeakPtr(Client);
 
     Client->InitClient(
-        "", //UserId is generated internally
         "unreal",
         ClientVer,
         [this](Inworld::ClientBase::ConnectionState ConnectionState)

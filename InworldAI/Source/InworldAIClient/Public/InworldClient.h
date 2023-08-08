@@ -52,7 +52,8 @@ namespace Inworld
 			CreateAsyncRoutines<FAsyncRoutine>();
 		}
 
-		virtual void InitClient(std::string UserId, std::string ClientId, std::string ClientVer, std::function<void(ConnectionState)> ConnectionStateCallback, std::function<void(std::shared_ptr<Inworld::Packet>)> PacketCallback) override;
+		virtual void InitClient(std::string ClientId, std::string ClientVer, std::function<void(ConnectionState)> ConnectionStateCallback, std::function<void(std::shared_ptr<Inworld::Packet>)> PacketCallback) override;
+		virtual void StartClient(const ClientOptions& Options, const SessionInfo& Info, std::function<void(const std::vector<AgentInfo>&)> LoadSceneCallback) override;
 		virtual void DestroyClient() override;
 
 		void SetSelfWeakPtr(WeakPtr Ptr) { SelfWeakPtr = Ptr; }

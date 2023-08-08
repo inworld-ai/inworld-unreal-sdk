@@ -59,7 +59,7 @@ public class InworldAINdk : ModuleRules
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         // copy NDK source code
-        if (!Directory.Exists(Path.Combine(ModuleDirectory, "Public/NDK")))
+        //if (!Directory.Exists(Path.Combine(ModuleDirectory, "Public/NDK")))
         {
             Directory.CreateDirectory(Path.Combine(ModuleDirectory, "Public/NDK"));
             CopyFilesRecursively(Path.Combine(NdkDirectory, "src"), Path.Combine(ModuleDirectory, "Public/NDK"));
