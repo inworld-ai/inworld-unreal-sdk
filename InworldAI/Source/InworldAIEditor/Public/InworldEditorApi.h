@@ -12,6 +12,7 @@
 #include "TickableEditorObject.h"
 #include "InworldStudioUserData.h"
 #include "InworldEditorClient.h"
+#include "Kismet/BlueprintAsyncActionBase.h"
 #include "InworldEditorApi.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInworldEditorApiSubsystemOnLogin, bool, bSuccess, FInworldStudioUserData, Data);
@@ -37,6 +38,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	void CancelRequestStudioData();
+
+	void NotifyRestartRequired();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inworld")
 	bool IsRequestInProgress() const { return Client.IsRequestInProgress(); }
@@ -72,9 +75,11 @@ public:
 
 	bool CanSetupAssetAsInworldPlayer(const FAssetData& AssetData, bool bLogErrors = false);
 	void SetupAssetAsInworldPlayer(const FAssetData& AssetData);
+	void SetupBlueprintAsInworldPlayer(UBlueprint* Blueprint);
 
 	bool CanSetupAssetAsInworldCharacter(const FAssetData& AssetData, bool bLogErrors = false);
 	void SetupAssetAsInworldCharacter(const FAssetData& AssetData);
+	void SetupBlueprintAsInworldCharacter(UBlueprint* Blueprint);
 
 	/** Subsystem interface */
 	virtual bool DoesSupportWorldType(EWorldType::Type WorldType) const override;
@@ -90,7 +95,13 @@ public:
 	void SavePackageToCharacterFolder(UObject* Object, const FInworldStudioUserCharacterData& CharacterData, const FString& NamePrefix, FString NameSuffix = "");
 
 	UObject* AddNodeToBlueprint(UBlueprint* Blueprint, UClass* Class, const FString& NodeName);
+	UObject* AddNodeToBlueprintNode(UBlueprint* Blueprint, const FString& ParentNodeName, UClass* Class, const FString& NodeName);
 	UObject* GetNodeFromBlueprint(UBlueprint* Blueprint, const FString& NodeName);
+
+	UFUNCTION()
+	bool CanCreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData);
+	UFUNCTION()
+	void CreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData);
 
 private:
 	void CacheStudioData(const FInworldStudioUserData& Data);
@@ -106,4 +117,6 @@ private:
 	};
 
 	TMap<FName, FCharacterStudioDataFunctions> CharacterStudioDataFunctionMap;
+
+	TSharedPtr<class FInworldEditorRestartRequiredNotification> RestartRequiredNotification;
 };

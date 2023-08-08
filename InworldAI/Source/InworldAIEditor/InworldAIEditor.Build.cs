@@ -30,6 +30,7 @@ public class InworldAIEditor : ModuleRules
                 "HTTP",
                 "Json",
                 "JsonUtilities",
+                "DesktopPlatform",
                 "InworldAIClient",
                 "InworldAIIntegration",
                 "InworldAINdk",

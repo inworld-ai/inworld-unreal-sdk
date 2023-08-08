@@ -29,6 +29,9 @@
 #include "InworldAIEditorSettings.h"
 #include "NDK/Utils/Log.h"
 #include "Templates/Casts.h"
+#include "InworldEditorNotification.h"
+#include "Innequin/InnequinPluginDataAsset.h"
+#include "Interfaces/IPluginManager.h"
 
 const FString& UInworldEditorApiSubsystem::GetSavedStudioAccessToken() const
 {
@@ -51,6 +54,11 @@ void UInworldEditorApiSubsystem::RequestStudioData(const FString& ExchangeToken)
 void UInworldEditorApiSubsystem::CancelRequestStudioData()
 {
 	Client.CancelRequests();
+}
+
+void UInworldEditorApiSubsystem::NotifyRestartRequired()
+{
+	RestartRequiredNotification->OnRestartRequired();
 }
 
 TArray<FString> UInworldEditorApiSubsystem::GetWorldActorNames() const
@@ -197,7 +205,11 @@ void UInworldEditorApiSubsystem::SetupAssetAsInworldPlayer(const FAssetData& Ass
 
 	auto* Object = AssetData.GetAsset();
 	auto* Blueprint = Cast<UBlueprint>(Object);
+	SetupBlueprintAsInworldPlayer(Blueprint);
+}
 
+void UInworldEditorApiSubsystem::SetupBlueprintAsInworldPlayer(UBlueprint* Blueprint)
+{
 	const UInworldAIEditorSettings* InworldAIEditorSettings = GetDefault<UInworldAIEditorSettings>();
 
 	const TSubclassOf<UInworldPlayerComponent> InworldPlayerComponent = InworldAIEditorSettings->InworldPlayerComponent;
@@ -246,6 +258,11 @@ void UInworldEditorApiSubsystem::SetupAssetAsInworldCharacter(const FAssetData& 
 	auto* Object = AssetData.GetAsset();
 	auto* Blueprint = Cast<UBlueprint>(Object);
 
+	SetupBlueprintAsInworldCharacter(Blueprint);
+}
+
+void UInworldEditorApiSubsystem::SetupBlueprintAsInworldCharacter(UBlueprint* Blueprint)
+{
 	const UInworldAIEditorSettings* InworldAIEditorSettings = GetDefault<UInworldAIEditorSettings>();
 
 	const TSubclassOf<UInworldCharacterComponent> InworldCharacterComponent = InworldAIEditorSettings->InworldCharacterComponent;
@@ -278,6 +295,13 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 {
 	Super::Initialize(Collection);
 
+	RestartRequiredNotification = MakeShared<FInworldEditorRestartRequiredNotification>();
+	RestartRequiredNotification->SetOnRestartApplicationCallback(FSimpleDelegate::CreateLambda([]()
+		{
+			FUnrealEdMisc::Get().RestartEditor(false);
+		}
+	));
+
 	FInworldAIEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FInworldAIEditorModule>("InworldAIEditor");
 	Module.BindMenuAssetAction(
 		FName("Inworld Player"),
@@ -295,6 +319,12 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 		FAssetAction::CreateUObject(this, &UInworldEditorApiSubsystem::SetupAssetAsInworldCharacter),
 		FAssetActionPermission::CreateUObject(this, &UInworldEditorApiSubsystem::CanSetupAssetAsInworldCharacter, false)
 	);
+
+	FOnCharacterStudioDataPermission PermissionDelegate;
+	PermissionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CanCreateInnequinActor);
+	FOnCharacterStudioDataAction ActionDelegate;
+	ActionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CreateInnequinActor);
+	BindActionForCharacterData(FName("Create Innequin"), PermissionDelegate, ActionDelegate);
 }
 
 void UInworldEditorApiSubsystem::Deinitialize()
@@ -306,6 +336,8 @@ void UInworldEditorApiSubsystem::Deinitialize()
 	FInworldAIEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FInworldAIEditorModule>("InworldAIEditor");
 	Module.UnbindMenuAssetAction(FName("Inworld Player"));
 	Module.UnbindMenuAssetAction(FName("Inworld Character"));
+
+	UnbindActionForCharacterData(FName("Create Innequin"));
 }
 
 void UInworldEditorApiSubsystem::SavePackageToCharacterFolder(UObject* Object, const FInworldStudioUserCharacterData& CharacterData, const FString& NamePrefix, FString NameSuffix)
@@ -332,6 +364,19 @@ UObject* UInworldEditorApiSubsystem::AddNodeToBlueprint(UBlueprint* Blueprint, U
 	Blueprint->SimpleConstructionScript->AddNode(BPNode);
 	FKismetEditorUtilities::CompileBlueprint(Blueprint);
 	return BPNode->ComponentTemplate;
+}
+
+UObject* UInworldEditorApiSubsystem::AddNodeToBlueprintNode(UBlueprint* Blueprint, const FString& ParentNodeName, UClass* Class, const FString& NodeName)
+{
+	USCS_Node* BPNodeParent = Blueprint->SimpleConstructionScript->FindSCSNode(*ParentNodeName);
+	if (BPNodeParent)
+	{
+		USCS_Node* BPNodeChild = Blueprint->SimpleConstructionScript->CreateNode(Class, *NodeName);
+		BPNodeParent->AddChildNode(BPNodeChild);
+		FKismetEditorUtilities::CompileBlueprint(Blueprint);
+		return BPNodeChild->ComponentTemplate;
+	}
+	return nullptr;
 }
 
 UObject* UInworldEditorApiSubsystem::GetNodeFromBlueprint(UBlueprint* Blueprint, const FString& NodeName)
@@ -380,4 +425,74 @@ UBlueprint* UInworldEditorApiSubsystem::CreateCharacterActorBP(const FInworldStu
 	}
 
 	return Cast<UBlueprint>(Object);
+}
+
+bool UInworldEditorApiSubsystem::CanCreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData)
+{
+	TSharedPtr<IPlugin> InworldInnequinPlugin = IPluginManager::Get().FindPlugin("InworldInnequin");
+	if (!InworldInnequinPlugin.IsValid())
+	{
+		return false;
+	}
+	if (InworldInnequinPlugin.Get()->GetDescriptor().VersionName != TEXT("1.0.0"))
+	{
+		return false;
+	}
+	return true;
+}
+
+void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData)
+{
+	TSoftObjectPtr<UInnequinPluginDataAsset> InnequinPluginDataAsset(FSoftObjectPath("/InworldInnequin/InnequinPluginDataAsset.InnequinPluginDataAsset"));
+	InnequinPluginDataAsset.LoadSynchronous();
+	UInnequinPluginDataAsset* InnequinPluginData = InnequinPluginDataAsset.Get();
+
+	UBlueprint* Blueprint = CreateCharacterActorBP(CharacterData);
+
+	auto* MeshComponent = Cast<USkeletalMeshComponent>(AddNodeToBlueprint(Blueprint, USkeletalMeshComponent::StaticClass(), TEXT("Mesh")));
+	if (!MeshComponent)
+	{
+		Inworld::LogError("UInworldEditorApiSubsystem::CreateInnequinActor couldn't create USkeletalMeshComponent");
+		return;
+	}
+
+	MeshComponent->SetSkeletalMesh(InnequinPluginData->SkeletalMesh);
+	MeshComponent->SetAnimInstanceClass(InnequinPluginData->AnimBlueprint->GeneratedClass);
+
+	SetupBlueprintAsInworldCharacter(Blueprint);
+
+	auto* CharacterComponent = Cast<UInworldCharacterComponent>(GetNodeFromBlueprint(Blueprint, TEXT("InworldCharacterComponent")));
+	if (!CharacterComponent)
+	{
+		Inworld::LogError("UInworldEditorApiSubsystem::CreateInnequinActor couldn't find UInworldCharacterComponent");
+		return;
+	}
+
+	for (TSubclassOf<UInworldCharacterPlayback> CharacterPlaybackClass : InnequinPluginData->CharacterPlaybacks)
+	{
+		CharacterComponent->PlaybackTypes.Add(CharacterPlaybackClass);
+	}
+
+	CharacterComponent->SetBrainName(CharacterData.Name);
+
+	AddNodeToBlueprint(Blueprint, InnequinPluginData->InnequinComponent, TEXT("Innequin"));
+
+	auto* EmoteComponent = Cast<USceneComponent>(AddNodeToBlueprint(Blueprint, InnequinPluginData->EmoteComponent, TEXT("Emote")));
+	if (!EmoteComponent)
+	{
+		Inworld::LogError("UInworldEditorApiSubsystem::CreateInnequinActor couldn't create Emote Component");
+		return;
+	}
+
+	EmoteComponent->SetupAttachment(MeshComponent, TEXT("EmoteSocket"));
+	if (USCS_Node* SCS_Node = Blueprint->SimpleConstructionScript->FindSCSNode(TEXT("Emote")))
+	{
+		SCS_Node->Modify();
+		SCS_Node->AttachToName = FName("EmoteSocket");
+	}
+	EmoteComponent->SetRelativeScale3D(FVector(0.0475f, 0.0475f, 0.0475f));
+	EmoteComponent->SetRelativeRotation(FRotator(0.f, 0.f, -90.f));
+
+	FKismetEditorUtilities::CompileBlueprint(Blueprint);
+	SavePackageToCharacterFolder(Blueprint, CharacterData, "BP");
 }
