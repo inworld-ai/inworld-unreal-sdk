@@ -1,3 +1,8 @@
+# 1.3.2
+- Android support
+- Fix capabilities for default StartSession
+- Generate user id
+
 # 1.3.1
 - Dynamic scene change
 - Trigger parameters
