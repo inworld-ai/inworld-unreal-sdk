@@ -456,8 +456,8 @@ void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCha
 		return;
 	}
 
-	MeshComponent->SetSkeletalMesh(InnequinPluginData->SkeletalMesh);
-	MeshComponent->SetAnimInstanceClass(InnequinPluginData->AnimBlueprint->GeneratedClass);
+	MeshComponent->SetSkeletalMesh(InnequinPluginData->SkeletalMesh.LoadSynchronous());
+	MeshComponent->SetAnimInstanceClass(InnequinPluginData->AnimBlueprint.LoadSynchronous()->GeneratedClass);
 
 	SetupBlueprintAsInworldCharacter(Blueprint);
 

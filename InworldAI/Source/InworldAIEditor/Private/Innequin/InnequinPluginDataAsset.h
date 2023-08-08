@@ -18,10 +18,10 @@ class UInnequinPluginDataAsset : public UDataAsset
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<USkeletalMesh> SkeletalMesh;
+	TSoftObjectPtr<USkeletalMesh> SkeletalMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UAnimBlueprint> AnimBlueprint;
+	TSoftObjectPtr<UAnimBlueprint> AnimBlueprint;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TSubclassOf<UActorComponent> InnequinComponent;
