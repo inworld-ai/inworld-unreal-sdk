@@ -9,6 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "EditorUtilityLibrary.h"
+#include "Kismet/BlueprintAsyncActionBase.h"
 #include "DownloadInnequinPluginAction.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDownloadInnequinOutputPin, bool, bSuccess);

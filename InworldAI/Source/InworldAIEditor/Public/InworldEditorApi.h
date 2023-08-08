@@ -12,7 +12,6 @@
 #include "TickableEditorObject.h"
 #include "InworldStudioUserData.h"
 #include "InworldEditorClient.h"
-#include "Kismet/BlueprintAsyncActionBase.h"
 #include "InworldEditorApi.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInworldEditorApiSubsystemOnLogin, bool, bSuccess, FInworldStudioUserData, Data);
