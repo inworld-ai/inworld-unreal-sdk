@@ -6,12 +6,15 @@
  */
 
 #include "AudioSessionDumper.h"
+
+#if !UE_BUILD_SHIPPING
+
 #include <iostream>
 #include <fstream>
 
 constexpr uint32 gSamplesPerSec = 16000;
 
-struct FWavHeader 
+struct FWavHeader
 {
 	uint8 RIFF[4] = { 'R', 'I', 'F', 'F' };
 	uint32 ChunkSize;
@@ -117,4 +120,4 @@ void FAsyncAudioDumper::Stop()
 		Runnable.Reset();
 	}
 }
-
+#endif
