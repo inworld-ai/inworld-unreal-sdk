@@ -19,7 +19,13 @@
 #include "HAL/ConsoleManager.h"
 
 THIRD_PARTY_INCLUDES_START
+// UNREAL ENGINE 4
+#pragma warning(push)
+#pragma warning(disable:4583)
+#pragma warning(disable:4582)
 #include "GrpcHelpers.h"
+#pragma warning(pop)
+// UNREAL ENGINE 4
 #include "Utils/Log.h"
 #include "Utils/Utils.h"
 #include "Client.h"
