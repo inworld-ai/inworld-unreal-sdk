@@ -15,8 +15,7 @@
 *.so
 *.dylib
 *.dll
-!InworldOVRLipSync/OVRLipSync/ThirdParty/Lib/Win64/OVRLipSync.dll
-!InworldEchoCancellation/ThirdParty/Libraries/Win64/webrtc_aec_plugin.dll
+!InworldAI/Source/ThirdParty/Inworld/lib/Win64/webrtc_aec_plugin.dll
 !InworldAI/ThirdParty/Libraries/Win64/*.dll
 !InworldAI/ThirdParty/Libraries/Mac/*.dylib
 
