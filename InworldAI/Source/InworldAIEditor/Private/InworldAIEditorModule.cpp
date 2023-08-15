@@ -20,6 +20,8 @@
 
 #define LOCTEXT_NAMESPACE "FInworldAIEditorModule"
 
+DEFINE_LOG_CATEGORY(LogInworldAIEditor);
+
 void FInworldAIEditorModule::StartupModule()
 {
 	FInworldEditorUIStyle::Initialize();

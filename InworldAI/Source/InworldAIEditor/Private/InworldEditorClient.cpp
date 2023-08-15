@@ -7,18 +7,113 @@
 
 #include "InworldEditorClient.h"
 
+#include "HttpModule.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
+
 #include "JsonObjectConverter.h"
 #include "Interfaces/IPluginManager.h"
 
+#include "InworldAsyncRoutine.h"
+
 #include "HAL/ConsoleManager.h"
 
-#include "NDK/GrpcHelpers.h"
-#include "NDK/Utils/Log.h"
-#include "NDK/Utils/Utils.h"
+THIRD_PARTY_INCLUDES_START
+#include "GrpcHelpers.h"
+#include "Utils/Log.h"
+#include "Utils/Utils.h"
+#include "Client.h"
+#include "RunnableCommand.h"
+THIRD_PARTY_INCLUDES_END
 
-#include "InworldStudioUserData.h"
+namespace Inworld
+{
+	class FHttpRequest
+	{
+	public:
+		FHttpRequest(const FString& InURL, const FString& InVerb, const FString& InContent, TFunction<void(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)> InCallback)
+			: URL(InURL)
+			, Verb(InVerb)
+			, Content(InContent)
+			, Callback(InCallback)
+		{
+			Process();
+		}
 
-void Inworld::FEditorClient::RequestUserData(const FEditorClientOptions& Options, TFunction<void(const FInworldStudioUserData& UserData, bool IsError)> InCallback)
+		void Cancel();
+		bool IsDone() const;
+
+	private:
+		void Process();
+		void CallCallback(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess);
+
+		FHttpRequestPtr Request;
+		FString URL;
+		FString Verb;
+		FString Content;
+		TFunction<void(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)> Callback;
+		bool bCallbackCalled = false;
+		bool bCanceled = false;
+	};
+
+	class FEditorClient
+	{
+	public:
+		void RequestUserData(const FInworldEditorClientOptions& Options, TFunction<void(const FInworldStudioUserData& UserData, bool IsError)> InCallback);
+
+		void CancelRequests();
+
+		void Tick(float DeltaTime);
+
+		void RequestReadyPlayerMeModelData(const FInworldStudioUserCharacterData& CharacterData, TFunction<void(const TArray<uint8>& Data)> InCallback);
+		bool GetActiveApiKey(FInworldStudioUserWorkspaceData& InWorkspaceData, FInworldStudioUserApiKeyData& InApiKeyData);
+
+		bool IsUserDataReady() const { return UserData.Workspaces.Num() != 0; }
+		bool IsRequestInProgress() const { return Requests.Num() != 0 || HttpRequests.Num() != 0; }
+		const FInworldStudioUserData& GetUserData() const { return UserData; }
+		const FString& GetError() const { return ErrorMessage; }
+
+	private:
+		void Request(FString ThreadName, TUniquePtr<Inworld::Runnable> InRunnable);
+
+		void CheckDoneRequests();
+
+		void HttpRequest(const FString& InURL, const FString& InVerb, const FString& InContent, TFunction<void(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)> InCallback);
+
+		void OnFirebaseTokenResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess);
+
+		void OnUserTokenReady(const InworldV1alpha::GenerateTokenUserResponse& Response);
+		void OnWorkspacesReady(const InworldV1alpha::ListWorkspacesResponse& Response);
+		void OnApiKeysReady(const InworldV1alpha::ListApiKeysResponse& Response, FInworldStudioUserWorkspaceData& WorkspaceData);
+		void OnScenesReady(const InworldV1alpha::ListScenesResponse& Response, FInworldStudioUserWorkspaceData& WorkspaceData);
+		void OnCharactersReady(const InworldV1alpha::ListCharactersResponse& Response, FInworldStudioUserWorkspaceData& WorkspaceData);
+
+		void OnCharacterModelReady(FHttpResponsePtr Response, FInworldStudioUserCharacterData& CharacterData);
+		void OnCharacterImageReady(FHttpResponsePtr Response, FInworldStudioUserCharacterData& CharacterData);
+		void OnCharacterPortraitReady(FHttpResponsePtr Response, FInworldStudioUserCharacterData& CharacterData);
+		void OnCharacterPostureReady(FHttpResponsePtr Response, FInworldStudioUserCharacterData& CharacterData);
+
+		void Error(FString Message);
+		void ClearError();
+
+		FCriticalSection RequestsMutex;
+		TArray<FInworldAsyncRoutine> Requests;
+
+		TArray<FHttpRequest> HttpRequests;
+
+		FInworldStudioUserData UserData;
+
+		FString InworldToken;
+
+		TFunction<void(const FInworldStudioUserData& UserData, bool IsError)> UserDataCallback;
+		TFunction<void(const TArray<uint8>& Data)> RPMActorCreateCallback;
+		FString ServerUrl;
+
+		FString ErrorMessage;
+	};
+}
+
+void Inworld::FEditorClient::RequestUserData(const FInworldEditorClientOptions& Options, TFunction<void(const FInworldStudioUserData& UserData, bool IsError)> InCallback)
 {
 	ClearError();
 
@@ -26,14 +121,14 @@ void Inworld::FEditorClient::RequestUserData(const FEditorClientOptions& Options
     FString RefreshToken;
     if (!Options.ExchangeToken.Split(":", &IdToken, &RefreshToken))
     {
-        Error(FString::Printf(TEXT("FEditorClient::RequestUserData FALURE! Invalid Refresh Token.")));
+        Error(FString::Printf(TEXT("EditorClient::RequestUserData FALURE! Invalid Refresh Token.")));
         return;
     }
 
     UserData.Workspaces.Empty();
 
 	UserDataCallback = InCallback;
-    ServerUrl = TCHAR_TO_UTF8(*Options.ServerUrl);
+    ServerUrl = Options.ServerUrl;
 
     FRefreshTokenRequestData RequestData;
     RequestData.grant_type = "refresh_token";
@@ -71,12 +166,12 @@ void Inworld::FEditorClient::CancelRequests()
     UserDataCallback = nullptr;
 }
 
-void Inworld::FEditorClient::Request(std::string ThreadName, std::unique_ptr<Inworld::Runnable> InRunnable)
+void Inworld::FEditorClient::Request(FString ThreadName, TUniquePtr<Inworld::Runnable> InRunnable)
 {
 	FScopeLock Lock(&RequestsMutex);
 
-	auto& AsyncTask = Requests.Emplace_GetRef();
-	AsyncTask.Start(ThreadName, std::move(InRunnable));
+	auto& AsyncTask = Requests.Emplace_GetRef(ThreadName, MoveTemp(InRunnable));
+	AsyncTask.Start();
 }
 
 void Inworld::FEditorClient::CheckDoneRequests()
@@ -131,22 +226,22 @@ void Inworld::FEditorClient::OnFirebaseTokenResponse(FHttpRequestPtr InRequest, 
 {
     if (!bSuccess)
     {
-		Error(FString::Printf(TEXT("FEditorClient::OnFirebaseTokenResponse FALURE! Code: %d"), InResponse ? InResponse->GetResponseCode() : -1));
+		Error(FString::Printf(TEXT("EditorClient::OnFirebaseTokenResponse FALURE! Code: %d"), InResponse ? InResponse->GetResponseCode() : -1));
 		return;
     }
 
     FRefreshTokenResponseData ResponseData;
     if (!FJsonObjectConverter::JsonObjectStringToUStruct(InResponse->GetContentAsString(), &ResponseData))
     {
-        Error(FString::Printf(TEXT("FEditorClient::OnFirebaseTokenResponse FALURE! Invalid Response Data.")));
+        Error(FString::Printf(TEXT("EditorClient::OnFirebaseTokenResponse FALURE! Invalid Response Data.")));
 		return;
     }
 
 	Request(
         "RunnableGenerateUserTokenRequest",
-		MakeRunnableGenerateUserTokenRequest(
+		MakeUnique<Inworld::RunnableGenerateUserTokenRequest>(
 			TCHAR_TO_UTF8(*ResponseData.id_token),
-			ServerUrl,
+			TCHAR_TO_UTF8(*ServerUrl),
 			[this](const grpc::Status& Status, const InworldV1alpha::GenerateTokenUserResponse& Response)
 			{
 				if (!Status.ok())
@@ -180,7 +275,7 @@ void Inworld::FEditorClient::RequestReadyPlayerMeModelData(const FInworldStudioU
         {
             if (!bSuccess || InResponse->GetContent().Num() == 0)
 			{
-                Error(FString::Printf(TEXT("FEditorClient::RequestReadyPlayerMeModelData request FALURE!, Code: %d"), InResponse ? InResponse->GetResponseCode() : -1));
+                Error(FString::Printf(TEXT("EditorClient::RequestReadyPlayerMeModelData request FALURE!, Code: %d"), InResponse ? InResponse->GetResponseCode() : -1));
                 return;
             }
 
@@ -208,13 +303,13 @@ bool Inworld::FEditorClient::GetActiveApiKey(FInworldStudioUserWorkspaceData& In
 
 void Inworld::FEditorClient::OnUserTokenReady(const InworldV1alpha::GenerateTokenUserResponse& Response)
 {
-    InworldToken = Response.token();
+    InworldToken = UTF8_TO_TCHAR(Response.token().c_str());
 
 	Request(
         "RunnableListWorkspacesRequest",
-        MakeRunnableListWorkspacesRequest(
-			InworldToken,
-			ServerUrl,
+		MakeUnique<Inworld::RunnableListWorkspacesRequest>(
+			TCHAR_TO_UTF8(*InworldToken),
+			TCHAR_TO_UTF8(*ServerUrl),
 			[this](const grpc::Status& Status, const InworldV1alpha::ListWorkspacesResponse& Response)
 			{
 				if (!Status.ok())
@@ -253,9 +348,9 @@ void Inworld::FEditorClient::OnWorkspacesReady(const InworldV1alpha::ListWorkspa
 
 		Request(
             "RunnableListScenesRequest",
-            MakeRunnableListScenesRequest(
-				InworldToken,
-				ServerUrl,
+            MakeUnique<Inworld::RunnableListScenesRequest>(
+				TCHAR_TO_UTF8(*InworldToken),
+				TCHAR_TO_UTF8(*ServerUrl),
 				GrpcWorkspace.name(),
 				[this, &Workspace](const grpc::Status& Status, const InworldV1alpha::ListScenesResponse& Response)
 				{
@@ -272,9 +367,9 @@ void Inworld::FEditorClient::OnWorkspacesReady(const InworldV1alpha::ListWorkspa
 
 		Request(
             "RunnableListCharactersRequest",
-			MakeRunnableListCharactersRequest(
-				InworldToken,
-				ServerUrl,
+			MakeUnique<Inworld::RunnableListCharactersRequest>(
+				TCHAR_TO_UTF8(*InworldToken),
+				TCHAR_TO_UTF8(*ServerUrl),
 				GrpcWorkspace.name(),
 				[this, &Workspace](const grpc::Status& Status, const InworldV1alpha::ListCharactersResponse& Response)
 				{
@@ -291,9 +386,9 @@ void Inworld::FEditorClient::OnWorkspacesReady(const InworldV1alpha::ListWorkspa
 
 		Request(
             "RunnableListApiKeysRequest",
-            MakeRunnableListApiKeysRequest(
-				InworldToken,
-				ServerUrl,
+            MakeUnique<Inworld::RunnableListApiKeysRequest>(
+				TCHAR_TO_UTF8(*InworldToken),
+				TCHAR_TO_UTF8(*ServerUrl),
 				GrpcWorkspace.name(),
 				[this, &Workspace](const grpc::Status& Status, const InworldV1alpha::ListApiKeysResponse& Response)
 				{
@@ -384,7 +479,7 @@ void Inworld::FEditorClient::OnCharacterPostureReady(FHttpResponsePtr Response, 
 
 void Inworld::FEditorClient::Error(FString Message)
 {
-    Inworld::LogError(TCHAR_TO_UTF8(*Message));
+	UE_LOG(LogInworldAIEditor, Error, TEXT("%s"), *Message);
     ErrorMessage = Message;
 }
 
@@ -440,4 +535,58 @@ void Inworld::FHttpRequest::CallCallback(FHttpRequestPtr RequestPtr, FHttpRespon
 		Callback(RequestPtr, ResponsePtr, bSuccess);
 		bCallbackCalled = true;
 	}
+}
+
+void FInworldEditorClient::Init()
+{
+	InworldEditorClient = MakeShared<Inworld::FEditorClient>();
+}
+
+void FInworldEditorClient::Destroy()
+{
+	if (InworldEditorClient)
+	{
+		InworldEditorClient->CancelRequests();
+	}
+	InworldEditorClient.Reset();
+}
+
+void FInworldEditorClient::RequestUserData(const FInworldEditorClientOptions& Options, TFunction<void(const FInworldStudioUserData& UserData, bool IsError)> InCallback)
+{
+	InworldEditorClient->RequestUserData(Options, InCallback);
+}
+
+void FInworldEditorClient::RequestReadyPlayerMeModelData(const FInworldStudioUserCharacterData& CharacterData, TFunction<void(const TArray<uint8>& Data)> InCallback)
+{
+	InworldEditorClient->RequestReadyPlayerMeModelData(CharacterData, InCallback);
+}
+
+void FInworldEditorClient::CancelRequests()
+{
+	InworldEditorClient->CancelRequests();
+}
+
+void FInworldEditorClient::Tick(float DeltaTime)
+{
+	InworldEditorClient->Tick(DeltaTime);
+}
+
+bool FInworldEditorClient::IsUserDataReady()
+{
+	return InworldEditorClient->IsUserDataReady();
+}
+
+bool FInworldEditorClient::IsRequestInProgress() const
+{
+	return InworldEditorClient->IsRequestInProgress();
+}
+
+const FInworldStudioUserData& FInworldEditorClient::GetUserData()
+{
+	return InworldEditorClient->GetUserData();
+}
+
+const FString& FInworldEditorClient::GetError() const
+{
+	return InworldEditorClient->GetError();
 }
