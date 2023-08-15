@@ -6,19 +6,18 @@ using UnrealBuildTool;
 public class InworldAIIntegration : ModuleRules
 {
     public InworldAIIntegration(ReadOnlyTargetRules Target) : base(Target)
-	{
+    {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicDependencyModuleNames.AddRange(
-            new string[] 
-            { 
-                "Core", 
-                "CoreUObject", 
-                "Engine", 
+            new string[]
+            {
+                "Core",
+                "CoreUObject",
+                "Engine",
                 "InputCore",
                 "AudioCaptureCore",
                 "InworldAIClient",
-                "GameplayDebugger",
             });
 
 
