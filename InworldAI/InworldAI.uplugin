@@ -43,17 +43,6 @@
 			]
 		},
 		{
-			"Name": "InworldAINdk",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [
-				"Win64",
-				"Mac",
-				"Android",
-				"IOS"
-			]
-		},
-		{
 			"Name": "InworldAIEditor",
 			"Type": "Editor",
 			"LoadingPhase": "PostEngineInit",
