@@ -8,7 +8,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InworldUtils.h"
+#include "InworldTimer.h"
 
 #include "InworldPlayerTargetingComponent.generated.h"
 

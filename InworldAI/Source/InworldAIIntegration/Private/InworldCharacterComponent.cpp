@@ -6,11 +6,8 @@
  */
 
 #include "InworldCharacterComponent.h"
-#include "NDK/Proto/ProtoDisableWarning.h"
 #include "InworldApi.h"
 #include "Engine/EngineBaseTypes.h"
-#include "NDK/Utils/Utils.h"
-#include "NDK/Utils/Log.h"
 #include "InworldPlayerComponent.h"
 #include <Camera/CameraComponent.h>
 #include <Net/UnrealNetwork.h>
@@ -114,10 +111,10 @@ void UInworldCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProp
 	DOREPLIFETIME(UInworldCharacterComponent, AgentId);
 }
 
-void UInworldCharacterComponent::Possess(const Inworld::AgentInfo& AgentInfo)
+void UInworldCharacterComponent::Possess(const FInworldAgentInfo& AgentInfo)
 {
-	AgentId = FString(UTF8_TO_TCHAR(AgentInfo.AgentId.c_str()));
-	GivenName = FString(UTF8_TO_TCHAR(AgentInfo.GivenName.c_str()));
+	AgentId = AgentInfo.AgentId;
+	GivenName = AgentInfo.GivenName;
 	OnPossessed.Broadcast();
 }
 
@@ -164,7 +161,7 @@ UInworldCharacterPlayback* UInworldCharacterComponent::GetPlayback(TSubclassOf<U
     return nullptr;
 }
 
-void UInworldCharacterComponent::HandlePacket(std::shared_ptr<FInworldPacket> Packet)
+void UInworldCharacterComponent::HandlePacket(TSharedPtr<FInworldPacket> Packet)
 {
     if (ensure(Packet))
 	{
@@ -346,7 +343,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 	{
 		if (Event.Final)
 		{
-			Inworld::Log("%s to %s: %s", *FromActor.Name, *ToActor.Name, *Event.Text);
+			UE_LOG(LogInworldAIIntegration, Log, TEXT("%s to %s: %s"), *FromActor.Name, *ToActor.Name, *Event.Text);
 		}
 
 		// Don't add to queue, player talking is instant.
@@ -369,7 +366,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 	{
 		if (Event.Final)
 		{
-			Inworld::Log("%s to %s: %s", *FromActor.Name, *ToActor.Name, *Event.Text);
+			UE_LOG(LogInworldAIIntegration, Log, TEXT("%s to %s: %s"), *FromActor.Name, *ToActor.Name, *Event.Text);
 		}
 
 		MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(GetWorld()->GetTimeSeconds(), Event.PacketId.InteractionId, Event.PacketId.UtteranceId, [Event](auto MessageToUpdate) {
@@ -387,18 +384,18 @@ void UInworldCharacterComponent::VisitAudioOnClient(const FInworldAudioDataEvent
 	}
 
 	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(GetWorld()->GetTimeSeconds(), Event.PacketId.InteractionId, Event.PacketId.UtteranceId, [Event](auto MessageToUpdate) {
-		MessageToUpdate->AudioData.append(Event.Chunk);
+		MessageToUpdate->SoundData.Append(Event.Chunk);
 
 		ensure(!MessageToUpdate->bAudioFinal);
 		MessageToUpdate->bAudioFinal = Event.bFinal;
 
-		auto& PhonemeInfos = Event.PhonemeInfos;
-		MessageToUpdate->VisemeInfos.Reserve(PhonemeInfos.Num());
-		for (auto& PhonemeInfo : PhonemeInfos)
+		auto& VisemeInfos = Event.VisemeInfos;
+		MessageToUpdate->VisemeInfos.Reserve(VisemeInfos.Num());
+		for (auto& VisemeInfo : VisemeInfos)
 		{
-			FCharacterUtteranceVisemeInfo& VisemeInfo = MessageToUpdate->VisemeInfos.AddDefaulted_GetRef();
-			VisemeInfo.Code = FString(Inworld::Utils::PhonemeToViseme(PhonemeInfo.Code).c_str());
-			VisemeInfo.Timestamp = PhonemeInfo.Timestamp;
+			FCharacterUtteranceVisemeInfo& VisemeInfo_Ref = MessageToUpdate->VisemeInfos.AddDefaulted_GetRef();
+			VisemeInfo_Ref.Timestamp = VisemeInfo.Timestamp;
+			VisemeInfo_Ref.Code = VisemeInfo.Code;
 		}
 	});
 }
@@ -468,7 +465,7 @@ void UInworldCharacterComponent::Multicast_VisitCustom_Implementation(const FInw
 		return;
 	}
 
-	Inworld::Log("CustomEvent arrived: %s - %s", *Event.Name, *Event.PacketId.InteractionId);
+	UE_LOG(LogInworldAIIntegration, Log, TEXT("CustomEvent arrived: %s - %s"), *Event.Name, *Event.PacketId.InteractionId);
 
 	MessageQueue->AddOrUpdateMessage<FCharacterMessageTrigger>(GetWorld()->GetTimeSeconds(), Event.PacketId.InteractionId, Event.PacketId.UtteranceId, [Event](auto MessageToUpdate) {
 		MessageToUpdate->Name = Event.Name;

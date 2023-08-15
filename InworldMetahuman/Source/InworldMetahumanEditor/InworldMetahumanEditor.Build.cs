@@ -14,9 +14,6 @@ public class InworldMetahumanEditor : ModuleRules
 			new string[]
 			{
 				"Core",
-				"InworldAIEditor",
-				"InworldAIClient",
-				"InworldAIIntegration",
 			}
 			);
 
@@ -30,7 +27,10 @@ public class InworldMetahumanEditor : ModuleRules
 				"UMGEditor",
 				"Blutility",
 				"UMG",
-				"InworldAINdk",
+                "InworldAIEditor",
+                "InworldAIClient",
+                "InworldAIIntegration",
+                "InworldAINdk",
 			}
 			);
     }

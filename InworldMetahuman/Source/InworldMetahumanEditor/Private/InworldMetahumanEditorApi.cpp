@@ -9,11 +9,13 @@
 
 #include "InworldMetahumanEditorApi.h"
 #include "InworldEditorApi.h"
-#include "InworldUtils.h"
 #include "Modules/ModuleManager.h"
 #include "InworldMetahumanEditorSettings.h"
 #include "InworldAIEditorModule.h"
-#include "NDK/Utils/Log.h"
+
+THIRD_PARTY_INCLUDES_START
+#include "Utils/Log.h"
+THIRD_PARTY_INCLUDES_END
 
 void UInworldMetahumanEditorApi::Initialize(FSubsystemCollectionBase& Collection)
 {

@@ -39,7 +39,7 @@ public:
 	void CancelRequestStudioData();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inworld")
-	bool IsRequestInProgress() const { return Client.IsRequestInProgress(); }
+	bool IsRequestInProgress() const { return EditorClient->IsRequestInProgress(); }
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	UWorld* GetViewportWorld() const { return GetWorld(); }
@@ -51,7 +51,7 @@ public:
 	void SetupActor(const FInworldStudioUserCharacterData& Data, const FString& Name, const FString& PreviousName);
 
 	UFUNCTION(BlueprintPure, Category = "Inworld")
-	const FString& GetError() { return Client.GetError(); }
+	const FString& GetError() { return EditorClient->GetError(); }
 
 	UFUNCTION(BlueprintPure, Category = "Inworld")
 	const FInworldStudioUserData& GetCachedStudioData() const;
@@ -84,13 +84,13 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	Inworld::FEditorClient Client;
-
 	UBlueprint* CreateCharacterActorBP(const FInworldStudioUserCharacterData& CharacterData);
 	void SavePackageToCharacterFolder(UObject* Object, const FInworldStudioUserCharacterData& CharacterData, const FString& NamePrefix, FString NameSuffix = "");
 
 	UObject* AddNodeToBlueprint(UBlueprint* Blueprint, UClass* Class, const FString& NodeName);
 	UObject* GetNodeFromBlueprint(UBlueprint* Blueprint, const FString& NodeName);
+
+	TSharedPtr<FInworldEditorClient> EditorClient;
 
 private:
 	void CacheStudioData(const FInworldStudioUserData& Data);
