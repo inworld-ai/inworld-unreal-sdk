@@ -9,8 +9,11 @@
 
 #include "CoreMinimal.h"
 
+#if !UE_BUILD_SHIPPING
+
 #include "HAL/Runnable.h"
 #include "HAL/RunnableThread.h"
+#include "HAL/PlatformProcess.h"
 
 #include "Containers/Queue.h"
 
@@ -59,3 +62,5 @@ private:
 
 	TQueue<TArray<uint8>> AudioChunksToDump;
 };
+
+#endif
