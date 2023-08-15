@@ -40,6 +40,5 @@ public class InworldAIIntegration : ModuleRules
             PrivateDefinitions.Add("INWORLD_DEBUGGER_SLOT=5");
         }
 
-        SetupGameplayDebuggerSupport(Target);
     }
 }
