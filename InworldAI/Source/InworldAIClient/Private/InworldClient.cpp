@@ -121,7 +121,7 @@ void FInworldClient::Init()
 	}
 	FString ClientId("unreal");
 	InworldClient = MakeShared<Inworld::FClient>();
-	InworldClient->SelfWeakPtr = InworldClient.ToWeakPtr();
+	InworldClient->SelfWeakPtr = InworldClient;
 	InworldClient->InitClient(TCHAR_TO_UTF8(*ClientId), TCHAR_TO_UTF8(*ClientVer),
 		[this](Inworld::ClientBase::ConnectionState ConnectionState)
 		{
