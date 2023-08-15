@@ -120,4 +120,5 @@ void FAsyncAudioDumper::Stop()
 		Runnable.Reset();
 	}
 }
+
 #endif
