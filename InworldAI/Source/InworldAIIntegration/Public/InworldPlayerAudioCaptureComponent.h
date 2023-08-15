@@ -8,7 +8,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InworldUtils.h"
 #include "AudioCaptureCore.h"
 #include "AudioDevice.h"
 #include "Containers/ContainerAllocationPolicies.h"
@@ -27,9 +26,9 @@ struct FPlayerVoiceCaptureInfoRep
     GENERATED_BODY()
 
     UPROPERTY()
-	TArray<int16> MicSoundData;
+	TArray<uint8> MicSoundData;
     UPROPERTY()
-	TArray<int16> OutputSoundData;
+	TArray<uint8> OutputSoundData;
 };
 
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))

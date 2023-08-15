@@ -9,15 +9,40 @@
 
 #define LOCTEXT_NAMESPACE "FInworldAIClientModule"
 
+THIRD_PARTY_INCLUDES_START
+#include "Utils/Log.h"
+THIRD_PARTY_INCLUDES_END
+
+DEFINE_LOG_CATEGORY(LogInworldAIClient);
+
+DECLARE_LOG_CATEGORY_CLASS(LogInworldAINdk, Log, All);
+
+struct FInworldLoggerUnreal : public Inworld::Logger
+{
+	virtual void Log(const std::string& message)
+	{
+		UE_LOG(LogInworldAINdk, Log, TEXT("%s"), UTF8_TO_TCHAR(message.c_str()));
+	}
+
+	virtual void LogWarning(const std::string& message)
+	{
+		UE_LOG(LogInworldAINdk, Warning, TEXT("%s"), UTF8_TO_TCHAR(message.c_str()));
+	}
+
+	virtual void LogError(const std::string& message)
+	{
+		UE_LOG(LogInworldAINdk, Error, TEXT("%s"), UTF8_TO_TCHAR(message.c_str()));
+	}
+};
+
 void FInworldAIClientModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	Inworld::LogSetLogger<FInworldLoggerUnreal>();
 }
 
 void FInworldAIClientModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
+	Inworld::LogClearLogger();
 }
 
 #undef LOCTEXT_NAMESPACE

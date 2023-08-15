@@ -9,8 +9,6 @@
 
 #include "CoreMinimal.h"
 
-#include <string>
-
 #include "InworldCharacterMessage.generated.h"
 
 struct FCharacterMessageUtterance;
@@ -78,9 +76,14 @@ struct FCharacterMessageUtterance : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	TArray<FCharacterUtteranceVisemeInfo> VisemeInfos;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	bool bTextFinal = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	bool bAudioFinal = false;
-	std::string AudioData;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Message")
+	TArray<uint8> SoundData;
 
 	virtual bool IsReady() const override { return bTextFinal && bAudioFinal; }
 

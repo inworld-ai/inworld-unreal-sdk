@@ -7,13 +7,16 @@
 
 #pragma once
 
-
 #include "CoreMinimal.h"
-#include "InworldClient.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "InworldState.h"
+#include "Runtime/Launch/Resources/Version.h"
+
+#include "InworldClient.h"
+#include "InworldEnums.h"
+#include "InworldTypes.h"
+#include "InworldPackets.h"
 #include "InworldComponentInterface.h"
-#include "NDK/Client.h"
+
 #include "InworldGameplayDebuggerCategory.h"
 #include "InworldApi.generated.h"
 
@@ -27,96 +30,6 @@ class UInworldAudioRepl;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnectionStateChanged, EInworldConnectionState, State);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
-
-USTRUCT(BlueprintType)
-struct FInworldPlayerProfile
-{
-    GENERATED_BODY()
-
-    UPROPERTY(BlueprintReadWrite, Category = "Player")
-    FString Name = "";
-
-    UPROPERTY(BlueprintReadWrite, Category = "Player")
-    TMap<FString, FString> Fields = {};
-};
-
-USTRUCT(BlueprintType)
-struct FInworldCapabilitySet
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadWrite, Category = "Capability")
-	bool Animations = false;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Capability")
-	bool Text = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-	bool Audio = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-	bool Emotions = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-	bool Gestures = true;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Capability")
-	bool Interruptions = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-	bool Triggers = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-	bool EmotionStreaming = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-	bool SilenceEvents = true;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Capability")
-	bool PhonemeInfo = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-	bool LoadSceneInSession = true;
-};
-
-USTRUCT(BlueprintType)
-struct FInworldAuth
-{
-    GENERATED_BODY()
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-    FString ApiKey = "";
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-    FString ApiSecret = "";
-};
-
-USTRUCT(BlueprintType)
-struct FInworldSessionToken
-{
-    GENERATED_BODY()
-
-    UPROPERTY(BlueprintReadWrite, Category = "Token")
-    FString Token = "";
-
-    UPROPERTY(BlueprintReadWrite, Category = "Token")
-    int64 ExpirationTime = 0;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Token")
-    FString SessionId = "";
-};
-
-USTRUCT(BlueprintType)
-struct FInworldEnvironment
-{
-    GENERATED_BODY()
-
-    UPROPERTY(BlueprintReadWrite, Category = "Environment")
-    FString AuthUrl = "";
-
-    UPROPERTY(BlueprintReadWrite, Category = "Environment")
-    FString TargetUrl = "";
-};
 
 UCLASS(BlueprintType, Config = Engine)
 class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor
@@ -134,7 +47,7 @@ public:
      * @param SessionId : optional, will be generated if empty
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DisplayName = "StartSession", AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Capabilities, Auth, SessionToken, Environment"))
-    void StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride);
+    void StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment);
 
     UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AdvancedDisplay = "4", DeprecatedFunction, DeprecationMessage = "Please recreate 'Start Session' node with updated parameters."))
     void StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride = "", const FString& TargetUrlOverride = "", const FString& Token = "", int64 TokenExpiration = 0, const FString& SessionId = "");
@@ -161,7 +74,7 @@ public:
     void StopSession();
 
 private:
-    void PossessAgents(const std::vector<Inworld::AgentInfo>& AgentInfos);
+    void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
     void UnpossessAgents();
 
 public:
@@ -183,9 +96,9 @@ public:
 
     /** Send trigger to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
-	void SendTrigger(FString AgentId, const FString& Name, const TMap<FString, FString>& Params);
+	void SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params);
     [[deprecated("UInworldApiSubsystem::SendCustomEvent is deprecated, please use UInworldApiSubsystem::SendTrigger")]]
-    void SendCustomEvent(FString AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
+    void SendCustomEvent(const FString& AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
 
     /**
      * Send audio to agent
@@ -195,10 +108,12 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Messages")
 	void SendAudioMessage(const FString& AgentId, USoundWave* SoundWave);
-	
-    void SendAudioDataMessage(const FString& AgentId, const std::string& Data);
-	void SendAudioDataMessageWithAEC(const FString& AgentId, USoundWave* InputWave, USoundWave* OutputWave);
-	void SendAudioDataMessageWithAEC(const FString& AgentId, const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
+    void SendAudioDataMessage(const FString& AgentId, const TArray<uint8>& Data);
+
+
+    UFUNCTION(BlueprintCallable, Category = "Messages")
+	void SendAudioMessageWithAEC(const FString& AgentId, USoundWave* InputWave, USoundWave* OutputWave);
+	void SendAudioDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
     
     /**
      * Start audio session with agent
@@ -220,7 +135,7 @@ public:
 
     /** Get current connection state */
     UFUNCTION(BlueprintCallable, Category = "Connection")
-	EInworldConnectionState GetConnectionState() const { return static_cast<EInworldConnectionState>(Client->GetConnectionState()); }
+	EInworldConnectionState GetConnectionState() const { return Client->GetConnectionState(); }
 
     /** Get connection error message and code from previous Disconnect */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
@@ -235,7 +150,6 @@ public:
     /** Cancel agents response in case agent has been interrupted by player */
     UFUNCTION(BlueprintCallable, Category = "Messages")
     void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
-    void CancelResponse(const FString& AgentId, const std::string& InteractionId, const std::vector<std::string>& UtteranceIds);
 
     /** 
     * Call on Inworld::FCustomEvent coming to agent
@@ -259,7 +173,7 @@ public:
 #endif
 
 	void ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet);
-    void HandleAudioEventOnClient(std::shared_ptr<FInworldAudioDataEvent> Packet);
+    void HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet);
 
     UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
     FOnConnectionStateChanged OnConnectionStateChanged;
@@ -268,7 +182,7 @@ public:
     FCustomTrigger OnCustomTrigger;
 
 private:
-	void DispatchPacket(std::shared_ptr<FInworldPacket> InworldPacket);
+	void DispatchPacket(TSharedPtr<FInworldPacket> InworldPacket);
 
     virtual void Visit(const FInworldChangeSceneEvent& Event) override;
 
@@ -297,9 +211,9 @@ private:
     TMap<FString, Inworld::ICharacterComponent*> CharacterComponentByBrainName;
     TMap<FString, Inworld::ICharacterComponent*> CharacterComponentByAgentId;
     TArray<Inworld::ICharacterComponent*> CharacterComponentRegistry;
-    TMap<FString, Inworld::AgentInfo> AgentInfoByBrain;
+    TMap<FString, FInworldAgentInfo> AgentInfoByBrain;
 
-    Inworld::FClient::SharedPtr Client;
+    TSharedPtr<FInworldClient> Client;
 
 	bool bCharactersInitialized = false;
 

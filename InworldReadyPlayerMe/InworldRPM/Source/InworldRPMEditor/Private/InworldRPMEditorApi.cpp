@@ -9,16 +9,18 @@
 #include <Engine/Engine.h>
 #include "InworldEditorApi.h"
 #include "InworldRPMEditorSettings.h"
-#include "InworldUtils.h"
 #include "glTFRuntimeParser.h"
 #include "glTFRuntimeAsset.h"
 #include "glTFRuntimeFunctionLibrary.h"
 #include "InworldCharacterComponent.h"
-#include "NDK/Utils/Log.h"
 #include <Engine/Texture2D.h>
 #if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 2
 #include <Engine/SkinnedAssetCommon.h>
 #endif
+
+THIRD_PARTY_INCLUDES_START
+#include "Utils/Log.h"
+THIRD_PARTY_INCLUDES_END
 
 void UInworldRPMEditorApi::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -59,7 +61,7 @@ void UInworldRPMEditorApi::CreateReadyPlayerMeActor(const FInworldStudioUserChar
     auto* InworldEditorApi = GetWorld()->GetSubsystem<UInworldEditorApiSubsystem>();
 	if (InworldEditorApi)
 	{
-		InworldEditorApi->Client.RequestReadyPlayerMeModelData(CharacterData, [this, CharacterData](const TArray<uint8>& Data)
+		InworldEditorApi->EditorClient->RequestReadyPlayerMeModelData(CharacterData, [this, CharacterData](const TArray<uint8>& Data)
 		{
 				FglTFRuntimeConfig Cfg;
 				Cfg.TransformBaseType = EglTFRuntimeTransformBaseType::YForward;
