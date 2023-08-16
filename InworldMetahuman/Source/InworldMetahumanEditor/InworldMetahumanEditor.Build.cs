@@ -30,7 +30,6 @@ public class InworldMetahumanEditor : ModuleRules
                 "InworldAIEditor",
                 "InworldAIClient",
                 "InworldAIIntegration",
-                "InworldAINdk",
 			}
 			);
     }

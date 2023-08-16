@@ -6,6 +6,7 @@
  */
 
 #include "InworldRPMEditorApi.h"
+#include "InworldRPMEditorModule.h"
 #include <Engine/Engine.h>
 #include "InworldEditorApi.h"
 #include "InworldRPMEditorSettings.h"
@@ -17,10 +18,6 @@
 #if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 2
 #include <Engine/SkinnedAssetCommon.h>
 #endif
-
-THIRD_PARTY_INCLUDES_START
-#include "Utils/Log.h"
-THIRD_PARTY_INCLUDES_END
 
 void UInworldRPMEditorApi::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -91,7 +88,7 @@ void UInworldRPMEditorApi::CreateReadyPlayerMeActor(const FInworldStudioUserChar
 						RuntimeSkeletalMesh = glTFRuntimeAsset->LoadSkeletalMeshRecursive("Armature", {}, Config);
 						if (!RuntimeSkeletalMesh)
 						{
-							Inworld::LogError("UInworldEditorApiSubsystem::CreateRPMActor couldn't load Skeletal Mesh.");
+							UE_LOG(LogInworldRPMEditor, Error, TEXT("UInworldEditorApiSubsystem::CreateRPMActor couldn't load Skeletal Mesh."));
 							return;
 						}
 
@@ -136,7 +133,7 @@ void UInworldRPMEditorApi::CreateReadyPlayerMeActor(const FInworldStudioUserChar
 						RuntimeActorBP = InworldEditorApi->CreateCharacterActorBP(CharacterData);
 						if (!RuntimeActorBP)
 						{
-							Inworld::LogError("UInworldEditorApiSubsystem::CreateReadyPlayerMeActor couldn't create RuntimeActorBP.");
+							UE_LOG(LogInworldRPMEditor, Error, TEXT("UInworldEditorApiSubsystem::CreateReadyPlayerMeActor couldn't create RuntimeActorBP."));
 							return;
 						}
 
@@ -144,7 +141,7 @@ void UInworldRPMEditorApi::CreateReadyPlayerMeActor(const FInworldStudioUserChar
 						auto* MeshComponent = Cast<USkeletalMeshComponent>(InworldEditorApi->AddNodeToBlueprint(RuntimeActorBP, USkeletalMeshComponent::StaticClass(), TEXT("SkeletalMeshComponent")));
 						if (!MeshComponent)
 						{
-							Inworld::LogError("UInworldEditorApiSubsystem::CreateReadyPlayerMeActor couldn't create USkeletalMeshComponent");
+							UE_LOG(LogInworldRPMEditor, Error, TEXT("UInworldEditorApiSubsystem::CreateReadyPlayerMeActor couldn't create USkeletalMeshComponent"));
 							return;
 						}
 
@@ -159,7 +156,7 @@ void UInworldRPMEditorApi::CreateReadyPlayerMeActor(const FInworldStudioUserChar
 						auto* InworldComponent = Cast<UInworldCharacterComponent>(InworldEditorApi->AddNodeToBlueprint(RuntimeActorBP, InworldRPMEditorSettings->InworldCharacterComponent, TEXT("InworldCharacterComponent")));
 						if (!InworldComponent)
 						{
-							Inworld::LogError("UInworldEditorApiSubsystem::CreateReadyPlayerMeActor couldn't create UInworldCharacterComponent");
+							UE_LOG(LogInworldRPMEditor, Error, TEXT("UInworldEditorApiSubsystem::CreateReadyPlayerMeActor couldn't create UInworldCharacterComponent"));
 							return;
 						}
 

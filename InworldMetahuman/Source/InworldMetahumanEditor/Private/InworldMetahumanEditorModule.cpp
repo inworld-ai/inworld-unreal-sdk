@@ -12,6 +12,8 @@
 
 #define LOCTEXT_NAMESPACE "FInworldMetahumanEditorModule"
 
+DEFINE_LOG_CATEGORY(LogInworldMetahumanEditor);
+
 void FInworldMetahumanEditorModule::StartupModule()
 {
 	ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");

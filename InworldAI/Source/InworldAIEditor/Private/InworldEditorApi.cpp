@@ -28,10 +28,6 @@
 #include "InworldAIEditorSettings.h"
 #include "Templates/Casts.h"
 
-THIRD_PARTY_INCLUDES_START
-#include "Utils/Log.h"
-THIRD_PARTY_INCLUDES_END
-
 const FString& UInworldEditorApiSubsystem::GetSavedStudioAccessToken() const
 {
 	const UInworldAIEditorSettings* InworldAIEditorSettings = GetDefault<UInworldAIEditorSettings>();

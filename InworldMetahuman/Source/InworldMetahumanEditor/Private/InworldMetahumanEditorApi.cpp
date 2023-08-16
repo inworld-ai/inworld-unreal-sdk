@@ -8,14 +8,11 @@
 #pragma once
 
 #include "InworldMetahumanEditorApi.h"
+#include "InworldMetahumanEditorModule.h"
 #include "InworldEditorApi.h"
 #include "Modules/ModuleManager.h"
 #include "InworldMetahumanEditorSettings.h"
 #include "InworldAIEditorModule.h"
-
-THIRD_PARTY_INCLUDES_START
-#include "Utils/Log.h"
-THIRD_PARTY_INCLUDES_END
 
 void UInworldMetahumanEditorApi::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -50,14 +47,14 @@ bool UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman(const FAssetDat
 	auto* Object = AssetData.GetAsset();
 	if (!Object)
 	{
-		if (bLogErrors) Inworld::LogError("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman couldn't find Object");
+		if (bLogErrors) UE_LOG(LogInworldMetahumanEditor, Error, TEXT("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman couldn't find Object"));
 		return false;
 	}
 
 	auto* Blueprint = Cast<UBlueprint>(Object);
 	if (!Blueprint || !Blueprint->SimpleConstructionScript)
 	{
-		if (bLogErrors) Inworld::LogError("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman asset should be Blueprint with SimpleConstructionScript");
+		if (bLogErrors) UE_LOG(LogInworldMetahumanEditor, Error, TEXT("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman asset should be Blueprint with SimpleConstructionScript"));
 		return false;
 	}
 
@@ -68,7 +65,7 @@ bool UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman(const FAssetDat
 	auto* FaceComponent = Cast<USkeletalMeshComponent>(InworldEditorApi->GetNodeFromBlueprint(Blueprint, "Face"));
 	if (!FaceComponent)
 	{
-		if (bLogErrors) Inworld::LogError("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman asset should contain a Face Skeletal Mesh");
+		if (bLogErrors) UE_LOG(LogInworldMetahumanEditor, Error, TEXT("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman asset should contain a Face Skeletal Mesh"));
 		return false;
 	}
 
@@ -76,7 +73,7 @@ bool UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman(const FAssetDat
 	FaceAsset.LoadSynchronous();
 	if (!FaceAsset.IsValid())
 	{
-		if (bLogErrors) Inworld::LogError("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman needs a valid Face Asset");
+		if (bLogErrors) UE_LOG(LogInworldMetahumanEditor, Error, TEXT("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman needs a valid Face Asset"));
 		return false;
 	}
 
@@ -84,7 +81,7 @@ bool UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman(const FAssetDat
 	FaceAnimAsset.LoadSynchronous();
 	if (!FaceAnimAsset.IsValid())
 	{
-		if (bLogErrors) Inworld::LogError("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman needs a valid Face Anim Asset");
+		if (bLogErrors) UE_LOG(LogInworldMetahumanEditor, Error, TEXT("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman needs a valid Face Anim Asset"));
 		return false;
 	}
 
@@ -95,14 +92,14 @@ bool UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman(const FAssetDat
 #endif
 	if (!FaceMesh || FaceMesh->GetSkeleton() != FaceAsset.Get())
 	{
-		if (bLogErrors) Inworld::LogError("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman face mesh needs to be Metahuman");
+		if (bLogErrors) UE_LOG(LogInworldMetahumanEditor, Error, TEXT("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman face mesh needs to be Metahuman"));
 		return false;
 	}
 
 	auto* BodyComponent = Cast<USkeletalMeshComponent>(InworldEditorApi->GetNodeFromBlueprint(Blueprint, "Body"));
 	if (!BodyComponent)
 	{
-		if (bLogErrors) Inworld::LogError("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman asset should contain a Body Skeletal Mesh");
+		if (bLogErrors) UE_LOG(LogInworldMetahumanEditor, Error, TEXT("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman asset should contain a Body Skeletal Mesh"));
 		return false;
 	}
 
@@ -110,7 +107,7 @@ bool UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman(const FAssetDat
 	BodyAsset.LoadSynchronous();
 	if (!BodyAsset.IsValid())
 	{
-		if (bLogErrors) Inworld::LogError("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman needs a valid Body Asset");
+		if (bLogErrors) UE_LOG(LogInworldMetahumanEditor, Error, TEXT("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman needs a valid Body Asset"));
 		return false;
 	}
 
@@ -118,7 +115,7 @@ bool UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman(const FAssetDat
 	BodyAnimAsset.LoadSynchronous();
 	if (!BodyAnimAsset.IsValid())
 	{
-		if (bLogErrors) Inworld::LogError("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman needs a valid Body Anim Asset");
+		if (bLogErrors) UE_LOG(LogInworldMetahumanEditor, Error, TEXT("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman needs a valid Body Anim Asset"));
 		return false;
 	}
 
@@ -129,7 +126,7 @@ bool UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman(const FAssetDat
 #endif
 	if (!BodyMesh || BodyMesh->GetSkeleton() != BodyAsset.Get())
 	{
-		if (bLogErrors) Inworld::LogError("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman body mesh needs to be Metahuman");
+		if (bLogErrors) UE_LOG(LogInworldMetahumanEditor, Error, TEXT("UInworldMetahumanEditorApi::CanSetupAssetAsInworldMetahuman body mesh needs to be Metahuman"));
 		return false;
 	}
 
