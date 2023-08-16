@@ -4,3 +4,6 @@ do
     echo Bundling library: $i
     lipo arm64/lib$i.a x86_64/lib$i.a -create -output lib$i.a
 done
+
+echo Bundling dylib
+lipo arm64/libwebrtc_aec_plugin.dylib x86_64/libwebrtc_aec_plugin.dylib -create -output libwebrtc_aec_plugin.dylib

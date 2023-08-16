@@ -16,8 +16,9 @@
 *.dylib
 *.dll
 !InworldAI/Source/ThirdParty/Inworld/lib/Win64/webrtc_aec_plugin.dll
-!InworldAI/ThirdParty/Libraries/Win64/*.dll
-!InworldAI/ThirdParty/Libraries/Mac/*.dylib
+!InworldAI/Source/ThirdParty/Inworld/lib/Mac/*.dylib
+!InworldAI/Source/ThirdParty/Inworld/lib/Mac/arm64/*.dylib
+!InworldAI/Source/ThirdParty/Inworld/lib/Mac/x86_64/*.dylib
 
 # Fortran module files
 *.mod
