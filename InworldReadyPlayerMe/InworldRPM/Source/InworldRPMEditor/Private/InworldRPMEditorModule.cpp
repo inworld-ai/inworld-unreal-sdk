@@ -12,6 +12,8 @@
 
 #define LOCTEXT_NAMESPACE "FInworldRPMEditorModule"
 
+DEFINE_LOG_CATEGORY(LogInworldRPMEditor);
+
 void FInworldRPMEditorModule::StartupModule()
 {
 	ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
