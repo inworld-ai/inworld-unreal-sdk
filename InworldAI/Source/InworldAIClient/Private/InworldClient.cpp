@@ -20,7 +20,6 @@ THIRD_PARTY_INCLUDES_START
 #include "Client.h"
 #include "AsyncRoutine.h"
 #include "RunnableCommand.h"
-#include "Utils/Log.h"
 THIRD_PARTY_INCLUDES_END
 
 #include "Async/Async.h"
