@@ -19,10 +19,6 @@
 #include <Engine/SkinnedAssetCommon.h>
 #endif
 
-THIRD_PARTY_INCLUDES_START
-#include "Utils/Log.h"
-THIRD_PARTY_INCLUDES_END
-
 void UInworldRPMEditorApi::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
