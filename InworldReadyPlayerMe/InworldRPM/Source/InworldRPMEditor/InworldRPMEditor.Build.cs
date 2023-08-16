@@ -24,7 +24,6 @@ public class InworldRPMEditor : ModuleRules
                 "InworldAIEditor",
                 "InworldAIClient",
                 "InworldAIIntegration",
-                "InworldAINdk",
 				"CoreUObject",
 				"Engine",
 			}
