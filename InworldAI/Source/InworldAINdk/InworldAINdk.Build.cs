@@ -86,8 +86,8 @@ public class InworldAINdk : ModuleRules
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_UNREAL=1");
 
-        // Audio Echo Cancellation (AEC) supported on Winddows only
-        if (Target.Platform == UnrealTargetPlatform.Win64)
+        // Audio Echo Cancellation (AEC) supported on Winddows and Mac only
+        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac)
         {
             PublicDefinitions.Add("INWORLD_AEC=1");
         }
@@ -154,6 +154,12 @@ public class InworldAINdk : ModuleRules
         {
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.dll.lib"));
             RuntimeDependencies.Add(Path.Combine("$(BinaryOutputDir)", "webrtc_aec_plugin.dll"), Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.dll"));
+        }
+        else if(Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            string PathLib = Path.Combine(ThirdPartyLibrariesDirectory, "libwebrtc_aec_plugin.dylib");
+			RuntimeDependencies.Add(PathLib);
+            PublicAdditionalLibraries.Add(PathLib);
         }
 
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android)
