@@ -62,7 +62,7 @@ struct FCharacterUtteranceVisemeInfo
 	FString Code;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
-	float Timestamp;
+	float Timestamp = 0.f;
 };
 
 USTRUCT(BlueprintType)
@@ -103,7 +103,7 @@ struct FCharacterMessagePlayerTalk : public FCharacterMessage
 	FString Text;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
-	bool bTextFinal;
+	bool bTextFinal = false;
 
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { }
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { }
@@ -181,7 +181,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 			, Timestamp(InTimestamp)
 		{}
 		TSharedPtr<FCharacterMessage> Message;
-		float Timestamp;
+		float Timestamp = 0.f;
 	};
 
 	TArray<FCharacterMessageQueueEntry> PendingMessageEntries;

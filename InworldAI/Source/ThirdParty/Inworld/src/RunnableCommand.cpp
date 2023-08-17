@@ -109,6 +109,26 @@ void Inworld::RunnableWrite::Run()
 	_IsDone = true;
 }
 
+#ifdef INWORLD_AUDIO_DUMP
+void Inworld::RunnableAudioDumper::Run()
+{
+	AudioDumper.OnSessionStart(FileName);
+
+	while (!_IsDone)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+		std::string Chunk;
+		while (AudioChuncks.PopFront(Chunk))
+		{
+			AudioDumper.OnMessage(Chunk);
+		}
+	}
+
+	AudioDumper.OnSessionStop();
+}
+#endif
+
 grpc::Status Inworld::RunnableGenerateSessionToken::RunProcess()
 {
 	InworldEngine::GenerateTokenRequest AuthRequest;

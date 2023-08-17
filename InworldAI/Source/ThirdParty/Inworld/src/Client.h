@@ -18,11 +18,10 @@
 #include "AECFilter.h"
 #include "RunnableCommand.h"
 
-
 using PacketQueue = Inworld::SharedQueue<std::shared_ptr<Inworld::Packet>>;
 
 namespace Inworld
-{
+{	
 	struct ClientOptions
 	{
 		std::string ServerUrl;
@@ -75,6 +74,8 @@ namespace Inworld
 
 		virtual void GenerateToken(std::function<void()> RefreshTokenCallback);
 
+		virtual void SetAudioDumpEnabled(bool bEnabled, const std::string& FileName);
+		
 		ConnectionState GetConnectionState() const { return _ConnectionState; }
 		bool GetConnectionError(std::string& OutErrorMessage, int32_t& OutErrorCode) const;
 
@@ -90,6 +91,9 @@ namespace Inworld
 			_AsyncWriteTask = std::make_unique<TAsyncRoutine>();
 			_AsyncLoadSceneTask = std::make_unique<TAsyncRoutine>();
 			_AsyncGenerateTokenTask = std::make_unique<TAsyncRoutine>();
+#ifdef  INWORLD_AUDIO_DUMP
+			_AsyncAudioDumper = std::make_unique<TAsyncRoutine>();
+#endif			
 		}
 
 	private:
@@ -102,6 +106,13 @@ namespace Inworld
 		void StopReaderWriter();
 		void TryToStartReadTask();
 		void TryToStartWriteTask();
+
+#ifdef INWORLD_AUDIO_DUMP
+		std::unique_ptr<IAsyncRoutine> _AsyncAudioDumper;
+		SharedQueue<std::string> _AudioChunksToDump;
+		bool bDumpAudio = false;
+		std::string _AudioDumpFileName = "C:/Tmp/AudioDump.wav";
+#endif
 
 		std::function<void()> _OnGenerateTokenCallback;
 		std::function<void(const std::vector<AgentInfo>&)> _OnLoadSceneCallback;
