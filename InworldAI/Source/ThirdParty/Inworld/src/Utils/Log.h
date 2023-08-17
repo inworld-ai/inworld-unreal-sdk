@@ -51,8 +51,7 @@ namespace Inworld
 				fmt[i + 1] = '}';
 			}
 		}
-		return std::vformat(fmt, std::make_format_args(args...));
-		Log(message);
+		return format::vformat(fmt, format::make_format_args(args...));
 #else
 		size_t size = std::snprintf(nullptr, 0, fmt.c_str(), std::forward<Args>(args)...) + 1;
 		std::unique_ptr<char[]> buf(new char[size]);

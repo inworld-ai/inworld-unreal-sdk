@@ -29,6 +29,10 @@
 #include "Utils/SharedQueue.h"
 #include "Packets.h"
 
+#ifdef INWORLD_AUDIO_DUMP
+#include "Utils/AudioSessionDumper.h"
+#endif
+
 namespace InworldEngine = ai::inworld::engine;
 namespace InworldPackets = ai::inworld::packets;
 namespace InworldV1alpha = ai::inworld::studio::v1alpha;
@@ -355,4 +359,22 @@ namespace Inworld
 
 	std::unique_ptr<Runnable> MakeRunnableListApiKeysRequest(const std::string& InInworldToken, const std::string& InServerUrl, const std::string& InWorkspace, std::function<void(const grpc::Status& Status, const InworldV1alpha::ListApiKeysResponse& Response)> InCallback);
 
+#ifdef INWORLD_AUDIO_DUMP
+	class RunnableAudioDumper : public Inworld::Runnable
+	{
+	public:
+		RunnableAudioDumper(SharedQueue<std::string>& InAudioChuncks, const std::string& InFileName)
+			: FileName(InFileName)
+			  , AudioChuncks(InAudioChuncks)
+		{}
+
+		std::string FileName;
+		virtual void Run() override;
+
+	private:
+
+		AudioSessionDumper AudioDumper;
+		SharedQueue<std::string>& AudioChuncks;
+	};
+#endif
 }
