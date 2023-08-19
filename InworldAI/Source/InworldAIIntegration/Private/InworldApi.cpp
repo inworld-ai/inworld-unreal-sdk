@@ -144,7 +144,7 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
     Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);
     Info.ExpirationTime = SessionToken.ExpirationTime;
     Info.SessionId = TCHAR_TO_UTF8(*SessionToken.SessionId);
-    if (!SavedSessionState.Data.IsEmpty())
+    if (SavedSessionState.Data.Num() != 0)
     {
         Info.SessionSavedState.resize(SavedSessionState.Data.Num());
         FMemory::Memcpy((uint8*)Info.SessionSavedState.data(), (uint8*)SavedSessionState.Data.GetData(), Info.SessionSavedState.size());
