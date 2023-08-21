@@ -24,19 +24,17 @@ jobs:
     - name: Copy Plugins & Remove Assets
       shell: pwsh
       run: |
-          [string]$ProjectPath = "C:\Projects\Unreal\5_0"
           Remove-Item "InworldAI\Content\*" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "$ProjectPath\Plugins\InworldAI" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "$ProjectPath\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "$ProjectPath\Plugins\InworldReadyPlayerMe" -Recurse -ErrorAction SilentlyContinue
-          Copy-Item -Path "InworldAI"  -Destination "$ProjectPath\Plugins\InworldAI" -Recurse
-          Copy-Item -Path "InworldMetahuman"  -Destination "$ProjectPath\Plugins\InworldMetahuman" -Recurse
-          Copy-Item -Path "InworldReadyPlayerMe"  -Destination "$ProjectPath\Plugins\InworldReadyPlayerMe" -Recurse
+          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse -ErrorAction SilentlyContinue
+          Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
+          Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
+          Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
     - name: Generate InworldNDK
       shell: pwsh
       run: |
-          [string]$ProjectPath = "C:\Projects\Unreal\5_0\TestInworldFPS"
-          Start-Process -FilePath "$ProjectPath\Plugins\InworldAI\Source\ThirdParty\Inworld\dev-tools\win-build-ndk.bat" " > GenLog.txt" -Wait -NoNewWindow -PassThru
+          Start-Process -FilePath "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\ThirdParty\Inworld\dev-tools\win-build-ndk.bat" " > GenLog.txt" -Wait -NoNewWindow -PassThru
           cat GenLog.txt
           if (Select-String -Path GenLog.txt -Pattern "SUCCESS" -SimpleMatch -Quiet)
           {
@@ -50,8 +48,8 @@ jobs:
       shell: pwsh
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
-          [string]$ProjectPath = "C:\Projects\Unreal\5_0\TestInworldFPS"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildEditor,-Project="$ProjectPath\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildEditorLog.txt" -Wait -NoNewWindow -PassThru 
+          [string]$ProjectPath = "$pwd"
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildEditor,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildEditorLog.txt" -Wait -NoNewWindow -PassThru 
           cat BuildEditorLog.txt
           if (Select-String -Path BuildEditorLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {
@@ -65,8 +63,8 @@ jobs:
       shell: pwsh
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
-          [string]$ProjectPath = "C:\Projects\Unreal\5_0\TestInworldFPS"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru 
+          [string]$ProjectPath = "$pwd"
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru 
           cat BuildGameLog.txt
           if (Select-String -Path BuildGameLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {
