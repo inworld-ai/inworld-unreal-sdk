@@ -34,7 +34,7 @@ jobs:
     - name: Generate InworldNDK
       shell: pwsh
       run: |
-          Start-Process -FilePath "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\ThirdParty\Inworld\dev-tools\win-gen-ndk.bat"
+          Start-Process -FilePath "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\ThirdParty\Inworld\dev-tools\win-build-ndk.bat"
           cat BuildEditorLog.txt
           if (Select-String -Path BuildEditorLog.txt -Pattern "SUCCESS" -SimpleMatch -Quiet)
           {
