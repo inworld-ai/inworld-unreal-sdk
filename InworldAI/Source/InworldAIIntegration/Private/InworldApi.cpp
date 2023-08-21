@@ -89,7 +89,7 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
         });
 }
 
-void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride)
+void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride, FInworldSave SavedSessionState)
 {
     if (!ensure(GetWorld()->GetNetMode() < NM_Client))
     {
@@ -144,6 +144,11 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
     Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);
     Info.ExpirationTime = SessionToken.ExpirationTime;
     Info.SessionId = TCHAR_TO_UTF8(*SessionToken.SessionId);
+    if (SavedSessionState.Data.Num() != 0)
+    {
+        Info.SessionSavedState.resize(SavedSessionState.Data.Num());
+        FMemory::Memcpy((uint8*)Info.SessionSavedState.data(), (uint8*)SavedSessionState.Data.GetData(), Info.SessionSavedState.size());
+    }
 
     Client->StartClient(Options, Info,
         [this](const auto& AgentInfos)
@@ -167,6 +172,25 @@ void UInworldApiSubsystem::StopSession()
     UnpossessAgents();
 
     Client->StopClient();
+}
+
+void UInworldApiSubsystem::SaveSession(FOnSaveReady Delegate)
+{
+    Client->SaveSessionState([Delegate](std::string Data, bool bSuccess)
+		{
+			FInworldSave Save;
+            if (!bSuccess)
+            {
+                Inworld::LogError("UInworldApiSubsystem::SaveSession error");
+                Delegate.ExecuteIfBound(Save, false);
+                return;
+            }
+
+            Save.Data.SetNumUninitialized(Data.size());
+            FMemory::Memcpy((uint8*)Save.Data.GetData(), (uint8*)Data.data(), Save.Data.Num());
+
+            Delegate.ExecuteIfBound(Save, true);
+        });
 }
 
 void UInworldApiSubsystem::PossessAgents(const std::vector<Inworld::AgentInfo>& AgentInfos)
