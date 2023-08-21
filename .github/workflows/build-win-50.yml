@@ -31,19 +31,6 @@ jobs:
           Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
           Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
           Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
-    - name: Generate InworldNDK
-      shell: pwsh
-      run: |
-          Start-Process -FilePath "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\ThirdParty\Inworld\dev-tools\win-build-ndk.bat" " > GenLog.txt" -Wait -NoNewWindow -PassThru
-          cat GenLog.txt
-          if (Select-String -Path GenLog.txt -Pattern "SUCCESS" -SimpleMatch -Quiet)
-          {
-            exit 0
-          }
-          else
-          {
-            exit 1
-          }
     - name: BuildEditor-Win-50
       shell: pwsh
       run: |
