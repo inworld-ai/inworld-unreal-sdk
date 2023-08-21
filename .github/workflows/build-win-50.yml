@@ -35,8 +35,8 @@ jobs:
       shell: pwsh
       run: |
           Start-Process -FilePath "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\ThirdParty\Inworld\dev-tools\win-build-ndk.bat" " > GenLog.txt" -Wait -NoNewWindow -PassThru
-          cat BuildEditorLog.txt
-          if (Select-String -Path BuildEditorLog.txt -Pattern "SUCCESS" -SimpleMatch -Quiet)
+          cat GenLog.txt
+          if (Select-String -Path GenLog.txt -Pattern "SUCCESS" -SimpleMatch -Quiet)
           {
             exit 0
           }
