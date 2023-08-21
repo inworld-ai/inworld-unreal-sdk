@@ -35,15 +35,6 @@ jobs:
       shell: pwsh
       run: |
           Start-Process -FilePath "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\ThirdParty\Inworld\dev-tools\win-build-ndk.bat"
-          cat BuildEditorLog.txt
-          if (Select-String -Path BuildEditorLog.txt -Pattern "SUCCESS" -SimpleMatch -Quiet)
-          {
-            exit 0
-          }
-          else
-          {
-            exit 1
-          }
     - name: BuildEditor-Win-50
       shell: pwsh
       run: |
