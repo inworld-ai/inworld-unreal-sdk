@@ -42,7 +42,7 @@ public:
 	void Resume();
 
 	void SaveSession();
-
+	
 	EInworldConnectionState GetConnectionState() const;
 	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const;
 
@@ -67,7 +67,7 @@ public:
 	FOnInworldSceneLoaded OnSceneLoaded;
 
 	FOnInworldSessionSaved OnSessionSaved;
-
+	
 	FOnInworldConnectionStateChanged OnConnectionStateChanged;
 
 	FOnInworldPacketReceived OnInworldPacketReceived;

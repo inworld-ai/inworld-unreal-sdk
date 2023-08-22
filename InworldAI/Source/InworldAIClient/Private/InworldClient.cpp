@@ -204,6 +204,7 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 	Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);
 	Info.ExpirationTime = SessionToken.ExpirationTime;
 	Info.SessionId = TCHAR_TO_UTF8(*SessionToken.SessionId);
+
 	if (Save.Data.Num() != 0)
     {
         Info.SessionSavedState.resize(Save.Data.Num());
