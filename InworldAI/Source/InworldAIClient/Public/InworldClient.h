@@ -22,6 +22,7 @@ namespace Inworld
 }
 
 DECLARE_DELEGATE_OneParam(FOnInworldSceneLoaded, TArray<FInworldAgentInfo>);
+DECLARE_DELEGATE_TwoParams(FOnInworldSessionSaved, FInworldSave, bool);
 DECLARE_DELEGATE_OneParam(FOnInworldConnectionStateChanged, EInworldConnectionState);
 DECLARE_DELEGATE_OneParam(FOnInworldPacketReceived, TSharedPtr<FInworldPacket>);
 
@@ -39,6 +40,8 @@ public:
 
 	void Pause();
 	void Resume();
+
+	void SaveSession();
 
 	EInworldConnectionState GetConnectionState() const;
 	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const;
@@ -62,6 +65,8 @@ public:
 	void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
 	FOnInworldSceneLoaded OnSceneLoaded;
+
+	FOnInworldSessionSaved OnSessionSaved;
 
 	FOnInworldConnectionStateChanged OnConnectionStateChanged;
 

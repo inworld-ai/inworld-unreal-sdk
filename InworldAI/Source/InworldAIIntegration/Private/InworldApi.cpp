@@ -62,7 +62,7 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     Environment.AuthUrl = AuthUrlOverride;
     Environment.TargetUrl = TargetUrlOverride;
 
-    Client->Start(SceneName, PlayerProfile, Capabilities, Auth, SessionToken, Environment);
+    Client->Start(SceneName, PlayerProfile, Capabilities, Auth, SessionToken, FInworldSave(), Environment);
 }
 
 void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride, FInworldSave SavedSessionState)
@@ -106,21 +106,12 @@ void UInworldApiSubsystem::StopSession()
 
 void UInworldApiSubsystem::SaveSession(FOnSaveReady Delegate)
 {
-    Client->SaveSessionState([Delegate](std::string Data, bool bSuccess)
-		{
-			FInworldSave Save;
-            if (!bSuccess)
-            {
-                Inworld::LogError("UInworldApiSubsystem::SaveSession error");
-                Delegate.ExecuteIfBound(Save, false);
-                return;
-            }
-
-            Save.Data.SetNumUninitialized(Data.size());
-            FMemory::Memcpy((uint8*)Save.Data.GetData(), (uint8*)Data.data(), Save.Data.Num());
-
-            Delegate.ExecuteIfBound(Save, true);
-        });
+    Client->OnSessionSaved.BindLambda([this, Delegate](const FInworldSave& Save, bool bSuccess)
+        {
+            Delegate.ExecuteIfBound(Save, bSuccess);
+            Client->OnSessionSaved.Unbind();
+        }
+    );
 }
 
 void UInworldApiSubsystem::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)

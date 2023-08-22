@@ -242,6 +242,25 @@ void FInworldClient::Resume()
 	InworldClient->ResumeClient();
 }
 
+void FInworldClient::SaveSession()
+{
+	InworldClient->SaveSessionState([this](std::string Data, bool bSuccess)
+		{
+			FInworldSave Save;
+			if (!bSuccess)
+			{
+				UE_LOG(LogInworldAIClient, Error, TEXT("Couldn't generate user id."));
+				OnSessionSaved.ExecuteIfBound(Save, false);
+				return;
+			}
+
+			Save.Data.SetNumUninitialized(Data.size());
+			FMemory::Memcpy((uint8*)Save.Data.GetData(), (uint8*)Data.data(), Save.Data.Num());
+
+			OnSessionSaved.ExecuteIfBound(Save, true);
+		});
+}
+
 FString FInworldClient::GenerateUserId()
 {
 	FString Id = FPlatformMisc::GetDeviceId();
