@@ -16,6 +16,30 @@ jobs:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
       run: git submodule update --init --recursive | Write-Host
+    - name: Find NDK SHA
+      id: step_one
+      run: |
+          foreach($submodule_status in (git submodule status).Split([System.Environment]::NewLine))
+          {
+            if($submodule_status.Contains("InworldAI/inworld-ndk"))
+            {
+              $ndksha = $submodule_status.Trim().Split()[0]
+              echo $ndksha
+              echo "INWORLD_NDK_SHA=$ndksha" >> "$GITHUB_ENV"
+            }
+          }
+    - uses: actions/cache@v3
+      id: ndk-cache
+      with:
+        path: Inworld\inworld-ndk\build\Package
+        key: ${{INWORLD_NDK_SHA}}
+    - name: Build NDK
+      shell: pwsh
+      if: steps.ndk-cache.outputs.cache-hit != 'true'
+      run: |
+          [string]$Python="C:\Program Files\Python310"
+          Start-Process -FilePath "$Python\python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\clean-ndk.py
+          Start-Process -FilePath "$Python\python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\build-ndk.py,--platform=Win64
     - run: mkdir -p TestInworldFPS 
     - uses: actions/checkout@v2
       with:
@@ -29,6 +53,7 @@ jobs:
           Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
           Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse -ErrorAction SilentlyContinue
           Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
+          Copy-Item -Path "InworldAI\inworld-ndk\src" -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\InworldAINdk\Public\NDK" -Recurse
           Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
           Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
     - name: BuildEditor-Win-50
