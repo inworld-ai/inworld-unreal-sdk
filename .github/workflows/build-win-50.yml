@@ -17,29 +17,38 @@ jobs:
     - name: git-update-dependecies
       run: git submodule update --init --recursive | Write-Host
     - name: Find NDK SHA
-      id: step_one
       run: |
-          foreach($submodule_status in (git submodule status).Split([System.Environment]::NewLine))
-          {
-            if($submodule_status.Contains("InworldAI/inworld-ndk"))
-            {
-              $ndksha = $submodule_status.Trim().Split()[0]
-              echo $ndksha
-              echo "INWORLD_NDK_SHA=$ndksha" >> "$GITHUB_ENV"
-            }
-          }
-    - uses: actions/cache@v3
+        $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
+        echo $INWORLD_NDK_SHA
+        Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
+    - uses: actions/cache/restore@v3
       id: ndk-cache
       with:
-        path: Inworld\inworld-ndk\build\Package
-        key: ${{INWORLD_NDK_SHA}}
+        path: InworldAI\inworld-ndk\build\Package
+        key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
     - name: Build NDK
       shell: pwsh
       if: steps.ndk-cache.outputs.cache-hit != 'true'
       run: |
           [string]$Python="C:\Program Files\Python310"
-          Start-Process -FilePath "$Python\python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\clean-ndk.py
-          Start-Process -FilePath "$Python\python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\build-ndk.py,--platform=Win64
+          $process = Start-Process -FilePath "$Python\python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--platform=Win64,--clean,--build
+          if($process.ExitCode -ne 0)
+          {
+            exit 1
+          }
+    - uses: actions/cache/save@v3
+      if: steps.ndk-cache.outputs.cache-hit != 'true'
+      with:
+        path: InworldAI\inworld-ndk\build\Package
+        key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
+    - name: Copy NDK
+      run: |
+          [string]$Python="C:\Program Files\Python310"
+          $process = Start-Process -FilePath "$Python\python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--platform=Win64,--copy
+          if($process.ExitCode -ne 0)
+          {
+            exit 1
+          }
     - run: mkdir -p TestInworldFPS 
     - uses: actions/checkout@v2
       with:
@@ -53,7 +62,6 @@ jobs:
           Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
           Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse -ErrorAction SilentlyContinue
           Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
-          Copy-Item -Path "InworldAI\inworld-ndk\src" -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\InworldAINdk\Public\NDK" -Recurse
           Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
           Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
     - name: BuildEditor-Win-50
@@ -61,7 +69,7 @@ jobs:
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
           [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildEditor,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildEditorLog.txt" -Wait -NoNewWindow -PassThru 
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildEditor,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildEditorLog.txt" -Wait -NoNewWindow -PassThru
           cat BuildEditorLog.txt
           if (Select-String -Path BuildEditorLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {
@@ -76,9 +84,24 @@ jobs:
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
           [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru 
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru
           cat BuildGameLog.txt
           if (Select-String -Path BuildGameLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
+          {
+            exit 0
+          }
+          else
+          {
+            exit 1
+          }
+    - name: BuildPlugin-Win-50
+      shell: pwsh
+      run: |
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
+          [string]$ProjectPath = "$pwd"
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildPlugin,-plugin="$ProjectPath\InworldAI\InworldAI.uplugin",-TargetPlatforms=Win64,-package="$ProjectPath\PluginBuild"," > BuildPluginLog.txt" -Wait -NoNewWindow -PassThru
+          cat BuildPluginLog.txt
+          if (Select-String -Path BuildPluginLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {
             exit 0
           }
@@ -94,5 +117,3 @@ jobs:
           InworldAI
           InworldMetahuman
           InworldReadyPlayerMe
-
-         
