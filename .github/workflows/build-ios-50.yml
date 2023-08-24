@@ -34,6 +34,10 @@ jobs:
           cp -r "InworldAI/inworld-ndk/src/." "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
           cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
           cp -r "InworldReadyPlayerMe" "TestInworldFPS/TestInworldFPS/Plugins"
+    - name: Xcode Select (default)
+      shell: bash
+      run: |
+          xcode-select --switch /Applications/Xcode.app/Contents/Developer
     - name: BuildGame-ios-50
       shell: bash
       run: |
