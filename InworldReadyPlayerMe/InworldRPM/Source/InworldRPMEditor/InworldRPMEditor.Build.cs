@@ -12,9 +12,6 @@ public class InworldRPMEditor : ModuleRules
 			new string[]
 			{
 				"Core",
-				"InworldAIEditor",
-				"InworldAIClient",
-				"InworldAIIntegration",
 				"glTFRuntime",
 				"glTFRuntimeEditor"
 			}
@@ -23,8 +20,10 @@ public class InworldRPMEditor : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
-			{
-				"InworldAINdk",
+            {
+                "InworldAIEditor",
+                "InworldAIClient",
+                "InworldAIIntegration",
 				"CoreUObject",
 				"Engine",
 			}

@@ -10,15 +10,18 @@
 #include "CoreMinimal.h"
 #include "InworldApi.h"
 #include "Components/ActorComponent.h"
+
 #include "InworldComponentInterface.h"
 #include "InworldCharacterPlayback.h"
 #include "InworldCharacterMessage.h"
 #include "InworldEnums.h"
-#include "NDK/Packets.h"
 #include "InworldPackets.h"
 #include "InworldSockets.h"
-#include <GameFramework/OnlineReplStructs.h>
 #include "InworldGameplayDebuggerCategory.h"
+
+#include "Containers/Queue.h"
+
+#include <GameFramework/OnlineReplStructs.h>
 
 #include "InworldCharacterComponent.generated.h"
 
@@ -77,7 +80,7 @@ public:
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void Possess(const Inworld::AgentInfo& AgentInfo) override;
+	virtual void Possess(const FInworldAgentInfo& AgentInfo) override;
 	virtual void Unpossess() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
@@ -102,7 +105,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DeterminesOutputType = "Class"))
 	UInworldCharacterPlayback* GetPlayback(TSubclassOf<UInworldCharacterPlayback> Class) const;
 
-	virtual void HandlePacket(std::shared_ptr<FInworldPacket> Packet) override;
+	virtual void HandlePacket(TSharedPtr<FInworldPacket> Packet) override;
 
 	virtual Inworld::IPlayerComponent* GetTargetPlayer() override;
 	

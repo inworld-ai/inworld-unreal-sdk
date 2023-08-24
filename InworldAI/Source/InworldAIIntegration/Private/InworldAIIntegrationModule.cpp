@@ -6,7 +6,6 @@
  */
 
 #include "InworldAIIntegrationModule.h"
-#include "NDK/Proto/ProtoDisableWarning.h"
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && defined(INWORLD_DEBUGGER_SLOT)
 #include "GameplayDebugger.h"
@@ -14,6 +13,8 @@
 #endif // WITH_GAMEPLAY_DEBUGGER
 
 #define LOCTEXT_NAMESPACE "FInworldAIIntegrationModule"
+
+DEFINE_LOG_CATEGORY(LogInworldAIIntegration);
 
 void FInworldAIIntegrationModule::StartupModule()
 {

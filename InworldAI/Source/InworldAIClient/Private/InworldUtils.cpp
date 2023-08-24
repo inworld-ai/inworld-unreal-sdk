@@ -7,18 +7,17 @@
 
 #include "InworldUtils.h"
 #include "Logging/LogMacros.h"
-#include "InworldAIClientModule.h"
-#include "NDK/Utils/SslCredentials.h"
 #include "Audio.h"
 #include "Sound/SoundWave.h"
 #include "Sound/SoundGroups.h"
 #include "Engine/Engine.h"
 #include "Misc/FileHelper.h"
-#include "Engine/World.h"
+#include <Engine/World.h>
 
 #define UI UI_ST
 THIRD_PARTY_INCLUDES_START
 #include "openssl/hmac.h"
+#include "Utils/SslCredentials.h"
 THIRD_PARTY_INCLUDES_END
 #undef UI
 
@@ -98,38 +97,38 @@ bool Inworld::Utils::SoundWaveToString(USoundWave* SoundWave, std::string& Strin
     return true;
 }
 
-INWORLDAICLIENT_API void Inworld::Utils::DataArray16ToVec16(const TArray<int16>& Data, std::vector<int16>& VecData)
+void Inworld::Utils::DataArray16ToVec16(const TArray<int16>& Data, std::vector<int16>& VecData)
 {
     VecData.resize(Data.Num());
     FMemory::Memcpy((void*)VecData.data(), (void*)Data.GetData(), VecData.size() * sizeof(int16));
 }
 
-INWORLDAICLIENT_API void Inworld::Utils::DataArray16ToString(const TArray<int16>& Data, std::string& String)
+void Inworld::Utils::DataArray16ToString(const TArray<int16>& Data, std::string& String)
 {
 	String.resize(Data.Num() * 2);
 	FMemory::Memcpy((void*)String.data(), (void*)Data.GetData(), String.size());
 }
 
-INWORLDAICLIENT_API void Inworld::Utils::DataArrayToString(const TArray<uint8>& Data, std::string& String)
+void Inworld::Utils::DataArrayToString(const TArray<uint8>& Data, std::string& String)
 {
 	String.resize(Data.Num());
 	FMemory::Memcpy((void*)String.data(), (void*)Data.GetData(), String.size());
 }
 
-INWORLDAICLIENT_API void Inworld::Utils::StringToDataArray(const std::string& String, TArray<uint8>& Data)
+void Inworld::Utils::StringToDataArray(const std::string& String, TArray<uint8>& Data)
 {
 	Data.SetNumUninitialized(String.size());
 	FMemory::Memcpy((void*)Data.GetData(), (void*)String.data(), String.size());
 }
 
-INWORLDAICLIENT_API void Inworld::Utils::AppendDataArrayToString(const TArray<uint8>& Data, std::string& String)
+void Inworld::Utils::AppendDataArrayToString(const TArray<uint8>& Data, std::string& String)
 {
 	const uint32 Size = String.size();
 	String.resize(String.size() + Data.Num());
 	FMemory::Memcpy((void*)(String.data() + Size), (void*)Data.GetData(), Data.Num());
 }
 
-INWORLDAICLIENT_API void Inworld::Utils::StringToDataArrays(const std::string& String, TArray<TArray<uint8>*>& Data, uint32 DivSize)
+void Inworld::Utils::StringToDataArrays(const std::string& String, TArray<TArray<uint8>*>& Data, uint32 DivSize)
 {
 	uint32 Idx = 0;
 	uint32 Size = 0;
@@ -141,7 +140,7 @@ INWORLDAICLIENT_API void Inworld::Utils::StringToDataArrays(const std::string& S
 	}
 }
 
-INWORLDAICLIENT_API void Inworld::Utils::DataArrayToDataArrays(const TArray<uint8>& Data, TArray<TArray<uint8>*>& Datas, uint32 DivSize)
+void Inworld::Utils::DataArrayToDataArrays(const TArray<uint8>& Data, TArray<TArray<uint8>*>& Datas, uint32 DivSize)
 {
 	uint32 Idx = 0;
 	uint32 Size = 0;
@@ -153,7 +152,7 @@ INWORLDAICLIENT_API void Inworld::Utils::DataArrayToDataArrays(const TArray<uint
 	}
 }
 
-INWORLDAICLIENT_API void Inworld::Utils::StringToArrayStrings(const std::string& Data, TArray<std::string*>& Datas, uint32 DivSize)
+void Inworld::Utils::StringToArrayStrings(const std::string& Data, TArray<std::string*>& Datas, uint32 DivSize)
 {
 	uint32 Idx = 0;
 	int32 Size = 0;
@@ -165,7 +164,7 @@ INWORLDAICLIENT_API void Inworld::Utils::StringToArrayStrings(const std::string&
 	}
 }
 
-INWORLDAICLIENT_API void Inworld::Utils::DataArraysToString(const TArray<const TArray<uint8>*>& Data, std::string& String)
+void Inworld::Utils::DataArraysToString(const TArray<const TArray<uint8>*>& Data, std::string& String)
 {
 	uint32 Size = 0;
 	for (auto& D : Data)
@@ -183,7 +182,7 @@ INWORLDAICLIENT_API void Inworld::Utils::DataArraysToString(const TArray<const T
 	}
 }
 
-INWORLDAICLIENT_API bool Inworld::Utils::SoundWaveToVec(USoundWave* SoundWave, std::vector<int16>& data)
+bool Inworld::Utils::SoundWaveToVec(USoundWave* SoundWave, std::vector<int16>& data)
 {
 	constexpr int32 SampleRate = 48000;
 	constexpr int32 DownsampleRate = SampleRate / 16000;
@@ -216,7 +215,7 @@ INWORLDAICLIENT_API bool Inworld::Utils::SoundWaveToVec(USoundWave* SoundWave, s
 	return true;
 }
 
-INWORLDAICLIENT_API bool Inworld::Utils::SoundWaveToDataArray(USoundWave* SoundWave, TArray<int16>& Data)
+bool Inworld::Utils::SoundWaveToDataArray(USoundWave* SoundWave, TArray<int16>& Data)
 {
 	constexpr int32 SampleRate = 48000;
 	constexpr int32 DownsampleRate = SampleRate / 16000;
@@ -249,7 +248,7 @@ INWORLDAICLIENT_API bool Inworld::Utils::SoundWaveToDataArray(USoundWave* SoundW
 	return true;
 }
 
-INWORLDAICLIENT_API USoundWave* Inworld::Utils::VecToSoundWave(const std::vector<int16>& data)
+USoundWave* Inworld::Utils::VecToSoundWave(const std::vector<int16>& data)
 {
 	const int16* srcPtr = data.data();
 	const auto nSamples = data.size();
@@ -291,25 +290,4 @@ std::string Inworld::Utils::ToHex(const TArray<uint8>& Data)
 	}
 
 	return Res;
-}
-
-void Inworld::Utils::FWorldTimer::SetOneTime(UWorld* World, float InThreshold)
-{
-    Threshold = InThreshold;
-    LastTime = World->GetTimeSeconds();
-}
-
-bool Inworld::Utils::FWorldTimer::CheckPeriod(UWorld* World)
-{
-    if (IsExpired(World))
-    {
-        LastTime = World->GetTimeSeconds();
-        return true;
-    }
-    return false;
-}
-
-bool Inworld::Utils::FWorldTimer::IsExpired(UWorld* World) const
-{
-    return World->GetTimeSeconds() > LastTime + Threshold;
 }

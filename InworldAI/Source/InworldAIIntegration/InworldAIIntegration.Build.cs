@@ -5,52 +5,19 @@ using UnrealBuildTool;
 
 public class InworldAIIntegration : ModuleRules
 {
-    private string NdkDirectory
-    {
-        get
-        {
-            return Path.GetFullPath(Path.Combine(ModuleDirectory, "../../inworld-ndk/"));
-        }
-    }
-
-    private string ThirdPartyLibrariesDirectory
-    {
-        get
-        {
-            if (Target.Platform == UnrealTargetPlatform.Win64)
-            {
-                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Win64");
-            }
-            else if (Target.Platform == UnrealTargetPlatform.Mac)
-            {
-                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Mac");
-            }
-            else if (Target.Platform == UnrealTargetPlatform.IOS)
-            {
-                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/iOS");
-            }
-            else
-            {
-                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Unknown");
-            }
-        }
-    }
-
     public InworldAIIntegration(ReadOnlyTargetRules Target) : base(Target)
-	{
+    {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicDependencyModuleNames.AddRange(
-            new string[] 
-            { 
-                "Core", 
-                "CoreUObject", 
-                "Engine", 
+            new string[]
+            {
+                "Core",
+                "CoreUObject",
+                "Engine",
                 "InputCore",
-                "InworldAIClient",
-                "InworldAIPlatform",
-                "InworldAINdk",
                 "AudioCaptureCore",
+                "InworldAIClient",
             });
 
 
@@ -59,18 +26,18 @@ public class InworldAIIntegration : ModuleRules
             {
                 "ApplicationCore",
                 "AudioMixer",
-                "Projects",
+                "InworldAIPlatform",
+                "Networking",
+                "Sockets",
             }
             );
 
-        PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/Include"));
-
-        AddEngineThirdPartyPrivateStaticDependencies(Target, "zlib");
 
         if (Target.bBuildDeveloperTools || (Target.Configuration != UnrealTargetConfiguration.Shipping && Target.Configuration != UnrealTargetConfiguration.Test))
         {
             PrivateDependencyModuleNames.Add("GameplayDebugger");
             PrivateDefinitions.Add("INWORLD_DEBUGGER_SLOT=5");
         }
+
     }
 }

@@ -10,6 +10,14 @@
 #include "InworldSockets.h"
 #include "InworldApi.h"
 
+#include "Serialization/MemoryWriter.h"
+#include "Serialization/MemoryReader.h"
+
+#include <GameFramework/Controller.h>
+#include <GameFramework/PlayerController.h>
+
+#include <Engine/NetConnection.h>
+
 void UInworldAudioRepl::PostLoad()
 {
 	Super::PostLoad();
@@ -90,7 +98,7 @@ void UInworldAudioRepl::ListenAudioSocket()
 
 	FMemoryReader Ar(Data);
 
-	std::shared_ptr<FInworldAudioDataEvent> Event = std::make_shared<FInworldAudioDataEvent>();
+	TSharedPtr<FInworldAudioDataEvent> Event = MakeShared<FInworldAudioDataEvent>();
 	Event->Serialize(Ar);
 
 	auto* InworldApi = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
