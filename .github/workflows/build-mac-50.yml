@@ -34,13 +34,10 @@ jobs:
           cp -r "InworldAI/inworld-ndk/src/." "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
           cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
           cp -r "InworldReadyPlayerMe" "TestInworldFPS/TestInworldFPS/Plugins"
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: 'latest-stable'
     - name: BuildEditor-Mac-50
       shell: bash
       run: |
-          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildEditor -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping
+          sh "/Users/Shared/Epic Games/UE_5.0/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildEditor -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping
           cat BuildGameLog.txt
           if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
           then
@@ -50,7 +47,7 @@ jobs:
     - name: BuildGame-Mac-50
       shell: bash
       run: |
-          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping
+          sh "/Users/Shared/Epic Games/UE_5.0/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping
           cat BuildGameLog.txt
           if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
           then
