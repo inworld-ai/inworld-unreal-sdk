@@ -34,10 +34,9 @@ jobs:
           cp -r "InworldAI/inworld-ndk/src/." "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
           cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
           cp -r "InworldReadyPlayerMe" "TestInworldFPS/TestInworldFPS/Plugins"
-    - name: Xcode Select (default)
-      shell: bash
-      run: |
-          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: 'latest-stable'
     - name: BuildEditor-Mac-50
       shell: bash
       run: |
