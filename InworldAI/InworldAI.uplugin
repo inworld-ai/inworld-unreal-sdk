@@ -14,7 +14,10 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [
-				"Win64"
+				"Win64",
+				"Mac",
+				"Android",
+				"IOS"
 			]
 		},
 		{
@@ -22,7 +25,10 @@
 			"Type": "Runtime",
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
-				"Win64"
+				"Win64",
+				"Mac",
+				"Android",
+				"IOS"
 			]
 		},
 		{
@@ -30,7 +36,10 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [
-				"Win64"
+				"Win64",
+				"Mac",
+				"Android",
+				"IOS"
 			]
 		},
 		{
@@ -38,7 +47,8 @@
 			"Type": "Editor",
 			"LoadingPhase": "PostEngineInit",
 			"WhitelistPlatforms": [
-				"Win64"
+				"Win64",
+				"Mac"
 			]
 		}
 	],
