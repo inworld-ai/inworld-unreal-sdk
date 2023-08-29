@@ -8,7 +8,6 @@
 #pragma once
 
 #include "InworldEditorApi.h"
-#include "InworldUtils.h"
 #include "Kismet/GameplayStatics.h"
 #include "InworldCharacterComponent.h"
 #include "AssetTools/Public/AssetToolsModule.h"
@@ -27,7 +26,6 @@
 #include "Modules/ModuleManager.h"
 #include "InworldAIEditorModule.h"
 #include "InworldAIEditorSettings.h"
-#include "NDK/Utils/Log.h"
 #include "Templates/Casts.h"
 #include "InworldEditorNotification.h"
 #include "Innequin/InnequinPluginDataAsset.h"
@@ -41,10 +39,10 @@ const FString& UInworldEditorApiSubsystem::GetSavedStudioAccessToken() const
 
 void UInworldEditorApiSubsystem::RequestStudioData(const FString& ExchangeToken)
 {
-	Inworld::FEditorClientOptions Options;
+	FInworldEditorClientOptions Options;
 	Options.ServerUrl = "api-studio.inworld.ai:443";
 	Options.ExchangeToken = ExchangeToken;
-	Client.RequestUserData(Options, [this](const FInworldStudioUserData& Data, bool bError)
+	EditorClient->RequestUserData(Options, [this](const FInworldStudioUserData& Data, bool bError)
 		{
 			CacheStudioData(Data);
 			OnLogin.Broadcast(!bError, Data);
@@ -53,7 +51,7 @@ void UInworldEditorApiSubsystem::RequestStudioData(const FString& ExchangeToken)
 
 void UInworldEditorApiSubsystem::CancelRequestStudioData()
 {
-	Client.CancelRequests();
+	EditorClient->CancelRequests();
 }
 
 void UInworldEditorApiSubsystem::NotifyRestartRequired()
@@ -80,7 +78,7 @@ void UInworldEditorApiSubsystem::SetupActor(const FInworldStudioUserCharacterDat
 {
 	if ((Name.IsEmpty() && PreviousName.IsEmpty()) || (Name == PreviousName))
 	{
-		Inworld::LogError("UInworldEditorApiSubsystem::SetupActor invalid names '%s', '%s'", *Name, *PreviousName);
+		UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::SetupActor invalid names '%s', '%s'"), *Name, *PreviousName);
 		return;
 	}
 
@@ -103,7 +101,7 @@ void UInworldEditorApiSubsystem::SetupActor(const FInworldStudioUserCharacterDat
 			auto* Component = NewObject<UInworldCharacterComponent>(Actor);
 			if (!Component)
 			{
-				Inworld::LogError("UInworldEditorApiSubsystem::SetupActor couldn't create UInworldCharacterComponent");
+				UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::SetupActor couldn't create UInworldCharacterComponent"));
 				continue;
 			}
 
@@ -174,14 +172,14 @@ bool UInworldEditorApiSubsystem::CanSetupAssetAsInworldPlayer(const FAssetData& 
 	auto* Object = AssetData.GetAsset();
 	if (!Object)
 	{
-		if (bLogErrors) Inworld::LogError("UInworldEditorApiSubsystem::CanSetupAssetAsInworldPlayer couldn't find Object");
+		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldPlayer couldn't find Object"));
 		return false;
 	}
 
 	auto* Blueprint = Cast<UBlueprint>(Object);
 	if (!Blueprint || !Blueprint->SimpleConstructionScript)
 	{
-		if (bLogErrors) Inworld::LogError("UInworldEditorApiSubsystem::CanSetupAssetAsInworldPlayer asset should be Blueprint with SimpleConstructionScript");
+		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldPlayer asset should be Blueprint with SimpleConstructionScript"));
 		return false;
 	}
 
@@ -189,7 +187,7 @@ bool UInworldEditorApiSubsystem::CanSetupAssetAsInworldPlayer(const FAssetData& 
 
 	if (!ensure(InworldAIEditorSettings->InworldPlayerComponent))
 	{
-		if(bLogErrors) Inworld::LogError("UInworldEditorApiSubsystem::CanSetupAssetAsInworldPlayer InworldPlayerComponent is nullptr");
+		if(bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldPlayer InworldPlayerComponent is nullptr"));
 		return false;
 	}
 
@@ -226,14 +224,14 @@ bool UInworldEditorApiSubsystem::CanSetupAssetAsInworldCharacter(const FAssetDat
 	auto* Object = AssetData.GetAsset();
 	if (!Object)
 	{
-		if (bLogErrors) Inworld::LogError("UInworldEditorApiSubsystem::CanSetupAssetAsInworldCharacter couldn't find Object");
+		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldCharacter couldn't find Object"));
 		return false;
 	}
 
 	auto* Blueprint = Cast<UBlueprint>(Object);
 	if (!Blueprint || !Blueprint->SimpleConstructionScript)
 	{
-		if (bLogErrors) Inworld::LogError("UInworldEditorApiSubsystem::CanSetupAssetAsInworldCharacter asset should be Blueprint with SimpleConstructionScript");
+		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldCharacter asset should be Blueprint with SimpleConstructionScript"));
 		return false;
 	}
 
@@ -241,7 +239,7 @@ bool UInworldEditorApiSubsystem::CanSetupAssetAsInworldCharacter(const FAssetDat
 
 	if (!ensure(InworldAIEditorSettings->InworldCharacterComponent))
 	{
-		if (bLogErrors) Inworld::LogError("UInworldEditorApiSubsystem::CanSetupAssetAsInworldCharacter InworldCharacterComponent is nullptr");
+		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldCharacter InworldCharacterComponent is nullptr"));
 		return false;
 	}
 
@@ -288,7 +286,10 @@ bool UInworldEditorApiSubsystem::DoesSupportWorldType(EWorldType::Type WorldType
 
 void UInworldEditorApiSubsystem::Tick(float DeltaTime)
 {
-	Client.Tick(DeltaTime);
+	if (EditorClient)
+	{
+		EditorClient->Tick(DeltaTime);
+	}
 }
 
 void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -301,6 +302,9 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 			FUnrealEdMisc::Get().RestartEditor(false);
 		}
 	));
+
+	EditorClient = MakeShared<FInworldEditorClient>();
+	EditorClient->Init();
 
 	FInworldAIEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FInworldAIEditorModule>("InworldAIEditor");
 	Module.BindMenuAssetAction(
@@ -331,7 +335,11 @@ void UInworldEditorApiSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
 
-	Client.CancelRequests();
+	if (EditorClient)
+	{
+		EditorClient->Destroy();
+	}
+	EditorClient.Reset();
 
 	FInworldAIEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FInworldAIEditorModule>("InworldAIEditor");
 	Module.UnbindMenuAssetAction(FName("Inworld Player"));

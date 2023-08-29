@@ -8,10 +8,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InworldState.h"
 #include "InworldCharacterComponent.h"
-#include "InworldUtils.h"
-#include "NDK/Client.h"
 #include "InworldGameplayDebuggerCategory.h"
 
 #include "InworldPlayerComponent.generated.h"
@@ -67,8 +64,8 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     void SendAudioMessageToTarget(USoundWave* SoundWave);
-    void SendAudioDataMessageToTarget(const std::string& Data);
-    void SendAudioDataMessageWithAECToTarget(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
+    void SendAudioDataMessageToTarget(const TArray<uint8>& Data);
+    void SendAudioDataMessageWithAECToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 private:
 	UFUNCTION()

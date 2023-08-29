@@ -7,44 +7,33 @@
 
 #include "InworldPackets.h"
 
+#include <string>
+
 void AppendToDebugString(FString& DbgStr, const FString& Str)
 {
 	DbgStr.Append(Str);
 	DbgStr.Append(TEXT(". "));
 }
 
-FInworldAudioDataEvent::FInworldAudioDataEvent(const Inworld::AudioDataEvent& Event)
-	: FInworldDataEvent(Event)
-{
-	PhonemeInfos.Reserve(Event.GetPhonemeInfos().size());
-	for (const auto& Info : Event.GetPhonemeInfos())
-	{
-		PhonemeInfos.Add(FInworldPhonemeInfo(Info));
-	}
-}
-
 void FInworldAudioDataEvent::ConvertToReplicatableEvents(const FInworldAudioDataEvent& Event, TArray<FInworldAudioDataEvent>& RepEvents)
 {
 	constexpr uint32 DataMaxSize = 32 * 1024;
 
-	const uint32 NumArrays = Event.Chunk.size() / DataMaxSize + 1;
+	const uint32 NumArrays = Event.Chunk.Num() / DataMaxSize + 1;
 	RepEvents.SetNum(NumArrays);
-	TArray<std::string*> Chunks;
-	Chunks.Reserve(NumArrays);
 
-	for (auto& E : RepEvents)
+	for (uint32 i = 0; i < NumArrays; ++i)
 	{
-		E.PacketId = Event.PacketId;
-		E.Routing = Event.Routing;
-		E.bFinal = false;
-
-		Chunks.Add(&E.Chunk);
+		FInworldAudioDataEvent& RepEvent = RepEvents[i];
+		RepEvent.PacketId = Event.PacketId;
+		RepEvent.Routing = Event.Routing;
+		RepEvent.bFinal = false;
+		RepEvent.Chunk = TArray<uint8>(Event.Chunk.GetData() + (DataMaxSize * i), FMath::Min(DataMaxSize, (Event.Chunk.Num() - (DataMaxSize * i))));
 	}
-	Inworld::Utils::StringToArrayStrings(Event.Chunk, Chunks, DataMaxSize);
 
 	auto& FinalEvent = RepEvents.Last();
 	FinalEvent.bFinal = true;
-	FinalEvent.PhonemeInfos = Event.PhonemeInfos;
+	FinalEvent.VisemeInfos = Event.VisemeInfos;
 }
 
 template<typename T>
@@ -81,14 +70,14 @@ void SerializeStructArray(FMemoryArchive& Ar, TArray<T>& Array)
 	}
 }
 
-static void SerializeString(FMemoryArchive& Ar, std::string& Str)
+static void SerializeChunk(FMemoryArchive& Ar, TArray<uint8>& Chunk)
 {
-	int32 Size = Str.size();
+	int32 Size = Chunk.Num();
 	SerializeValue<int32>(Ar, Size);
 
-	Str.resize(Size);
+	Chunk.SetNum(Size);
 
-	Ar.Serialize((void*)Str.data(), Size);
+	Ar.Serialize((void*)Chunk.GetData(), Size);
 }
 
 static void SerializeString(FMemoryArchive& Ar, FString& Str)
@@ -180,20 +169,20 @@ void FInworldDataEvent::Serialize(FMemoryArchive& Ar)
 {
 	FInworldPacket::Serialize(Ar);
 
-	SerializeString(Ar, Chunk);
+	SerializeChunk(Ar, Chunk);
 }
 
 void FInworldDataEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Data"));
-	AppendToDebugString(Str, FString::FromInt(Chunk.size()));
+	AppendToDebugString(Str, FString::FromInt(Chunk.Num()));
 }
 
 void FInworldAudioDataEvent::Serialize(FMemoryArchive& Ar)
 {
 	FInworldDataEvent::Serialize(Ar);
 
-	SerializeStructArray<FInworldPhonemeInfo>(Ar, PhonemeInfos);
+	SerializeStructArray<FInworldVisemeInfo>(Ar, VisemeInfos);
 	SerializeValue<bool>(Ar, bFinal);
 }
 
@@ -202,11 +191,11 @@ void FInworldAudioDataEvent::AppendDebugString(FString& Str) const
 	FInworldDataEvent::AppendDebugString(Str);
 
 	AppendToDebugString(Str, TEXT("Audio"));
-	AppendToDebugString(Str, FString::FromInt(PhonemeInfos.Num()));
+	AppendToDebugString(Str, FString::FromInt(VisemeInfos.Num()));
 	AppendToDebugString(Str, bFinal ? TEXT("Final") : TEXT("Not final"));
 }
 
-void FInworldPhonemeInfo::Serialize(FMemoryArchive& Ar)
+void FInworldVisemeInfo::Serialize(FMemoryArchive& Ar)
 {
 	SerializeString(Ar, Code);
 	SerializeValue<float>(Ar, Timestamp);
@@ -238,6 +227,7 @@ void FInworldEmotionEvent::AppendDebugString(FString& Str) const
 	AppendToDebugString(Str, FString::FromInt(static_cast<int32>(Strength)));
 }
 
+/*
 FInworldCustomEvent::FInworldCustomEvent(const Inworld::CustomEvent& Event)
 	: FInworldPacket(Event)
 {
@@ -246,7 +236,7 @@ FInworldCustomEvent::FInworldCustomEvent(const Inworld::CustomEvent& Event)
 	{
 		Params.Add(UTF8_TO_TCHAR(param.first.c_str()), UTF8_TO_TCHAR(param.second.c_str()));
 	}
-}
+}*/
 
 void FInworldCustomEvent::AppendDebugString(FString& Str) const
 {
@@ -267,6 +257,6 @@ void FInworldChangeSceneEvent::AppendDebugString(FString& Str) const
 	AppendToDebugString(Str, TEXT("ChangeScene"));
 	for (auto& Agent : AgentInfos)
 	{
-		AppendToDebugString(Str, UTF8_TO_TCHAR(Agent.GivenName.c_str()));
+		AppendToDebugString(Str, Agent.GivenName);
 	}
 }

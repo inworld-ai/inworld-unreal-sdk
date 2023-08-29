@@ -63,7 +63,7 @@ void FCharacterMessageQueue::TryToProgress(bool bForce)
 		CurrentMessage = NextQueuedEntry.Message;
 		PendingMessageEntries.RemoveAt(0);
 
-		//Inworld::Log("Handle character message '%s::%s'", *CurrentMessage->InteractionId, *CurrentMessage->UtteranceId);
+		UE_LOG(LogInworldAIIntegration, Log, TEXT("Handle character message '%s::%s'"), *CurrentMessage->InteractionId, *CurrentMessage->UtteranceId);
 
 		CurrentMessage->AcceptHandle(*MessageVisitor);
 	}

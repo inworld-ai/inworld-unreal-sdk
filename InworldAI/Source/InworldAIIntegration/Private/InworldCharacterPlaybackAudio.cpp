@@ -9,8 +9,8 @@
 #undef PlaySound
 
 #include "InworldCharacterPlaybackAudio.h"
-#include "InworldUtils.h"
 #include "InworldCharacterComponent.h"
+#include "InworldBlueprintFunctionLibrary.h"
 #include <Components/AudioComponent.h>
 
 void UInworldCharacterPlaybackAudio::BeginPlay_Implementation()
@@ -42,9 +42,9 @@ void UInworldCharacterPlaybackAudio::OnCharacterUtterance_Implementation(const F
 	SoundWave = nullptr;
 	CurrentAudioPlaybackPercent = 0.f;
 	SoundDuration = 0.f;
-	if (!Message.AudioData.empty())
+	if (Message.SoundData.Num() > 0 && Message.bAudioFinal)
 	{
-		SoundWave = Inworld::Utils::StringToSoundWave(Message.AudioData);
+		SoundWave = UInworldBlueprintFunctionLibrary::DataArrayToSoundWave(Message.SoundData);
 		SoundDuration = SoundWave->GetDuration();
 		AudioComponent->SetSound(SoundWave);
 
