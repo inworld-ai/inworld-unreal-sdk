@@ -10,7 +10,9 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FInworldAIIntegrationModule : public IModuleInterface
+INWORLDAIINTEGRATION_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAIIntegration, Log, All);
+
+class INWORLDAIINTEGRATION_API FInworldAIIntegrationModule : public IModuleInterface
 {
 public:
 

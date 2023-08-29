@@ -9,8 +9,6 @@
 
 #include "CoreMinimal.h"
 
-#include <string>
-
 #include "InworldCharacterMessage.generated.h"
 
 struct FCharacterMessageUtterance;
@@ -64,7 +62,7 @@ struct FCharacterUtteranceVisemeInfo
 	FString Code;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
-	float Timestamp;
+	float Timestamp = 0.f;
 };
 
 USTRUCT(BlueprintType)
@@ -78,9 +76,14 @@ struct FCharacterMessageUtterance : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	TArray<FCharacterUtteranceVisemeInfo> VisemeInfos;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	bool bTextFinal = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	bool bAudioFinal = false;
-	std::string AudioData;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Message")
+	TArray<uint8> SoundData;
 
 	virtual bool IsReady() const override { return bTextFinal && bAudioFinal; }
 
@@ -100,7 +103,7 @@ struct FCharacterMessagePlayerTalk : public FCharacterMessage
 	FString Text;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
-	bool bTextFinal;
+	bool bTextFinal = false;
 
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { }
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { }
@@ -178,7 +181,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 			, Timestamp(InTimestamp)
 		{}
 		TSharedPtr<FCharacterMessage> Message;
-		float Timestamp;
+		float Timestamp = 0.f;
 	};
 
 	TArray<FCharacterMessageQueueEntry> PendingMessageEntries;

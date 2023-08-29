@@ -10,6 +10,8 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+INWORLDMETAHUMANEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldMetahumanEditor, Log, All);
+
 class FInworldMetahumanEditorModule : public IModuleInterface
 {
 public:

@@ -13,7 +13,9 @@
 #include "Engine/Font.h"
 #include "InworldPlayerAudioCaptureComponent.h"
 #include "InworldPlayerComponent.h"
-#include "NDK/Utils/Log.h"
+
+#include "UObject/UObjectIterator.h"
+//#include "NDK/Utils/Log.h"
 
 FInworldGameplayDebuggerCategory::FInworldGameplayDebuggerCategory()
 {
@@ -40,10 +42,8 @@ void FInworldGameplayDebuggerCategory::CollectData(APlayerController* OwnerPC, A
 
 	DataPack.bInworldApiExists = true;
 	DataPack.SessionStatus = static_cast<uint8>(InworldApi->Client->GetConnectionState());
-	std::string Error;
-	InworldApi->Client->GetConnectionError(Error, DataPack.ErrorCode);
-	DataPack.SessionError = UTF8_TO_TCHAR(Error.c_str());
-	DataPack.SessionId = UTF8_TO_TCHAR(Inworld::g_SessionId.c_str());
+	InworldApi->Client->GetConnectionError(DataPack.SessionError, DataPack.ErrorCode);
+	DataPack.SessionId = InworldApi->Client->GetSessionId();
 
 	for (auto* Component : InworldApi->GetCharacterComponents())
 	{

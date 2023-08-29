@@ -9,12 +9,14 @@
 
 #include "CoreMinimal.h"
 
+#include "Containers/Queue.h"
+
 class FSocket;
 class FUdpSocketReceiver;
 
 namespace Inworld
 {
-	struct INWORLDAICLIENT_API FSocketSettings
+	struct INWORLDAIINTEGRATION_API FSocketSettings
 	{
 		FString IpAddr;
 		FString Name;
@@ -22,7 +24,7 @@ namespace Inworld
 		uint32 BufferSize;
 	};
 
-	class INWORLDAICLIENT_API FSocketBase
+	class INWORLDAIINTEGRATION_API FSocketBase
 	{
 	public:
 		virtual ~FSocketBase() = default;
@@ -35,7 +37,7 @@ namespace Inworld
 		FSocket* Socket;
 	}; 
 	
-	class INWORLDAICLIENT_API FSocketSend : public FSocketBase
+	class INWORLDAIINTEGRATION_API FSocketSend : public FSocketBase
 	{
 	public:
 		virtual ~FSocketSend() = default;
@@ -45,7 +47,7 @@ namespace Inworld
 		virtual bool ProcessData(TArray<uint8>& Data) override;
 	};
 
-	class INWORLDAICLIENT_API FSocketReceive : public FSocketBase
+	class INWORLDAIINTEGRATION_API FSocketReceive : public FSocketBase
 	{
 	public:
 		virtual ~FSocketReceive() = default;

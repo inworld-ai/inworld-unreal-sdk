@@ -6,14 +6,14 @@
  */
 #include "InworldCharacterAnimations.h"
 #include "Animation/AnimMontage.h"
-#include "NDK/Utils/Log.h"
+//#include "NDK/Utils/Log.h"
 
 template<class TKey, class TDataTable>
 UAnimMontage* GetMontageByKey(TKey Key, float UtteranceDuration, const UDataTable* DataTable, bool bAllowTrailingGestures, EInworldCharacterEmotionStrength EmotionStrength, TArray<UAnimMontage*>& Montages)
 {
 	if (!ensure(DataTable))
 	{
-		Inworld::LogError("Setup animation data table!");
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("Setup animation data table!"));
 		return nullptr;
 	}
 
