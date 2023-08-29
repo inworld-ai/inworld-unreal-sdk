@@ -11,6 +11,18 @@
 #include "UObject/ObjectMacros.h"
 
 UENUM(BlueprintType)
+enum class EInworldConnectionState : uint8
+{
+	Idle,
+	Connecting,
+	Connected,
+	Failed,
+	Paused,
+	Disconnected,
+	Reconnecting
+};
+
+UENUM(BlueprintType)
 enum class EInworldCharacterGesturePlayback : uint8
 {
 	UNSPECIFIED = 0,

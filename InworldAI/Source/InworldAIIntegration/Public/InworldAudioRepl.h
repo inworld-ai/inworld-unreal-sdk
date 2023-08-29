@@ -8,6 +8,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InworldSockets.h"
+#include "IPAddress.h"
 
 #include "InworldAudioRepl.generated.h"
 

@@ -8,7 +8,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InworldUtils.h"
 #include "Components/AudioComponent.h"
 #include "InworldCharacterPlayback.h"
 
@@ -119,7 +118,7 @@ public:
 protected:
 	TWeakObjectPtr<UAudioComponent> AudioComponent;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Sound")
+	UPROPERTY()
 	USoundWave* SoundWave;
 
 	float SoundDuration = 0.f;

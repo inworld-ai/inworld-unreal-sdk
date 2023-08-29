@@ -13,6 +13,8 @@
 #include "InworldStudioUserData.h"
 #include "InworldEditorUtilityWidget.h"
 
+INWORLDAIEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAIEditor, Log, All);
+
 DECLARE_DELEGATE_OneParam(FAssetAction, const FAssetData&);
 DECLARE_DELEGATE_RetVal_OneParam(bool, FAssetActionPermission, const FAssetData&);
 

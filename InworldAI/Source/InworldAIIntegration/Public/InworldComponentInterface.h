@@ -8,7 +8,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InworldState.h"
 #include "InworldPackets.h"
 
 namespace Inworld
@@ -18,12 +17,12 @@ namespace Inworld
 	class ICharacterComponent
 	{
 	public:
-		virtual void Possess(const Inworld::AgentInfo& AgentInfo) = 0;
+		virtual void Possess(const FInworldAgentInfo& AgentInfo) = 0;
 		virtual void Unpossess() = 0;
 		virtual const FString& GetAgentId() const = 0;
 		virtual const FString& GetGivenName() const = 0;
 		virtual const FString& GetBrainName() const = 0;
-		virtual void HandlePacket(std::shared_ptr<FInworldPacket> Packet) = 0;
+		virtual void HandlePacket(TSharedPtr<FInworldPacket> Packet) = 0;
 		virtual AActor* GetComponentOwner() const = 0;
 		virtual IPlayerComponent* GetTargetPlayer() = 0;
 	};

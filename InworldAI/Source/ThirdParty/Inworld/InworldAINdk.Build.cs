@@ -3,16 +3,10 @@
 using System.IO;
 using System.Collections.Generic;
 using UnrealBuildTool;
+using System;
 
 public class InworldAINdk : ModuleRules
 {
-    private string NdkDirectory
-    {
-        get
-        {
-            return Path.GetFullPath(Path.Combine(ModuleDirectory, "../../inworld-ndk/"));
-        }
-    }
 
     private string ThirdPartyLibrariesDirectory
     {
@@ -20,50 +14,32 @@ public class InworldAINdk : ModuleRules
         {
             if (Target.Platform == UnrealTargetPlatform.Win64)
             {
-                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Win64");
+                return Path.Combine(ModuleDirectory, "lib/Win64");
             }
             else if (Target.Platform == UnrealTargetPlatform.Mac)
             {
-                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Mac/x86_64");
+                return Path.Combine(ModuleDirectory, "lib/Mac");
             }
             else if (Target.Platform == UnrealTargetPlatform.IOS)
             {
-                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/iOS/Clang-1300");
+                return Path.Combine(ModuleDirectory, "lib/iOS/Clang-1300");
             }
             else if (Target.Platform == UnrealTargetPlatform.Android)
             {
-                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Android/arm64-v8a");
+                return Path.Combine(ModuleDirectory, "lib/Android/arm64-v8a");
             }
             else
             {
-                return Path.Combine(NdkDirectory, "ThirdParty/Prebuilt/Unknown");
+                return Path.Combine(ModuleDirectory, "lib/Unknown");
             }
-        }
-    }
-
-    private static void CopyFilesRecursively(string sourcePath, string targetPath)
-    {
-        foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
-        {
-            Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
-        }
-
-        foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
-        {
-            File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
         }
     }
 
     public InworldAINdk(ReadOnlyTargetRules Target) : base(Target)
     {
-        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        Type = ModuleType.External;
 
-        // copy NDK source code
-        //if (!Directory.Exists(Path.Combine(ModuleDirectory, "Public/NDK")))
-        {
-            Directory.CreateDirectory(Path.Combine(ModuleDirectory, "Public/NDK"));
-            CopyFilesRecursively(Path.Combine(NdkDirectory, "src"), Path.Combine(ModuleDirectory, "Public/NDK"));
-        }
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicDependencyModuleNames.AddRange(
             new string[]
@@ -78,32 +54,27 @@ public class InworldAINdk : ModuleRules
                 "libcurl",
             });
 
-        PublicDefinitions.Add("GOOGLE_PROTOBUF_NO_RTTI");
-        PublicDefinitions.Add("GPR_FORBID_UNREACHABLE_CODE");
-        PublicDefinitions.Add("GRPC_ALLOW_EXCEPTIONS=0");
-        PublicDefinitions.Add("GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE=0");
-
-        PublicDefinitions.Add("INWORLD_LOG=1");
-        PublicDefinitions.Add("INWORLD_UNREAL=1");
-
         // Audio Echo Cancellation (AEC) supported on Winddows and Mac only
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac)
         {
             PublicDefinitions.Add("INWORLD_AEC=1");
         }
 
-        PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/Include"));
-        PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/grpc/include"));
-        PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/grpc/third_party"));
-        PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/grpc/third_party/abseil-cpp"));
-        PublicIncludePaths.Add(Path.Combine(NdkDirectory, "ThirdParty/include/protobuf/src"));
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public/NDK/Proto"));
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public/NDK/ThirdParty"));
+        PublicDefinitions.Add("INWORLD_LOG=1");
+        PublicDefinitions.Add("INWORLD_LOG_CALLBACK=1");
+
+        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include"));
+        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include/grpc"));
+
+        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "src"));
+        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "src/proto"));
+        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "src/ThirdParty"));
 
         List<string> NdkLibs = new List<string>();
         NdkLibs.AddRange(
             new string[]
             {
+                "InworldNdk",
                 "absl_base",
                 "absl_malloc_internal",
                 "absl_raw_logging_internal",
