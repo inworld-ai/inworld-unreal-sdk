@@ -460,7 +460,7 @@ void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCha
 	auto* MeshComponent = Cast<USkeletalMeshComponent>(AddNodeToBlueprint(Blueprint, USkeletalMeshComponent::StaticClass(), TEXT("Mesh")));
 	if (!MeshComponent)
 	{
-		Inworld::LogError("UInworldEditorApiSubsystem::CreateInnequinActor couldn't create USkeletalMeshComponent");
+		UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CreateInnequinActor couldn't create USkeletalMeshComponent"));
 		return;
 	}
 
@@ -472,7 +472,7 @@ void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCha
 	auto* CharacterComponent = Cast<UInworldCharacterComponent>(GetNodeFromBlueprint(Blueprint, TEXT("InworldCharacterComponent")));
 	if (!CharacterComponent)
 	{
-		Inworld::LogError("UInworldEditorApiSubsystem::CreateInnequinActor couldn't find UInworldCharacterComponent");
+		UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CreateInnequinActor couldn't find UInworldCharacterComponent"));
 		return;
 	}
 
@@ -488,7 +488,7 @@ void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCha
 	auto* EmoteComponent = Cast<USceneComponent>(AddNodeToBlueprint(Blueprint, InnequinPluginData->EmoteComponent, TEXT("Emote")));
 	if (!EmoteComponent)
 	{
-		Inworld::LogError("UInworldEditorApiSubsystem::CreateInnequinActor couldn't create Emote Component");
+		UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CreateInnequinActor couldn't create Emote Component"));
 		return;
 	}
 
