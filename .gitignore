@@ -92,5 +92,8 @@ InworldReadyPlayerMe/*/DerivedDataCache/*
 
 # Copied NDK sources
 InworldAI/Source/InworldAINdk/Public/NDK/*
+InworldAI/Source/ThirdParty/Inworld/include/*
+InworldAI/Source/ThirdParty/Inworld/lib/*
+InworldAI/Source/ThirdParty/Inworld/src/*
 
 package-release/*

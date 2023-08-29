@@ -60,7 +60,8 @@ public class InworldAINdk : ModuleRules
             PublicDefinitions.Add("INWORLD_AEC=1");
         }
 
-        PublicDefinitions.Add("INWORLD_LOG_CUSTOM=1");
+        PublicDefinitions.Add("INWORLD_LOG=1");
+        PublicDefinitions.Add("INWORLD_LOG_CALLBACK=1");
 
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include"));
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include/grpc"));

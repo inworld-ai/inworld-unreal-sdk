@@ -17,32 +17,31 @@ DEFINE_LOG_CATEGORY(LogInworldAIClient);
 
 DECLARE_LOG_CATEGORY_CLASS(LogInworldAINdk, Log, All);
 
-struct FInworldLoggerUnreal : public Inworld::Logger
-{
-	virtual void Log(const std::string& message)
-	{
-		UE_LOG(LogInworldAINdk, Log, TEXT("%s"), UTF8_TO_TCHAR(message.c_str()));
-	}
-
-	virtual void LogWarning(const std::string& message)
-	{
-		UE_LOG(LogInworldAINdk, Warning, TEXT("%s"), UTF8_TO_TCHAR(message.c_str()));
-	}
-
-	virtual void LogError(const std::string& message)
-	{
-		UE_LOG(LogInworldAINdk, Error, TEXT("%s"), UTF8_TO_TCHAR(message.c_str()));
-	}
-};
-
 void FInworldAIClientModule::StartupModule()
 {
-	Inworld::LogSetLogger<FInworldLoggerUnreal>();
+	Inworld::LogSetLoggerCallback([](const char* message, int severity)
+		{
+			switch (severity)
+			{
+			case 0:
+				UE_LOG(LogInworldAINdk, Log, TEXT("%s"), UTF8_TO_TCHAR(message));
+				break;
+			case 1:
+				UE_LOG(LogInworldAINdk, Warning, TEXT("%s"), UTF8_TO_TCHAR(message));
+				break;
+			case 2:
+				UE_LOG(LogInworldAINdk, Error, TEXT("%s"), UTF8_TO_TCHAR(message));
+				break;
+			default:
+				UE_LOG(LogInworldAINdk, Warning, TEXT("Message with unknown severity, treating as warning: %s"), UTF8_TO_TCHAR(message));
+			}
+		}
+	);
 }
 
 void FInworldAIClientModule::ShutdownModule()
 {
-	Inworld::LogClearLogger();
+	Inworld::LogClearLoggerCallback();
 }
 
 #undef LOCTEXT_NAMESPACE
