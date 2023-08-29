@@ -17,18 +17,18 @@ class UInnequinPluginDataAsset : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Innequin")
 	TSoftObjectPtr<USkeletalMesh> SkeletalMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Innequin")
 	TSoftObjectPtr<UAnimBlueprint> AnimBlueprint;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Innequin")
 	TSubclassOf<UActorComponent> InnequinComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Innequin")
 	TSubclassOf<UActorComponent> EmoteComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Innequin")
 	TArray<TSubclassOf<class UInworldCharacterPlayback>> CharacterPlaybacks;
 };
