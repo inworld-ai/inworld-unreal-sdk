@@ -33,6 +33,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSaveReady, FInworldSave, Save, bool, bSuccess);
 
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FResponseLatencyTrackerDelegate, FString, InteractionId, int32, LatencyMs);
+
 UCLASS(BlueprintType, Config = Engine)
 class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor
 {
@@ -80,6 +82,18 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void SaveSession(FOnSaveReady Delegate);
+
+    /**
+     * Set delegate for response latency tracker
+     */
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void SetResponseLatencyTrackerDelegate(FResponseLatencyTrackerDelegate Delegate);
+
+    /**
+     * Clear delegate for response latency tracker
+     */
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void ClearResponseLatencyTrackerDelegate();
 
 private:
     void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);

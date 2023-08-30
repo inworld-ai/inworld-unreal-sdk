@@ -52,9 +52,9 @@ jobs:
     - name: BuildEditor-Mac-50
       shell: bash
       run: |
-          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildEditor -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping
-          cat BuildGameLog.txt
-          if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
+          sh build-scripts/mac-build-editor.sh > BuildEditorLog.txt
+          cat BuildEditorLog.txt
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildEditorLog.txt)
           then
               exit 0
           fi
@@ -62,7 +62,7 @@ jobs:
     - name: BuildGame-Mac-50
       shell: bash
       run: |
-          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=Mac  -notools -configuration=Development+Shipping
+          sh build-scripts/mac-build-game.sh > BuildGameLog.txt
           cat BuildGameLog.txt
           if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
           then
