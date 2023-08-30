@@ -37,7 +37,7 @@ jobs:
     - name: BuildEditor-Mac-50
       shell: bash
       run: |
-          sh build-scripts/mac-build-editor.sh > BuildEditorLog.txt
+          sh build-scripts/mac-build-editor.sh > BuildEditorLog.txt -Wait -NoNewWindow -PassThru
           cat BuildEditorLog.txt
           if (grep -Fxq "$BuildEditorLog.txt" "BUILD SUCCESSFUL")
           then
@@ -47,7 +47,7 @@ jobs:
     - name: BuildGame-Mac-50
       shell: bash
       run: |
-          sh build-scripts/mac-build-game.sh > BuildGameLog.txt
+          sh build-scripts/mac-build-game.sh > BuildGameLog.txt -Wait -NoNewWindow -PassThru
           cat BuildGameLog.txt
           if (grep -Fxq "$BuildGameLog.txt" "BUILD SUCCESSFUL")
           then
