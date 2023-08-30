@@ -39,7 +39,7 @@ jobs:
       run: |
           sh build-scripts/mac-build-editor.sh > BuildEditorLog.txt -Wait -NoNewWindow -PassThru
           cat BuildEditorLog.txt
-          if (grep -Fxq "$BuildEditorLog.txt" "BUILD SUCCESSFUL")
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildEditorLog.txt)
           then
               exit 0
           fi
@@ -49,7 +49,7 @@ jobs:
       run: |
           sh build-scripts/mac-build-game.sh > BuildGameLog.txt -Wait -NoNewWindow -PassThru
           cat BuildGameLog.txt
-          if (grep -Fxq "$BuildGameLog.txt" "BUILD SUCCESSFUL")
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
           then
               exit 0
           fi

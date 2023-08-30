@@ -39,7 +39,7 @@ jobs:
       run: |
           sh build-scripts/ios-build-game.sh > BuildGameLog.txt -Wait -NoNewWindow -PassThru
           cat BuildGameLog.txt
-          if (grep -Fxq "$BuildGameLog.txt" "BUILD SUCCESSFUL")
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
           then
               exit 0
           fi
