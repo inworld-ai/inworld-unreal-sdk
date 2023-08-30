@@ -133,6 +133,13 @@ void FInworldClient::Init()
 			OnInworldPacketReceived.ExecuteIfBound(PacketTranslator.GetPacket());
 		}
 	);
+
+	InworldClient->SetPerceivedLatencyTrackerCallback([this](const std::string& InteractionId, uint32_t LatancyMs)
+		{
+			OnPerceivedLatency.ExecuteIfBound(UTF8_TO_TCHAR(InteractionId.c_str()), LatancyMs);
+		}
+	);
+
 #if !UE_BUILD_SHIPPING
 	auto OnAudioDumperCVarChangedCallback = [this](bool bEnable, FString Path)
 	{

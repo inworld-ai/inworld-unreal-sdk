@@ -116,15 +116,15 @@ void UInworldApiSubsystem::SaveSession(FOnSaveReady Delegate)
 
 void UInworldApiSubsystem::SetResponseLatencyTrackerDelegate(FResponseLatencyTrackerDelegate Delegate)
 {
-    Client->SetPerceivedLatencyTrackerCallback([Delegate](const std::string& InteractionId, uint32_t LatancyMs)
+    Client->OnPerceivedLatency.BindLambda([this, Delegate](FString InteractionId, int32 LatancyMs)
         {
-            Delegate.ExecuteIfBound(UTF8_TO_TCHAR(InteractionId.c_str()), LatancyMs);
+            Delegate.ExecuteIfBound(InteractionId, LatancyMs);
         });
 }
 
 void UInworldApiSubsystem::ClearResponseLatencyTrackerDelegate()
 {
-    Client->ClearPerceivedLatencyTrackerCallback();
+    Client->OnPerceivedLatency.Unbind();
 }
 
 void UInworldApiSubsystem::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)

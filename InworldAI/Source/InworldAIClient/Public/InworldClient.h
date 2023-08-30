@@ -23,6 +23,7 @@ namespace Inworld
 
 DECLARE_DELEGATE_OneParam(FOnInworldSceneLoaded, TArray<FInworldAgentInfo>);
 DECLARE_DELEGATE_TwoParams(FOnInworldSessionSaved, FInworldSave, bool);
+DECLARE_DELEGATE_TwoParams(FOnInworldLatency, FString, int32)
 DECLARE_DELEGATE_OneParam(FOnInworldConnectionStateChanged, EInworldConnectionState);
 DECLARE_DELEGATE_OneParam(FOnInworldPacketReceived, TSharedPtr<FInworldPacket>);
 
@@ -67,6 +68,8 @@ public:
 	FOnInworldSceneLoaded OnSceneLoaded;
 
 	FOnInworldSessionSaved OnSessionSaved;
+
+	FOnInworldLatency OnPerceivedLatency;
 	
 	FOnInworldConnectionStateChanged OnConnectionStateChanged;
 
