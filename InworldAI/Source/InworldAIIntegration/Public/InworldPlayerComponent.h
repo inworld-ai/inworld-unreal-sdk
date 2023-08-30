@@ -32,6 +32,8 @@ public:
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacter"))
     UInworldCharacterComponent* GetTargetInworldCharacter() { return static_cast<UInworldCharacterComponent*>(GetTargetCharacter()); }
 
@@ -46,8 +48,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
     bool IsInteracting() { return !TargetCharacterAgentId.IsEmpty(); }
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Interaction")
     void SendTextMessageToTarget(const FString& Message);
+
+    UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Interaction")
+    void SendTextMessage(const FString& Message, const FString& AgentId);
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (AutoCreateRefTerm = "Params"))
     void SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params);
@@ -66,6 +71,9 @@ public:
     void SendAudioDataMessageWithAECToTarget(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 
 private:
+	UFUNCTION()
+	void OnRep_TargetCharacterAgentId(FString OldAgentId);
+
     FDelegateHandle CharacterTargetUnpossessedHandle;
 
     UPROPERTY(EditAnywhere, Category = "UI")
@@ -73,6 +81,7 @@ private:
 
     TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
 
+	UPROPERTY(ReplicatedUsing = OnRep_TargetCharacterAgentId)
 	FString TargetCharacterAgentId;
 
 	friend class FInworldGameplayDebuggerCategory;
