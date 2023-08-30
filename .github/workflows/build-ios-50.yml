@@ -16,6 +16,21 @@ jobs:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
       run: git submodule update --init --recursive
+    - name: Find NDK SHA
+      run: |
+        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
+        echo $INWORLD_NDK_SHA
+        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
+    - uses: actions/cache/restore@v3
+      id: ndk-cache
+      with:
+        path: InworldAI\inworld-ndk\build\Package
+        key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+    - name: Build NDK
+      shell: bash
+      if: steps.ndk-cache.outputs.cache-hit != 'true'
+      run: |
+        python InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py --platform=iOS --clean --build
     - run: mkdir -p TestInworldFPS 
     - uses: actions/checkout@v2
       with:
@@ -30,8 +45,6 @@ jobs:
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
           mkdir "TestInworldFPS/TestInworldFPS/Plugins"
           cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins"
-          mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
-          cp -r "InworldAI/inworld-ndk/src/." "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
           cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
           cp -r "InworldReadyPlayerMe" "TestInworldFPS/TestInworldFPS/Plugins"
     - name: BuildGame-ios-50

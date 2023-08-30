@@ -35,7 +35,10 @@ build_configurations = {
         ['cmake .. -DAEC=True -DMAC=True -DUE_DIR="/Users/Shared/Epic Games/UE_5.1" -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"'],
         ['cmake --build . --target InworldNDKApp --config Release']
     ),
-    'iOS': BuildConfiguration([''],['']),
+    'iOS': BuildConfiguration(
+        ['cmake -G Xcode .. -DAEC=False -DIOS=True -DCMAKE_TOOLCHAIN_FILE=./ios.toolchain.cmake -DPLATFORM=OS64'],
+        ['cmake --build . --target InworldNDKApp --config Release']
+    ),
     'Android': BuildConfiguration([''],[''])
 }
 
