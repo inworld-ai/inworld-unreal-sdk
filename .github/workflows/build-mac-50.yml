@@ -30,7 +30,7 @@ jobs:
       shell: bash
       if: steps.ndk-cache.outputs.cache-hit != 'true'
       run: |
-        python InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py --platform=Mac --clean --build
+        python3 InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py --platform=Mac --clean --build
     - run: mkdir -p TestInworldFPS 
     - uses: actions/checkout@v2
       with:
