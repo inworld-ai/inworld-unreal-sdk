@@ -37,7 +37,7 @@ jobs:
     - name: BuildGame-ios-50
       shell: bash
       run: |
-          sh build-scripts/ios-build-game.sh > BuildGameLog.txt -Wait -NoNewWindow -PassThru
+          sh build-scripts/ios-build-game.sh > BuildGameLog.txt
           cat BuildGameLog.txt
           if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
           then
