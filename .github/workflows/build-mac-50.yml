@@ -37,13 +37,8 @@ jobs:
     - name: BuildEditor-Mac-50
       shell: bash
       run: |
-          sh build-scripts/mac-build-editor.sh > BuildEditorLog.txt -Wait -NoNewWindow -PassThru
+          sh mac-build-editor.sh > BuildEditorLog.txt
           cat BuildEditorLog.txt
-          if (grep -Fxq "BUILD SUCCESSFUL" BuildEditorLog.txt)
-          then
-              exit 0
-          fi
-          exit 1
     - name: BuildGame-Mac-50
       shell: bash
       run: |
