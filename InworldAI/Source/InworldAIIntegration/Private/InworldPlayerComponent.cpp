@@ -12,7 +12,9 @@
 
 void UInworldPlayerComponent::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
+
+	SetIsReplicated(true);
 
     InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
 }
@@ -20,6 +22,13 @@ void UInworldPlayerComponent::BeginPlay()
 void UInworldPlayerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     Super::EndPlay(EndPlayReason);
+}
+
+void UInworldPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UInworldPlayerComponent, TargetCharacterAgentId);
 }
 
 Inworld::ICharacterComponent* UInworldPlayerComponent::GetTargetCharacter()
@@ -60,12 +69,20 @@ void UInworldPlayerComponent::ClearTargetInworldCharacter()
     }
 }
 
-void UInworldPlayerComponent::SendTextMessageToTarget(const FString& Message)
+void UInworldPlayerComponent::SendTextMessageToTarget_Implementation(const FString& Message)
 {
-    if (!TargetCharacterAgentId.IsEmpty())
+    if (!Message.IsEmpty() && !TargetCharacterAgentId.IsEmpty())
     {
         InworldSubsystem->SendTextMessage(TargetCharacterAgentId, Message);
     }
+}
+
+void UInworldPlayerComponent::SendTextMessage_Implementation(const FString& Message, const FString& AgentId)
+{
+	if (!Message.IsEmpty() && !AgentId.IsEmpty())
+	{
+		InworldSubsystem->SendTextMessage(AgentId, Message);
+	}
 }
 
 void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params)
@@ -114,4 +131,25 @@ void UInworldPlayerComponent::SendAudioDataMessageWithAECToTarget(const std::vec
     {
         InworldSubsystem->SendAudioDataMessageWithAEC(TargetCharacterAgentId, InputData, OutputData);
     }
+}
+
+void UInworldPlayerComponent::OnRep_TargetCharacterAgentId(FString OldAgentId)
+{
+    if (!ensure(InworldSubsystem.IsValid()))
+    {
+        return;
+    }
+
+	const bool bHadTarget = !OldAgentId.IsEmpty();
+	const bool bHasTarget = !TargetCharacterAgentId.IsEmpty();
+	if (bHadTarget && !bHasTarget)
+	{
+        auto* Component = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(OldAgentId));
+        OnTargetClear.Broadcast(Component);
+	}
+	if (bHasTarget && OldAgentId != TargetCharacterAgentId)
+	{
+        auto* Component = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(TargetCharacterAgentId));
+		OnTargetSet.Broadcast(Component);
+	}
 }

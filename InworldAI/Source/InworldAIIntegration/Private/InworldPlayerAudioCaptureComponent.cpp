@@ -5,6 +5,9 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
+ // to avoid compile errors in windows unity build
+#undef PlaySound
+
 #include "InworldPlayerAudioCaptureComponent.h"
 #include "InworldPlayerComponent.h"
 #include "AudioMixerDevice.h"
