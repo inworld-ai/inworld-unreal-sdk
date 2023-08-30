@@ -193,6 +193,19 @@ void UInworldApiSubsystem::SaveSession(FOnSaveReady Delegate)
         });
 }
 
+void UInworldApiSubsystem::SetResponseLatencyTrackerDelegate(FResponseLatencyTrackerDelegate Delegate)
+{
+    Client->SetPerceivedLatencyTrackerCallback([Delegate](const std::string& InteractionId, uint32_t LatancyMs)
+        {
+            Delegate.ExecuteIfBound(UTF8_TO_TCHAR(InteractionId.c_str()), LatancyMs);
+        });
+}
+
+void UInworldApiSubsystem::ClearResponseLatencyTrackerDelegate()
+{
+    Client->ClearPerceivedLatencyTrackerCallback();
+}
+
 void UInworldApiSubsystem::PossessAgents(const std::vector<Inworld::AgentInfo>& AgentInfos)
 {
     for (const auto& AgentInfo : AgentInfos)
