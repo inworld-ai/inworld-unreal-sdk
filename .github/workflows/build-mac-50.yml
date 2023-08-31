@@ -80,7 +80,7 @@ jobs:
       run: |
         sh build-scripts/mac-build-plugin.sh > BuildPluginLog.txt
         cat BuildGameLog.txt
-          if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildPluginLog.txt)
           then
               exit 0
           fi
