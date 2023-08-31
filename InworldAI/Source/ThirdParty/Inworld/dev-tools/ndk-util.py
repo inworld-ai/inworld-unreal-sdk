@@ -29,15 +29,15 @@ class BuildConfiguration:
 build_configurations = {
     'Win64': BuildConfiguration(
         ['cmake .. -DAEC=True -DUE_DIR="C:/Program Files/Epic Games/UE_5.1" -DINWORLD_LOG_CALLBACK=True'],
-        ['cmake --build . --target InworldNDKApp --config Release']
+        ['cmake --build . --target InworldNDK --config Release']
     ),
     'Mac': BuildConfiguration(
         ['cmake .. -DAEC=True -DMAC=True -DUE_DIR="/Users/Shared/Epic Games/UE_5.1" -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"'],
-        ['cmake --build . --target InworldNDKApp --config Release']
+        ['cmake --build . --target InworldNDK --config Release']
     ),
     'iOS': BuildConfiguration(
         ['cmake -G Xcode .. -DAEC=False -DIOS=True -DCMAKE_TOOLCHAIN_FILE=./ios.toolchain.cmake -DPLATFORM=OS64'],
-        ['cmake --build . --target InworldNDKApp --config Release']
+        ['cmake --build . --target InworldNDK --config Release']
     ),
     'Android': BuildConfiguration([''],[''])
 }

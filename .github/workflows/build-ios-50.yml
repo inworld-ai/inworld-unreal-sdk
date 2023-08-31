@@ -69,7 +69,7 @@ jobs:
       shell: bash
       run: |
         sh build-scripts/ios-build-plugin.sh > BuildPluginLog.txt
-        cat BuildGameLog.txt
+        cat BuildPluginLog.txt
           if (grep -Fxq "BUILD SUCCESSFUL" BuildPluginLog.txt)
           then
               exit 0
