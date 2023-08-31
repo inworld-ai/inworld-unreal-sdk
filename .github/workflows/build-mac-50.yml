@@ -75,5 +75,15 @@ jobs:
               exit 0
           fi
           exit 1
+    - name: BuildPlugin-Mac-50
+      shell: bash
+      run: |
+        sh build-scripts/mac-build-plugin.sh > BuildPluginLog.txt
+        cat BuildGameLog.txt
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
+          then
+              exit 0
+          fi
+          exit 1
 
          

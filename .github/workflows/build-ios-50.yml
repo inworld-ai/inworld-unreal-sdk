@@ -65,5 +65,15 @@ jobs:
               exit 0
           fi
           exit 1
+    - name: BuildPlugin-ios-50
+      shell: bash
+      run: |
+        sh build-scripts/ios-build-plugin.sh > BuildPluginLog.txt
+        cat BuildGameLog.txt
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
+          then
+              exit 0
+          fi
+          exit 1
 
          
