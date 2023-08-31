@@ -22,11 +22,11 @@ public class InworldAINdk : ModuleRules
             }
             else if (Target.Platform == UnrealTargetPlatform.IOS)
             {
-                return Path.Combine(ModuleDirectory, "lib/iOS/Clang-1300");
+                return Path.Combine(ModuleDirectory, "lib/iOS");
             }
             else if (Target.Platform == UnrealTargetPlatform.Android)
             {
-                return Path.Combine(ModuleDirectory, "lib/Android/arm64-v8a");
+                return Path.Combine(ModuleDirectory, "lib/Android");
             }
             else
             {
