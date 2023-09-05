@@ -36,8 +36,11 @@ build_configurations = {
         ['cmake --build . --target InworldNDK --config Release']
     ),
     'iOS': BuildConfiguration(
-        ['cmake -G Xcode .. -DAEC=False -DIOS=True -DCMAKE_TOOLCHAIN_FILE=./ios.toolchain.cmake -DPLATFORM=OS64'],
-        ['cmake --build . --target InworldNDK --config Release']
+        ['cmake -G Xcode .. -DAEC=False -DIOS=True -DCMAKE_TOOLCHAIN_FILE=./ios.toolchain.cmake -DPLATFORM=OS64 -DINWORLD_LOG_CALLBACK=True'],
+        [   'sudo xcode-select -s /Applications/Xcode_13_0.app/Contents/Developer',
+            'cmake --build . --target InworldNDK --config Release',
+            'sudo xcode-select -s /Applications/Xcode.app/Contents/Developer'
+        ]
     ),
     'Android': BuildConfiguration([''],[''])
 }

@@ -58,7 +58,6 @@ jobs:
     - name: BuildGame-ios-50
       shell: bash
       run: |
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           sh build-scripts/ios-build-game.sh > BuildGameLog.txt
           cat BuildGameLog.txt
           if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
