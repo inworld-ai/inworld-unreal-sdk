@@ -14,7 +14,6 @@ jobs:
   build-win-50:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
-    - uses: ./.github/workflows/build-ndk-win.yml
     - uses: actions/checkout@v2
     - name: git-update-dependecies
       run: git submodule update --init --recursive | Write-Host
@@ -23,6 +22,7 @@ jobs:
         $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
         echo $INWORLD_NDK_SHA
         Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
+    - uses: ./.github/workflows/build-ndk-win.yml
     - uses: actions/cache/restore@v3
       id: ndk-cache
       with:

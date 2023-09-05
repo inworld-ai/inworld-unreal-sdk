@@ -10,20 +10,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-ndk:
-    name: Build NDK
-    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
-    steps:
-      - uses: actions/checkout@v2
-        name: git-update-dependecies
-
-
   build-ios-50:
     needs: [build-ndk]
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:
-    - uses: ./.github/workflows/build-ndk-ios.yml
-    - uses: ./.github/workflows/build-ndk-mac.yml
     - uses: actions/checkout@v2
     - name: git-update-dependecies
       run: git submodule update --init --recursive
@@ -32,6 +22,8 @@ jobs:
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
+    - uses: ./.github/workflows/build-ndk-ios.yml
+    - uses: ./.github/workflows/build-ndk-mac.yml
     - uses: actions/cache/restore@v3
       id: ndk-cache-ios
       with:
