@@ -14,6 +14,8 @@ jobs:
     name: Build NDK
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
+      - uses: actions/checkout@v2
+        name: git-update-dependecies
       - uses: ./.github/workflows/build-ndk-win.yml
 
   build-win-427:
