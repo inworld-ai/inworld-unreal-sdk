@@ -10,18 +10,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-ndk:
-    name: Build NDK
-    runs-on: [ self-hosted, Windows, X64, w10-1344 ]
-    steps:
-      - uses: actions/checkout@v2
-        name: git-update-dependecies
-      - uses: ./.github/workflows/build-ndk-win.yml
 
   build-win-50:
-    needs: [build-ndk]
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
+    - uses: ./.github/workflows/build-ndk-win.yml
     - uses: actions/checkout@v2
     - name: git-update-dependecies
       run: git submodule update --init --recursive | Write-Host

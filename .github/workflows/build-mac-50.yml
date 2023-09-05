@@ -10,18 +10,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-ndk:
-    name: Build NDK
-    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
-    steps:
-      - uses: actions/checkout@v2
-        name: git-update-dependecies
-      - uses: ./.github/workflows/build-ndk-mac.yml
-
   build-mac-50:
-    needs: [build-ndk]
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:
+    - uses: ./.github/workflows/build-ndk-mac.yml
     - uses: actions/checkout@v2
     - name: git-update-dependecies
       run: git submodule update --init --recursive
