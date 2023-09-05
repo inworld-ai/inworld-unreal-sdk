@@ -38,7 +38,7 @@ jobs:
         key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
     - name: Copy NDK
       run: |
-        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=Mac --copy
+        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --copy
     - run: mkdir -p TestInworldFPS 
     - uses: actions/checkout@v2
       with:
