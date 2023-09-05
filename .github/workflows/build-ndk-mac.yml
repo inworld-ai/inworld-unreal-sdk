@@ -1,0 +1,35 @@
+
+name: Build NDK (Mac)
+
+on:
+  workflow_call:
+
+jobs:
+  build-ndk-Mac:
+    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
+    steps:
+    - uses: actions/checkout@v2
+    - name: git-update-dependecies
+      run: git submodule update --init --recursive
+    - name: Find NDK SHA
+      run: |
+        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
+        echo $INWORLD_NDK_SHA
+        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
+    - uses: actions/cache/restore@v3
+      id: ndk-cache-Mac
+      with:
+        path: InworldAI/inworld-ndk/build/Package
+        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+    - name: Build NDK (Mac)
+      shell: bash
+      if: steps.ndk-cache-Mac.outputs.cache-hit != 'true'
+      run: |
+        sudo xcode-select -s /Applications/Xcode_13_0.app/Contents/Developer
+        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=Mac --clean --build
+        sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+    - uses: actions/cache/save@v3
+      if: steps.ndk-cache-Mac.outputs.cache-hit != 'true'
+      with:
+        path: InworldAI/inworld-ndk/build/Package
+        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}

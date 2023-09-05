@@ -26,21 +26,7 @@ jobs:
       with:
         path: InworldAI\inworld-ndk\build\Package
         key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
-    - name: Build NDK
-      shell: pwsh
-      if: steps.ndk-cache.outputs.cache-hit != 'true'
-      run: |
-          [string]$Python="C:\Program Files\Python310"
-          $process = Start-Process -FilePath "$Python\python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--platform=Win64,--clean,--build
-          if($process.ExitCode -ne 0)
-          {
-            exit 1
-          }
-    - uses: actions/cache/save@v3
-      if: steps.ndk-cache.outputs.cache-hit != 'true'
-      with:
-        path: InworldAI\inworld-ndk\build\Package
-        key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
+        fail-on-cache-miss: true
     - name: Copy NDK
       run: |
           [string]$Python="C:\Program Files\Python310"
