@@ -10,7 +10,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
   build-win-50:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
@@ -22,13 +21,26 @@ jobs:
         $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
         echo $INWORLD_NDK_SHA
         Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
-    - uses: ./.github/workflows/build-ndk-win.yml
     - uses: actions/cache/restore@v3
       id: ndk-cache
       with:
         path: InworldAI\inworld-ndk\build\Package
         key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
-        fail-on-cache-miss: true
+    - name: Build NDK
+      shell: pwsh
+      if: steps.ndk-cache.outputs.cache-hit != 'true'
+      run: |
+          [string]$Python="C:\Program Files\Python310"
+          $process = Start-Process -FilePath "$Python\python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--platform=Win64,--clean,--build
+          if($process.ExitCode -ne 0)
+          {
+            exit 1
+          }
+    - uses: actions/cache/save@v3
+      if: steps.ndk-cache.outputs.cache-hit != 'true'
+      with:
+        path: InworldAI\inworld-ndk\build\Package
+        key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
     - name: Copy NDK
       run: |
           [string]$Python="C:\Program Files\Python310"
