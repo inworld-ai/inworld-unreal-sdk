@@ -19,6 +19,7 @@ jobs:
       - uses: ./.github/workflows/build-ndk-mac.yml
 
   build-mac-50:
+    needs: [build-ndk]
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:
     - uses: actions/checkout@v2
