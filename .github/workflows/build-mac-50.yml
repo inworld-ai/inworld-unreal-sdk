@@ -10,6 +10,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  build-ndk:
+    name: Build NDK
+    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
+    steps:
+      - uses: ./.github/workflows/build-ndk-mac.yml
+
   build-mac-50:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:

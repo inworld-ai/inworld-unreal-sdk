@@ -10,6 +10,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  build-ndk:
+    name: Build NDK
+    runs-on: [ self-hosted, Windows, X64, w10-1344 ]
+    steps:
+      - uses: ./.github/workflows/build-ndk-win.yml
+
   build-win-427:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
