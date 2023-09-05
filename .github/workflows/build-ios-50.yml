@@ -26,7 +26,7 @@ jobs:
       with:
         path: InworldAI/inworld-ndk/build/Package
         key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
-    - name: Build NDK
+    - name: Build NDK (iOS)
       shell: bash
       if: steps.ndk-cache.outputs.cache-hit != 'true'
       run: |
@@ -38,9 +38,25 @@ jobs:
       with:
         path: InworldAI/inworld-ndk/build/Package
         key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+    - uses: actions/cache/restore@v3
+      id: ndk-cache
+      with:
+        path: InworldAI/inworld-ndk/build/Package
+        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+    - name: Build NDK (Mac)
+      shell: bash
+      if: steps.ndk-cache.outputs.cache-hit != 'true'
+      run: |
+        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=Mac --clean --build
+    - uses: actions/cache/save@v3
+      if: steps.ndk-cache.outputs.cache-hit != 'true'
+      with:
+        path: InworldAI/inworld-ndk/build/Package
+        key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
     - name: Copy NDK
       run: |
         python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=iOS --copy
+        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=Mac --copy
     - run: mkdir -p TestInworldFPS 
     - uses: actions/checkout@v2
       with:
