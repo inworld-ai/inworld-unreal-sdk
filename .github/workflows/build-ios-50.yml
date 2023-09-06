@@ -10,8 +10,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  build-ndk-ios:
+    uses: ./.github/workflows/build-ndk-ios.yml
+
   build-ios-50:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
+    needs: build-ndk-ios
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
@@ -26,18 +30,7 @@ jobs:
       with:
         path: InworldAI/inworld-ndk/build/Package
         key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
-    - name: Build NDK (iOS)
-      shell: bash
-      if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
-      run: |
-        sudo xcode-select -s /Applications/Xcode_13_0.app/Contents/Developer
-        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=iOS --clean --build
-        sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-    - uses: actions/cache/save@v3
-      if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
-      with:
-        path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+        fail-on-cache-miss: true
     - uses: actions/cache/restore@v3
       id: ndk-cache-mac
       with:
