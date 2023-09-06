@@ -83,7 +83,7 @@ jobs:
         path: InworldAI/inworld-ndk/build/Package/lib/iOS
 
   package:
-    runs-on: [ self-hosted, Windows, X64, w10-1344 ]
+    runs-on: ubuntu-latest
     needs: [ upload-ndk-win, upload-ndk-mac, upload-ndk-ios ]
     steps:
       - uses: actions/checkout@v2
