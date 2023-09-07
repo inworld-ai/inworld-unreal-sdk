@@ -10,12 +10,39 @@ on:
   workflow_dispatch:
 
 jobs:
+  build-ndk-ios:
+    uses: ./.github/workflows/build-ndk-ios.yml
+
+  build-ndk-mac:
+      uses: ./.github/workflows/build-ndk-mac.yml
+
   build-ios-50:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
+    needs: [ build-ndk-ios, build-ndk-mac ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
       run: git submodule update --init --recursive
+    - name: Find NDK SHA
+      run: |
+        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
+        echo $INWORLD_NDK_SHA
+        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
+    - uses: actions/cache/restore@v3
+      id: ndk-cache-ios
+      with:
+        path: InworldAI/inworld-ndk/build/Package
+        key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+        fail-on-cache-miss: true
+    - uses: actions/cache/restore@v3
+      id: ndk-cache-mac
+      with:
+        path: InworldAI/inworld-ndk/build/Package
+        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        fail-on-cache-miss: true
+    - name: Copy NDK
+      run: |
+        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --copy
     - run: mkdir -p TestInworldFPS 
     - uses: actions/checkout@v2
       with:
@@ -30,8 +57,6 @@ jobs:
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
           mkdir "TestInworldFPS/TestInworldFPS/Plugins"
           cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins"
-          mkdir "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
-          cp -r "InworldAI/inworld-ndk/src/." "TestInworldFPS/TestInworldFPS/Plugins/InworldAI/Source/InworldAINdk/Public/NDK"
           cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
           cp -r "InworldReadyPlayerMe" "TestInworldFPS/TestInworldFPS/Plugins"
     - name: BuildGame-ios-50
@@ -40,6 +65,16 @@ jobs:
           sh build-scripts/ios-build-game.sh > BuildGameLog.txt
           cat BuildGameLog.txt
           if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
+          then
+              exit 0
+          fi
+          exit 1
+    - name: BuildPlugin-ios-50
+      shell: bash
+      run: |
+        sh build-scripts/ios-build-plugin.sh > BuildPluginLog.txt
+        cat BuildPluginLog.txt
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildPluginLog.txt)
           then
               exit 0
           fi

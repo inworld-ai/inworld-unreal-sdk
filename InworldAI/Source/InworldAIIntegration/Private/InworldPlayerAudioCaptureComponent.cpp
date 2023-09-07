@@ -14,7 +14,7 @@
 #include "AudioMixerSubmix.h"
 #include "InworldApi.h"
 #include "InworldAIPlatformModule.h"
-#include "NDK/Utils/Log.h"
+//#include "NDK/Utils/Log.h"
 #include <Net/UnrealNetwork.h>
 #include <GameFramework/PlayerController.h>
 
@@ -130,13 +130,13 @@ void UInworldPlayerAudioCaptureComponent::TickComponent(float DeltaTime, enum EL
         while (InputBuffer.Num() > SampleSendSize && (!bEnableAEC || OutputBuffer.Num() > SampleSendSize))
         {
             FPlayerVoiceCaptureInfoRep VoiceCaptureInfoRep;
-            VoiceCaptureInfoRep.MicSoundData.Append(InputBuffer.GetData(), SampleSendSize);
+            VoiceCaptureInfoRep.MicSoundData.Append((uint8*)InputBuffer.GetData(), SampleSendSize * 2);
             FMemory::Memcpy(InputBuffer.GetData(), InputBuffer.GetData() + SampleSendSize, (InputBuffer.Num() - SampleSendSize) * sizeof(int16));
             InputBuffer.SetNum(InputBuffer.Num() - SampleSendSize);
 
             if (bEnableAEC)
             {
-                VoiceCaptureInfoRep.OutputSoundData.Append(OutputBuffer.GetData(), SampleSendSize);
+                VoiceCaptureInfoRep.OutputSoundData.Append((uint8*)OutputBuffer.GetData(), SampleSendSize * 2);
                 FMemory::Memcpy(OutputBuffer.GetData(), OutputBuffer.GetData() + SampleSendSize, (OutputBuffer.Num() - SampleSendSize) * sizeof(int16));
                 OutputBuffer.SetNum(OutputBuffer.Num() - SampleSendSize);
             }
@@ -411,16 +411,11 @@ void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implem
 {
 	if (bEnableAEC)
 	{
-        std::vector<int16_t> Input, Output;
-		Inworld::Utils::DataArray16ToVec16(PlayerVoiceCaptureInfo.MicSoundData, Input);
-		Inworld::Utils::DataArray16ToVec16(PlayerVoiceCaptureInfo.OutputSoundData, Output);
-        PlayerComponent->SendAudioDataMessageWithAECToTarget(Input, Output);
+        PlayerComponent->SendAudioDataMessageWithAECToTarget(PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
 	}
 	else
 	{
-		std::string Input;
-		Inworld::Utils::DataArray16ToString(PlayerVoiceCaptureInfo.MicSoundData, Input);
-        PlayerComponent->SendAudioDataMessageToTarget(Input);
+        PlayerComponent->SendAudioDataMessageToTarget(PlayerVoiceCaptureInfo.MicSoundData);
 	}
 }
 

@@ -7,12 +7,11 @@
 
 #include "InworldSockets.h"
 
-#include "Sockets/Public/IPAddress.h"
+#include "IPAddress.h"
 #include "Common/UdpSocketBuilder.h"
 #include "Common/UdpSocketReceiver.h"
 #include "Common/UdpSocketSender.h"
 
-#include "NDK/Utils/Log.h"
 
 bool Inworld::FSocketSend::Initialize(const FSocketSettings& Settings)
 {
@@ -24,7 +23,7 @@ bool Inworld::FSocketSend::Initialize(const FSocketSettings& Settings)
 
 	if (!bIsValid)
 	{
-		Inworld::LogError("FSocketSend::Initialize Address is invalid '%s:%d'", *Settings.IpAddr, Settings.Port);
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::Initialize Address is invalid '%s:%d'"), *Settings.IpAddr, Settings.Port);
 		return false;
 	}
 
@@ -36,7 +35,7 @@ bool Inworld::FSocketSend::Initialize(const FSocketSettings& Settings)
 
 	if (!Socket->Connect(*Addr))
 	{
-		Inworld::LogError("FSocketSend::Initialize couldn't connect");
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::Initialize couldn't connect"));
 		return false;
 	}
 
@@ -83,7 +82,7 @@ bool Inworld::FSocketReceive::Initialize(const FSocketSettings& Settings)
 
 	if (!Socket)
 	{
-		Inworld::LogError("FSocketReceive::Initialize couldn't build a socket");
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketReceive::Initialize couldn't build a socket"));
 		return false;
 	}
 

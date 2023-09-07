@@ -10,6 +10,8 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+INWORLDRPMEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldRPMEditor, Log, All);
+
 class FInworldRPMEditorModule : public IModuleInterface
 {
 public:

@@ -1,3 +1,4 @@
+
 name: Build Win UE.4.27
 
 on:
@@ -9,12 +10,34 @@ on:
   workflow_dispatch:
 
 jobs:
+  build-ndk-win:
+    uses: ./.github/workflows/build-ndk-win.yml
+
   build-win-427:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
+    needs: [ build-ndk-win ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
       run: git submodule update --init --recursive | Write-Host
+    - name: Find NDK SHA
+      run: |
+        $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
+        echo $INWORLD_NDK_SHA
+        Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
+    - uses: actions/cache/restore@v3
+      id: ndk-cache-win64
+      with:
+        path: InworldAI\inworld-ndk\build\Package
+        key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
+        fail-on-cache-miss: true
+    - name: Copy NDK
+      run: |
+          $process = Start-Process -FilePath "C:\Program Files\Python310\Python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--copy
+          if($process.ExitCode -ne 0)
+          {
+            exit 1
+          }
     - run: mkdir -p TestInworldFPS 
     - uses: actions/checkout@v2
       with:
@@ -28,7 +51,6 @@ jobs:
           Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
           Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse -ErrorAction SilentlyContinue
           Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
-          Copy-Item -Path "InworldAI\inworld-ndk\src" -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI\Source\InworldAINdk\Public\NDK" -Recurse
           Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
           Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
     - name: BuildEditor-Win-427
@@ -61,11 +83,3 @@ jobs:
           {
             exit 1
           }
-    - uses: actions/upload-artifact@v3
-      if: github.event_name == 'workflow_dispatch'
-      with:
-        name: UE.4.27
-        path: |
-          InworldAI
-          InworldMetahuman
-          InworldReadyPlayerMe

@@ -6,7 +6,6 @@
  */
 
 #include "InworldPlayerComponent.h"
-#include "NDK/Proto/ProtoDisableWarning.h"
 #include "InworldApi.h"
 #include "InworldCharacterComponent.h"
 
@@ -117,7 +116,7 @@ void UInworldPlayerComponent::SendAudioMessageToTarget(USoundWave* SoundWave)
     }
 }
 
-void UInworldPlayerComponent::SendAudioDataMessageToTarget(const std::string& Data)
+void UInworldPlayerComponent::SendAudioDataMessageToTarget(const TArray<uint8>& Data)
 {
     if (!TargetCharacterAgentId.IsEmpty())
     {
@@ -125,7 +124,7 @@ void UInworldPlayerComponent::SendAudioDataMessageToTarget(const std::string& Da
     }
 }
 
-void UInworldPlayerComponent::SendAudioDataMessageWithAECToTarget(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
+void UInworldPlayerComponent::SendAudioDataMessageWithAECToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
     if (!TargetCharacterAgentId.IsEmpty())
     {
