@@ -14,7 +14,7 @@
 #include "AudioMixerSubmix.h"
 #include "InworldApi.h"
 #include "InworldAIPlatformModule.h"
-//#include "NDK/Utils/Log.h"
+
 #include <Net/UnrealNetwork.h>
 #include <GameFramework/PlayerController.h>
 
@@ -243,12 +243,22 @@ void UInworldPlayerAudioCaptureComponent::OpenStream()
         return;
     }
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 3
+    Audio::FOnAudioCaptureFunction OnCapture = [this](const void* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, double StreamTime, bool bOverFlow)
+    {
+        OnAudioCapture((float*)AudioData, NumFrames, NumChannels, SampleRate, StreamTime, bOverFlow);
+    };
+
+    AudioCapture.OpenAudioCaptureStream(AudioCaptureDeviceParams, MoveTemp(OnCapture), 1024);
+#else
     Audio::FOnCaptureFunction OnCapture = [this](const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, double StreamTime, bool bOverFlow)
     {
         OnAudioCapture(AudioData, NumFrames, NumChannels, SampleRate, StreamTime, bOverFlow);
     };
 
     AudioCapture.OpenCaptureStream(AudioCaptureDeviceParams, MoveTemp(OnCapture), 1024);
+#endif
+
 }
 
 void UInworldPlayerAudioCaptureComponent::CloseStream()
