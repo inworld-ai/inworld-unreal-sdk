@@ -10,7 +10,7 @@
 #include "InworldEditorApi.h"
 #include "Kismet/GameplayStatics.h"
 #include "InworldCharacterComponent.h"
-#include "AssetTools/Public/AssetToolsModule.h"
+#include "AssetToolsModule.h"
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -423,7 +423,7 @@ UBlueprint* UInworldEditorApiSubsystem::CreateCharacterActorBP(const FInworldStu
 	UObject* Object = AssetToolsModule.Get().CreateAsset(Name, PackagePath, UBlueprint::StaticClass(), Factory);
 	if (Object)
 	{
-		UPackage::Save(Package, Object, RF_Public | RF_Standalone, *FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension()));
+		UPackage::SavePackage(Package, Object, RF_Public | RF_Standalone, *FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension()));
 
 		AssetRegistry.AssetCreated(Object);
 

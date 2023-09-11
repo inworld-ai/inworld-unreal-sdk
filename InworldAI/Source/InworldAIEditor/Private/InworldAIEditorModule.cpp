@@ -6,17 +6,17 @@
  */
 
 #include "InworldAIEditorModule.h"
-#include "AssetTools/Public/IAssetTools.h"
+#include "IAssetTools.h"
 #include "ContentBrowserModule.h"
 #include "InworldEditorApi.h"
 #include "InworldAIEditorSettings.h"
 #include "InworldEditorUIStyle.h"
 #include "ISettingsModule.h"
 #include "WidgetBlueprint.h"
-#include "Blutility/Classes/EditorUtilityWidget.h"
-#include "Blutility/Classes/EditorUtilityWidgetBlueprint.h"
-#include "Blutility/Public/EditorUtilitySubsystem.h"
-#include "MainFrame/Public/Interfaces/IMainFrameModule.h"
+#include "EditorUtilityWidget.h"
+#include "EditorUtilityWidgetBlueprint.h"
+#include "EditorUtilitySubsystem.h"
+#include "Interfaces/IMainFrameModule.h"
 
 #define LOCTEXT_NAMESPACE "FInworldAIEditorModule"
 
@@ -72,7 +72,7 @@ void FInworldAIEditorModule::AssetExtenderFunc(FMenuBuilder& MenuBuilder, const 
 	MenuBuilder.AddSubMenu(
 		FText::FromString("Inworld Actions"),
 		FText::FromString("Quick Inworld blueprint setup helpers"),
-		FNewMenuDelegate::CreateLambda([=](FMenuBuilder& SubMenuBuilder)
+		FNewMenuDelegate::CreateLambda([this, SelectedAssets](FMenuBuilder& SubMenuBuilder)
 			{
 				for (const FName& SectionName : AssetActionMenu.Sections)
 				{

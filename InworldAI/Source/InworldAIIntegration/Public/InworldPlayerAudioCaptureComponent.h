@@ -10,6 +10,7 @@
 #include "CoreMinimal.h"
 #include "AudioCaptureCore.h"
 #include "AudioDevice.h"
+#include "ISubmixBufferListener.h"
 #include "Containers/ContainerAllocationPolicies.h"
 #include "InworldGameplayDebuggerCategory.h"
 #include "InworldPlayerAudioCaptureComponent.generated.h"

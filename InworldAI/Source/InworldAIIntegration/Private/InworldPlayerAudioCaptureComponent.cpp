@@ -76,7 +76,7 @@ void UInworldPlayerAudioCaptureComponent::EndPlay(const EEndPlayReason::Type End
         PlayerComponent->OnTargetClear.Remove(PlayerTargetClearHandle);
     }
 
-    if (IsLocallyControlled())
+    if (bCapturingVoice)
     {
         StopStream();
         CloseStream();
