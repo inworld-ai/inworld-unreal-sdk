@@ -197,7 +197,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 		const FString& UtteranceId = Event.PacketId.UtteranceId;
 
 		TSharedPtr<T> Message = nullptr;
-		const TArray<TSharedPtr<T>>::SizeType Index = PendingMessageEntries.FindLastByPredicate( [&InteractionId, &UtteranceId](const auto& Q)
+		const auto Index = PendingMessageEntries.FindLastByPredicate( [&InteractionId, &UtteranceId](const auto& Q)
 			{
 				return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId;
 			}
