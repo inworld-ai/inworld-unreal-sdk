@@ -168,9 +168,16 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 	{}
 	FCharacterMessageQueue(class ICharacterMessageVisitor* InMessageVisitor)
 		: MessageVisitor(InMessageVisitor)
-	{}
+	{
+		UObject* AsUObject = Cast<UObject>(InMessageVisitor);
+		if (AsUObject)
+		{
+			World = AsUObject->GetWorld();
+		}
+	}
 
-	class ICharacterMessageVisitor* MessageVisitor;
+	class ICharacterMessageVisitor* MessageVisitor = nullptr;
+	UWorld* World = nullptr;
 
 	TSharedPtr<FCharacterMessage> CurrentMessage;
 
@@ -186,21 +193,25 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 
 	TArray<FCharacterMessageQueueEntry> PendingMessageEntries;
 
+
 	template<class T>
-	void AddOrUpdateMessage(float Timestamp, const FString& InteractionId, const FString& UtteranceId, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr)
+	void AddOrUpdateMessage(const FInworldPacket& Event, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr)
 	{
+		const FString& InteractionId = Event.PacketId.InteractionId;
+		const FString& UtteranceId = Event.PacketId.UtteranceId;
+
 		TSharedPtr<T> Message = nullptr;
-		if (FCharacterMessageQueueEntry* QueueEntryPtr = PendingMessageEntries.FindByPredicate([&InteractionId, &UtteranceId](const auto& Q) { return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId; }))
+		if (FCharacterMessageQueueEntry* QueueEntryPtr = PendingMessageEntries.FindLastByPredicate([&InteractionId, &UtteranceId](const auto& Q) { return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId; }))
 		{
 			Message = StaticCastSharedPtr<T>(QueueEntryPtr->Message);
 		}
 
-		if (!Message.IsValid())
+		if (!Message.IsValid() || Message->IsReady())
 		{
 			Message = MakeShared<T>();
 			Message->InteractionId = InteractionId;
 			Message->UtteranceId = UtteranceId;
-			PendingMessageEntries.Emplace(Message, Timestamp);
+			PendingMessageEntries.Emplace(Message, World->GetTimeSeconds());
 		}
 		if (PopulateProperties)
 		{
