@@ -9,7 +9,7 @@
 
 
 #include "CoreMinimal.h"
-#include "Blutility/Classes/EditorUtilityWidget.h"
+#include "EditorUtilityWidget.h"
 
 #include "InworldEditorUtilityWidget.generated.h"
 

@@ -12,6 +12,12 @@
 #include "AudioDevice.h"
 #include "Containers/ContainerAllocationPolicies.h"
 #include "InworldGameplayDebuggerCategory.h"
+
+#include "Runtime/Launch/Resources/Version.h"
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+#include "ISubmixBufferListener.h"
+#endif
+
 #include "InworldPlayerAudioCaptureComponent.generated.h"
 
 class UInworldApiSubsystem;

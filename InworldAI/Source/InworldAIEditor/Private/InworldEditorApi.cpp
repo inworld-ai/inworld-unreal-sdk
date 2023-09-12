@@ -10,7 +10,7 @@
 #include "InworldEditorApi.h"
 #include "Kismet/GameplayStatics.h"
 #include "InworldCharacterComponent.h"
-#include "AssetTools/Public/AssetToolsModule.h"
+#include "AssetToolsModule.h"
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -30,6 +30,7 @@
 #include "InworldEditorNotification.h"
 #include "Innequin/InnequinPluginDataAsset.h"
 #include "Interfaces/IPluginManager.h"
+#include "UObject/SavePackage.h"
 
 const FString& UInworldEditorApiSubsystem::GetSavedStudioAccessToken() const
 {
@@ -423,7 +424,14 @@ UBlueprint* UInworldEditorApiSubsystem::CreateCharacterActorBP(const FInworldStu
 	UObject* Object = AssetToolsModule.Get().CreateAsset(Name, PackagePath, UBlueprint::StaticClass(), Factory);
 	if (Object)
 	{
-		UPackage::Save(Package, Object, RF_Public | RF_Standalone, *FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension()));
+		FString FileName = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
+#if ENGINE_MAJOR_VERSION >= 5
+		FSavePackageArgs SavePackageArgs;
+		SavePackageArgs.TopLevelFlags = RF_Public | RF_Standalone;
+		UPackage::SavePackage(Package, Object, *FileName, SavePackageArgs);
+#else
+		UPackage::SavePackage(Package, Object, RF_Public | RF_Standalone, *FileName);
+#endif
 
 		AssetRegistry.AssetCreated(Object);
 

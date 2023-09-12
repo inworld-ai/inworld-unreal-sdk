@@ -12,6 +12,8 @@
 #include "Common/UdpSocketReceiver.h"
 #include "Common/UdpSocketSender.h"
 
+#include "InworldAIIntegrationModule.h"
+
 
 bool Inworld::FSocketSend::Initialize(const FSocketSettings& Settings)
 {

@@ -9,6 +9,9 @@
 #include "InworldApi.h"
 #include "InworldCharacterComponent.h"
 
+#include <Engine/World.h>
+#include <Net/UnrealNetwork.h>
+
 void UInworldPlayerComponent::BeginPlay()
 {
 	Super::BeginPlay();
