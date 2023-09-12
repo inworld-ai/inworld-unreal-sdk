@@ -369,7 +369,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 			UE_LOG(LogInworldAIIntegration, Log, TEXT("%s to %s: %s"), *FromActor.Name, *ToActor.Name, *Event.Text);
 		}
 
-		MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, [Event](auto MessageToUpdate) {
+		MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
 			MessageToUpdate->Text = Event.Text;
 			MessageToUpdate->bTextFinal = Event.Final;
 		});
@@ -383,7 +383,7 @@ void UInworldCharacterComponent::VisitAudioOnClient(const FInworldAudioDataEvent
 		return;
 	}
 
-	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, [Event](auto MessageToUpdate) {
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
 		MessageToUpdate->SoundData.Append(Event.Chunk);
 
 		ensure(!MessageToUpdate->bAudioFinal);
@@ -440,7 +440,7 @@ void UInworldCharacterComponent::Multicast_VisitSilence_Implementation(const FIn
 		return;
 	}
 
-	MessageQueue->AddOrUpdateMessage<FCharacterMessageSilence>(Event, [Event](auto MessageToUpdate) {
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageSilence>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
 		MessageToUpdate->Duration = Event.Duration;
 	});
 }
@@ -454,7 +454,7 @@ void UInworldCharacterComponent::Multicast_VisitControl_Implementation(const FIn
 
 	if (Event.Action == EInworldControlEventAction::INTERACTION_END)
 	{
-		MessageQueue->AddOrUpdateMessage<FCharacterMessageInteractionEnd>(Event);
+		MessageQueue->AddOrUpdateMessage<FCharacterMessageInteractionEnd>(Event, GetWorld()->GetTimeSeconds());
 	}
 }
 
@@ -467,7 +467,7 @@ void UInworldCharacterComponent::Multicast_VisitCustom_Implementation(const FInw
 
 	UE_LOG(LogInworldAIIntegration, Log, TEXT("CustomEvent arrived: %s - %s"), *Event.Name, *Event.PacketId.InteractionId);
 
-	MessageQueue->AddOrUpdateMessage<FCharacterMessageTrigger>(Event, [Event](auto MessageToUpdate) {
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageTrigger>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
 		MessageToUpdate->Name = Event.Name;
 		MessageToUpdate->Params = Event.Params;
 	});

@@ -9,6 +9,8 @@
 
 #include "CoreMinimal.h"
 
+#include "InworldPackets.h"
+
 #include "InworldCharacterMessage.generated.h"
 
 struct FCharacterMessageUtterance;
@@ -169,15 +171,9 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 	FCharacterMessageQueue(class ICharacterMessageVisitor* InMessageVisitor)
 		: MessageVisitor(InMessageVisitor)
 	{
-		UObject* AsUObject = Cast<UObject>(InMessageVisitor);
-		if (AsUObject)
-		{
-			World = AsUObject->GetWorld();
-		}
 	}
 
-	class ICharacterMessageVisitor* MessageVisitor = nullptr;
-	UWorld* World = nullptr;
+	class ICharacterMessageVisitor* MessageVisitor;
 
 	TSharedPtr<FCharacterMessage> CurrentMessage;
 
@@ -195,15 +191,20 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 
 
 	template<class T>
-	void AddOrUpdateMessage(const FInworldPacket& Event, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr)
+	void AddOrUpdateMessage(const FInworldPacket& Event, float Timestamp, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr)
 	{
 		const FString& InteractionId = Event.PacketId.InteractionId;
 		const FString& UtteranceId = Event.PacketId.UtteranceId;
 
 		TSharedPtr<T> Message = nullptr;
-		if (FCharacterMessageQueueEntry* QueueEntryPtr = PendingMessageEntries.FindLastByPredicate([&InteractionId, &UtteranceId](const auto& Q) { return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId; }))
+		const TArray<TSharedPtr<T>>::SizeType Index = PendingMessageEntries.FindLastByPredicate( [&InteractionId, &UtteranceId](const auto& Q)
+			{
+				return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId;
+			}
+		);
+		if (Index != INDEX_NONE)
 		{
-			Message = StaticCastSharedPtr<T>(QueueEntryPtr->Message);
+			Message = StaticCastSharedPtr<T>(PendingMessageEntries[Index].Message);
 		}
 
 		if (!Message.IsValid() || Message->IsReady())
@@ -211,7 +212,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 			Message = MakeShared<T>();
 			Message->InteractionId = InteractionId;
 			Message->UtteranceId = UtteranceId;
-			PendingMessageEntries.Emplace(Message, World->GetTimeSeconds());
+			PendingMessageEntries.Emplace(Message, Timestamp);
 		}
 		if (PopulateProperties)
 		{
