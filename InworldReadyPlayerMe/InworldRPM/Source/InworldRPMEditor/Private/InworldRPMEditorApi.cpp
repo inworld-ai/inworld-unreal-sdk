@@ -58,7 +58,7 @@ void UInworldRPMEditorApi::CreateReadyPlayerMeActor(const FInworldStudioUserChar
     auto* InworldEditorApi = GetWorld()->GetSubsystem<UInworldEditorApiSubsystem>();
 	if (InworldEditorApi)
 	{
-		InworldEditorApi->EditorClient->RequestReadyPlayerMeModelData(CharacterData, [this, CharacterData](const TArray<uint8>& Data)
+		InworldEditorApi->EditorClient.RequestReadyPlayerMeModelData(CharacterData, [this, CharacterData](const TArray<uint8>& Data)
 		{
 				FglTFRuntimeConfig Cfg;
 				Cfg.TransformBaseType = EglTFRuntimeTransformBaseType::YForward;

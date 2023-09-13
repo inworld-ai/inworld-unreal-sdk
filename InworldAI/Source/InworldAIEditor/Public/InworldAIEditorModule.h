@@ -10,7 +10,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 #include "ContentBrowserDelegates.h"
-#include "InworldStudioUserData.h"
+#include "InworldStudioTypes.h"
 #include "InworldEditorUtilityWidget.h"
 
 INWORLDAIEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAIEditor, Log, All);

@@ -32,6 +32,8 @@
 #include "Interfaces/IPluginManager.h"
 #include "UObject/SavePackage.h"
 
+static FString ServerUrl = "api-studio.inworld.ai:443";
+
 const FString& UInworldEditorApiSubsystem::GetSavedStudioAccessToken() const
 {
 	const UInworldAIEditorSettings* InworldAIEditorSettings = GetDefault<UInworldAIEditorSettings>();
@@ -41,18 +43,23 @@ const FString& UInworldEditorApiSubsystem::GetSavedStudioAccessToken() const
 void UInworldEditorApiSubsystem::RequestStudioData(const FString& ExchangeToken)
 {
 	FInworldEditorClientOptions Options;
-	Options.ServerUrl = "api-studio.inworld.ai:443";
+	Options.ServerUrl = ServerUrl;
 	Options.ExchangeToken = ExchangeToken;
-	EditorClient->RequestUserData(Options, [this](const FInworldStudioUserData& Data, bool bError)
+	EditorClient.RequestFirebaseToken(Options, [this](const FString& FirebaseToken)
 		{
-			CacheStudioData(Data);
-			OnLogin.Broadcast(!bError, Data);
+			Studio.RequestStudioUserData(FirebaseToken, ServerUrl, [this](bool bSuccess) 
+				{
+					CacheStudioData(Studio.GetStudioUserData());
+					OnLogin.Broadcast(bSuccess, Studio.GetStudioUserData());
+				}
+			);
 		});
 }
 
 void UInworldEditorApiSubsystem::CancelRequestStudioData()
 {
-	EditorClient->CancelRequests();
+	EditorClient.CancelRequests();
+	Studio.CancelRequests();
 }
 
 void UInworldEditorApiSubsystem::NotifyRestartRequired()
@@ -285,14 +292,6 @@ bool UInworldEditorApiSubsystem::DoesSupportWorldType(EWorldType::Type WorldType
 	return WorldType == EWorldType::Editor;
 }
 
-void UInworldEditorApiSubsystem::Tick(float DeltaTime)
-{
-	if (EditorClient)
-	{
-		EditorClient->Tick(DeltaTime);
-	}
-}
-
 void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -304,8 +303,7 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 		}
 	));
 
-	EditorClient = MakeShared<FInworldEditorClient>();
-	EditorClient->Init();
+	EditorClient.Init();
 
 	FInworldAIEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FInworldAIEditorModule>("InworldAIEditor");
 	Module.BindMenuAssetAction(
@@ -336,11 +334,7 @@ void UInworldEditorApiSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
 
-	if (EditorClient)
-	{
-		EditorClient->Destroy();
-	}
-	EditorClient.Reset();
+	EditorClient.Destroy();
 
 	FInworldAIEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FInworldAIEditorModule>("InworldAIEditor");
 	Module.UnbindMenuAssetAction(FName("Inworld Player"));

@@ -7,6 +7,10 @@
 
 #pragma once
 
+THIRD_PARTY_INCLUDES_START
+#include "RunnableCommand.h"
+THIRD_PARTY_INCLUDES_END
+
 #include "HAL/RunnableThread.h"
 #include "HAL/Runnable.h"
 
@@ -15,14 +19,17 @@ namespace Inworld
 	class Runnable;
 }
 
-template<typename T> 
 class FInworldRunnable : public FRunnable
 {
 public:
+	FInworldRunnable(std::unique_ptr<Inworld::Runnable> InRunnablePtr)
+		: RunnablePtr(std::move(InRunnablePtr))
+	{}
+
 	bool IsDone() const { return RunnablePtr ? RunnablePtr->IsDone() : false; };
 	bool IsValid() const { return GetTask() != nullptr; }
 
-	Inworld::Runnable* GetTask() const { return RunnablePtr.operator->(); }
+	Inworld::Runnable* GetTask() const { return RunnablePtr.get(); }
 
 	virtual uint32 Run() override
 	{
@@ -43,5 +50,5 @@ public:
 	}
 
 protected:
-	T RunnablePtr;
+	std::unique_ptr<Inworld::Runnable> RunnablePtr;
 };

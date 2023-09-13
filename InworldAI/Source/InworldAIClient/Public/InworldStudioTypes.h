@@ -9,9 +9,20 @@
 
 #include "CoreMinimal.h"
 
-#include "InworldStudioUserData.generated.h"
+#include "InworldStudioTypes.generated.h"
 
-//TODO(Artem): move to editor module(will take assets restore)
+USTRUCT(BlueprintType)
+struct FInworldStudioTokenOptions
+{
+public:
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Editor Client")
+	FString ServerUrl;
+
+	UPROPERTY(EditAnywhere, Category = "Editor Client")
+	FString ExchangeToken;
+};
 
 USTRUCT(BlueprintType)
 struct FInworldStudioUserCharacterData

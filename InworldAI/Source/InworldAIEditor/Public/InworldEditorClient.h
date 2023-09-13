@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include "InworldStudioUserData.h"
-
 #include "InworldEditorClient.generated.h"
 
 namespace Inworld
@@ -38,16 +36,12 @@ public:
 	void Init();
 	void Destroy();
 
-	void RequestUserData(const FInworldEditorClientOptions& Options, TFunction<void(const FInworldStudioUserData& UserData, bool IsError)> InCallback);
+	void RequestFirebaseToken(const FInworldEditorClientOptions& Options, TFunction<void(const FString& FirebaseToken)> InCallback);
 	void RequestReadyPlayerMeModelData(const FInworldStudioUserCharacterData& CharacterData, TFunction<void(const TArray<uint8>& Data)> InCallback);
 
 	void CancelRequests();
 
-	void Tick(float DeltaTime);
-
-	bool IsUserDataReady();
 	bool IsRequestInProgress() const;
-	const FInworldStudioUserData& GetUserData();
 	const FString& GetError() const;
 
 private:

@@ -18,8 +18,6 @@
 THIRD_PARTY_INCLUDES_START
 #include "Packets.h"
 #include "Client.h"
-#include "AsyncRoutine.h"
-#include "RunnableCommand.h"
 THIRD_PARTY_INCLUDES_END
 
 #include "Async/Async.h"
@@ -57,41 +55,7 @@ namespace Inworld
 	public:
 		FClient()
 		{	
-			class FClientAsyncRoutine : public IAsyncRoutine
-			{
-			public:
-				virtual void Start(std::string ThreadName, std::unique_ptr<Runnable> Runnable) override
-				{
-					AsyncRoutinePtr = MakeShared<AsyncRoutine>(UTF8_TO_TCHAR(ThreadName.c_str()), std::move(Runnable));
-					AsyncRoutinePtr->Start();
-				}
-				virtual void Stop() override { if(AsyncRoutinePtr) AsyncRoutinePtr->Stop(); }
-				virtual bool IsDone() const { return AsyncRoutinePtr ? AsyncRoutinePtr->IsDone() : true; }
-				virtual bool IsValid() const { return AsyncRoutinePtr ? AsyncRoutinePtr->IsValid() : false; }
-				virtual Inworld::Runnable* GetRunnable() { return AsyncRoutinePtr ? AsyncRoutinePtr->GetRunnable() : nullptr; }
-
-			private:
-				struct Runnable : public FInworldRunnable<std::unique_ptr<Inworld::Runnable>>
-				{
-					Runnable(std::unique_ptr<Inworld::Runnable> InRunnable)
-					{
-						RunnablePtr = std::move(InRunnable);
-					}
-				};
-
-				struct AsyncRoutine : public Inworld::FAsyncRoutine<Runnable>
-				{
-					AsyncRoutine(FString InThreadName, std::unique_ptr<Inworld::Runnable> InRunnable)
-					{
-						ThreadName = InThreadName;
-						RunnablePtr = MakeUnique<Runnable>(MoveTemp(InRunnable));
-					}
-				};
-
-				TSharedPtr<AsyncRoutine> AsyncRoutinePtr;
-			};
-
-			CreateAsyncRoutines<FClientAsyncRoutine>();
+			CreateAsyncRoutines<FInworldAsyncRoutine>();
 		}
 	protected:
 
