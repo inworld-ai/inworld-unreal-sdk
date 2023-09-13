@@ -22,7 +22,6 @@ protected:
 	virtual void OnCharacterInteractionEnd_Implementation(const FCharacterMessageInteractionEnd& Message) override;
 
 private:
-	FString TriggerName;
-	FString TriggerId;
+	TMap<FString, TArray<FCharacterMessageTrigger>> PendingTriggers;
 };
 

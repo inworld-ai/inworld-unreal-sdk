@@ -10,14 +10,20 @@
 
 void UInworldCharacterPlaybackTrigger::OnCharacterTrigger_Implementation(const FCharacterMessageTrigger& Message)
 {
-	TriggerName = Message.Name;
-	TriggerId = Message.InteractionId;
+	if (!PendingTriggers.Contains(Message.InteractionId))
+	{
+		PendingTriggers.Add(Message.InteractionId, {});
+	}
+	PendingTriggers[Message.InteractionId].Add(Message);
 }
 
 void UInworldCharacterPlaybackTrigger::OnCharacterInteractionEnd_Implementation(const FCharacterMessageInteractionEnd& Message)
 {
-	if (TriggerId == Message.InteractionId)
+	if (PendingTriggers.Contains(Message.InteractionId))
 	{
-		OwnerActor->GetWorld()->GetSubsystem<UInworldApiSubsystem>()->NotifyCustomTrigger(TriggerName);
+		for (auto& Trigger : PendingTriggers[Message.InteractionId])
+		{
+			OwnerActor->GetWorld()->GetSubsystem<UInworldApiSubsystem>()->NotifyCustomTrigger(Trigger.Name);
+		}
 	}
 }

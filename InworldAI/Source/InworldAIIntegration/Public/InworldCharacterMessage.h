@@ -9,6 +9,8 @@
 
 #include "CoreMinimal.h"
 
+#include "InworldPackets.h"
+
 #include "InworldCharacterMessage.generated.h"
 
 struct FCharacterMessageUtterance;
@@ -168,7 +170,8 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 	{}
 	FCharacterMessageQueue(class ICharacterMessageVisitor* InMessageVisitor)
 		: MessageVisitor(InMessageVisitor)
-	{}
+	{
+	}
 
 	class ICharacterMessageVisitor* MessageVisitor;
 
@@ -186,16 +189,25 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 
 	TArray<FCharacterMessageQueueEntry> PendingMessageEntries;
 
+
 	template<class T>
-	void AddOrUpdateMessage(float Timestamp, const FString& InteractionId, const FString& UtteranceId, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr)
+	void AddOrUpdateMessage(const FInworldPacket& Event, float Timestamp, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr)
 	{
+		const FString& InteractionId = Event.PacketId.InteractionId;
+		const FString& UtteranceId = Event.PacketId.UtteranceId;
+
 		TSharedPtr<T> Message = nullptr;
-		if (FCharacterMessageQueueEntry* QueueEntryPtr = PendingMessageEntries.FindByPredicate([&InteractionId, &UtteranceId](const auto& Q) { return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId; }))
+		const auto Index = PendingMessageEntries.FindLastByPredicate( [&InteractionId, &UtteranceId](const auto& Q)
+			{
+				return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId;
+			}
+		);
+		if (Index != INDEX_NONE)
 		{
-			Message = StaticCastSharedPtr<T>(QueueEntryPtr->Message);
+			Message = StaticCastSharedPtr<T>(PendingMessageEntries[Index].Message);
 		}
 
-		if (!Message.IsValid())
+		if (!Message.IsValid() || Message->IsReady())
 		{
 			Message = MakeShared<T>();
 			Message->InteractionId = InteractionId;
