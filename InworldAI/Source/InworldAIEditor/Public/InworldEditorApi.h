@@ -10,7 +10,8 @@
 
 #include "CoreMinimal.h"
 #include "TickableEditorObject.h"
-#include "InworldStudioUserData.h"
+#include "InworldStudio.h"
+#include "InworldStudioTypes.h"
 #include "InworldEditorClient.h"
 #include "InworldEditorApi.generated.h"
 
@@ -21,7 +22,7 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FOnCharacterStudioDataAction, const FInworldSt
 DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnCharacterStudioDataPermission, const FInworldStudioUserCharacterData&, CharacterStudioData);
 
 UCLASS(BlueprintType, Config = Engine)
-class INWORLDAIEDITOR_API UInworldEditorApiSubsystem : public UWorldSubsystem, public FTickableEditorObject
+class INWORLDAIEDITOR_API UInworldEditorApiSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
@@ -41,7 +42,7 @@ public:
 	void NotifyRestartRequired();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inworld")
-	bool IsRequestInProgress() const { return EditorClient->IsRequestInProgress(); }
+	bool IsRequestInProgress() const { return EditorClient.IsRequestInProgress() || Studio.IsRequestInProgress(); }
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	UWorld* GetViewportWorld() const { return GetWorld(); }
@@ -53,7 +54,7 @@ public:
 	void SetupActor(const FInworldStudioUserCharacterData& Data, const FString& Name, const FString& PreviousName);
 
 	UFUNCTION(BlueprintPure, Category = "Inworld")
-	const FString& GetError() { return EditorClient->GetError(); }
+	const FString& GetError() { return !EditorClient.GetError().IsEmpty() ? EditorClient.GetError() : Studio.GetError(); }
 
 	UFUNCTION(BlueprintPure, Category = "Inworld")
 	const FInworldStudioUserData& GetCachedStudioData() const;
@@ -82,9 +83,6 @@ public:
 
 	/** Subsystem interface */
 	virtual bool DoesSupportWorldType(EWorldType::Type WorldType) const override;
-	virtual void Tick(float DeltaTime) override;
-	virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UInworldApiSubsystem, STATGROUP_Tickables); }
-	virtual ETickableTickType GetTickableTickType() const override { return ETickableTickType::Always; }
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
@@ -100,7 +98,8 @@ public:
 	UFUNCTION()
 	void CreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData);
 
-	TSharedPtr<FInworldEditorClient> EditorClient;
+	FInworldEditorClient EditorClient;
+	FInworldStudio Studio;
 
 private:
 	void CacheStudioData(const FInworldStudioUserData& Data);

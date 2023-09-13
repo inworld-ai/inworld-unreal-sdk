@@ -9,7 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "InworldStudioUserData.h"
+#include "InworldStudioTypes.h"
 #include "InworldRPMEditorApi.generated.h"
 
 UCLASS()
