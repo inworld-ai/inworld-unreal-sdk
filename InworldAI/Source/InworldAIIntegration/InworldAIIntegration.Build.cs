@@ -36,7 +36,7 @@ public class InworldAIIntegration : ModuleRules
 
         if (Target.bBuildDeveloperTools || (Target.Configuration != UnrealTargetConfiguration.Shipping && Target.Configuration != UnrealTargetConfiguration.Test))
         {
-            PublicDependencyModuleNames.Add("GameplayDebugger");
+            PrivateDependencyModuleNames.Add("GameplayDebugger");
             PrivateDefinitions.Add("INWORLD_DEBUGGER_SLOT=5");
         }
 
