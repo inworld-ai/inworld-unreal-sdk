@@ -16,9 +16,12 @@
 #include "Runtime/Launch/Resources/Version.h"
 #if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
 #include "ISubmixBufferListener.h"
+
+#if defined(INWORLD_PIXEL_STREAMING)
+#include "IPixelStreamingAudioConsumer.h"
 #endif
 
-#include "IPixelStreamingAudioConsumer.h"
+#endif
 
 #include "InworldPlayerAudioCaptureComponent.generated.h"
 
@@ -40,7 +43,10 @@ struct FPlayerVoiceCaptureInfoRep
 };
 
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
-class INWORLDAIINTEGRATION_API UInworldPlayerAudioCaptureComponent : public UActorComponent, public ISubmixBufferListener, public IPixelStreamingAudioConsumer
+class INWORLDAIINTEGRATION_API UInworldPlayerAudioCaptureComponent : public UActorComponent, public ISubmixBufferListener
+#if defined(INWORLD_PIXEL_STREAMING)
+    , public IPixelStreamingAudioConsumer
+#endif
 {
 	GENERATED_BODY()
 
@@ -81,11 +87,13 @@ private:
     void OnNewSubmixBuffer(const USoundSubmix* OwningSubmix, float* AudioData, int32 NumSamples, int32 NumChannels, const int32 InSampleRate, double AudioClock) override;
     // ~ ISubmixBufferListener
 
+#if defined(INWORLD_PIXEL_STREAMING)
     // IPixelStreamingAudioConsumer
     void ConsumeRawPCM(const int16_t* AudioData, int InSampleRate, size_t NChannels, size_t NFrames) override;
     void OnConsumerAdded() override {};
     void OnConsumerRemoved() override { AudioSink = nullptr; }
     // ~ IPixelStreamingAudioConsumer
+#endif
 
     UFUNCTION(Server, Reliable)
     void Server_ProcessVoiceCaptureChunk(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo);

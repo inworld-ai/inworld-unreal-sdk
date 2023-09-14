@@ -15,8 +15,12 @@
 #include "InworldApi.h"
 #include "InworldAIPlatformModule.h"
 
+#if defined(INWORLD_PIXEL_STREAMING)
 #include "IPixelStreamingModule.h"
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
 #include "IPixelStreamingStreamer.h"
+#endif
+#endif
 
 #include <Net/UnrealNetwork.h>
 #include <GameFramework/PlayerController.h>
@@ -160,10 +164,12 @@ void UInworldPlayerAudioCaptureComponent::GetLifetimeReplicatedProps(TArray<FLif
 
 void UInworldPlayerAudioCaptureComponent::SetCaptureDeviceById(const FString& DeviceId)
 {
+#if defined(INWORLD_PIXEL_STREAMING)
     if (bPixelStream)
     {
         return;
     }
+#endif
 
     if (!IsInAudioThread())
     {
@@ -248,7 +254,9 @@ void UInworldPlayerAudioCaptureComponent::OpenStream()
         return;
     }
 
+#if defined(INWORLD_PIXEL_STREAMING)
     if (!bPixelStream)
+#endif
     {
         if (!AudioCapture.IsStreamOpen())
         {
@@ -282,7 +290,9 @@ void UInworldPlayerAudioCaptureComponent::CloseStream()
         return;
     }
 
+#if defined(INWORLD_PIXEL_STREAMING)
     if (!bPixelStream)
+#endif
     {
         if (AudioCapture.IsStreamOpen())
         {
@@ -307,6 +317,7 @@ void UInworldPlayerAudioCaptureComponent::StartStream()
         return;
     }
 
+#if defined(INWORLD_PIXEL_STREAMING)
     if (bPixelStream)
     {
         IPixelStreamingModule& PixelStreamingModule = IPixelStreamingModule::Get();
@@ -315,13 +326,18 @@ void UInworldPlayerAudioCaptureComponent::StartStream()
             return;
         }
 
+        IPixelStreamingAudioSink* CandidateSink = nullptr;
+
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
         TSharedPtr<IPixelStreamingStreamer> Streamer = PixelStreamingModule.FindStreamer(PixelStreamingModule.GetDefaultStreamerID());
         if (!Streamer)
         {
             return;
         }
-
         IPixelStreamingAudioSink* CandidateSink = Streamer->GetUnlistenedAudioSink();
+#else
+        IPixelStreamingAudioSink* CandidateSink = PixelStreamingModule.GetUnlistenedAudioSink();
+#endif
 
         if (CandidateSink == nullptr)
         {
@@ -332,6 +348,7 @@ void UInworldPlayerAudioCaptureComponent::StartStream()
         AudioSink->AddAudioConsumer(this);
     }
     else
+#endif
     {
         if (!AudioCapture.IsStreamOpen())
         {
@@ -372,6 +389,7 @@ void UInworldPlayerAudioCaptureComponent::StopStream()
         return;
     }
 
+#if defined(INWORLD_PIXEL_STREAMING)
     if (bPixelStream)
     {
         if (AudioSink)
@@ -382,6 +400,7 @@ void UInworldPlayerAudioCaptureComponent::StopStream()
         AudioSink = nullptr;
     }
     else
+#endif
     {
         if (!AudioCapture.IsStreamOpen())
         {
@@ -440,6 +459,7 @@ void UInworldPlayerAudioCaptureComponent::OnNewSubmixBuffer(const USoundSubmix* 
     OnAudioCapture(AudioData, NumFrames, NumChannels, SampleRate, OutputBuffer);
 }
 
+#if defined(INWORLD_PIXEL_STREAMING)
 void UInworldPlayerAudioCaptureComponent::ConsumeRawPCM(const int16_t* AudioData, int InSampleRate, size_t NChannels, size_t NFrames)
 {
     TArray<float> fAudioData;
@@ -458,6 +478,7 @@ void UInworldPlayerAudioCaptureComponent::ConsumeRawPCM(const int16_t* AudioData
 
     OnAudioCapture(fAudioData.GetData(), nFrames, 1, gSamplesPerSec, InputBuffer);
 }
+#endif
 
 void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implementation(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo)
 {

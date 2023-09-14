@@ -2,6 +2,7 @@
 
 using System.IO;
 using UnrealBuildTool;
+using UnrealBuildTool.Rules;
 
 public class InworldAIIntegration : ModuleRules
 {
@@ -18,7 +19,6 @@ public class InworldAIIntegration : ModuleRules
                 "InputCore",
                 "AudioCaptureCore",
                 "InworldAIClient",
-                "PixelStreaming",
             });
 
 
@@ -33,6 +33,11 @@ public class InworldAIIntegration : ModuleRules
             }
             );
 
+        if (Target.Platform == UnrealTargetPlatform.Win64)
+        {
+            PublicDependencyModuleNames.Add("PixelStreaming");
+            PublicDefinitions.Add("INWORLD_PIXEL_STREAMING=1");
+        }
 
         if (Target.bBuildDeveloperTools || (Target.Configuration != UnrealTargetConfiguration.Shipping && Target.Configuration != UnrealTargetConfiguration.Test))
         {
