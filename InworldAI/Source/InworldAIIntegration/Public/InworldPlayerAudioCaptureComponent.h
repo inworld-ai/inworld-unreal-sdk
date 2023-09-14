@@ -18,6 +18,8 @@
 #include "ISubmixBufferListener.h"
 #endif
 
+#include "IPixelStreamingAudioConsumer.h"
+
 #include "InworldPlayerAudioCaptureComponent.generated.h"
 
 class UInworldApiSubsystem;
@@ -38,12 +40,12 @@ struct FPlayerVoiceCaptureInfoRep
 };
 
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
-class INWORLDAIINTEGRATION_API UInworldPlayerAudioCaptureComponent : public UActorComponent, public ISubmixBufferListener
+class INWORLDAIINTEGRATION_API UInworldPlayerAudioCaptureComponent : public UActorComponent, public ISubmixBufferListener, public IPixelStreamingAudioConsumer
 {
 	GENERATED_BODY()
 
 public:
-    UInworldPlayerAudioCaptureComponent();
+    UInworldPlayerAudioCaptureComponent(const FObjectInitializer& ObjectInitializer);
 
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -67,11 +69,23 @@ private:
     void StartStream();
     void StopStream();
 
-    void OnAudioCapture(const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, double StreamTime, bool bOverFlow);
+    struct FInworldAudioBuffer
+    {
+        FCriticalSection CriticalSection;
+        TArray<int16, TAlignedHeapAllocator<16>> Data;
+    };
+
+    void OnAudioCapture(const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, FInworldAudioBuffer& WriteBuffer);
 
     // ISubmixBufferListener
     void OnNewSubmixBuffer(const USoundSubmix* OwningSubmix, float* AudioData, int32 NumSamples, int32 NumChannels, const int32 InSampleRate, double AudioClock) override;
     // ~ ISubmixBufferListener
+
+    // IPixelStreamingAudioConsumer
+    void ConsumeRawPCM(const int16_t* AudioData, int InSampleRate, size_t NChannels, size_t NFrames) override;
+    void OnConsumerAdded() override {};
+    void OnConsumerRemoved() override { AudioSink = nullptr; }
+    // ~ IPixelStreamingAudioConsumer
 
     UFUNCTION(Server, Reliable)
     void Server_ProcessVoiceCaptureChunk(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo);
@@ -79,6 +93,9 @@ private:
 protected:
     UPROPERTY(EditAnywhere, Category = "Filter")
 	bool bEnableAEC = false;
+
+    UPROPERTY(EditAnywhere, Category = "Pixel Stream")
+    bool bPixelStream = false;
 
 private:
 	UFUNCTION()
@@ -95,11 +112,10 @@ private:
     Audio::FAudioCapture AudioCapture;
     Audio::FAudioCaptureDeviceParams AudioCaptureDeviceParams;
 
-    FCriticalSection InputCriticalSection;
-    TArray<int16, TAlignedHeapAllocator<16>> InputBuffer;
+    class IPixelStreamingAudioSink* AudioSink;
 
-    FCriticalSection OutputCriticalSection;
-    TArray<int16, TAlignedHeapAllocator<16>> OutputBuffer;
+    FInworldAudioBuffer InputBuffer;
+    FInworldAudioBuffer OutputBuffer;
 
     float VolumeMultiplier = 1.f;
 

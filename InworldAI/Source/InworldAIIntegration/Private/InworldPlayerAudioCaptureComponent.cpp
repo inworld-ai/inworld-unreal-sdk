@@ -15,12 +15,17 @@
 #include "InworldApi.h"
 #include "InworldAIPlatformModule.h"
 
+#include "IPixelStreamingModule.h"
+#include "IPixelStreamingStreamer.h"
+
 #include <Net/UnrealNetwork.h>
 #include <GameFramework/PlayerController.h>
 
 constexpr uint32 gSamplesPerSec = 16000;
 
-UInworldPlayerAudioCaptureComponent::UInworldPlayerAudioCaptureComponent()
+UInworldPlayerAudioCaptureComponent::UInworldPlayerAudioCaptureComponent(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer)
+    , AudioSink(nullptr)
 {
     PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.bTickEvenWhenPaused = true;
@@ -123,22 +128,22 @@ void UInworldPlayerAudioCaptureComponent::TickComponent(float DeltaTime, enum EL
     }
 
     {
-        FScopeLock InputScopedLock(&InputCriticalSection);
-        FScopeLock OutputScopedLock(&OutputCriticalSection);
+        FScopeLock InputScopedLock(&InputBuffer.CriticalSection);
+        FScopeLock OutputScopedLock(&OutputBuffer.CriticalSection);
 
         constexpr int32 SampleSendSize = gSamplesPerSec / 10; // 0.1s of data per send
-        while (InputBuffer.Num() > SampleSendSize && (!bEnableAEC || OutputBuffer.Num() > SampleSendSize))
+        while (InputBuffer.Data.Num() > SampleSendSize && (!bEnableAEC || OutputBuffer.Data.Num() > SampleSendSize))
         {
             FPlayerVoiceCaptureInfoRep VoiceCaptureInfoRep;
-            VoiceCaptureInfoRep.MicSoundData.Append((uint8*)InputBuffer.GetData(), SampleSendSize * 2);
-            FMemory::Memcpy(InputBuffer.GetData(), InputBuffer.GetData() + SampleSendSize, (InputBuffer.Num() - SampleSendSize) * sizeof(int16));
-            InputBuffer.SetNum(InputBuffer.Num() - SampleSendSize);
+            VoiceCaptureInfoRep.MicSoundData.Append((uint8*)InputBuffer.Data.GetData(), SampleSendSize * 2);
+            FMemory::Memcpy(InputBuffer.Data.GetData(), InputBuffer.Data.GetData() + SampleSendSize, (InputBuffer.Data.Num() - SampleSendSize) * sizeof(int16));
+            InputBuffer.Data.SetNum(InputBuffer.Data.Num() - SampleSendSize);
 
             if (bEnableAEC)
             {
-                VoiceCaptureInfoRep.OutputSoundData.Append((uint8*)OutputBuffer.GetData(), SampleSendSize * 2);
-                FMemory::Memcpy(OutputBuffer.GetData(), OutputBuffer.GetData() + SampleSendSize, (OutputBuffer.Num() - SampleSendSize) * sizeof(int16));
-                OutputBuffer.SetNum(OutputBuffer.Num() - SampleSendSize);
+                VoiceCaptureInfoRep.OutputSoundData.Append((uint8*)OutputBuffer.Data.GetData(), SampleSendSize * 2);
+                FMemory::Memcpy(OutputBuffer.Data.GetData(), OutputBuffer.Data.GetData() + SampleSendSize, (OutputBuffer.Data.Num() - SampleSendSize) * sizeof(int16));
+                OutputBuffer.Data.SetNum(OutputBuffer.Data.Num() - SampleSendSize);
             }
 
             Server_ProcessVoiceCaptureChunk(VoiceCaptureInfoRep);
@@ -155,6 +160,11 @@ void UInworldPlayerAudioCaptureComponent::GetLifetimeReplicatedProps(TArray<FLif
 
 void UInworldPlayerAudioCaptureComponent::SetCaptureDeviceById(const FString& DeviceId)
 {
+    if (bPixelStream)
+    {
+        return;
+    }
+
     if (!IsInAudioThread())
     {
         FAudioThread::RunCommandOnAudioThread([this, DeviceId]()
@@ -232,33 +242,33 @@ void UInworldPlayerAudioCaptureComponent::OpenStream()
     if (!IsInAudioThread())
     {
         FAudioThread::RunCommandOnAudioThread([this]()
+            {
+                OpenStream();
+            });
+        return;
+    }
+
+    if (!bPixelStream)
+    {
+        if (!AudioCapture.IsStreamOpen())
         {
-            OpenStream();
-        });
-        return;
-    }
-
-    if (AudioCapture.IsStreamOpen())
-    {
-        return;
-    }
-
 #if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 3
-    Audio::FOnAudioCaptureFunction OnCapture = [this](const void* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, double StreamTime, bool bOverFlow)
-    {
-        OnAudioCapture((float*)AudioData, NumFrames, NumChannels, SampleRate, StreamTime, bOverFlow);
-    };
+            Audio::FOnAudioCaptureFunction OnCapture = [this](const void* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, double StreamTime, bool bOverFlow)
+                {
+                    OnAudioCapture((float*)AudioData, NumFrames, NumChannels, SampleRate, InputBuffer);
+                };
 
-    AudioCapture.OpenAudioCaptureStream(AudioCaptureDeviceParams, MoveTemp(OnCapture), 1024);
+            AudioCapture.OpenAudioCaptureStream(AudioCaptureDeviceParams, MoveTemp(OnCapture), 1024);
 #else
-    Audio::FOnCaptureFunction OnCapture = [this](const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, double StreamTime, bool bOverFlow)
-    {
-        OnAudioCapture(AudioData, NumFrames, NumChannels, SampleRate, StreamTime, bOverFlow);
-    };
+            Audio::FOnCaptureFunction OnCapture = [this](const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, double StreamTime, bool bOverFlow)
+                {
+                    OnAudioCapture(AudioData, NumFrames, NumChannels, SampleRate, InputBuffer);
+                };
 
-    AudioCapture.OpenCaptureStream(AudioCaptureDeviceParams, MoveTemp(OnCapture), 1024);
+            AudioCapture.OpenCaptureStream(AudioCaptureDeviceParams, MoveTemp(OnCapture), 1024);
 #endif
-
+        }
+    }
 }
 
 void UInworldPlayerAudioCaptureComponent::CloseStream()
@@ -266,40 +276,71 @@ void UInworldPlayerAudioCaptureComponent::CloseStream()
     if (!IsInAudioThread())
     {
         FAudioThread::RunCommandOnAudioThread([this]()
-        {
-            CloseStream();
-        });
+            {
+                CloseStream();
+            });
         return;
     }
 
-    if (!AudioCapture.IsStreamOpen())
+    if (!bPixelStream)
     {
-        return;
+        if (AudioCapture.IsStreamOpen())
+        {
+            AudioCapture.CloseStream();
+        }
     }
-
-    AudioCapture.CloseStream();
 }
 
 void UInworldPlayerAudioCaptureComponent::StartStream()
 {
-    if (!IsInAudioThread())
-    {
-        FAudioThread::RunCommandOnAudioThread([this]()
-        {
-            StartStream();
-        });
-        return;
-    }
-
-    if (!AudioCapture.IsStreamOpen())
-    {
-        return;
-    }
-
     if (bCapturingVoice)
     {
         return;
     }
+
+    if (!IsInAudioThread())
+    {
+        FAudioThread::RunCommandOnAudioThread([this]()
+            {
+                StartStream();
+            });
+        return;
+    }
+
+    if (bPixelStream)
+    {
+        IPixelStreamingModule& PixelStreamingModule = IPixelStreamingModule::Get();
+        if (!PixelStreamingModule.IsReady())
+        {
+            return;
+        }
+
+        TSharedPtr<IPixelStreamingStreamer> Streamer = PixelStreamingModule.FindStreamer(PixelStreamingModule.GetDefaultStreamerID());
+        if (!Streamer)
+        {
+            return;
+        }
+
+        IPixelStreamingAudioSink* CandidateSink = Streamer->GetUnlistenedAudioSink();
+
+        if (CandidateSink == nullptr)
+        {
+            return;
+        }
+
+        AudioSink = CandidateSink;
+        AudioSink->AddAudioConsumer(this);
+    }
+    else
+    {
+        if (!AudioCapture.IsStreamOpen())
+        {
+            return;
+        }
+        AudioCapture.StartStream();
+    }
+
+    bCapturingVoice = true;
 
     if (bEnableAEC)
     {
@@ -313,32 +354,43 @@ void UInworldPlayerAudioCaptureComponent::StartStream()
             }
         }
     }
-
-    bCapturingVoice = true;
-
-    AudioCapture.StartStream();
 }
 
 void UInworldPlayerAudioCaptureComponent::StopStream()
 {
-    if (!IsInAudioThread())
-    {
-        FAudioThread::RunCommandOnAudioThread([this]()
-        {
-            StopStream();
-        });
-        return;
-    }
-
-    if (!AudioCapture.IsStreamOpen())
-    {
-        return;
-    }
-
     if (!bCapturingVoice)
     {
         return;
     }
+
+    if (!IsInAudioThread())
+    {
+        FAudioThread::RunCommandOnAudioThread([this]()
+            {
+                StopStream();
+            });
+        return;
+    }
+
+    if (bPixelStream)
+    {
+        if (AudioSink)
+        {
+            AudioSink->RemoveAudioConsumer(this);
+        }
+
+        AudioSink = nullptr;
+    }
+    else
+    {
+        if (!AudioCapture.IsStreamOpen())
+        {
+            return;
+        }
+        AudioCapture.StopStream();
+    }
+
+    bCapturingVoice = false;
 
     if (bEnableAEC)
     {
@@ -353,34 +405,30 @@ void UInworldPlayerAudioCaptureComponent::StopStream()
         }
     }
 
-    bCapturingVoice = false;
-
-    AudioCapture.StopStream();
-
-    FScopeLock InputScopedLock(&InputCriticalSection);
-    FScopeLock OutputScopedLock(&OutputCriticalSection);
-    InputBuffer.Empty();
-    OutputBuffer.Empty();
+    FScopeLock InputScopedLock(&InputBuffer.CriticalSection);
+    FScopeLock OutputScopedLock(&OutputBuffer.CriticalSection);
+    InputBuffer.Data.Empty();
+    OutputBuffer.Data.Empty();
 }
 
-void UInworldPlayerAudioCaptureComponent::OnAudioCapture(const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, double StreamTime, bool bOverFlow)
+void UInworldPlayerAudioCaptureComponent::OnAudioCapture(const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, struct FInworldAudioBuffer& WriteBuffer)
 {
     if (!bCapturingVoice)
     {
         return;
     }
 
-    FScopeLock ScopedLock(&InputCriticalSection);
+    FScopeLock ScopedLock(&WriteBuffer.CriticalSection);
 
     const int32 DownsampleRate = SampleRate / gSamplesPerSec;
     const int32 nFrames = NumFrames / DownsampleRate;
-    const int32 BufferOffset = InputBuffer.Num();
-    InputBuffer.AddUninitialized(nFrames);
+    const int32 BufferOffset = WriteBuffer.Data.Num();
+    WriteBuffer.Data.AddUninitialized(nFrames);
 
     int32 DataOffset = 0;
     for (int32 CurrentFrame = 0; CurrentFrame < nFrames; CurrentFrame++)
     {
-        InputBuffer[BufferOffset + CurrentFrame] = (AudioData[DataOffset + NumChannels] * VolumeMultiplier) * 32768; // 2^15, uint16
+        WriteBuffer.Data[BufferOffset + CurrentFrame] = (uint16)((AudioData[DataOffset + NumChannels] * VolumeMultiplier) * 32768); // 2^15, uint16
 
         DataOffset += (NumChannels * DownsampleRate);
     }
@@ -388,33 +436,27 @@ void UInworldPlayerAudioCaptureComponent::OnAudioCapture(const float* AudioData,
 
 void UInworldPlayerAudioCaptureComponent::OnNewSubmixBuffer(const USoundSubmix* OwningSubmix, float* AudioData, int32 NumSamples, int32 NumChannels, const int32 SampleRate, double AudioClock)
 {
-    if (!bCapturingVoice)
-    {
-        return;
-    }
-
-    FScopeLock ScopedLock(&OutputCriticalSection);
-
     const int32 NumFrames = NumSamples / NumChannels;
+    OnAudioCapture(AudioData, NumFrames, NumChannels, SampleRate, OutputBuffer);
+}
 
-    const int32 DownsampleRate = SampleRate / gSamplesPerSec;
-    const int32 nFrames = NumFrames / DownsampleRate;
-    const int32 BufferOffset = OutputBuffer.Num();
-    OutputBuffer.AddUninitialized(nFrames);
+void UInworldPlayerAudioCaptureComponent::ConsumeRawPCM(const int16_t* AudioData, int InSampleRate, size_t NChannels, size_t NFrames)
+{
+    TArray<float> fAudioData;
+
+    const int32 DownsampleRate = InSampleRate / gSamplesPerSec;
+    const int32 nFrames = NFrames / DownsampleRate;
+    fAudioData.AddUninitialized(nFrames);
 
     int32 DataOffset = 0;
     for (int32 CurrentFrame = 0; CurrentFrame < nFrames; CurrentFrame++)
     {
-        float DownsampleSum = 0.f;
-        for (int32 i = 0; i < DownsampleRate; ++i)
-        {
-            DownsampleSum += AudioData[DataOffset + (i * NumChannels)] / DownsampleRate;
-        }
+        fAudioData[CurrentFrame] = (float)((AudioData[DataOffset + NChannels]) / 32768.f); // 2^15, uint16
 
-        OutputBuffer[BufferOffset + CurrentFrame] = DownsampleSum * 32768; // 2^15, uint16
-
-        DataOffset += (NumChannels * DownsampleRate);
+        DataOffset += (NChannels * DownsampleRate);
     }
+
+    OnAudioCapture(fAudioData.GetData(), nFrames, 1, gSamplesPerSec, InputBuffer);
 }
 
 void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implementation(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo)
