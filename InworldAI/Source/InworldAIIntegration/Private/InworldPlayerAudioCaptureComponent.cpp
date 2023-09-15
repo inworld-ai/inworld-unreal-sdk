@@ -49,7 +49,7 @@ public:
     virtual void SetCaptureDeviceById(const FString& DeviceId) override;
 
 private:
-    void OnAudioCapture(float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate);
+    void OnAudioCapture(const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate);
 
     Audio::FAudioCapture AudioCapture;
     Audio::FAudioCaptureDeviceParams AudioCaptureDeviceParams;
@@ -243,7 +243,7 @@ void UInworldPlayerAudioCaptureComponent::TickComponent(float DeltaTime, enum EL
         FScopeLock InputScopedLock(&InputBuffer.CriticalSection);
         FScopeLock OutputScopedLock(&OutputBuffer.CriticalSection);
 
-        constexpr int32 SampleSendSize = gSamplesPerSec / 10; // 0.1s of data per send
+        constexpr int32 SampleSendSize = (gSamplesPerSec / 10) * 2; // 0.1s of data per send, mult by 2 from Buffer (uint8) to PCM (uint16)
         while (InputBuffer.Data.Num() > SampleSendSize && (!bEnableAEC || OutputBuffer.Data.Num() > SampleSendSize))
         {
             FPlayerVoiceCaptureInfoRep VoiceCaptureInfoRep;
@@ -470,7 +470,7 @@ void FInworldMicrophoneAudioCapture::OpenStream()
 #if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 3
         Audio::FOnAudioCaptureFunction OnCapture = [this](const void* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, double StreamTime, bool bOverFlow)
             {
-                OnAudioCapture((float*)AudioData, NumFrames, NumChannels, SampleRate);
+                OnAudioCapture((const float*)AudioData, NumFrames, NumChannels, SampleRate);
             };
 
         AudioCapture.OpenAudioCaptureStream(AudioCaptureDeviceParams, MoveTemp(OnCapture), 1024);
@@ -558,7 +558,7 @@ void FInworldMicrophoneAudioCapture::SetCaptureDeviceById(const FString& DeviceI
     AudioCaptureDeviceParams = Params;
 }
 
-void FInworldMicrophoneAudioCapture::OnAudioCapture(float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate)
+void FInworldMicrophoneAudioCapture::OnAudioCapture(const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate)
 {
     const int32 DownsampleRate = SampleRate / gSamplesPerSec;
     const int32 nFrames = NumFrames / DownsampleRate;
@@ -567,9 +567,9 @@ void FInworldMicrophoneAudioCapture::OnAudioCapture(float* AudioData, int32 NumF
     Buffer.AddUninitialized(nFrames);
 
     int32 DataOffset = 0;
-    for (int32 CurrentFrame = 0; CurrentFrame < Buffer.Num(); CurrentFrame ++)
+    for (int32 CurrentFrame = 0; CurrentFrame < Buffer.Num(); CurrentFrame++)
     {
-        Buffer[CurrentFrame] = (uint16)(AudioData[DataOffset + NumChannels] * 32768.f); // 2^15, uint16
+        Buffer[CurrentFrame] = AudioData[DataOffset + NumChannels] * 32767; // 2^15, uint16
 
         DataOffset += (NumChannels * DownsampleRate);
     }
@@ -680,7 +680,7 @@ void FInworldSubmixAudioCapture::OnNewSubmixBuffer(const USoundSubmix* OwningSub
     int32 DataOffset = 0;
     for (int32 CurrentFrame = 0; CurrentFrame < Buffer.Num(); CurrentFrame++)
     {
-        Buffer[CurrentFrame] = (uint16)(AudioData[DataOffset + NumChannels] * 32768.f); // 2^15, uint16
+        Buffer[CurrentFrame] = AudioData[DataOffset + NumChannels] * 32767; // 2^15, uint16
 
         DataOffset += (NumChannels * DownsampleRate);
     }
