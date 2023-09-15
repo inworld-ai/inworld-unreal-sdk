@@ -444,7 +444,7 @@ bool UInworldEditorApiSubsystem::CanCreateInnequinActor(const FInworldStudioUser
 	{
 		return false;
 	}
-	if (InworldInnequinPlugin.Get()->GetDescriptor().VersionName != TEXT("1.0.1"))
+	if (InworldInnequinPlugin.Get()->GetDescriptor().VersionName != GetInnequinVersion())
 	{
 		return false;
 	}
