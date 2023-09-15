@@ -11,7 +11,9 @@ public class InworldAIClient : ModuleRules
     public InworldAIClient(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-   
+
+        //bUseUnity = false;
+
         PublicDependencyModuleNames.AddRange(
             new string[]
             {

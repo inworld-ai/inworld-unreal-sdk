@@ -6,6 +6,7 @@
  */
 
 #include "InworldEditorClient.h"
+#include "InworldAIEditorModule.h"
 
 #include "HttpModule.h"
 #include "Interfaces/IHttpRequest.h"
@@ -17,6 +18,8 @@
 #include "Interfaces/IPluginManager.h"
 
 #include "HAL/ConsoleManager.h"
+
+#include "Async/Async.h"
 
 namespace Inworld
 {
