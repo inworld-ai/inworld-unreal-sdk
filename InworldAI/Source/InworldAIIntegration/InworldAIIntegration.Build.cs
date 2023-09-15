@@ -2,7 +2,6 @@
 
 using System.IO;
 using UnrealBuildTool;
-using UnrealBuildTool.Rules;
 
 public class InworldAIIntegration : ModuleRules
 {
