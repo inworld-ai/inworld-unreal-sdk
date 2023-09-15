@@ -13,16 +13,6 @@
 #include "Containers/ContainerAllocationPolicies.h"
 #include "InworldGameplayDebuggerCategory.h"
 
-#include "Runtime/Launch/Resources/Version.h"
-#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
-#include "ISubmixBufferListener.h"
-
-#if defined(INWORLD_PIXEL_STREAMING)
-#include "IPixelStreamingAudioConsumer.h"
-#endif
-
-#endif
-
 #include "InworldPlayerAudioCaptureComponent.generated.h"
 
 class UInworldApiSubsystem;
@@ -42,11 +32,30 @@ struct FPlayerVoiceCaptureInfoRep
 	TArray<uint8> OutputSoundData;
 };
 
+struct FInworldAudioCapture
+{
+public:
+    FInworldAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
+        : Owner(InOwner)
+        , Callback(InCallback)
+    {}
+    virtual ~FInworldAudioCapture() {}
+
+    virtual void OpenStream() = 0;
+    virtual void CloseStream() = 0;
+
+    virtual void StartStream() = 0;
+    virtual void StopStream() = 0;
+
+    virtual void SetCaptureDeviceById(const FString& DeviceId) = 0;
+
+protected:
+    UObject* Owner;
+    TFunction<void(const TArray<uint8>& AudioData)> Callback;
+};
+
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
-class INWORLDAIINTEGRATION_API UInworldPlayerAudioCaptureComponent : public UActorComponent, public ISubmixBufferListener
-#if defined(INWORLD_PIXEL_STREAMING)
-    , public IPixelStreamingAudioConsumer
-#endif
+class INWORLDAIINTEGRATION_API UInworldPlayerAudioCaptureComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -62,8 +71,11 @@ public:
     bool IsLocallyControlled() const;
 
 public:
-    UFUNCTION(BlueprintCallable, Category = "Volume")
-    void SetVolumeMultiplier(float InVolumeMultiplier) { VolumeMultiplier = InVolumeMultiplier; }
+    UFUNCTION(BlueprintCallable, Category = "Volume", meta=(DeprecatedFunction, DeprecationMessage="SetVolumeMultiplier is deprecated, use SetMuted instead."))
+    void SetVolumeMultiplier(float InVolumeMultiplier) { bMuted = InVolumeMultiplier == 0.f; }
+
+    UFUNCTION(BlueprintCallable, Category = "Audio")
+    void SetMuted(bool bInMuted) { bMuted = bInMuted; }
 
     UFUNCTION(BlueprintCallable, Category = "Devices")
     void SetCaptureDeviceById(const FString& DeviceId);
@@ -75,34 +87,14 @@ private:
     void StartStream();
     void StopStream();
 
-    struct FInworldAudioBuffer
-    {
-        FCriticalSection CriticalSection;
-        TArray<int16, TAlignedHeapAllocator<16>> Data;
-    };
-
-    void OnAudioCapture(const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, FInworldAudioBuffer& WriteBuffer);
-
-    // ISubmixBufferListener
-    void OnNewSubmixBuffer(const USoundSubmix* OwningSubmix, float* AudioData, int32 NumSamples, int32 NumChannels, const int32 InSampleRate, double AudioClock) override;
-    // ~ ISubmixBufferListener
-
-#if defined(INWORLD_PIXEL_STREAMING)
-    // IPixelStreamingAudioConsumer
-    void ConsumeRawPCM(const int16_t* AudioData, int InSampleRate, size_t NChannels, size_t NFrames) override;
-    void OnConsumerAdded() override {};
-    void OnConsumerRemoved() override { AudioSink = nullptr; }
-    // ~ IPixelStreamingAudioConsumer
-#endif
-
     UFUNCTION(Server, Reliable)
     void Server_ProcessVoiceCaptureChunk(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo);
 
 protected:
-    UPROPERTY(EditAnywhere, Category = "Filter")
+    UPROPERTY(EditDefaultsOnly, Category = "Filter")
 	bool bEnableAEC = false;
 
-    UPROPERTY(EditAnywhere, Category = "Pixel Stream")
+    UPROPERTY(EditDefaultsOnly, Category = "Pixel Stream")
     bool bPixelStream = false;
 
 private:
@@ -117,15 +109,19 @@ private:
 	TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
     TWeakObjectPtr<UInworldPlayerComponent> PlayerComponent;
 
-    Audio::FAudioCapture AudioCapture;
-    Audio::FAudioCaptureDeviceParams AudioCaptureDeviceParams;
+    TSharedPtr<FInworldAudioCapture> InputAudioCapture;
+    TSharedPtr<FInworldAudioCapture> OutputAudioCapture;
 
-    class IPixelStreamingAudioSink* AudioSink;
+    struct FAudioBuffer
+    {
+        FCriticalSection CriticalSection;
+        TArray<uint8, TAlignedHeapAllocator<8>> Data;
+    };
 
-    FInworldAudioBuffer InputBuffer;
-    FInworldAudioBuffer OutputBuffer;
+    FAudioBuffer InputBuffer;
+    FAudioBuffer OutputBuffer;
 
-    float VolumeMultiplier = 1.f;
+    bool bMuted = false;
 
     void OnPlayerTargetSet(UInworldCharacterComponent* Target);
     void OnPlayerTargetClear(UInworldCharacterComponent* Target);
