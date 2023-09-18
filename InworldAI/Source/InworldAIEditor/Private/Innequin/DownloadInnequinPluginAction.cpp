@@ -33,7 +33,7 @@ void UDownloadInnequinPluginAction::Activate()
 
 				const FString TempPath = FDesktopPlatformModule::Get()->GetUserTempPath();
 				const FString ZipLocation = FString::Format(TEXT("{0}{1}"), { TempPath, TEXT("InworldInnequin.zip") });
-				const FString ZipURL = TEXT("https://storage.googleapis.com/assets-inworld-ai/models/innequin/unreal/InworldInnequin_1.0.0.zip");
+				const FString ZipURL = FString::Format(TEXT("https://storage.googleapis.com/assets-inworld-ai/models/innequin/unreal/InworldInnequin_{0}.zip"), { InworldEditorApi->GetInnequinVersion() });
 				FStringFormatOrderedArguments GetZipFormattedArgs;
 				GetZipFormattedArgs.Add(FStringFormatArg(TEXT("--output")));
 				GetZipFormattedArgs.Add(FStringFormatArg(ZipLocation));

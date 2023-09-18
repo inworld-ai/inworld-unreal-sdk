@@ -14,7 +14,7 @@
 #include "InworldCharacterPlayback.h"
 #include "InworldAIEditorSettings.generated.h"
 
-UCLASS(config=Engine)
+UCLASS(config=InworldAI)
 class INWORLDAIEDITOR_API UInworldAIEditorSettings : public UObject
 {
 	GENERATED_BODY()

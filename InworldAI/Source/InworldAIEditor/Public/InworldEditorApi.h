@@ -21,7 +21,7 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FOnCharacterStudioDataAction, const FInworldSt
 
 DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnCharacterStudioDataPermission, const FInworldStudioUserCharacterData&, CharacterStudioData);
 
-UCLASS(BlueprintType, Config = Engine)
+UCLASS(BlueprintType, Config = InworldAI)
 class INWORLDAIEDITOR_API UInworldEditorApiSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
@@ -98,14 +98,17 @@ public:
 	UFUNCTION()
 	void CreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData);
 
+	UFUNCTION(BlueprintPure, Category = "Innequin")
+	FString GetInnequinVersion() const { return InnequinPluginVersion; };
+
 	FInworldEditorClient EditorClient;
 	FInworldStudio Studio;
 
 private:
-	void CacheStudioData(const FInworldStudioUserData& Data);
+	UPROPERTY(config)
+	FString InnequinPluginVersion;
 
-	UPROPERTY(EditAnywhere, config, Category = "Connection")
-	FString TargetUrl;
+	void CacheStudioData(const FInworldStudioUserData& Data);
 
 	struct FCharacterStudioDataFunctions
 	{
