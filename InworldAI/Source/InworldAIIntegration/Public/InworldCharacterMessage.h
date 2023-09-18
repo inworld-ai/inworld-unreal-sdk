@@ -218,6 +218,22 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 		{
 			PopulateProperties(Message);
 		}
+
+		if (CanceledInteractions.Contains(InteractionId))
+		{
+			auto FilterPredicate = [InteractionId](const FCharacterMessageQueueEntry& MessageQueueEntry)
+				{
+					return MessageQueueEntry.Message->InteractionId == InteractionId;
+				};
+
+			PendingMessageEntries.RemoveAll(FilterPredicate);
+		}
+
+		if (Message->StaticStruct()->IsChildOf(FCharacterMessageInteractionEnd::StaticStruct()))
+		{
+			CanceledInteractions.Remove(InteractionId);
+		}
+
 		TryToProgress();
 	}
 
@@ -225,6 +241,8 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 	void TryToProgress(bool bForce = false);
 	TOptional<float> GetBlockingTimestamp() const;
 	void Clear();
+
+	TArray<FString> CanceledInteractions;
 
 	int32 LockCount = 0;
 	TSharedPtr<struct FCharacterMessageQueueLock> MakeLock();

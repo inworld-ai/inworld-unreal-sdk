@@ -12,7 +12,7 @@
 #include "InworldCharacterPlayback.h"
 #include "InworldRPMEditorSettings.generated.h"
 
-UCLASS(Config=Editor)
+UCLASS(Config=InworldAI)
 class INWORLDRPMEDITOR_API UInworldRPMEditorSettings : public UObject
 {
 	GENERATED_BODY()
