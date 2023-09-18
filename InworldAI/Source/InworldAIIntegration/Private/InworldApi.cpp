@@ -73,14 +73,10 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
         return;
     }
 
-    if (Auth.ApiKey.IsEmpty())
+    const bool bValidAuth = !Auth.Base64Signature.IsEmpty() || (!Auth.ApiKey.IsEmpty() && !Auth.ApiSecret.IsEmpty());
+    if (!bValidAuth)
     {
-        UE_LOG(LogInworldAIIntegration, Error, TEXT("Can't Start Session, ApiKey is empty"));
-        return;
-    }
-    if (Auth.ApiSecret.IsEmpty())
-    {
-        UE_LOG(LogInworldAIIntegration, Error, TEXT("Can't Start Session, ApiSecret is empty"));
+        UE_LOG(LogInworldAIIntegration, Error, TEXT("Can't Start Session, either Base64Signature or both ApiKey and ApiSecret need to be not empty"));
         return;
     }
 
