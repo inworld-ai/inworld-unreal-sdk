@@ -10,6 +10,8 @@ public class InworldAIEditor : ModuleRules
 	{
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
+        //bUseUnity = false;
+
         PublicDependencyModuleNames.AddRange(
             new string[] 
             { 

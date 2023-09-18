@@ -6,7 +6,8 @@
  */
 #include "InworldCharacterAnimations.h"
 #include "Animation/AnimMontage.h"
-//#include "NDK/Utils/Log.h"
+
+#include "InworldAIIntegrationModule.h"
 
 template<class TKey, class TDataTable>
 UAnimMontage* GetMontageByKey(TKey Key, float UtteranceDuration, const UDataTable* DataTable, bool bAllowTrailingGestures, EInworldCharacterEmotionStrength EmotionStrength, TArray<UAnimMontage*>& Montages)

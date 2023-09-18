@@ -35,7 +35,7 @@ DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSaveReady, FInworldSave, Save, bool, bSucc
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FResponseLatencyTrackerDelegate, FString, InteractionId, int32, LatencyMs);
 
-UCLASS(BlueprintType, Config = Engine)
+UCLASS(BlueprintType, Config = InworldAI)
 class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor
 {
 	GENERATED_BODY()

@@ -12,7 +12,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "InworldMetahumanEditorApi.generated.h"
 
-UCLASS(BlueprintType, Config = Engine)
+UCLASS(BlueprintType, Config = InworldAI)
 class INWORLDMETAHUMANEDITOR_API UInworldMetahumanEditorApi : public UWorldSubsystem
 {
 	GENERATED_BODY()

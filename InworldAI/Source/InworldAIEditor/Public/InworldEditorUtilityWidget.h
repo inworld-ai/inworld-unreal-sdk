@@ -29,7 +29,7 @@ public:
 	int32 ApiKeyIdx = -1;
 };
 
-UCLASS(Abstract, meta = (ShowWorldContextPin), config = Editor)
+UCLASS(Abstract, meta = (ShowWorldContextPin), config = InworldAI)
 class  UInworldEditorUtilityWidget : public UEditorUtilityWidget
 {
 	GENERATED_BODY()

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "InworldApi.h"
+#include "InworldAIIntegrationModule.h"
 #include "InworldComponentInterface.h"
 #include "InworldPackets.h"
 #include <Engine/Engine.h>
