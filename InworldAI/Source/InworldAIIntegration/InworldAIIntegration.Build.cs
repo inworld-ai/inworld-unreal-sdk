@@ -9,6 +9,8 @@ public class InworldAIIntegration : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
+        //bUseUnity = false;
+
         PublicDependencyModuleNames.AddRange(
             new string[]
             {

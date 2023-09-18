@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 #include "InworldCharacterMessage.h"
+#include "InworldAIIntegrationModule.h"
 
 TArray<FString> FCharacterMessageQueue::CancelInteraction(const FString& InteractionId)
 {

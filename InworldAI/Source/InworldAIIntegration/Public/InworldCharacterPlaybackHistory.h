@@ -8,6 +8,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InworldCharacterPlayback.h"
 #include "InworldCharacterMessage.h"
 
 #include "InworldCharacterPlaybackHistory.generated.h"

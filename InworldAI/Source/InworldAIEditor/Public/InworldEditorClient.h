@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "InworldStudioTypes.h"
+
 #include "InworldEditorClient.generated.h"
 
 namespace Inworld

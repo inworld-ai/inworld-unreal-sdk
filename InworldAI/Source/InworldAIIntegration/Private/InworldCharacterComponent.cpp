@@ -7,6 +7,7 @@
 
 #include "InworldCharacterComponent.h"
 #include "InworldApi.h"
+#include "InworldAIIntegrationModule.h"
 #include "Engine/EngineBaseTypes.h"
 #include "InworldPlayerComponent.h"
 #include <Camera/CameraComponent.h>
