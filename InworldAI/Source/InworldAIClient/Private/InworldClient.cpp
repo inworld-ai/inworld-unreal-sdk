@@ -148,6 +148,7 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 	Inworld::ClientOptions Options;
 	Options.ServerUrl = TCHAR_TO_UTF8(*(!Environment.TargetUrl.IsEmpty() ? Environment.TargetUrl : DefaultTargetUrl));
 	Options.SceneName = TCHAR_TO_UTF8(*SceneName);
+	Options.Base64 = TCHAR_TO_UTF8(*Auth.Base64Signature);
 	Options.ApiKey = TCHAR_TO_UTF8(*Auth.ApiKey);
 	Options.ApiSecret = TCHAR_TO_UTF8(*Auth.ApiSecret);
 	Options.PlayerName = TCHAR_TO_UTF8(*PlayerProfile.Name);
