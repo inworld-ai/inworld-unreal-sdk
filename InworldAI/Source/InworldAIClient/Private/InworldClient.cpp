@@ -6,6 +6,7 @@
  */
 
 #include "InworldClient.h"
+#include "InworldAIClientModule.h"
 #include "CoreMinimal.h"
 
 #include "SocketSubsystem.h"
@@ -18,6 +19,7 @@
 THIRD_PARTY_INCLUDES_START
 #include "Packets.h"
 #include "Client.h"
+#include "Utils/Log.h"
 THIRD_PARTY_INCLUDES_END
 
 #include "Async/Async.h"

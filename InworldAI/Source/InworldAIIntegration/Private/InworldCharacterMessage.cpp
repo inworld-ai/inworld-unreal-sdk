@@ -5,9 +5,12 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 #include "InworldCharacterMessage.h"
+#include "InworldAIIntegrationModule.h"
 
 TArray<FString> FCharacterMessageQueue::CancelInteraction(const FString& InteractionId)
 {
+	CanceledInteractions.Add(InteractionId);
+
 	TArray<FString> CanceledUtterances;
 	CanceledUtterances.Reserve(PendingMessageEntries.Num() + 1);
 
@@ -18,25 +21,21 @@ TArray<FString> FCharacterMessageQueue::CancelInteraction(const FString& Interac
 		CurrentMessage = nullptr;
 		LockCount = 0;
 	}
+	
+	auto FilterPredicate = [InteractionId](const FCharacterMessageQueueEntry& MessageQueueEntry)
+		{
+			return MessageQueueEntry.Message->InteractionId == InteractionId;
+		};
 
-	TArray<FCharacterMessageQueueEntry> RemainingMessageEntries;
-	RemainingMessageEntries.Reserve(PendingMessageEntries.Num());
-	for (auto& PendingMessageEntry : PendingMessageEntries)
+	TArray<FCharacterMessageQueueEntry> EntriesToCancel = PendingMessageEntries.FilterByPredicate(FilterPredicate);
+	for (const FCharacterMessageQueueEntry& EntryToCancel : EntriesToCancel)
 	{
-		auto& PendingMessage = PendingMessageEntry.Message;
-		if (InteractionId == PendingMessage->InteractionId)
-		{
-			CanceledUtterances.Add(PendingMessage->UtteranceId);
-
-			PendingMessage->AcceptCancel(*MessageVisitor);
-		}
-		else
-		{
-			RemainingMessageEntries.Add(PendingMessageEntry);
-		}
+		auto& PendingMessage = EntryToCancel.Message;
+		CanceledUtterances.Add(PendingMessage->UtteranceId);
+		PendingMessage->AcceptCancel(*MessageVisitor);
 	}
-
-	PendingMessageEntries = RemainingMessageEntries;
+	
+	PendingMessageEntries.RemoveAll(FilterPredicate);
 
 	TryToProgress();
 

@@ -9,6 +9,8 @@ public class InworldAIIntegration : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
+        //bUseUnity = false;
+
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
@@ -35,7 +37,7 @@ public class InworldAIIntegration : ModuleRules
 
         if (Target.bBuildDeveloperTools || (Target.Configuration != UnrealTargetConfiguration.Shipping && Target.Configuration != UnrealTargetConfiguration.Test))
         {
-            PrivateDependencyModuleNames.Add("GameplayDebugger");
+            PublicDependencyModuleNames.Add("GameplayDebugger");
             PrivateDefinitions.Add("INWORLD_DEBUGGER_SLOT=5");
         }
 

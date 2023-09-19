@@ -13,7 +13,7 @@
 #include "InworldCharacterPlayback.h"
 #include "InworldMetahumanEditorSettings.generated.h"
 
-UCLASS(config=Editor)
+UCLASS(config=InworldAI)
 class INWORLDMETAHUMANEDITOR_API UInworldMetahumanEditorSettings : public UObject
 {
 	GENERATED_BODY()
