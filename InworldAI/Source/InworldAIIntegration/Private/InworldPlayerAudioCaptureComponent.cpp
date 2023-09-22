@@ -40,11 +40,8 @@ public:
     FInworldMicrophoneAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
         : FInworldAudioCapture(InOwner, InCallback) {}
 
-    virtual void OpenStream() override;
-    virtual void CloseStream() override;
-
-    virtual void StartStream() override;
-    virtual void StopStream() override;
+    virtual void StartCapture() override;
+    virtual void StopCapture() override;
 
     virtual void SetCaptureDeviceById(const FString& DeviceId) override;
 
@@ -64,11 +61,8 @@ public:
     FInworldPixelStreamAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
         : FInworldAudioCapture(InOwner, InCallback) {}
 
-    virtual void OpenStream() override {}
-    virtual void CloseStream() override {}
-
-    virtual void StartStream() override;
-    virtual void StopStream() override;
+    virtual void StartCapture() override;
+    virtual void StopCapture() override;
 
     // TODO: Allow switching streamer by Id. (Most likely not needed)
     virtual void SetCaptureDeviceById(const FString& DeviceId) override {}
@@ -90,11 +84,8 @@ public:
     FInworldSubmixAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
         : FInworldAudioCapture(InOwner, InCallback) {}
 
-    virtual void OpenStream() override {}
-    virtual void CloseStream() override {}
-
-    virtual void StartStream() override;
-    virtual void StopStream() override;
+    virtual void StartCapture() override;
+    virtual void StopCapture() override;
 
     // TODO: Allow switching submixes by Id. (Most likely not needed)
     virtual void SetCaptureDeviceById(const FString& DeviceId) override {}
@@ -181,7 +172,6 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
         }
 
         PrimaryComponentTick.SetTickFunctionEnable(true);
-        OpenStream();
     }
 }
 
@@ -195,8 +185,7 @@ void UInworldPlayerAudioCaptureComponent::EndPlay(const EEndPlayReason::Type End
 
     if (bCapturingVoice)
     {
-        StopStream();
-        CloseStream();
+        StopCapture();
     }
 
     Super::EndPlay(EndPlayReason);
@@ -301,100 +290,56 @@ void UInworldPlayerAudioCaptureComponent::SetCaptureDeviceById(const FString& De
 
     if (bWasCapturingVoice)
     {
-        StopStream();
-    }
-
-    CloseStream();
-
-    OpenStream();
-
-    if (bWasCapturingVoice)
-    {
-        StartStream();
+        StopCapture();
+        StartCapture();
     }
 }
 
-void UInworldPlayerAudioCaptureComponent::OpenStream()
+void UInworldPlayerAudioCaptureComponent::StartCapture()
 {
     if (!IsInAudioThread())
     {
         FAudioThread::RunCommandOnAudioThread([this]()
             {
-                OpenStream();
+                StartCapture();
             });
         return;
     }
 
-    InputAudioCapture->OpenStream();
-    if (OutputAudioCapture.IsValid())
-    {
-        OutputAudioCapture->OpenStream();
-    }
-}
-
-void UInworldPlayerAudioCaptureComponent::CloseStream()
-{
-    if (!IsInAudioThread())
-    {
-        FAudioThread::RunCommandOnAudioThread([this]()
-            {
-                CloseStream();
-            });
-        return;
-    }
-
-    InputAudioCapture->CloseStream();
-    if (OutputAudioCapture.IsValid())
-    {
-        OutputAudioCapture->CloseStream();
-    }
-}
-
-void UInworldPlayerAudioCaptureComponent::StartStream()
-{
     if (bCapturingVoice)
     {
         return;
     }
 
-    if (!IsInAudioThread())
+    InputAudioCapture->StartCapture();
+    if (OutputAudioCapture.IsValid())
     {
-        FAudioThread::RunCommandOnAudioThread([this]()
-            {
-                StartStream();
-            });
-        return;
-    }
-
-    InputAudioCapture->StartStream();
-    if (OutputAudioCapture)
-    {
-        OutputAudioCapture->StartStream();
+        OutputAudioCapture->StartCapture();
     }
 
     bCapturingVoice = true;
 }
 
-void UInworldPlayerAudioCaptureComponent::StopStream()
+void UInworldPlayerAudioCaptureComponent::StopCapture()
 {
+    if (!IsInAudioThread())
+    {
+        FAudioThread::RunCommandOnAudioThread([this]()
+            {
+                StopCapture();
+            });
+        return;
+    }
+
     if (!bCapturingVoice)
     {
         return;
     }
 
-    if (!IsInAudioThread())
-    {
-        FAudioThread::RunCommandOnAudioThread([this]()
-            {
-                StopStream();
-            });
-        return;
-    }
-
-    InputAudioCapture->StopStream();
+    InputAudioCapture->StopCapture();
     if (OutputAudioCapture)
     {
-        OutputAudioCapture->StopStream();
+        OutputAudioCapture->StopCapture();
     }
 
     bCapturingVoice = false;
@@ -455,15 +400,15 @@ void UInworldPlayerAudioCaptureComponent::Rep_ServerCapturingVoice()
 {
     if (bServerCapturingVoice)
 	{
-        StartStream();
+        StartCapture();
     }
     else
     {
-        StopStream();
+        StopCapture();
     }
 }
 
-void FInworldMicrophoneAudioCapture::OpenStream()
+void FInworldMicrophoneAudioCapture::StartCapture()
 {
     if (!AudioCapture.IsStreamOpen())
     {
@@ -483,29 +428,19 @@ void FInworldMicrophoneAudioCapture::OpenStream()
         AudioCapture.OpenCaptureStream(AudioCaptureDeviceParams, MoveTemp(OnCapture), 1024);
 #endif
     }
-}
 
-void FInworldMicrophoneAudioCapture::CloseStream()
-{
-    if (AudioCapture.IsStreamOpen())
-    {
-        AudioCapture.CloseStream();
-    }
-}
-
-void FInworldMicrophoneAudioCapture::StartStream()
-{
     if (AudioCapture.IsStreamOpen())
     {
         AudioCapture.StartStream();
     }
 }
 
-void FInworldMicrophoneAudioCapture::StopStream()
+void FInworldMicrophoneAudioCapture::StopCapture()
 {
     if (AudioCapture.IsStreamOpen())
     {
         AudioCapture.StopStream();
+        AudioCapture.CloseStream();
     }
 }
 
@@ -577,7 +512,7 @@ void FInworldMicrophoneAudioCapture::OnAudioCapture(const float* AudioData, int3
     Callback({ (uint8*)Buffer.GetData(), Buffer.Num() * 2 });
 }
 
-void FInworldPixelStreamAudioCapture::StartStream()
+void FInworldPixelStreamAudioCapture::StartCapture()
 {
 #if defined(INWORLD_PIXEL_STREAMING)
     IPixelStreamingModule& PixelStreamingModule = IPixelStreamingModule::Get();
@@ -609,7 +544,7 @@ void FInworldPixelStreamAudioCapture::StartStream()
 #endif
 }
 
-void FInworldPixelStreamAudioCapture::StopStream()
+void FInworldPixelStreamAudioCapture::StopCapture()
 {
 #if defined(INWORLD_PIXEL_STREAMING)
     if (AudioSink)
@@ -642,7 +577,7 @@ void FInworldPixelStreamAudioCapture::ConsumeRawPCM(const int16_t* AudioData, in
 }
 #endif
 
-void FInworldSubmixAudioCapture::StartStream()
+void FInworldSubmixAudioCapture::StartCapture()
 {
     Audio::FMixerDevice* MixerDevice = static_cast<Audio::FMixerDevice*>(Owner->GetWorld()->GetAudioDeviceRaw());
     if (MixerDevice)
@@ -655,7 +590,7 @@ void FInworldSubmixAudioCapture::StartStream()
     }
 }
 
-void FInworldSubmixAudioCapture::StopStream()
+void FInworldSubmixAudioCapture::StopCapture()
 {
     Audio::FMixerDevice* MixerDevice = static_cast<Audio::FMixerDevice*>(Owner->GetWorld()->GetAudioDeviceRaw());
     if (MixerDevice)

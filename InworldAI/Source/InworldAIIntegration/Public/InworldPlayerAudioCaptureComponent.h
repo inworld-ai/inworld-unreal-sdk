@@ -41,11 +41,8 @@ public:
     {}
     virtual ~FInworldAudioCapture() {}
 
-    virtual void OpenStream() = 0;
-    virtual void CloseStream() = 0;
-
-    virtual void StartStream() = 0;
-    virtual void StopStream() = 0;
+    virtual void StartCapture() = 0;
+    virtual void StopCapture() = 0;
 
     virtual void SetCaptureDeviceById(const FString& DeviceId) = 0;
 
@@ -81,11 +78,8 @@ public:
     void SetCaptureDeviceById(const FString& DeviceId);
 
 private:
-    void OpenStream();
-    void CloseStream();
-
-    void StartStream();
-    void StopStream();
+    void StartCapture();
+    void StopCapture();
 
     UFUNCTION(Server, Reliable)
     void Server_ProcessVoiceCaptureChunk(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo);
