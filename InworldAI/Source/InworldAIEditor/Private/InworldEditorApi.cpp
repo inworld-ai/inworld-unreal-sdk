@@ -327,7 +327,7 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 	PermissionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CanCreateInnequinActor);
 	FOnCharacterStudioDataAction ActionDelegate;
 	ActionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CreateInnequinActor);
-	BindActionForCharacterData(FName("Create Innequin"), PermissionDelegate, ActionDelegate);
+	BindActionForCharacterData(FName("Create Inworld Avatar"), PermissionDelegate, ActionDelegate);
 }
 
 void UInworldEditorApiSubsystem::Deinitialize()
@@ -340,7 +340,7 @@ void UInworldEditorApiSubsystem::Deinitialize()
 	Module.UnbindMenuAssetAction(FName("Inworld Player"));
 	Module.UnbindMenuAssetAction(FName("Inworld Character"));
 
-	UnbindActionForCharacterData(FName("Create Innequin"));
+	UnbindActionForCharacterData(FName("Create Inworld Avatar"));
 }
 
 void UInworldEditorApiSubsystem::SavePackageToCharacterFolder(UObject* Object, const FInworldStudioUserCharacterData& CharacterData, const FString& NamePrefix, FString NameSuffix)
