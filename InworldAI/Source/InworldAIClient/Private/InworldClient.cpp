@@ -147,6 +147,14 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 {
 	Inworld::ClientOptions Options;
 	Options.ServerUrl = TCHAR_TO_UTF8(*(!Environment.TargetUrl.IsEmpty() ? Environment.TargetUrl : DefaultTargetUrl));
+	// Use first segment of scene for resource
+	// 'workspaces/sample-workspace'
+	TArray<FString> Split;
+	SceneName.ParseIntoArray(Split, TEXT("/"));
+	if (Split.Num() >= 2)
+	{
+		Options.Resource = TCHAR_TO_UTF8(*FString(Split[0] + "/" + Split[1]));
+	}
 	Options.SceneName = TCHAR_TO_UTF8(*SceneName);
 	Options.Base64 = TCHAR_TO_UTF8(*Auth.Base64Signature);
 	Options.ApiKey = TCHAR_TO_UTF8(*Auth.ApiKey);
