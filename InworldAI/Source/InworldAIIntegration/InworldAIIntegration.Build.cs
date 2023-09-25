@@ -34,6 +34,24 @@ public class InworldAIIntegration : ModuleRules
             }
             );
 
+        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Linux)
+        {
+            /***********************************************************
+                Uncomment below to enable Pixel Streaming Microphone
+               Add "PixelStreaming" as Plugin used in InworldAI.uplugin
+
+                "Plugins": [
+		            {
+			            "Name": "PixelStreaming",
+			            "Enabled": true,
+			            "PlatformAllowList": [ "Win64", "Linux" ]
+		            }
+	            ],
+            ************************************************************/
+
+            //PrivateDependencyModuleNames.Add("PixelStreaming");
+            //PrivateDefinitions.Add("INWORLD_PIXEL_STREAMING=1");
+        }
 
         if (Target.bBuildDeveloperTools || (Target.Configuration != UnrealTargetConfiguration.Shipping && Target.Configuration != UnrealTargetConfiguration.Test))
         {

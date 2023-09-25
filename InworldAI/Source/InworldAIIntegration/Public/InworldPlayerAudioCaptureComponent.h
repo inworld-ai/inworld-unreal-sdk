@@ -13,11 +13,6 @@
 #include "Containers/ContainerAllocationPolicies.h"
 #include "InworldGameplayDebuggerCategory.h"
 
-#include "Runtime/Launch/Resources/Version.h"
-#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
-#include "ISubmixBufferListener.h"
-#endif
-
 #include "InworldPlayerAudioCaptureComponent.generated.h"
 
 class UInworldApiSubsystem;
@@ -37,13 +32,32 @@ struct FPlayerVoiceCaptureInfoRep
 	TArray<uint8> OutputSoundData;
 };
 
+struct FInworldAudioCapture
+{
+public:
+    FInworldAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
+        : Owner(InOwner)
+        , Callback(InCallback)
+    {}
+    virtual ~FInworldAudioCapture() {}
+
+    virtual void StartCapture() = 0;
+    virtual void StopCapture() = 0;
+
+    virtual void SetCaptureDeviceById(const FString& DeviceId) = 0;
+
+protected:
+    UObject* Owner;
+    TFunction<void(const TArray<uint8>& AudioData)> Callback;
+};
+
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
-class INWORLDAIINTEGRATION_API UInworldPlayerAudioCaptureComponent : public UActorComponent, public ISubmixBufferListener
+class INWORLDAIINTEGRATION_API UInworldPlayerAudioCaptureComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-    UInworldPlayerAudioCaptureComponent();
+    UInworldPlayerAudioCaptureComponent(const FObjectInitializer& ObjectInitializer);
 
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -54,31 +68,28 @@ public:
     bool IsLocallyControlled() const;
 
 public:
-    UFUNCTION(BlueprintCallable, Category = "Volume")
-    void SetVolumeMultiplier(float InVolumeMultiplier) { VolumeMultiplier = InVolumeMultiplier; }
+    UFUNCTION(BlueprintCallable, Category = "Volume", meta=(DeprecatedFunction, DeprecationMessage="SetVolumeMultiplier is deprecated, use SetMuted instead."))
+    void SetVolumeMultiplier(float InVolumeMultiplier) { bMuted = InVolumeMultiplier == 0.f; }
+
+    UFUNCTION(BlueprintCallable, Category = "Audio")
+    void SetMuted(bool bInMuted) { bMuted = bInMuted; }
 
     UFUNCTION(BlueprintCallable, Category = "Devices")
     void SetCaptureDeviceById(const FString& DeviceId);
 
 private:
-    void OpenStream();
-    void CloseStream();
-
-    void StartStream();
-    void StopStream();
-
-    void OnAudioCapture(const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, double StreamTime, bool bOverFlow);
-
-    // ISubmixBufferListener
-    void OnNewSubmixBuffer(const USoundSubmix* OwningSubmix, float* AudioData, int32 NumSamples, int32 NumChannels, const int32 InSampleRate, double AudioClock) override;
-    // ~ ISubmixBufferListener
+    void StartCapture();
+    void StopCapture();
 
     UFUNCTION(Server, Reliable)
     void Server_ProcessVoiceCaptureChunk(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo);
 
 protected:
-    UPROPERTY(EditAnywhere, Category = "Filter")
+    UPROPERTY(EditDefaultsOnly, Category = "Filter")
 	bool bEnableAEC = false;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Pixel Stream")
+    bool bPixelStream = false;
 
 private:
 	UFUNCTION()
@@ -92,16 +103,19 @@ private:
 	TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
     TWeakObjectPtr<UInworldPlayerComponent> PlayerComponent;
 
-    Audio::FAudioCapture AudioCapture;
-    Audio::FAudioCaptureDeviceParams AudioCaptureDeviceParams;
+    TSharedPtr<FInworldAudioCapture> InputAudioCapture;
+    TSharedPtr<FInworldAudioCapture> OutputAudioCapture;
 
-    FCriticalSection InputCriticalSection;
-    TArray<int16, TAlignedHeapAllocator<16>> InputBuffer;
+    struct FAudioBuffer
+    {
+        FCriticalSection CriticalSection;
+        TArray<uint8, TAlignedHeapAllocator<8>> Data;
+    };
 
-    FCriticalSection OutputCriticalSection;
-    TArray<int16, TAlignedHeapAllocator<16>> OutputBuffer;
+    FAudioBuffer InputBuffer;
+    FAudioBuffer OutputBuffer;
 
-    float VolumeMultiplier = 1.f;
+    bool bMuted = false;
 
     void OnPlayerTargetSet(UInworldCharacterComponent* Target);
     void OnPlayerTargetClear(UInworldCharacterComponent* Target);
