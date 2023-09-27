@@ -1,3 +1,15 @@
+# 1.4.0
+- AEC support for Mac
+- Save/restore support
+- Inworld Avatar (Innequin)
+- Build fixes for conflicting plugins
+- UE 5.3 support
+- Fix for multi trigger handling
+- Fix for canceled interactions
+- Build fixes
+- Public workspaces
+- Pixel stream mic fixes
+
 # 1.3.2
 - Android support
 - Fix capabilities for default StartSession
