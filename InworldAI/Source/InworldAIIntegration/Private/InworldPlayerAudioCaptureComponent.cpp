@@ -40,6 +40,8 @@ public:
     FInworldMicrophoneAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
         : FInworldAudioCapture(InOwner, InCallback) {}
 
+    virtual void RequestCapturePermission();
+    virtual bool HasCapturePermission() const override;
     virtual void StartCapture() override;
     virtual void StopCapture() override;
 
@@ -50,6 +52,8 @@ private:
 
     Audio::FAudioCapture AudioCapture;
     Audio::FAudioCaptureDeviceParams AudioCaptureDeviceParams;
+
+    mutable Inworld::Platform::Permission MicPermission = Inworld::Platform::Permission::UNDETERMINED;
 };
 
 struct FInworldPixelStreamAudioCapture : public FInworldAudioCapture
@@ -108,38 +112,6 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
 
     SetIsReplicated(true);
 
-    auto OnInputCapture = [this](const TArray<uint8>& AudioData)
-        {
-            if (bCapturingVoice)
-            {
-                FScopeLock InputScopedLock(&InputBuffer.CriticalSection);
-                InputBuffer.Data.Append(AudioData);
-            }
-        };
-
-    auto OnOutputCapture = [this](const TArray<uint8>& AudioData)
-        {
-            if (bCapturingVoice)
-            {
-                FScopeLock OutputScopedLock(&OutputBuffer.CriticalSection);
-                OutputBuffer.Data.Append(AudioData);
-            }
-        };
-
-    if (bPixelStream)
-    {
-        InputAudioCapture = MakeShared<FInworldPixelStreamAudioCapture>(this, OnInputCapture);
-    }
-    else
-    {
-        InputAudioCapture = MakeShared<FInworldMicrophoneAudioCapture>(this, OnInputCapture);
-    }
-
-    if (bEnableAEC)
-    {
-        OutputAudioCapture = MakeShared<FInworldSubmixAudioCapture>(this, OnOutputCapture);
-    }
-
     if (GetOwnerRole() == ROLE_Authority)
     {
         InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
@@ -156,21 +128,43 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
     
     if (IsLocallyControlled())
     {
-        FInworldAIPlatformModule& PlatformModule = FModuleManager::Get().LoadModuleChecked<FInworldAIPlatformModule>("InworldAIPlatform");
-        Inworld::Platform::IMicrophone* Microphone = PlatformModule.GetMicrophone();
-        if (Microphone->GetPermission() == Inworld::Platform::Permission::UNDETERMINED)
-        {
-            Microphone->RequestAccess([](bool Granted)
+        auto OnInputCapture = [this](const TArray<uint8>& AudioData)
             {
-                ensureMsgf(Granted, TEXT("UInworldPlayerAudioCaptureComponent::BeginPlay: Platform has denied access to microphone."));
-            });
+                if (bCapturingVoice)
+                {
+                    FScopeLock InputScopedLock(&InputBuffer.CriticalSection);
+                    InputBuffer.Data.Append(AudioData);
+                }
+            };
+
+        auto OnOutputCapture = [this](const TArray<uint8>& AudioData)
+            {
+                if (bCapturingVoice)
+                {
+                    FScopeLock OutputScopedLock(&OutputBuffer.CriticalSection);
+                    OutputBuffer.Data.Append(AudioData);
+                }
+            };
+
+        if (bPixelStream)
+        {
+            InputAudioCapture = MakeShared<FInworldPixelStreamAudioCapture>(this, OnInputCapture);
         }
         else
         {
-            const bool Granted = Microphone->GetPermission() == Inworld::Platform::Permission::GRANTED;
-            ensureMsgf(Granted, TEXT("UInworldPlayerAudioCaptureComponent::BeginPlay: Platform has denied access to microphone."));
+            InputAudioCapture = MakeShared<FInworldMicrophoneAudioCapture>(this, OnInputCapture);
         }
 
+        if (bEnableAEC)
+        {
+            OutputAudioCapture = MakeShared<FInworldSubmixAudioCapture>(this, OnOutputCapture);
+        }
+
+        InputAudioCapture->RequestCapturePermission();
+        if (OutputAudioCapture.IsValid())
+        {
+            OutputAudioCapture->RequestCapturePermission();
+        }
         PrimaryComponentTick.SetTickFunctionEnable(true);
     }
 }
@@ -284,7 +278,10 @@ void UInworldPlayerAudioCaptureComponent::SetCaptureDeviceById(const FString& De
         return;
     }
 
-    InputAudioCapture->SetCaptureDeviceById(DeviceId);
+    if (InputAudioCapture.IsValid())
+    {
+        InputAudioCapture->SetCaptureDeviceById(DeviceId);
+    }
 
     const bool bWasCapturingVoice = bCapturingVoice;
 
@@ -307,6 +304,16 @@ void UInworldPlayerAudioCaptureComponent::StartCapture()
     }
 
     if (bCapturingVoice)
+    {
+        return;
+    }
+
+    if (!InputAudioCapture.IsValid() || !InputAudioCapture->HasCapturePermission())
+    {
+        return;
+    }
+
+    if (OutputAudioCapture.IsValid() && !InputAudioCapture->HasCapturePermission())
     {
         return;
     }
@@ -406,6 +413,35 @@ void UInworldPlayerAudioCaptureComponent::Rep_ServerCapturingVoice()
     {
         StopCapture();
     }
+}
+
+void FInworldMicrophoneAudioCapture::RequestCapturePermission()
+{
+    FInworldAIPlatformModule& PlatformModule = FModuleManager::Get().LoadModuleChecked<FInworldAIPlatformModule>("InworldAIPlatform");
+    Inworld::Platform::IMicrophone* Microphone = PlatformModule.GetMicrophone();
+    if (Microphone->GetPermission() == Inworld::Platform::Permission::UNDETERMINED)
+    {
+        Microphone->RequestAccess([](bool Granted)
+            {
+                ensureMsgf(Granted, TEXT("FInworldMicrophoneAudioCapture::RequestCapturePermission: Platform has denied access to microphone."));
+            });
+    }
+    else
+    {
+        const bool Granted = Microphone->GetPermission() == Inworld::Platform::Permission::GRANTED;
+        ensureMsgf(Granted, TEXT("FInworldMicrophoneAudioCapture::RequestCapturePermission: Platform has denied access to microphone."));
+    }
+}
+
+bool FInworldMicrophoneAudioCapture::HasCapturePermission() const
+{
+    if (MicPermission == Inworld::Platform::Permission::UNDETERMINED)
+    {
+        FInworldAIPlatformModule& PlatformModule = FModuleManager::Get().LoadModuleChecked<FInworldAIPlatformModule>("InworldAIPlatform");
+        Inworld::Platform::IMicrophone* Microphone = PlatformModule.GetMicrophone();
+        MicPermission = Microphone->GetPermission();
+    }
+    return MicPermission == Inworld::Platform::Permission::GRANTED;
 }
 
 void FInworldMicrophoneAudioCapture::StartCapture()
