@@ -63,6 +63,9 @@ public class InworldAINdk : ModuleRules
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_LOG_CALLBACK=1");
 
+        PublicDefinitions.Add("INWORLD_STT_LOCAL=1");
+        PublicDefinitions.Add("INWORLD_WHISPERCPP=1");
+
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include"));
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include/grpc"));
 
@@ -102,6 +105,7 @@ public class InworldAINdk : ModuleRules
                 "libprotobuf",
                 "re2",
                 "upb",
+                "whisper",
             });
 
         foreach (string NdkLib in NdkLibs)

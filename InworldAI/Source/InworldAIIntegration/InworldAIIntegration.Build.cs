@@ -52,6 +52,8 @@ public class InworldAIIntegration : ModuleRules
             //PrivateDependencyModuleNames.Add("PixelStreaming");
             //PrivateDefinitions.Add("INWORLD_PIXEL_STREAMING=1");
         }
+        
+        PrivateDefinitions.Add("INWORLD_PRESS_TO_TALK=1");
 
         if (Target.bBuildDeveloperTools || (Target.Configuration != UnrealTargetConfiguration.Shipping && Target.Configuration != UnrealTargetConfiguration.Test))
         {

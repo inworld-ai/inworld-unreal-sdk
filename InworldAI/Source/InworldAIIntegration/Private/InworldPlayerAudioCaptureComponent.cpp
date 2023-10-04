@@ -206,6 +206,8 @@ void UInworldPlayerAudioCaptureComponent::TickComponent(float DeltaTime, enum EL
             return;
         }
 
+
+#ifndef INWORLD_PRESS_TO_TALK
         // restore voice capture after pause
         if (PlayerComponent->GetTargetCharacter() && !bCapturingVoice)
         {
@@ -220,15 +222,23 @@ void UInworldPlayerAudioCaptureComponent::TickComponent(float DeltaTime, enum EL
                 Rep_ServerCapturingVoice();
             }
         }
+#endif
     }
 
     {   
         FScopeLock InputScopedLock(&InputBuffer.CriticalSection);
         FScopeLock OutputScopedLock(&OutputBuffer.CriticalSection);
 
+#ifdef INWORLD_PRESS_TO_TALK
+        const int32 SampleSendSize = bEnableAEC ? FMath::Min(OutputBuffer.Data.Num(), InputBuffer.Data.Num()) : InputBuffer.Data.Num();
+		if (SampleSendSize > 0 && !bCapturingVoice)
+		{
+            InworldSubsystem->StartAudioSession("None");
+#else
         constexpr int32 SampleSendSize = (gSamplesPerSec / 10) * 2; // 0.1s of data per send, mult by 2 from Buffer (uint8) to PCM (uint16)
-        while (InputBuffer.Data.Num() > SampleSendSize && (!bEnableAEC || OutputBuffer.Data.Num() > SampleSendSize))
-        {
+		while (InputBuffer.Data.Num() > SampleSendSize && (!bEnableAEC || OutputBuffer.Data.Num() > SampleSendSize))
+		{
+#endif
             FPlayerVoiceCaptureInfoRep VoiceCaptureInfoRep;
             if (bMuted)
             {
@@ -256,6 +266,12 @@ void UInworldPlayerAudioCaptureComponent::TickComponent(float DeltaTime, enum EL
             }
 
             Server_ProcessVoiceCaptureChunk(VoiceCaptureInfoRep);
+
+#ifdef INWORLD_PRESS_TO_TALK
+			InputBuffer.Data.Empty();
+			OutputBuffer.Data.Empty();
+			//InworldSubsystem->StopAudioSession("None");
+#endif
         }
     }
 }
@@ -290,6 +306,28 @@ void UInworldPlayerAudioCaptureComponent::SetCaptureDeviceById(const FString& De
         StopCapture();
         StartCapture();
     }
+}
+
+void UInworldPlayerAudioCaptureComponent::StartVoiceCapture()
+{
+#ifdef INWORLD_PRESS_TO_TALK
+    bServerCapturingVoice = true;
+	if (IsLocallyControlled())
+	{
+		Rep_ServerCapturingVoice();
+	}
+#endif
+}
+
+void UInworldPlayerAudioCaptureComponent::StopVoiceCapture()
+{
+#ifdef INWORLD_PRESS_TO_TALK
+    bServerCapturingVoice = false;
+	if (IsLocallyControlled())
+	{
+		Rep_ServerCapturingVoice();
+	}
+#endif
 }
 
 void UInworldPlayerAudioCaptureComponent::StartCapture()
@@ -353,8 +391,10 @@ void UInworldPlayerAudioCaptureComponent::StopCapture()
 
     FScopeLock InputScopedLock(&InputBuffer.CriticalSection);
     FScopeLock OutputScopedLock(&OutputBuffer.CriticalSection);
+#ifndef INWORLD_PRESS_TO_TALK
     InputBuffer.Data.Empty();
     OutputBuffer.Data.Empty();
+#endif
 }
 
 void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implementation(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo)
@@ -377,6 +417,7 @@ bool UInworldPlayerAudioCaptureComponent::IsLocallyControlled() const
 
 void UInworldPlayerAudioCaptureComponent::OnPlayerTargetSet(UInworldCharacterComponent* Target)
 {
+#ifndef INWORLD_PRESS_TO_TALK
     if (Target)
 	{
         InworldSubsystem->StartAudioSession(Target->GetAgentId());
@@ -387,10 +428,12 @@ void UInworldPlayerAudioCaptureComponent::OnPlayerTargetSet(UInworldCharacterCom
     {
         Rep_ServerCapturingVoice();
     }
+#endif
 }
 
 void UInworldPlayerAudioCaptureComponent::OnPlayerTargetClear(UInworldCharacterComponent* Target)
 {
+#ifndef INWORLD_PRESS_TO_TALK
     if (Target)
     {
         InworldSubsystem->StopAudioSession(Target->GetAgentId());
@@ -401,6 +444,7 @@ void UInworldPlayerAudioCaptureComponent::OnPlayerTargetClear(UInworldCharacterC
     {
         Rep_ServerCapturingVoice();
     }
+#endif
 }
 
 void UInworldPlayerAudioCaptureComponent::Rep_ServerCapturingVoice()

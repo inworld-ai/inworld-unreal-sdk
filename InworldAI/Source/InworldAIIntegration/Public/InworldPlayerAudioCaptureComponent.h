@@ -80,6 +80,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Devices")
     void SetCaptureDeviceById(const FString& DeviceId);
 
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	void StartVoiceCapture();
+
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	void StopVoiceCapture();
+
 private:
     void StartCapture();
     void StopCapture();
