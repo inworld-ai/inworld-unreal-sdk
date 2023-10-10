@@ -1,3 +1,6 @@
+# 1.4.1
+- Fix for auto reconnect
+
 # 1.4.0
 - AEC support for Mac
 - Save/restore support
