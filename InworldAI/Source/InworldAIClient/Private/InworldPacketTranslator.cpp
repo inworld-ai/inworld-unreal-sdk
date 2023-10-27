@@ -113,3 +113,14 @@ void InworldPacketTranslator::TranslateEvent<Inworld::ChangeSceneEvent, FInworld
 		AgentInfoRef.GivenName = UTF8_TO_TCHAR(AgentInfo.GivenName.c_str());
 	}
 }
+
+template<>
+void InworldPacketTranslator::TranslateEvent<Inworld::RelationEvent, FInworldRelationEvent>(const Inworld::RelationEvent& Original, FInworldRelationEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+	New.Attraction = Original.GetAttraction();
+	New.Familiar = Original.GetFamiliar();
+	New.Flirtatious = Original.GetFlirtatious();
+	New.Respect = Original.GetRespect();
+	New.Trust = Original.GetTrust();
+}

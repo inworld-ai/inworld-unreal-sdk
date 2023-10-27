@@ -190,6 +190,7 @@ private:
 	virtual void Visit(const FInworldControlEvent& Event) override;
 	virtual void Visit(const FInworldEmotionEvent& Event) override;
 	virtual void Visit(const FInworldCustomEvent& Event) override;
+	virtual void Visit(const FInworldRelationEvent& Event) override;
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitText(const FInworldTextEvent& Event);
@@ -201,6 +202,8 @@ private:
 	void Multicast_VisitEmotion(const FInworldEmotionEvent& Event);
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitCustom(const FInworldCustomEvent& Event);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_VisitRelation(const FInworldRelationEvent& Event);
 
 	bool IsCustomGesture(const FString& CustomEventName) const;
 

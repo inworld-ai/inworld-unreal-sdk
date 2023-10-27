@@ -96,6 +96,7 @@ struct FInworldSimpleGestureEvent;
 struct FInworldCustomGestureEvent;
 struct FInworldCustomEvent;
 struct FInworldChangeSceneEvent;
+struct FInworldRelationEvent;
 
 class InworldPacketVisitor
 {
@@ -111,6 +112,7 @@ public:
 	virtual void Visit(const FInworldCustomGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomEvent& Event) {  }
 	virtual void Visit(const FInworldChangeSceneEvent& Event) {  }
+	virtual void Visit(const FInworldRelationEvent& Event) {  }
 };
 
 USTRUCT()
@@ -326,6 +328,35 @@ struct INWORLDAICLIENT_API FInworldChangeSceneEvent : public FInworldPacket
 	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
 
 	TArray<FInworldAgentInfo> AgentInfos;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const;
+};
+
+USTRUCT()
+struct INWORLDAICLIENT_API FInworldRelationEvent : public FInworldPacket
+{
+	GENERATED_BODY()
+
+	FInworldRelationEvent() = default;
+	virtual ~FInworldRelationEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	UPROPERTY()
+	int32 Attraction;
+
+	UPROPERTY()
+	int32 Familiar;
+
+	UPROPERTY()
+	int32 Flirtatious;
+
+	UPROPERTY()
+	int32 Respect;
+
+	UPROPERTY()
+	int32 Trust;
 
 protected:
 	virtual void AppendDebugString(FString& Str) const;

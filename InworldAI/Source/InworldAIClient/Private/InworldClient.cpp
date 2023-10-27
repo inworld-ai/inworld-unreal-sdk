@@ -96,7 +96,11 @@ void FInworldClient::Init()
 		{
 			InworldPacketTranslator PacketTranslator;
 			Packet->Accept(PacketTranslator);
-			OnInworldPacketReceived.ExecuteIfBound(PacketTranslator.GetPacket());
+			TSharedPtr<FInworldPacket> ReceivedPacket = PacketTranslator.GetPacket();
+			if (ReceivedPacket.IsValid())
+			{
+				OnInworldPacketReceived.ExecuteIfBound(ReceivedPacket);
+			}
 		}
 	);
 
