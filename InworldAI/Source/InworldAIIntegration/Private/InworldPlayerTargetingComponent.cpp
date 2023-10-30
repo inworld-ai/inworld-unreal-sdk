@@ -8,6 +8,7 @@
 #include "InworldPlayerTargetingComponent.h"
 #include "InworldPlayerComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Engine/World.h"
 
 
 UInworldPlayerTargetingComponent::UInworldPlayerTargetingComponent()
