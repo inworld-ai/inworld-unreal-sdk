@@ -32,7 +32,7 @@
 #include "Interfaces/IPluginManager.h"
 #include "UObject/SavePackage.h"
 
-static FString ServerUrl = "api-studio.inworld.ai:443";
+static FString ServerUrl = "api-studio.az.inworld.ai:443";
 
 const FString& UInworldEditorApiSubsystem::GetSavedStudioAccessToken() const
 {
