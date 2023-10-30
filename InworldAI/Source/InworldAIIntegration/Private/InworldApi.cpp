@@ -109,6 +109,7 @@ void UInworldApiSubsystem::SaveSession(FOnSaveReady Delegate)
             Client->OnSessionSaved.Unbind();
         }
     );
+    Client->SaveSession();
 }
 
 void UInworldApiSubsystem::SetResponseLatencyTrackerDelegate(FResponseLatencyTrackerDelegate Delegate)
@@ -238,10 +239,13 @@ void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString
     }
 
     TSharedPtr<FInworldPacket> Packet = Client->SendTextMessage(AgentId, Text);
-    auto* AgentComponentPtr = CharacterComponentByAgentId.Find(AgentId);
-    if (AgentComponentPtr)
+    if(Packet.IsValid())
     {
-        (*AgentComponentPtr)->HandlePacket(Packet);
+        auto* AgentComponentPtr = CharacterComponentByAgentId.Find(AgentId);
+        if (AgentComponentPtr)
+        {
+            (*AgentComponentPtr)->HandlePacket(Packet);
+        }
     }
 }
 

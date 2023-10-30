@@ -227,17 +227,6 @@ void FInworldEmotionEvent::AppendDebugString(FString& Str) const
 	AppendToDebugString(Str, FString::FromInt(static_cast<int32>(Strength)));
 }
 
-/*
-FInworldCustomEvent::FInworldCustomEvent(const Inworld::CustomEvent& Event)
-	: FInworldPacket(Event)
-{
-	Name = UTF8_TO_TCHAR(Event.GetName().c_str());
-	for (const auto& param : Event.GetParams())
-	{
-		Params.Add(UTF8_TO_TCHAR(param.first.c_str()), UTF8_TO_TCHAR(param.second.c_str()));
-	}
-}*/
-
 void FInworldCustomEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Custom"));
@@ -259,4 +248,20 @@ void FInworldChangeSceneEvent::AppendDebugString(FString& Str) const
 	{
 		AppendToDebugString(Str, Agent.GivenName);
 	}
+}
+
+void FInworldRelationEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("Relation"));
+
+	AppendToDebugString(Str, TEXT("Attraction"));
+	AppendToDebugString(Str, FString::FromInt(Attraction));
+	AppendToDebugString(Str, TEXT("Familiar"));
+	AppendToDebugString(Str, FString::FromInt(Familiar));
+	AppendToDebugString(Str, TEXT("Flirtatious"));
+	AppendToDebugString(Str, FString::FromInt(Flirtatious));
+	AppendToDebugString(Str, TEXT("Respect"));
+	AppendToDebugString(Str, FString::FromInt(Respect));
+	AppendToDebugString(Str, TEXT("Trust"));
+	AppendToDebugString(Str, FString::FromInt(Trust));
 }

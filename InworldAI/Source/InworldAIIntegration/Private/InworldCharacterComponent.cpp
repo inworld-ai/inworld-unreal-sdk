@@ -474,6 +474,23 @@ void UInworldCharacterComponent::Multicast_VisitCustom_Implementation(const FInw
 	});
 }
 
+void UInworldCharacterComponent::Multicast_VisitRelation_Implementation(const FInworldRelationEvent& Event)
+{
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageTrigger>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
+		MessageToUpdate->Name = TEXT("inworld.relation.update");
+		if (Event.Attraction != 0) MessageToUpdate->Params.Add(TEXT("Attraction"), FString::FromInt(Event.Attraction));
+		if (Event.Familiar != 0) MessageToUpdate->Params.Add(TEXT("Familiar"), FString::FromInt(Event.Familiar));
+		if (Event.Flirtatious != 0) MessageToUpdate->Params.Add(TEXT("Flirtatious"), FString::FromInt(Event.Flirtatious));
+		if (Event.Respect != 0) MessageToUpdate->Params.Add(TEXT("Respect"), FString::FromInt(Event.Respect));
+		if (Event.Trust != 0) MessageToUpdate->Params.Add(TEXT("Trust"), FString::FromInt(Event.Trust));
+	});
+}
+
 void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FInworldEmotionEvent& Event)
 {
 	if (GetNetMode() == NM_DedicatedServer)
@@ -538,6 +555,14 @@ void UInworldCharacterComponent::Visit(const FInworldEmotionEvent& Event)
 void UInworldCharacterComponent::Visit(const FInworldCustomEvent& Event)
 {
 	Multicast_VisitCustom(Event);
+}
+
+void UInworldCharacterComponent::Visit(const FInworldRelationEvent& Event)
+{
+	if (Event.Attraction || Event.Familiar || Event.Flirtatious || Event.Respect || Event.Trust)
+	{
+		Multicast_VisitRelation(Event);
+	}
 }
 
 void UInworldCharacterComponent::Handle(const FCharacterMessageUtterance& Message)
