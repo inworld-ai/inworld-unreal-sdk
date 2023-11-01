@@ -70,12 +70,21 @@ public:
 
     bool IsLocallyControlled() const;
 
+private:
+    void EvaluateVoiceCapture();
+
+    UFUNCTION()
+    void OnInworldConnectionStateChanged(EInworldConnectionState ConnectionState);
+
 public:
     UFUNCTION(BlueprintCallable, Category = "Volume", meta=(DeprecatedFunction, DeprecationMessage="SetVolumeMultiplier is deprecated, use SetMuted instead."))
     void SetVolumeMultiplier(float InVolumeMultiplier) { bMuted = InVolumeMultiplier == 0.f; }
 
     UFUNCTION(BlueprintCallable, Category = "Audio")
-    void SetMuted(bool bInMuted) { bMuted = bInMuted; }
+    void SetMuted(bool bInMuted) { ServerSetMuted(bInMuted); }
+
+    UFUNCTION(Server, Reliable, Category = "Audio")
+    void ServerSetMuted(bool bInMuted);
 
     UFUNCTION(BlueprintCallable, Category = "Devices")
     void SetCaptureDeviceById(const FString& DeviceId);
@@ -93,6 +102,9 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "Pixel Stream")
     bool bPixelStream = false;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+    bool bMuted = false;
 
 private:
 	UFUNCTION()
@@ -118,13 +130,18 @@ private:
     FAudioBuffer InputBuffer;
     FAudioBuffer OutputBuffer;
 
-    bool bMuted = false;
-
     void OnPlayerTargetSet(UInworldCharacterComponent* Target);
     void OnPlayerTargetClear(UInworldCharacterComponent* Target);
 
     FDelegateHandle PlayerTargetSetHandle;
     FDelegateHandle PlayerTargetClearHandle;
+
+    struct FPlayerAudioTarget
+    {
+        FString AgentId;
+        bool bActive;
+
+    } PlayerAudioTarget;
 
     friend class FInworldGameplayDebuggerCategory;
 };
