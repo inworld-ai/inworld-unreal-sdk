@@ -47,15 +47,13 @@ public:
 	}
 
 private:
+	TSharedRef<SDockTab> CreateInworldStudioTab(const FSpawnTabArgs& Args);
+
 	void AssetExtenderFunc(FMenuBuilder& MenuBuilder, const TArray<FAssetData> SelectedAssets);
 	TSharedRef<FExtender> OnExtendAssetSelectionMenu(const TArray<FAssetData>& SelectedAssets);
 
 	static bool CanSetupAssetAsInworldPlayer(const FAssetData& AssetData);
 	static void SetupAssetAsInworldPlayer(const FAssetData& AssetData);
-
-	void OpenInworldStudioWidget(TSharedPtr<SWindow>, bool);
-
-	FDelegateHandle OpenInworldStudioWidgetDelHandle;
 
 	FInworldStudioUserData StudioData;
 	FInworldEditorUtilityWidgetState StudioWidgetState;

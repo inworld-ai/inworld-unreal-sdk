@@ -40,4 +40,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Character")
 	TArray<TSubclassOf<UActorComponent>> OtherCharacterComponents;
+
+public:
+	UPROPERTY(config, VisibleAnywhere, Category = "Studio")
+	FSoftObjectPath InworldStudioWidget;
 };

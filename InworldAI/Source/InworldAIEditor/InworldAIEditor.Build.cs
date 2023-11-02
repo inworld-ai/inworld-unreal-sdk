@@ -38,6 +38,7 @@ public class InworldAIEditor : ModuleRules
                 "UMGEditor",
                 "Blutility",
                 "UMG",
+                "WorkspaceMenuStructure",
             }
             );
     }
