@@ -11,6 +11,7 @@
 #include "Modules/ModuleManager.h"
 #include "ContentBrowserDelegates.h"
 #include "InworldStudioTypes.h"
+#include "UnrealEdMisc.h"
 #include "InworldEditorUtilityWidget.h"
 
 INWORLDAIEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAIEditor, Log, All);
@@ -48,6 +49,8 @@ public:
 
 private:
 	TSharedRef<SDockTab> CreateInworldStudioTab(const FSpawnTabArgs& Args);
+	TSharedRef<SWidget> CreateInworldStudioWidget();
+	void OnLevelEditorMapChanged(UWorld* World, EMapChangeType MapChangeType);
 
 	void AssetExtenderFunc(FMenuBuilder& MenuBuilder, const TArray<FAssetData> SelectedAssets);
 	TSharedRef<FExtender> OnExtendAssetSelectionMenu(const TArray<FAssetData>& SelectedAssets);
@@ -87,4 +90,9 @@ private:
 	};
 
 	FAssetActionMenu AssetActionMenu;
+
+	TWeakPtr<SDockTab> InworldStudioTab;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UUserWidget> InworldStudioUMGWidget;
 };

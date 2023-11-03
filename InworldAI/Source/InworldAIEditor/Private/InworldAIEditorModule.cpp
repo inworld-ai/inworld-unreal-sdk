@@ -12,9 +12,11 @@
 #include "InworldAIEditorSettings.h"
 #include "InworldEditorUIStyle.h"
 #include "ISettingsModule.h"
+#include "LevelEditor.h"
 #include "WidgetBlueprint.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Widgets/Docking/SDockTab.h"
+#include "Blueprint/WidgetTree.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
 
@@ -65,23 +67,85 @@ void FInworldAIEditorModule::ShutdownModule()
 
 TSharedRef<SDockTab> FInworldAIEditorModule::CreateInworldStudioTab(const FSpawnTabArgs& Args)
 {
-	const TSharedRef<SDockTab> DockTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
+	TSharedRef<SDockTab> SpawnedTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
+
+	InworldStudioTab = SpawnedTab;
+	if (TSharedPtr<SDockTab> InworldStudioTabPinned = InworldStudioTab.Pin())
+	{
+		InworldStudioTabPinned->SetContent(CreateInworldStudioWidget());
+	}
+
+	FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
+	LevelEditor.OnMapChanged().AddRaw(this, &FInworldAIEditorModule::OnLevelEditorMapChanged);
+
+	return SpawnedTab;
+}
+
+TSharedRef<SWidget> FInworldAIEditorModule::CreateInworldStudioWidget()
+{
+	if (InworldStudioUMGWidget)
+	{
+		InworldStudioUMGWidget->Rename(nullptr, GetTransientPackage(), REN_DoNotDirty);
+		InworldStudioUMGWidget = nullptr;
+	}
 
 	if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
 	{
 		const UInworldAIEditorSettings* InworldAIEditorSettings = GetDefault<UInworldAIEditorSettings>();
-
 		TSoftObjectPtr<UWidgetBlueprint> InworldStudioWidget(InworldAIEditorSettings->InworldStudioWidget);
 		InworldStudioWidget.LoadSynchronous();
+		InworldStudioUMGWidget = CreateWidget<UUserWidget>(EditorWorld, Cast<UClass>(InworldStudioWidget.Get()->GeneratedClass));
 
-		UUserWidget* Widget = CreateWidget<UEditorUtilityWidget>(EditorWorld, Cast<UClass>(InworldStudioWidget.Get()->GeneratedClass));
-		if (Widget)
+		if (InworldStudioUMGWidget)
 		{
-			DockTab->SetContent(Widget->TakeWidget());
+			InworldStudioUMGWidget->SetFlags(RF_Transient);
+
+			TArray<UWidget*> AllWidgets;
+			InworldStudioUMGWidget->WidgetTree->GetAllWidgets(AllWidgets);
+			for (UWidget* Widget : AllWidgets)
+			{
+				if (Widget->IsA(UEditorUtilityWidget::StaticClass()))
+				{
+					Widget->SetFlags(RF_Transient);
+					if (UPanelSlot* Slot = Widget->Slot)
+					{
+						Slot->SetFlags(RF_Transient);
+					}
+				}
+			}
 		}
 	}
 
-	return DockTab;
+	if (InworldStudioUMGWidget)
+	{
+		return InworldStudioUMGWidget->TakeWidget();
+	}
+
+	return SNullWidget::NullWidget;
+}
+
+void FInworldAIEditorModule::OnLevelEditorMapChanged(UWorld* World, EMapChangeType MapChangeType)
+{
+	if (MapChangeType == EMapChangeType::TearDownWorld)
+	{
+		if (InworldStudioUMGWidget && World == InworldStudioUMGWidget->GetWorld())
+		{
+			if (InworldStudioTab.IsValid())
+			{
+				InworldStudioTab.Pin()->SetContent(SNullWidget::NullWidget);
+			}
+
+			InworldStudioUMGWidget->Rename(nullptr, GetTransientPackage());
+			InworldStudioUMGWidget = nullptr;
+		}
+	}
+	else if (MapChangeType != EMapChangeType::SaveMap)
+	{
+		if (TSharedPtr<SDockTab> InworldStudioTabPinned = InworldStudioTab.Pin())
+		{
+			InworldStudioTabPinned->SetContent(CreateInworldStudioWidget());
+		}
+	}
 }
 
 void FInworldAIEditorModule::AssetExtenderFunc(FMenuBuilder& MenuBuilder, const TArray<FAssetData> SelectedAssets)
