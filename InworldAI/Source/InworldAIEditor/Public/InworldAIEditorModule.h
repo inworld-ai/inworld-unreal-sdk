@@ -12,6 +12,7 @@
 #include "ContentBrowserDelegates.h"
 #include "InworldStudioTypes.h"
 #include "UnrealEdMisc.h"
+#include "Blueprint/UserWidget.h"
 #include "InworldEditorUtilityWidget.h"
 
 INWORLDAIEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAIEditor, Log, All);
