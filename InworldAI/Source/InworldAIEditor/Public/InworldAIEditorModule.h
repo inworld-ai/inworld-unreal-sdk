@@ -93,7 +93,5 @@ private:
 	FAssetActionMenu AssetActionMenu;
 
 	TWeakPtr<SDockTab> InworldStudioTab;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UUserWidget> InworldStudioUMGWidget;
+	UUserWidget* InworldStudioUMGWidget;
 };
