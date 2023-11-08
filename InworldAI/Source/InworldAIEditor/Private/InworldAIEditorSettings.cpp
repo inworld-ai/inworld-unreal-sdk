@@ -24,4 +24,6 @@ UInworldAIEditorSettings::UInworldAIEditorSettings(const FObjectInitializer& Obj
 	InworldCharacterComponent = UInworldCharacterComponent::StaticClass();
 	CharacterPlaybacks = { UInworldCharacterPlaybackAudio::StaticClass() };
 	OtherCharacterComponents = { UAudioComponent::StaticClass() };
+
+	InworldStudioWidget = "/InworldAI/StudioWidget/InworldStudioWidget.InworldStudioWidget";
 }

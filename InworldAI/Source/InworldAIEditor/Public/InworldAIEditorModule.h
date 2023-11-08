@@ -11,6 +11,8 @@
 #include "Modules/ModuleManager.h"
 #include "ContentBrowserDelegates.h"
 #include "InworldStudioTypes.h"
+#include "UnrealEdMisc.h"
+#include "Blueprint/UserWidget.h"
 #include "InworldEditorUtilityWidget.h"
 
 INWORLDAIEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAIEditor, Log, All);
@@ -47,15 +49,15 @@ public:
 	}
 
 private:
+	TSharedRef<SDockTab> CreateInworldStudioTab(const FSpawnTabArgs& Args);
+	TSharedRef<SWidget> CreateInworldStudioWidget();
+	void OnLevelEditorMapChanged(UWorld* World, EMapChangeType MapChangeType);
+
 	void AssetExtenderFunc(FMenuBuilder& MenuBuilder, const TArray<FAssetData> SelectedAssets);
 	TSharedRef<FExtender> OnExtendAssetSelectionMenu(const TArray<FAssetData>& SelectedAssets);
 
 	static bool CanSetupAssetAsInworldPlayer(const FAssetData& AssetData);
 	static void SetupAssetAsInworldPlayer(const FAssetData& AssetData);
-
-	void OpenInworldStudioWidget(TSharedPtr<SWindow>, bool);
-
-	FDelegateHandle OpenInworldStudioWidgetDelHandle;
 
 	FInworldStudioUserData StudioData;
 	FInworldEditorUtilityWidgetState StudioWidgetState;
@@ -89,4 +91,7 @@ private:
 	};
 
 	FAssetActionMenu AssetActionMenu;
+
+	TWeakPtr<SDockTab> InworldStudioTab;
+	UUserWidget* InworldStudioUMGWidget;
 };

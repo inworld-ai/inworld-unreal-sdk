@@ -12,11 +12,13 @@
 #include "InworldAIEditorSettings.h"
 #include "InworldEditorUIStyle.h"
 #include "ISettingsModule.h"
+#include "LevelEditor.h"
 #include "WidgetBlueprint.h"
-#include "EditorUtilityWidget.h"
-#include "EditorUtilityWidgetBlueprint.h"
-#include "EditorUtilitySubsystem.h"
-#include "Interfaces/IMainFrameModule.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Widgets/Docking/SDockTab.h"
+#include "Blueprint/WidgetTree.h"
+#include "WorkspaceMenuStructure.h"
+#include "WorkspaceMenuStructureModule.h"
 
 #define LOCTEXT_NAMESPACE "FInworldAIEditorModule"
 
@@ -30,9 +32,6 @@ void FInworldAIEditorModule::StartupModule()
 	TArray<FContentBrowserMenuExtender_SelectedAssets>& CBMenuAssetExtenderDelegates = ContentBrowserModule.GetAllAssetViewContextMenuExtenders();
 	CBMenuAssetExtenderDelegates.Add(FContentBrowserMenuExtender_SelectedAssets::CreateRaw(this, &FInworldAIEditorModule::OnExtendAssetSelectionMenu));
 
-	IMainFrameModule& MainFrameModule = IMainFrameModule::Get();
-	OpenInworldStudioWidgetDelHandle = MainFrameModule.OnMainFrameCreationFinished().AddRaw(this, &FInworldAIEditorModule::OpenInworldStudioWidget);
-
 	ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 	if (SettingsModule)
 	{
@@ -40,19 +39,112 @@ void FInworldAIEditorModule::StartupModule()
 			LOCTEXT("InworldSettingsName", "InworldAI"), LOCTEXT("InworldSettingsDescription", "Inworld AI Editor Settings"),
 			GetMutableDefault<UInworldAIEditorSettings>());
 	}
+	if (FSlateApplication::IsInitialized())
+	{
+		FGlobalTabmanager::Get()->RegisterNomadTabSpawner("Inworld Studio", FOnSpawnTab::CreateRaw(this, &FInworldAIEditorModule::CreateInworldStudioTab))
+			.SetDisplayName(NSLOCTEXT("InworldStudio", "TabTitle", "Inworld Studio"))
+			.SetTooltipText(NSLOCTEXT("InworldStudio", "TooltipText", "Tools for working with Inworld AI."))
+			.SetGroup(WorkspaceMenu::GetMenuStructure().GetToolsCategory())
+			.SetIcon(FSlateIcon(FInworldEditorUIStyle::Get()->GetStyleSetName(), "InworldEditor.Icon"));
+	}
 }
 
 void FInworldAIEditorModule::ShutdownModule()
 {
 	FInworldEditorUIStyle::Shutdown();
 
-	IMainFrameModule& MainFrameModule = IMainFrameModule::Get();
-	MainFrameModule.OnMainFrameCreationFinished().Remove(OpenInworldStudioWidgetDelHandle);
-
 	ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 	if (SettingsModule)
 	{
 		SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAIEditorSettings");
+	}
+
+	if (FSlateApplication::IsInitialized())
+	{
+		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner("Inworld Studio");
+	}
+}
+
+TSharedRef<SDockTab> FInworldAIEditorModule::CreateInworldStudioTab(const FSpawnTabArgs& Args)
+{
+	TSharedRef<SDockTab> SpawnedTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
+
+	InworldStudioTab = SpawnedTab;
+	if (TSharedPtr<SDockTab> InworldStudioTabPinned = InworldStudioTab.Pin())
+	{
+		InworldStudioTabPinned->SetContent(CreateInworldStudioWidget());
+	}
+
+	FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
+	LevelEditor.OnMapChanged().AddRaw(this, &FInworldAIEditorModule::OnLevelEditorMapChanged);
+
+	return SpawnedTab;
+}
+
+TSharedRef<SWidget> FInworldAIEditorModule::CreateInworldStudioWidget()
+{
+	if (InworldStudioUMGWidget)
+	{
+		InworldStudioUMGWidget->Rename(nullptr, GetTransientPackage(), REN_DoNotDirty);
+		InworldStudioUMGWidget = nullptr;
+	}
+
+	if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
+	{
+		const UInworldAIEditorSettings* InworldAIEditorSettings = GetDefault<UInworldAIEditorSettings>();
+		TSoftObjectPtr<UWidgetBlueprint> InworldStudioWidget(InworldAIEditorSettings->InworldStudioWidget);
+		InworldStudioWidget.LoadSynchronous();
+		InworldStudioUMGWidget = CreateWidget<UUserWidget>(EditorWorld, Cast<UClass>(InworldStudioWidget.Get()->GeneratedClass));
+
+		if (InworldStudioUMGWidget)
+		{
+			InworldStudioUMGWidget->SetFlags(RF_Transient);
+
+			TArray<UWidget*> AllWidgets;
+			InworldStudioUMGWidget->WidgetTree->GetAllWidgets(AllWidgets);
+			for (UWidget* Widget : AllWidgets)
+			{
+				if (Widget->IsA(UEditorUtilityWidget::StaticClass()))
+				{
+					Widget->SetFlags(RF_Transient);
+					if (UPanelSlot* Slot = Widget->Slot)
+					{
+						Slot->SetFlags(RF_Transient);
+					}
+				}
+			}
+		}
+	}
+
+	if (InworldStudioUMGWidget)
+	{
+		return InworldStudioUMGWidget->TakeWidget();
+	}
+
+	return SNullWidget::NullWidget;
+}
+
+void FInworldAIEditorModule::OnLevelEditorMapChanged(UWorld* World, EMapChangeType MapChangeType)
+{
+	if (MapChangeType == EMapChangeType::TearDownWorld)
+	{
+		if (InworldStudioUMGWidget && World == InworldStudioUMGWidget->GetWorld())
+		{
+			if (InworldStudioTab.IsValid())
+			{
+				InworldStudioTab.Pin()->SetContent(SNullWidget::NullWidget);
+			}
+
+			InworldStudioUMGWidget->Rename(nullptr, GetTransientPackage());
+			InworldStudioUMGWidget = nullptr;
+		}
+	}
+	else if (MapChangeType != EMapChangeType::SaveMap)
+	{
+		if (TSharedPtr<SDockTab> InworldStudioTabPinned = InworldStudioTab.Pin())
+		{
+			InworldStudioTabPinned->SetContent(CreateInworldStudioWidget());
+		}
 	}
 }
 
@@ -147,26 +239,6 @@ bool FInworldAIEditorModule::CanSetupAssetAsInworldPlayer(const FAssetData& Asse
 		return World->GetSubsystem<UInworldEditorApiSubsystem>()->CanSetupAssetAsInworldPlayer(AssetData);
 	}
 	return false;
-}
-
-void FInworldAIEditorModule::OpenInworldStudioWidget(TSharedPtr<SWindow>, bool)
-{
-	FSoftObjectPath StudioWidgetPath(TEXT("/InworldAI/StudioWidget/InworldStudioWidget.InworldStudioWidget"));
-	TSoftObjectPtr<UObject> Asset(StudioWidgetPath);
-
-	if (UWidgetBlueprint* Blueprint = Cast<UWidgetBlueprint>(Asset.LoadSynchronous()))
-	{
-		if (Blueprint->GeneratedClass->IsChildOf(UEditorUtilityWidget::StaticClass()))
-		{
-			UEditorUtilityWidgetBlueprint* EditorWidget = Cast<UEditorUtilityWidgetBlueprint>(Blueprint);
-			if (EditorWidget)
-			{
-				UEditorUtilitySubsystem* EditorUtilitySubsystem = GEditor->GetEditorSubsystem<UEditorUtilitySubsystem>();
-				FName ID;
-				EditorUtilitySubsystem->RegisterTabAndGetID(EditorWidget, ID);
-			}
-		}
-	}
 }
 
 void FInworldAIEditorModule::BindMenuAssetAction(const FName& Name, const FName& Section, FText Label, FText Tooltip, FAssetAction Action, FAssetActionPermission ActionPermission)
