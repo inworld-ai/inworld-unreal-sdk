@@ -1,5 +1,5 @@
 
-name: Build NDK (Android )
+name: Build NDK (Android)
 
 on:
   workflow_call:
