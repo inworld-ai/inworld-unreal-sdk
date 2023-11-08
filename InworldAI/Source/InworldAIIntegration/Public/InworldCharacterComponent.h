@@ -17,7 +17,6 @@
 #include "InworldEnums.h"
 #include "InworldPackets.h"
 #include "InworldSockets.h"
-#include "InworldGameplayDebuggerCategory.h"
 
 #include "Containers/Queue.h"
 
@@ -249,5 +248,7 @@ private:
 	
 	FString GivenName;
 
+#if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER == 1
 	friend class FInworldGameplayDebuggerCategory;
+#endif
 };

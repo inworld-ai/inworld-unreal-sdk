@@ -53,11 +53,7 @@ public class InworldAIIntegration : ModuleRules
             //PrivateDefinitions.Add("INWORLD_PIXEL_STREAMING=1");
         }
 
-        if (Target.bBuildDeveloperTools || (Target.Configuration != UnrealTargetConfiguration.Shipping && Target.Configuration != UnrealTargetConfiguration.Test))
-        {
-            PublicDependencyModuleNames.Add("GameplayDebugger");
-            PrivateDefinitions.Add("INWORLD_DEBUGGER_SLOT=5");
-        }
+        SetupGameplayDebuggerSupport(Target);
 
     }
 }

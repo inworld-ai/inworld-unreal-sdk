@@ -11,7 +11,6 @@
 #include "AudioCaptureCore.h"
 #include "AudioDevice.h"
 #include "Containers/ContainerAllocationPolicies.h"
-#include "InworldGameplayDebuggerCategory.h"
 
 #include "InworldPlayerAudioCaptureComponent.generated.h"
 
@@ -143,5 +142,7 @@ private:
 
     } PlayerAudioTarget;
 
+#if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER == 1
     friend class FInworldGameplayDebuggerCategory;
+#endif
 };

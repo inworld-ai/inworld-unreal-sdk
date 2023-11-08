@@ -9,7 +9,6 @@
 
 #include "CoreMinimal.h"
 #include "InworldCharacterComponent.h"
-#include "InworldGameplayDebuggerCategory.h"
 
 #include "InworldPlayerComponent.generated.h"
 
@@ -81,5 +80,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_TargetCharacterAgentId)
 	FString TargetCharacterAgentId;
 
-	friend class FInworldGameplayDebuggerCategory;
+#if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER == 1
+    friend class FInworldGameplayDebuggerCategory;
+#endif
 };

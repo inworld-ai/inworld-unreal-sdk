@@ -17,7 +17,6 @@
 #include "InworldPackets.h"
 #include "InworldComponentInterface.h"
 
-#include "InworldGameplayDebuggerCategory.h"
 #include "InworldApi.generated.h"
 
 namespace Inworld
@@ -239,5 +238,7 @@ private:
 
 	bool bCharactersInitialized = false;
 
+#if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER == 1
 	friend class FInworldGameplayDebuggerCategory;
+#endif
 };
