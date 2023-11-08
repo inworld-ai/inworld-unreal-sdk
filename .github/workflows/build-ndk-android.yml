@@ -1,12 +1,12 @@
 
-name: Build NDK (Mac)
+name: Build NDK (Android)
 
 on:
   workflow_call:
 
 jobs:
-  build-ndk-mac:
-    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
+  build-ndk-android:
+    runs-on: macos-13
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
@@ -17,19 +17,19 @@ jobs:
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/cache/restore@v3
-      id: ndk-cache-mac
+      id: ndk-cache-android
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
-    - name: Build NDK (Mac)
+        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+    - name: Build NDK (android)
       shell: bash
-      if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
+      if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: |
         sudo xcode-select -s /Applications/Xcode_13_0.app/Contents/Developer
-        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=Mac --clean --build
+        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=Android --clean --build
         sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
     - uses: actions/cache/save@v3
-      if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
+      if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
