@@ -14,7 +14,7 @@ void UInworldCharacterAudioComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CharacterComponent = GetOwner()->GetComponentByClass<UInworldCharacterComponent>();
+	CharacterComponent = Cast<UInworldCharacterComponent>(GetOwner()->GetComponentByClass(UInworldCharacterComponent::StaticClass()));
 	if (CharacterComponent.IsValid())
 	{
 		AudioPlaybackPercentHandle = OnAudioPlaybackPercentNative.AddUObject(this, &UInworldCharacterAudioComponent::OnAudioPlaybackPercent);
