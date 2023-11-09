@@ -80,7 +80,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_TargetCharacterAgentId)
 	FString TargetCharacterAgentId;
 
-#if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER == 1
+#if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
     friend class FInworldGameplayDebuggerCategory;
 #endif
 };

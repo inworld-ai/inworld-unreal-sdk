@@ -5,7 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
-#if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER == 1
+#if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
 
 #include "InworldGameplayDebuggerCategory.h"
 #include "InworldApi.h"
@@ -238,4 +238,4 @@ void FInworldGameplayDebuggerCategory::FPlayerRepData::Serialize(FArchive& Ar)
 	Ar << bServerCapturingVoice;
 }
 
-#endif // defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER == 1
+#endif // defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER

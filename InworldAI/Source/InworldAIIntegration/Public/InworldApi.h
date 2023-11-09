@@ -238,7 +238,7 @@ private:
 
 	bool bCharactersInitialized = false;
 
-#if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER == 1
+#if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
 	friend class FInworldGameplayDebuggerCategory;
 #endif
 };
