@@ -53,21 +53,6 @@ jobs:
           Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
           Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
           Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
-    - name: BuildEditor-Android-50
-      shell: pwsh
-      run: |
-          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
-          [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildEditor,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Android,-notools,-configuration=Development+Shipping," > BuildEditorLog.txt" -Wait -NoNewWindow -PassThru
-          cat BuildEditorLog.txt
-          if (Select-String -Path BuildEditorLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
-          {
-            exit 0
-          }
-          else
-          {
-            exit 1
-          }
     - name: BuildGame-Android-50
       shell: pwsh
       run: |
