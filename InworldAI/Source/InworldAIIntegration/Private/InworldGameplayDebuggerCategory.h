@@ -7,7 +7,7 @@
 
 #pragma once
 
-#ifdef WITH_GAMEPLAY_DEBUGGER
+#if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER == 1
 
 #include "GameplayDebuggerCategory.h"
 
@@ -66,4 +66,4 @@ protected:
 	FRepData DataPack;
 };
 
-#endif // WITH_GAMEPLAY_DEBUGGER
+#endif // defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER == 1
