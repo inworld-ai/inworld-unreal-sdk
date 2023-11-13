@@ -45,7 +45,7 @@ void ConvertAudioToInworldFormat(const float* AudioData, int32 NumFrames, int32 
         int32 DataOffset = 0;
         for (int32 CurrentFrame = 0; CurrentFrame < MutableAudioData.Num(); CurrentFrame++)
         {
-            MutableAudioData[CurrentFrame] = Algo::Accumulate(TArray<float>{ { AudioData + DataOffset }, NumChannels }, 0.f) / NumChannels;
+            MutableAudioData[CurrentFrame] = Algo::Accumulate(TArray<float>{ AudioData + DataOffset , NumChannels }, 0.f) / NumChannels;
 
             DataOffset += NumChannels;
         }
