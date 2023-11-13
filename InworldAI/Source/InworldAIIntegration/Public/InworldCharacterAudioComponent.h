@@ -55,6 +55,7 @@ protected:
 	FDelegateHandle AudioFinishedHandle;
 
 	float CurrentAudioPlaybackPercent = 0.f;
+	float SoundDuration = 0.f;
 
 	TArray<FCharacterUtteranceVisemeInfo> VisemeInfoPlayback;
 	FCharacterUtteranceVisemeInfo CurrentVisemeInfo;

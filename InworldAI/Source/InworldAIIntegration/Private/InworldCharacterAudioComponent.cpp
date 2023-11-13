@@ -30,9 +30,13 @@ void UInworldCharacterAudioComponent::BeginPlay()
 void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessageUtterance& Message)
 {
 	SetSound(nullptr);
+	CurrentAudioPlaybackPercent = 0.f;
+	SoundDuration = 0.f;
 	if (Message.SoundData.Num() > 0 && Message.bAudioFinal)
 	{
-		SetSound(UInworldBlueprintFunctionLibrary::DataArrayToSoundWave(Message.SoundData));
+		USoundWave* UtteranceSoundWave = UInworldBlueprintFunctionLibrary::DataArrayToSoundWave(Message.SoundData);
+		SoundDuration = UtteranceSoundWave->GetDuration();
+		SetSound(UtteranceSoundWave);
 
 		VisemeInfoPlayback.Empty();
 		VisemeInfoPlayback.Reserve(Message.VisemeInfos.Num());
@@ -93,7 +97,7 @@ void UInworldCharacterAudioComponent::OnAudioPlaybackPercent(const UAudioCompone
 
 	VisemeBlends = FInworldCharacterVisemeBlends();
 
-	const float CurrentAudioPlaybackTime = InSoundWave->GetDuration() * Percent;
+	const float CurrentAudioPlaybackTime = SoundDuration * Percent;
 
 	{
 		const int32 INVALID_INDEX = -1;
