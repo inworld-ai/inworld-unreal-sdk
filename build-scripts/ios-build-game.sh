@@ -1,2 +1,2 @@
-sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" BuildGame -project="$PWD/TestPrj-5.2/TestPrj-5.2/TestPrj-5.2.uproject" -platform=IOS  -notools -configuration=Development+Shipping
+sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" BuildGame -project="$PWD/TestPrj-5.2/TestPrj-5.2/TestInworldFPS.uproject" -platform=IOS  -notools -configuration=Development+Shipping
 echo build-finished

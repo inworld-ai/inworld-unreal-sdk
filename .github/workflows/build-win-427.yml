@@ -58,7 +58,7 @@ jobs:
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_4.27"
           [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildEditor,-Project="$ProjectPath\TestPrj-5.2\TestPrj-5.2\TestPrj-5.2.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildEditorLog.txt" -Wait -NoNewWindow -PassThru 
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildEditor,-Project="$ProjectPath\TestPrj-5.2\TestPrj-5.2\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildEditorLog.txt" -Wait -NoNewWindow -PassThru 
           cat BuildEditorLog.txt
           if (Select-String -Path BuildEditorLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {
@@ -73,7 +73,7 @@ jobs:
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_4.27"
           [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestPrj-5.2\TestPrj-5.2\TestPrj-5.2.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru 
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestPrj-5.2\TestPrj-5.2\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru 
           cat BuildGameLog.txt
           if (Select-String -Path BuildGameLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {
