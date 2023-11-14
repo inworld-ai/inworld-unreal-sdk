@@ -71,23 +71,23 @@ CopyFolder("/InworldMetahuman/Resources")
 CopyFolder("/InworldMetahuman/Source")
 CopyFile("/InworldMetahuman/InworldMetahuman.uplugin")
 
-# InworldReadyPlayerMe
-CreateDir("/InworldReadyPlayerMe")
+# InworldRPM
+CreateDir("/InworldRPM")
 
-CreateDir("/InworldReadyPlayerMe/gltfRuntime")
-CopyFolder("/InworldReadyPlayerMe/gltfRuntime/Config")
-CopyFolder("/InworldReadyPlayerMe/gltfRuntime/Content")
-CopyFolder("/InworldReadyPlayerMe/gltfRuntime/Resources")
-CopyFolder("/InworldReadyPlayerMe/gltfRuntime/Source")
-CopyFile("/InworldReadyPlayerMe/gltfRuntime/gltfRuntime.uplugin")
-CopyFile("/InworldReadyPlayerMe/gltfRuntime/README.md")
-CopyFile("/InworldReadyPlayerMe/gltfRuntime/LICENSE")
+CreateDir("/InworldRPM/gltfRuntime")
+CopyFolder("/InworldRPM/gltfRuntime/Config")
+CopyFolder("/InworldRPM/gltfRuntime/Content")
+CopyFolder("/InworldRPM/gltfRuntime/Resources")
+CopyFolder("/InworldRPM/gltfRuntime/Source")
+CopyFile("/InworldRPM/gltfRuntime/gltfRuntime.uplugin")
+CopyFile("/InworldRPM/gltfRuntime/README.md")
+CopyFile("/InworldRPM/gltfRuntime/LICENSE")
 
-CreateDir("/InworldReadyPlayerMe/InworldRPM")
-CopyFolder("/InworldReadyPlayerMe/InworldRPM/Content")
-CopyFolder("/InworldReadyPlayerMe/InworldRPM/Resources")
-CopyFolder("/InworldReadyPlayerMe/InworldRPM/Source")
-CopyFile("/InworldReadyPlayerMe/InworldRPM/InworldRPM.uplugin")
+CreateDir("/InworldRPM/InworldRPM")
+CopyFolder("/InworldRPM/InworldRPM/Content")
+CopyFolder("/InworldRPM/InworldRPM/Resources")
+CopyFolder("/InworldRPM/InworldRPM/Source")
+CopyFile("/InworldRPM/InworldRPM/InworldRPM.uplugin")
 
 # zip
 print("zip...")

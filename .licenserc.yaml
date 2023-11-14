@@ -107,7 +107,7 @@ header:
     - '**/proto/**'
     - '**/include/**'
     - 'InworldMetahuman/**'
-    - 'InworldReadyPlayerMe/**'
+    - 'InworldRPM/**'
     
   comment: on-failure
 
