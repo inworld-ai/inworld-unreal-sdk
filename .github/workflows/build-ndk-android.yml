@@ -20,7 +20,7 @@ jobs:
       id: ndk-cache-android
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
     - name: Build NDK (android)
       shell: bash
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
@@ -31,4 +31,4 @@ jobs:
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
