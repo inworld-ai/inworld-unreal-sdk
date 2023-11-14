@@ -29,9 +29,9 @@ The Inworld.AI Unreal Engine SDK depends on the Inworld NDK.
 
 #### Build the NDK
 To build the NDK, utilize the script at InworldAI/Source/ThirdParty/Inworld/dev-tools. The arguments to the python script are as follows:
-- -c Clean the Build and Copy from NDK folders
-- -b -p <platform> Build the NDK for <platform> [Win64, iOS, Mac, Android]
-- -c Copy the NDK to the Unreal Module folder
+	-c Clean the Build and Copy from NDK folders
+	-b -p 'platform' Build the NDK for 'platform' [Win64, iOS, Mac, Android]
+	-c Copy the NDK to the Unreal Module folder
 
 Example: ```python ndk-util.py -c -b -p Win64 -x```
 
