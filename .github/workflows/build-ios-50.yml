@@ -43,22 +43,22 @@ jobs:
     - name: Copy NDK
       run: |
         python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --copy
-    - run: mkdir -p TestInworldFPS 
+    - run: mkdir -p TestPrj-5.2 
     - uses: actions/checkout@v2
       with:
-        ref: 'TestInworldFPS'
-        path: 'TestInworldFPS'
+        ref: 'TestPrj-5.2'
+        path: 'TestPrj-5.2'
     - name: Copy Plugins & Remove Assets
       shell: bash
       run: |
           rm -rf "InworldAI/Content"
-          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
-          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
-          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldRPM"
-          mkdir "TestInworldFPS/TestInworldFPS/Plugins"
-          cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins"
-          cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
-          cp -r "InworldRPM" "TestInworldFPS/TestInworldFPS/Plugins"
+          rm -rf "TestPrj-5.2/TestPrj-5.2/Plugins/InworldAI"
+          rm -rf "TestPrj-5.2/TestPrj-5.2/Plugins/InworldMetahuman"
+          rm -rf "TestPrj-5.2/TestPrj-5.2/Plugins/InworldRPM"
+          mkdir "TestPrj-5.2/TestPrj-5.2/Plugins"
+          cp -r "InworldAI" "TestPrj-5.2/TestPrj-5.2/Plugins"
+          cp -r "InworldMetahuman" "TestPrj-5.2/TestPrj-5.2/Plugins"
+          cp -r "InworldRPM" "TestPrj-5.2/TestPrj-5.2/Plugins"
     - name: BuildGame-ios-50
       shell: bash
       run: |

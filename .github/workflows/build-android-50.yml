@@ -38,27 +38,27 @@ jobs:
           {
             exit 1
           }
-    - run: mkdir -p TestInworldFPS 
+    - run: mkdir -p TestPrj-5.2 
     - uses: actions/checkout@v2
       with:
-        ref: 'TestInworldFPS'
-        path: 'TestInworldFPS'
+        ref: 'TestPrj-5.2'
+        path: 'TestPrj-5.2'
     - name: Copy Plugins & Remove Assets
       shell: pwsh
       run: |
           Remove-Item "InworldAI\Content\*" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldRPM" -Recurse -ErrorAction SilentlyContinue
-          Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
-          Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
-          Copy-Item -Path "InworldRPM"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldRPM" -Recurse
+          Remove-Item "TestPrj-5.2\TestPrj-5.2\Plugins\InworldAI" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TestPrj-5.2\TestPrj-5.2\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TestPrj-5.2\TestPrj-5.2\Plugins\InworldRPM" -Recurse -ErrorAction SilentlyContinue
+          Copy-Item -Path "InworldAI"  -Destination "TestPrj-5.2\TestPrj-5.2\Plugins\InworldAI" -Recurse
+          Copy-Item -Path "InworldMetahuman"  -Destination "TestPrj-5.2\TestPrj-5.2\Plugins\InworldMetahuman" -Recurse
+          Copy-Item -Path "InworldRPM"  -Destination "TestPrj-5.2\TestPrj-5.2\Plugins\InworldRPM" -Recurse
     - name: BuildGame-Android-50
       shell: pwsh
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_5.2"
           [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Android,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestPrj-5.2\TestPrj-5.2\TestPrj-5.2.uproject",-platform=Android,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru
           cat BuildGameLog.txt
           if (Select-String -Path BuildGameLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {
@@ -73,7 +73,7 @@ jobs:
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_5.2"
           [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildPlugin,-plugin="$ProjectPath\TestInworldFPS\TestInworldFPS\Plugins\InworldAI\InworldAI.uplugin",-TargetPlatforms=Android,-package="$ProjectPath\PluginBuild"," > BuildPluginLog.txt" -Wait -NoNewWindow -PassThru
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildPlugin,-plugin="$ProjectPath\TestPrj-5.2\TestPrj-5.2\Plugins\InworldAI\InworldAI.uplugin",-TargetPlatforms=Android,-package="$ProjectPath\PluginBuild"," > BuildPluginLog.txt" -Wait -NoNewWindow -PassThru
           cat BuildPluginLog.txt
           if (Select-String -Path BuildPluginLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {
