@@ -34,22 +34,22 @@ jobs:
     - name: Copy NDK
       run: |
         python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --copy
-    - run: mkdir -p TestPrj-5.2 
+    - run: mkdir -p TestInworldFPS
     - uses: actions/checkout@v2
       with:
-        ref: 'TestPrj-5.2'
-        path: 'TestPrj-5.2'
+        ref: 'TestInworldFPS'
+        path: 'TestInworldFPS'
     - name: Copy Plugins & Remove Assets
       shell: bash
       run: |
           rm -rf "InworldAI/Content"
-          rm -rf "TestPrj-5.2/TestInworldFPS/Plugins/InworldAI"
-          rm -rf "TestPrj-5.2/TestInworldFPS/Plugins/InworldMetahuman"
-          rm -rf "TestPrj-5.2/TestInworldFPS/Plugins/InworldRPM"
-          mkdir "TestPrj-5.2/TestInworldFPS/Plugins"
-          cp -r "InworldAI" "TestPrj-5.2/TestInworldFPS/Plugins"
-          cp -r "InworldMetahuman" "TestPrj-5.2/TestInworldFPS/Plugins"
-          cp -r "InworldRPM" "TestPrj-5.2/TestInworldFPS/Plugins"
+          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
+          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
+          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldRPM"
+          mkdir "TestInworldFPS/TestInworldFPS/Plugins"
+          cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins"
+          cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
+          cp -r "InworldRPM" "TestInworldFPS/TestInworldFPS/Plugins"
     - name: BuildEditor-Mac-50
       shell: bash
       run: |
