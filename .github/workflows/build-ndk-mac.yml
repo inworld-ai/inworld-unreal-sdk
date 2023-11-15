@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-ndk-mac:
-    runs-on: macos-13
+    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
@@ -25,7 +25,9 @@ jobs:
       shell: bash
       if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
       run: |
+        sudo xcode-select -s /Applications/Xcode_13_0.app/Contents/Developer
         python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=Mac --clean --build
+        sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
     - uses: actions/cache/save@v3
       if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
       with:
