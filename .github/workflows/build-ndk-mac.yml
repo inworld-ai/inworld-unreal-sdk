@@ -20,7 +20,7 @@ jobs:
       id: ndk-cache-mac
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
     - name: Build NDK (Mac)
       shell: bash
       if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
@@ -32,4 +32,4 @@ jobs:
       if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}

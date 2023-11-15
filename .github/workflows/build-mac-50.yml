@@ -29,7 +29,7 @@ jobs:
       id: ndk-cache
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
         fail-on-cache-miss: true
     - name: Copy NDK
       run: |
