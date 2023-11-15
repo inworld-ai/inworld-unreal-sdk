@@ -28,6 +28,11 @@ The **Inworld.AI Unreal Engine SDK** enables Developers to integrate Inworld.ai 
 The Inworld.AI Unreal Engine SDK depends on the Inworld NDK.
 
 #### Build the NDK
+
+Requirements:
+- Python 3.11+
+- CMake 3.22+
+
 To build the NDK, utilize the script at InworldAI/Source/ThirdParty/Inworld/dev-tools. The arguments to the python script are as follows:
 
 -c Clean the Build and Copy from NDK folders
