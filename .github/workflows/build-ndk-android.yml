@@ -26,7 +26,6 @@ jobs:
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: |
         python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=Android --clean --build
-        sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
     - uses: actions/cache/save@v3
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       with:
