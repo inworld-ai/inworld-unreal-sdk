@@ -32,9 +32,6 @@ jobs:
         key: macOS-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
         fail-on-cache-miss: true
         enableCrossOsArchive: true
-    - name: Check NDK Cache
-        if: ${{ failure() }}
-        run: exit 1
     - name: Copy NDK
       run: |
           $process = Start-Process -FilePath "C:\Program Files\Python310\Python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--copy
