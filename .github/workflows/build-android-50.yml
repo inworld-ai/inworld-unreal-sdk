@@ -33,7 +33,8 @@ jobs:
         fail-on-cache-miss: true
         enableCrossOsArchive: true
     - name: Check NDK Cache
-        run: exit 1
+        run: |
+          exit 1
         if: failure()
     - name: Copy NDK
       run: |
