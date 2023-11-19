@@ -16,10 +16,6 @@ jobs:
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
-        if [ -z "$INWORLD_NDK_SHA" ]; then
-          echo "Failed to find NDK SHA"
-          exit 1
-        fi
     - uses: actions/cache/restore@v3
       id: ndk-cache-android
       with:
