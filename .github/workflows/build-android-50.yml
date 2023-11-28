@@ -48,11 +48,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
       run: git submodule update --init --recursive | Write-Host
-    - name: Find NDK SHA
-      run: |
-        $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
-        echo $INWORLD_NDK_SHA
-        Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
     - uses: actions/download-artifact@v3
       with:
         name: Android-NDK-lib
