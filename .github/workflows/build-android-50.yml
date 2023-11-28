@@ -50,6 +50,11 @@ jobs:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
       run: git submodule update --init --recursive | Write-Host
+    - name: Find NDK SHA
+      run: |
+        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
+        echo $INWORLD_NDK_SHA
+        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/cache/restore@v3
       id: ndk-cache-win64
       with:
