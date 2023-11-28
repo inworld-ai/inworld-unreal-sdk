@@ -80,6 +80,10 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
         UE_LOG(LogInworldAIIntegration, Error, TEXT("Can't Start Session, either Base64Signature or both ApiKey and ApiSecret need to be not empty"));
         return;
     }
+    if (PlayerProfile.ProjectName.IsEmpty())
+    {
+        UE_LOG(LogInworldAIIntegration, Warning, TEXT("Start Session, please provide unique PlayerProfile.ProjectName for possible troubleshooting"));
+    }
 
     Client->Start(SceneName, PlayerProfile, Capabilities, Auth, SessionToken, SavedSessionState, Environment);
 }
