@@ -1,0 +1,104 @@
+
+name: Build android UE.5.0
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**/README.md'
+      - '**/gitignore'
+  workflow_dispatch:
+
+jobs:
+  build-ndk-android:
+    uses: ./.github/workflows/build-ndk-android.yml
+  
+  upload-ndk-android:
+    runs-on: macos-13
+    needs: [ build-ndk-android ]
+    steps:
+    - uses: actions/cache/restore@v3
+      id: ndk-android-cache
+      with:
+        path: Package
+        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+        fail-on-cache-miss: true
+    - name: check-cache-success
+      shell: pwsh
+      if: steps.ndk-android-cache.outputs.cache-hit != 'true'
+      run: |
+        echo "cache restore failed"
+        exit 1
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Android-NDK-lib
+        path: Package
+
+  build-android-50:
+    runs-on: [ self-hosted, Windows, X64, w10-1344 ]
+    needs: [ upload-ndk-android ]
+    steps:
+    - uses: actions/checkout@v2
+    - name: git-update-dependecies
+      run: git submodule update --init --recursive | Write-Host
+    - name: Find NDK SHA
+      run: |
+        $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
+        echo $INWORLD_NDK_SHA
+        Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
+    - uses: actions/download-artifact@v3
+      with:
+        name: Android-NDK-lib
+        path: InworldAI\inworld-ndk\build\Package
+    - name: Copy NDK
+      run: |
+          $process = Start-Process -FilePath "C:\Program Files\Python310\Python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--copy
+          if($process.ExitCode -ne 0)
+          {
+            exit 1
+          }
+    - run: mkdir -p TestInworldFPS 
+    - uses: actions/checkout@v2
+      with:
+        ref: 'TestInworldFPS'
+        path: 'TestInworldFPS'
+    - name: Copy Plugins & Remove Assets
+      shell: pwsh
+      run: |
+          Remove-Item "InworldAI\Content\*" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse -ErrorAction SilentlyContinue
+          Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
+          Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
+          Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
+    - name: BuildGame-android-50
+      shell: pwsh
+      run: |
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.2"
+          [string]$ProjectPath = "$pwd"
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Android,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru
+          cat BuildGameLog.txt
+          if (Select-String -Path BuildGameLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
+          {
+            exit 0
+          }
+          else
+          {
+            exit 1
+          }
+    - name: BuildPlugin-android-50
+      shell: pwsh
+      run: |
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.2"
+          [string]$ProjectPath = "$pwd"
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildPlugin,-plugin="$ProjectPath\TestInworldFPS\TestInworldFPS\Plugins\InworldAI\InworldAI.uplugin",-TargetPlatforms=Android,-package="$ProjectPath\PluginBuild"," > BuildPluginLog.txt" -Wait -NoNewWindow -PassThru
+          cat BuildPluginLog.txt
+          if (Select-String -Path BuildPluginLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
+          {
+            exit 0
+          }
+          else
+          {
+            exit 1
+          }
