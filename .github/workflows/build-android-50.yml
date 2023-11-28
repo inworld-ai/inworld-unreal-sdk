@@ -19,9 +19,9 @@ jobs:
     steps:
     - name: Find NDK SHA
       run: |
-        $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
+        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
         echo $INWORLD_NDK_SHA
-        Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
+        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/cache/restore@v3
       id: ndk-android-cache
       with:
