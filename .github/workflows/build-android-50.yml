@@ -26,21 +26,20 @@ jobs:
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/cache/restore@v3
-      id: ndk-android-cache
+      id: ndk-cache-android
       with:
-        path: Package
+        path: InworldAI/inworld-ndk/build/Package
         key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
-        fail-on-cache-miss: true
     - name: check-cache-success
       shell: pwsh
-      if: steps.ndk-android-cache.outputs.cache-hit != 'true'
+      if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: |
         echo "cache restore failed"
         exit 1
     - uses: actions/upload-artifact@v3
       with:
         name: Android-NDK-lib
-        path: Package
+        path: InworldAI/inworld-ndk/build/Package
 
   build-android-50:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
