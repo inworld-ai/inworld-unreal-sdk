@@ -18,8 +18,8 @@ jobs:
     needs: [ build-ndk-android ]
     steps:
     - uses: actions/checkout@v2
-    - name: git-init-submodule
-      run: git submodule init
+    - name: git-update-dependecies
+      run: git submodule update --init --recursive
     - name: Find NDK SHA
       run: |
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
