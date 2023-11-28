@@ -17,6 +17,11 @@ jobs:
     runs-on: macos-13
     needs: [ build-ndk-android ]
     steps:
+    - name: Find NDK SHA
+      run: |
+        $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
+        echo $INWORLD_NDK_SHA
+        Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
     - uses: actions/cache/restore@v3
       id: ndk-android-cache
       with:
