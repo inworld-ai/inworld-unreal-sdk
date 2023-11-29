@@ -21,6 +21,7 @@ jobs:
       with:
         path: InworldAI/inworld-ndk/build/Package
         key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        enableCrossOsArchive: true
     - name: git-update-dependecies
       if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
       run: git submodule update --init --recursive
@@ -36,3 +37,4 @@ jobs:
       with:
         path: InworldAI/inworld-ndk/build/Package
         key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        enableCrossOsArchive: true
