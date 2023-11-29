@@ -8,7 +8,6 @@ on:
 jobs:
   build-mac-50:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
-    needs: [ build-ndk-mac ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
