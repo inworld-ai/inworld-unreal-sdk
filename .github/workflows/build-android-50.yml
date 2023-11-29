@@ -72,7 +72,8 @@ jobs:
         path: InworldAI\inworld-ndk\build\Package
     - name: Copy NDK
       run: |
-          $process = Start-Process -FilePath "C:\Program Files\Python310\Python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--copy
+          $pythonPath = (Get-Command python.exe).Source
+          $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--copy
           if($process.ExitCode -ne 0)
           {
             exit 1
