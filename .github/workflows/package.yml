@@ -10,8 +10,18 @@ on:
   workflow_dispatch:
 
 jobs:
+  build-ndk-win:
+    uses: ./.github/workflows/build-ndk-win.yml
+  build-ndk-mac:
+    uses: ./.github/workflows/build-ndk-mac.yml
+  build-ndk-ios:
+    uses: ./.github/workflows/build-ndk-ios.yml
+  build-ndk-android:
+    uses: ./.github/workflows/build-ndk-android.yml
+
   upload-ndk-win:
-    runs-on: [ self-hosted, Windows, X64, w10-1344 ]
+    runs-on: windows-2022
+    needs: [ build-ndk-win ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
@@ -39,7 +49,8 @@ jobs:
         path: InworldAI\inworld-ndk\build\Package\lib\Win64
   
   upload-ndk-mac:
-    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
+    runs-on: macos-11
+    needs: [ build-ndk-mac ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
@@ -61,7 +72,8 @@ jobs:
         path: InworldAI/inworld-ndk/build/Package/lib/Mac
   
   upload-ndk-ios:
-    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
+    runs-on: macos-11
+    needs: [ build-ndk-ios ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
@@ -81,10 +93,33 @@ jobs:
       with:
         name: iOS-NDK-lib
         path: InworldAI/inworld-ndk/build/Package/lib/iOS
+  
+  upload-ndk-android:
+    runs-on: macos-13
+    needs: [ build-ndk-android ]
+    steps:
+    - uses: actions/checkout@v2
+    - name: git-update-dependecies
+      run: git submodule update --init --recursive
+    - name: Find NDK SHA
+      run: |
+        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
+        echo $INWORLD_NDK_SHA
+        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
+    - uses: actions/cache/restore@v3
+      id: ndk-cache-android
+      with:
+        path: InworldAI/inworld-ndk/build/Package
+        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+        fail-on-cache-miss: true
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Android-NDK-lib
+        path: InworldAI/inworld-ndk/build/Package/lib/Android
 
   package:
     runs-on: ubuntu-latest
-    needs: [ upload-ndk-win, upload-ndk-mac, upload-ndk-ios ]
+    needs: [ upload-ndk-win, upload-ndk-mac, upload-ndk-ios, upload-ndk-android ]
     steps:
       - uses: actions/checkout@v2
       - name: git-update-dependecies
@@ -105,6 +140,10 @@ jobs:
         with:
           name: iOS-NDK-lib
           path: InworldAI/Source/ThirdParty/Inworld/lib/iOS
+      - uses: actions/download-artifact@v3
+        with:
+          name: Android-NDK-lib
+          path: InworldAI/Source/ThirdParty/Inworld/lib/Android
       - uses: actions/upload-artifact@v3
         with:
           name: inworld-unreal-sdk
