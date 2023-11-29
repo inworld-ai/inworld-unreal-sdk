@@ -67,5 +67,5 @@ jobs:
           cd InworldAI/inworld-ndk
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git config user.name "${GITHUB_ACTOR}"
-          git tag -a UE-${{ env.VERSION }}
+          git tag -a UE-${{ env.VERSION }} -m "UE release version ${{ env.VERSION }}"
           git push origin UE-${{ env.VERSION }}
