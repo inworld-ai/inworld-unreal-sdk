@@ -21,7 +21,7 @@ jobs:
 
     - name: extract-version
       run: |
-         run: echo "VERSION=$(jq -r '.VersionName' InworldAI/InworldAI.uplugin)" >> $GITHUB_ENV
+          echo "VERSION=$(jq -r '.VersionName' InworldAI/InworldAI.uplugin)" >> $GITHUB_ENV
     - name: check-version
       run: |
         if [[ "${{ github.ref }}" == "refs/tags/v${{ env.VERSION }}" ]]; then
@@ -44,7 +44,7 @@ jobs:
 
       - name: extract-version
         run: |
-          run: echo "VERSION=$(jq -r '.VersionName' InworldAI/InworldAI.uplugin)" >> $GITHUB_ENV
+          echo "VERSION=$(jq -r '.VersionName' InworldAI/InworldAI.uplugin)" >> $GITHUB_ENV
 
       - name: download-package
         uses: actions/download-artifact@v2
