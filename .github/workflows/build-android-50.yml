@@ -6,11 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-ndk-win:
-    uses: ./.github/workflows/build-ndk-win.yml
-  build-ndk-android:
-    uses: ./.github/workflows/build-ndk-android.yml
-  
   upload-ndk-android:
     runs-on: macos-13
     needs: [ build-ndk-android ]
@@ -29,7 +24,6 @@ jobs:
         path: InworldAI/inworld-ndk/build/Package
         key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
     - name: check-cache-success
-      shell: pwsh
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: |
         echo "cache restore failed"

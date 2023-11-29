@@ -25,9 +25,9 @@ jobs:
     - name: check-version
       run: |
         if [[ "${{ github.ref }}" == "refs/tags/v${{ env.VERSION }}" ]]; then
-          echo "Release version matches CMakeLists.txt project version ${{ env.VERSION }}"
+          echo "Release version matches InworldAI.uplugin project version ${{ env.VERSION }}"
         else
-          echo "Release version ${{ github.ref }} doesn't match CMakeLists.txt project version ${{ env.VERSION }}"
+          echo "Release version ${{ github.ref }} doesn't match InworldAI.uplugin project version ${{ env.VERSION }}"
           return 1
         fi
 

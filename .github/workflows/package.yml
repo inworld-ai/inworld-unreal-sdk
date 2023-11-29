@@ -27,13 +27,13 @@ jobs:
     needs: [ build-ndk-win ]
     uses: ./.github/workflows/build-win-427.yml
   build-android-50:
-    needs: [ build-ndk-android ]
+    needs: [ build-ndk-android, build-ndk-win ]
     uses: ./.github/workflows/build-android-50.yml
   build-mac-50:
     needs: [ build-ndk-mac ]
     uses: ./.github/workflows/build-mac-50.yml
   build-ios-50:
-    needs: [ build-ndk-ios ]
+    needs: [ build-ndk-ios, build-ndk-mac ]
     uses: ./.github/workflows/build-ios-50.yml
 
   upload-ndk-win:
