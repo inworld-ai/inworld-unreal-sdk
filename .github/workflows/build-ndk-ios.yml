@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
-      run: git submodule update --init --recursive
+      run: git submodule update --init
     - name: Find NDK SHA
       run: |
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
@@ -21,6 +21,9 @@ jobs:
       with:
         path: InworldAI/inworld-ndk/build/Package
         key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+    - name: git-update-dependecies
+      if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
+      run: git submodule update --init --recursive
     - name: Build NDK (iOS)
       shell: bash
       if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
