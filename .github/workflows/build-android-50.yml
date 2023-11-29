@@ -34,7 +34,6 @@ jobs:
 
   build-android-50:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
-    needs: [ upload-ndk-android, build-ndk-win ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
