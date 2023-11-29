@@ -60,10 +60,3 @@ jobs:
           files: inworld-unreal-sdk-${{ env.VERSION }}.zip
           fail_on_unmatched_files: true
           append_body: true
-      
-      - name: add-tag-to-ndk
-        run: |
-          git submodule update --init --recursive
-          cd InworldAI/inworld-ndk
-          git tag -a UE-${{ env.VERSION }}
-          git push origin UE-${{ env.VERSION }}
