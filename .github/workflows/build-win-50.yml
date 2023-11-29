@@ -2,11 +2,7 @@
 name: Build Win UE.5.0
 
 on:
-  pull_request:
-    branches: [ main ]
-    paths-ignore:
-      - '**/README.md'
-      - '**/gitignore'
+  workflow_call:
   workflow_dispatch:
 
 jobs:

@@ -1,0 +1,69 @@
+# /*************************************************************************************************
+# * Copyright 2022 Theai, Inc. (DBA Inworld)
+# *
+# * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
+# * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
+# *************************************************************************************************/
+
+name: create-release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+
+    - name: extract-version
+      run: |
+         run: echo "VERSION=$(jq -r '.VersionName' InworldAI/InworldAI.uplugin)" >> $GITHUB_ENV
+    - name: check-version
+      run: |
+        if [[ "${{ github.ref }}" == "refs/tags/v${{ env.VERSION }}" ]]; then
+          echo "Release version matches CMakeLists.txt project version ${{ env.VERSION }}"
+        else
+          echo "Release version ${{ github.ref }} doesn't match CMakeLists.txt project version ${{ env.VERSION }}"
+          return 1
+        fi
+
+  package:
+    needs: [ check-version ]
+    uses: ./.github/workflows/package.yml
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [ package ]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: extract-version
+        run: |
+          run: echo "VERSION=$(jq -r '.VersionName' InworldAI/InworldAI.uplugin)" >> $GITHUB_ENV
+
+      - name: download-package
+        uses: actions/download-artifact@v2
+        with:
+          name: inworld-unreal-sdk
+          path: inworld-unreal-sdk
+      - name: zip-release
+        run: zip -r inworld-unreal-sdk-${{ env.VERSION }}.zip inworld-unreal-sdk/
+
+      - name: create-release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: inworld-unreal-sdk-${{ env.VERSION }}.zip
+          fail_on_unmatched_files: true
+          append_body: true
+      
+      - name: add-tag-to-ndk
+        run: |
+          git submodule update --init --recursive
+          cd InworldAI/inworld-ndk
+          git tag -a UE-${{ env.VERSION }}
+          git push origin UE-${{ env.VERSION }}
