@@ -8,6 +8,9 @@ jobs:
   build-ndk-android:
     runs-on: macos-13
     steps:
+    - uses: actions/checkout@v2
+    - name: git-update-dependecies
+      run: git submodule update --init --recursive
     - name: Find NDK SHA
       run: |
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
@@ -18,10 +21,6 @@ jobs:
       with:
         path: InworldAI/inworld-ndk/build/Package
         key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
-    - uses: actions/checkout@v2
-      if: steps.ndk-cache-android.outputs.cache-hit != 'true'
-      with:
-        submodules: recursive
     - name: Build NDK (android)
       shell: bash
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'

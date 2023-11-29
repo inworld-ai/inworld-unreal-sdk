@@ -8,6 +8,9 @@ jobs:
   build-ndk-win:
     runs-on: windows-2022
     steps:
+    - uses: actions/checkout@v2
+    - name: git-update-dependecies
+      run: git submodule update --init --recursive
     - name: Find NDK SHA
       run: |
         $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
@@ -18,10 +21,6 @@ jobs:
       with:
         path: InworldAI\inworld-ndk\build\Package
         key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
-    - uses: actions/checkout@v2
-      if: steps.ndk-cache-win64.outputs.cache-hit != 'true'
-      with:
-        submodules: recursive
     - name: Build NDK (Win64)
       shell: pwsh
       if: steps.ndk-cache-win64.outputs.cache-hit != 'true'
