@@ -30,14 +30,14 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: Android-NDK-lib
-        path: InworldAI/inworld-ndk/build/Package
+        path: InworldAI/inworld-ndk/build/Package/lib/Android
 
   build-android-50:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
-      run: git submodule update --init --recursive | Write-Host
+      run: git submodule update --init --recursive
     - name: Find NDK SHA
       run: |
         $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
@@ -58,7 +58,7 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: Android-NDK-lib
-        path: InworldAI\inworld-ndk\build\Package
+        path: InworldAI\inworld-ndk\build\Package\lib\Android
     - name: Copy NDK
       run: |
           $pythonPath = (Get-Command python.exe).Source

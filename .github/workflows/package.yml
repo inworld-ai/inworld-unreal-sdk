@@ -111,32 +111,12 @@ jobs:
         name: iOS-NDK-lib
         path: InworldAI/inworld-ndk/build/Package/lib/iOS
   
-  upload-ndk-android:
-    runs-on: macos-13
-    needs: [ build-ndk-android ]
-    steps:
-    - uses: actions/checkout@v2
-    - name: git-update-dependecies
-      run: git submodule update --init --recursive
-    - name: Find NDK SHA
-      run: |
-        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
-        echo $INWORLD_NDK_SHA
-        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
-    - uses: actions/cache/restore@v3
-      id: ndk-cache-android
-      with:
-        path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
-        fail-on-cache-miss: true
-    - uses: actions/upload-artifact@v3
-      with:
-        name: Android-NDK-lib
-        path: InworldAI/inworld-ndk/build/Package/lib/Android
+# upload-ndk-android: 
+#   already uploaded in ./.github/workflows/build-android-50.yml
 
   package:
     runs-on: ubuntu-latest
-    needs: [ build-win-50, build-win-427, build-android-50, build-mac-50, build-ios-50, upload-ndk-win, upload-ndk-mac, upload-ndk-ios, upload-ndk-android ]
+    needs: [ build-win-50, build-win-427, build-android-50, build-mac-50, build-ios-50, upload-ndk-win, upload-ndk-mac, upload-ndk-ios ]
     steps:
       - uses: actions/checkout@v2
       - name: git-update-dependecies
