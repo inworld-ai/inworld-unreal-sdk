@@ -37,7 +37,7 @@ jobs:
     uses: ./.github/workflows/build-ios-50.yml
 
   upload-ndk-win:
-    runs-on: windows-2022
+    runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     needs: [ build-ndk-win ]
     steps:
     - uses: actions/checkout@v2
@@ -66,7 +66,7 @@ jobs:
         path: InworldAI\inworld-ndk\build\Package\lib\Win64
   
   upload-ndk-mac:
-    runs-on: macos-11
+    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     needs: [ build-ndk-mac ]
     steps:
     - uses: actions/checkout@v2
@@ -89,7 +89,7 @@ jobs:
         path: InworldAI/inworld-ndk/build/Package/lib/Mac
   
   upload-ndk-ios:
-    runs-on: macos-11
+    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     needs: [ build-ndk-ios ]
     steps:
     - uses: actions/checkout@v2
