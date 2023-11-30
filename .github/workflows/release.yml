@@ -28,7 +28,7 @@ jobs:
           echo "Release version matches InworldAI.uplugin project version ${{ env.VERSION }}"
         else
           echo "Release version ${{ github.ref }} doesn't match InworldAI.uplugin project version ${{ env.VERSION }}"
-          #return 1
+          return 1
         fi
 
   package:
