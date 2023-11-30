@@ -2,20 +2,12 @@
 name: Build Win UE.4.27
 
 on:
-  pull_request:
-    branches: [ main ]
-    paths-ignore:
-      - '**/README.md'
-      - '**/gitignore'
+  workflow_call:
   workflow_dispatch:
 
 jobs:
-  build-ndk-win:
-    uses: ./.github/workflows/build-ndk-win.yml
-
   build-win-427:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
-    needs: [ build-ndk-win ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
@@ -31,9 +23,16 @@ jobs:
         path: InworldAI\inworld-ndk\build\Package
         key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
         fail-on-cache-miss: true
+        enableCrossOsArchive: true
+    - name: check-cache-success
+      if: steps.ndk-cache-win64.outputs.cache-hit != 'true'
+      run: |
+        echo "cache restore failed"
+        exit 1
     - name: Copy NDK
       run: |
-          $process = Start-Process -FilePath "C:\Program Files\Python310\Python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--copy
+          $pythonPath = (Get-Command python.exe).Source
+          $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--copy
           if($process.ExitCode -ne 0)
           {
             exit 1

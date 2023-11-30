@@ -2,20 +2,12 @@
 name: Build Mac UE.5.0
 
 on:
-  pull_request:
-    branches: [ main ]
-    paths-ignore:
-      - '**/README.md'
-      - '**/gitignore'
+  workflow_call:
   workflow_dispatch:
 
 jobs:
-  build-ndk-mac:
-    uses: ./.github/workflows/build-ndk-mac.yml
-
   build-mac-50:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
-    needs: [ build-ndk-mac ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
@@ -26,11 +18,17 @@ jobs:
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/cache/restore@v3
-      id: ndk-cache
+      id: ndk-cache-mac
       with:
         path: InworldAI/inworld-ndk/build/Package
         key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
         fail-on-cache-miss: true
+        enableCrossOsArchive: true
+    - name: check-cache-success
+      if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
+      run: |
+        echo "cache restore failed"
+        exit 1
     - name: Copy NDK
       run: |
         python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --copy
