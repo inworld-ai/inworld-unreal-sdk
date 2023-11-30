@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
-      run: git submodule update --init --recursive
+      run: git submodule update --init
     - name: Find NDK SHA
       run: |
         $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
@@ -21,11 +21,16 @@ jobs:
       with:
         path: InworldAI\inworld-ndk\build\Package
         key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
+        enableCrossOsArchive: true
+    - name: git-update-dependecies
+      if: steps.ndk-cache-win64.outputs.cache-hit != 'true'
+      run: git submodule update --init --recursive
     - name: Build NDK (Win64)
       shell: pwsh
       if: steps.ndk-cache-win64.outputs.cache-hit != 'true'
       run: |
-        $process = Start-Process -FilePath "C:\Program Files\Python310\Python.exe" -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--platform=Win64,--clean,--build
+        $pythonPath = (Get-Command python.exe).Source
+        $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--platform=Win64,--clean,--build
         if($process.ExitCode -ne 0)
         {
           exit 1
@@ -35,3 +40,4 @@ jobs:
       with:
         path: InworldAI\inworld-ndk\build\Package
         key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
+        enableCrossOsArchive: true

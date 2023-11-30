@@ -26,7 +26,7 @@ public class InworldAINdk : ModuleRules
             }
             else if (Target.Platform == UnrealTargetPlatform.Android)
             {
-                return Path.Combine(ModuleDirectory, "lib/Android");
+                return Path.Combine(ModuleDirectory, "lib/Android/arm64-v8a");
             }
             else
             {
