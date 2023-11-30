@@ -8,6 +8,7 @@
 #include "InworldClient.h"
 #include "InworldAIClientModule.h"
 #include "CoreMinimal.h"
+#include "GenericPlatform/GenericPlatformMisc.h"
 
 #include "SocketSubsystem.h"
 #include "IPAddress.h"
@@ -85,9 +86,19 @@ void FInworldClient::Init()
 		ClientVer = InworldAIPlugin.Get()->GetDescriptor().VersionName;
 	}
 	FString ClientId("unreal");
+
+	Inworld::SdkInfo Sdk;
+	Sdk.Type = TCHAR_TO_UTF8(*ClientId);
+	Sdk.Version = TCHAR_TO_UTF8(*ClientVer);
+	
+	FString OSVersion, OSSubversion;
+	FPlatformMisc::GetOSVersions(OSVersion, OSSubversion);
+	FString OSFullVersion = FString::Printf(TEXT("%s %s"), *OSVersion, *OSSubversion);
+	Sdk.OS = TCHAR_TO_UTF8(*OSFullVersion);
+
 	InworldClient = MakeShared<Inworld::FClient>();
 	InworldClient->SelfWeakPtr = InworldClient;
-	InworldClient->InitClient(TCHAR_TO_UTF8(*ClientId), TCHAR_TO_UTF8(*ClientVer),
+	InworldClient->InitClient(Sdk,
 		[this](Inworld::ClientBase::ConnectionState ConnectionState)
 		{
 			OnConnectionStateChanged.ExecuteIfBound(static_cast<EInworldConnectionState>(ConnectionState));
@@ -159,11 +170,13 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 	{
 		Options.Resource = TCHAR_TO_UTF8(*FString(Split[0] + "/" + Split[1]));
 	}
+
 	Options.SceneName = TCHAR_TO_UTF8(*SceneName);
 	Options.Base64 = TCHAR_TO_UTF8(*Auth.Base64Signature);
 	Options.ApiKey = TCHAR_TO_UTF8(*Auth.ApiKey);
 	Options.ApiSecret = TCHAR_TO_UTF8(*Auth.ApiSecret);
 	Options.PlayerName = TCHAR_TO_UTF8(*PlayerProfile.Name);
+	Options.ProjectName = TCHAR_TO_UTF8(*PlayerProfile.ProjectName);
 	Options.UserId = PlayerProfile.UniqueId.IsEmpty() ? TCHAR_TO_UTF8(*GenerateUserId()) : TCHAR_TO_UTF8(*PlayerProfile.UniqueId);
 	Options.UserSettings.Profile.Fields.reserve(PlayerProfile.Fields.Num());
 	for (const auto& ProfileField : PlayerProfile.Fields)
