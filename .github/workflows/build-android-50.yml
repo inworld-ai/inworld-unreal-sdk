@@ -1,17 +1,43 @@
 
-name: Build Win UE.5.0
+name: Build android UE.5.0
 
 on:
   workflow_call:
   workflow_dispatch:
 
 jobs:
-  build-win-50:
+  upload-ndk-android:
+    runs-on: macos-13
+    steps:
+    - uses: actions/checkout@v2
+    - name: git-update-dependecies
+      run: git submodule update --init
+    - name: Find NDK SHA
+      run: |
+        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
+        echo $INWORLD_NDK_SHA
+        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
+    - uses: actions/cache/restore@v3
+      id: ndk-cache-android
+      with:
+        path: InworldAI/inworld-ndk/build/Package
+        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+    - name: check-cache-success
+      if: steps.ndk-cache-android.outputs.cache-hit != 'true'
+      run: |
+        echo "cache restore failed"
+        exit 1
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Android-NDK-lib
+        path: InworldAI/inworld-ndk/build/Package/lib/Android
+
+  build-android-50:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
-      run: git submodule update --init --recursive | Write-Host
+      run: git submodule update --init --recursive
     - name: Find NDK SHA
       run: |
         $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
@@ -22,7 +48,6 @@ jobs:
       with:
         path: InworldAI\inworld-ndk\build\Package
         key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
-        fail-on-cache-miss: true
         enableCrossOsArchive: true
     - name: check-cache-success
       shell: pwsh
@@ -30,6 +55,10 @@ jobs:
       run: |
         echo "cache restore failed"
         exit 1
+    - uses: actions/download-artifact@v3
+      with:
+        name: Android-NDK-lib
+        path: InworldAI\inworld-ndk\build\Package\lib\Android
     - name: Copy NDK
       run: |
           $pythonPath = (Get-Command python.exe).Source
@@ -53,27 +82,12 @@ jobs:
           Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
           Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
           Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
-    - name: BuildEditor-Win-50
+    - name: BuildGame-android-50
       shell: pwsh
       run: |
-          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.2"
           [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildEditor,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildEditorLog.txt" -Wait -NoNewWindow -PassThru
-          cat BuildEditorLog.txt
-          if (Select-String -Path BuildEditorLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
-          {
-            exit 0
-          }
-          else
-          {
-            exit 1
-          }
-    - name: BuildGame-Win-50
-      shell: pwsh
-      run: |
-          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
-          [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Android,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru
           cat BuildGameLog.txt
           if (Select-String -Path BuildGameLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {
@@ -83,12 +97,12 @@ jobs:
           {
             exit 1
           }
-    - name: BuildPlugin-Win-50
+    - name: BuildPlugin-android-50
       shell: pwsh
       run: |
-          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.2"
           [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildPlugin,-plugin="$ProjectPath\TestInworldFPS\TestInworldFPS\Plugins\InworldAI\InworldAI.uplugin",-TargetPlatforms=Win64,-package="$ProjectPath\PluginBuild"," > BuildPluginLog.txt" -Wait -NoNewWindow -PassThru
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildPlugin,-plugin="$ProjectPath\TestInworldFPS\TestInworldFPS\Plugins\InworldAI\InworldAI.uplugin",-TargetPlatforms=Android,-package="$ProjectPath\PluginBuild"," > BuildPluginLog.txt" -Wait -NoNewWindow -PassThru
           cat BuildPluginLog.txt
           if (Select-String -Path BuildPluginLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {

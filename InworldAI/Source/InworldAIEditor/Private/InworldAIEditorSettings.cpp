@@ -9,10 +9,14 @@
 #include "InworldAIEditorSettings.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Sound/SoundSubmix.h"
+
+#include "InworldPlayerComponent.h"
 #include "InworldPlayerAudioCaptureComponent.h"
 #include "InworldPlayerTargetingComponent.h"
-#include "InworldCharacterPlaybackAudio.h"
-#include "Components/AudioComponent.h"
+
+#include "InworldCharacterComponent.h"
+#include "InworldCharacterPlaybackTrigger.h"
+#include "InworldCharacterAudioComponent.h"
 
 UInworldAIEditorSettings::UInworldAIEditorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -22,8 +26,8 @@ UInworldAIEditorSettings::UInworldAIEditorSettings(const FObjectInitializer& Obj
 	OtherPlayerComponents = { UInworldPlayerAudioCaptureComponent::StaticClass(), UInworldPlayerTargetingComponent::StaticClass() };
 
 	InworldCharacterComponent = UInworldCharacterComponent::StaticClass();
-	CharacterPlaybacks = { UInworldCharacterPlaybackAudio::StaticClass() };
-	OtherCharacterComponents = { UAudioComponent::StaticClass() };
+	CharacterPlaybacks = { UInworldCharacterPlaybackTrigger::StaticClass() };
+	OtherCharacterComponents = { UInworldCharacterAudioComponent::StaticClass() };
 
 	InworldStudioWidget = "/InworldAI/StudioWidget/InworldStudioWidget.InworldStudioWidget";
 }

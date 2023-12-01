@@ -23,6 +23,9 @@ struct FInworldPlayerProfile
     UPROPERTY(BlueprintReadWrite, Category = "Player")
     FString UniqueId = "";
 
+    UPROPERTY(BlueprintReadWrite, Category = "Environment")
+    FString ProjectName = "";
+
     UPROPERTY(BlueprintReadWrite, Category = "Player")
     TMap<FString, FString> Fields = {};
 };

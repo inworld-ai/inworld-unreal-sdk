@@ -159,13 +159,3 @@ void UInworldCharacterPlaybackAudio::OnAudioFinished(UAudioComponent* InAudioCom
 	OnUtteranceStopped.Broadcast();
 	UnlockMessageQueue();
 }
-
-float* FInworldCharacterVisemeBlends::operator[](const FString& CodeString)
-{
-	FProperty* CodeProperty = StaticStruct()->FindPropertyByName(FName(CodeString));
-	if (CodeProperty)
-	{
-		return CodeProperty->ContainerPtrToValuePtr<float>(this);
-	}
-	return &STOP;
-}
