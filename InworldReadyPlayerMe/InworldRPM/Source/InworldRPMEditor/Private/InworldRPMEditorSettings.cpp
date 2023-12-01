@@ -7,9 +7,11 @@
 
 #include "InworldRPMEditorSettings.h"
 #include "Animation/AnimBlueprint.h"
-#include "InworldCharacterPlaybackAudio.h"
+
+#include "InworldCharacterComponent.h"
 #include "InworldCharacterPlaybackHistory.h"
 #include "InworldCharacterPlaybackTrigger.h"
+#include "InworldCharacterAudioComponent.h"
 
 UInworldRPMEditorSettings::UInworldRPMEditorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -18,6 +20,6 @@ UInworldRPMEditorSettings::UInworldRPMEditorSettings(const FObjectInitializer& O
 	RPMSkeleton = "/InworldRPM/RPM_Mixamo_Skeleton.RPM_Mixamo_Skeleton";
 
 	InworldCharacterComponent = UInworldCharacterComponent::StaticClass();
-	CharacterPlaybacks = { UInworldCharacterPlaybackAudio::StaticClass(), UInworldCharacterPlaybackHistory::StaticClass(), UInworldCharacterPlaybackTrigger::StaticClass() };
-	OtherCharacterComponents = { UAudioComponent::StaticClass() };
+	CharacterPlaybacks = { UInworldCharacterPlaybackTrigger::StaticClass() };
+	OtherCharacterComponents = { UInworldCharacterAudioComponent::StaticClass() };
 }
