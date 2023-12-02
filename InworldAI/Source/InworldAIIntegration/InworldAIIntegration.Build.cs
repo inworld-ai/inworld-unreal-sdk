@@ -28,6 +28,7 @@ public class InworldAIIntegration : ModuleRules
             {
                 "ApplicationCore",
                 "AudioMixer",
+                "AudioPlatformConfiguration",
                 "InworldAIPlatform",
                 "Networking",
                 "Sockets",

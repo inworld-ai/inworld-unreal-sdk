@@ -12,6 +12,7 @@
 #include "InworldPlayerComponent.h"
 #include "AudioMixerDevice.h"
 #include "AudioMixerSubmix.h"
+#include "AudioResampler.h"
 #include "InworldApi.h"
 #include "InworldAIPlatformModule.h"
 
@@ -29,10 +30,58 @@
 #endif
 #endif
 
+#include <Algo/Accumulate.h>
 #include <Net/UnrealNetwork.h>
 #include <GameFramework/PlayerController.h>
 
 constexpr uint32 gSamplesPerSec = 16000;
+constexpr uint32 gNumChannels = 1;
+
+void ConvertAudioToInworldFormat(const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate, TArray<uint16>& OutData)
+{
+    TArray<float> MutableAudioData{ AudioData, NumFrames };
+    if (NumChannels != gNumChannels)
+    {
+        int32 DataOffset = 0;
+        for (int32 CurrentFrame = 0; CurrentFrame < MutableAudioData.Num(); CurrentFrame++)
+        {
+            MutableAudioData[CurrentFrame] = Algo::Accumulate(TArray<float>{ AudioData + DataOffset , NumChannels }, 0.f) / NumChannels;
+
+            DataOffset += NumChannels;
+        }
+    }
+
+    if (SampleRate != gSamplesPerSec)
+    {
+        Audio::FAlignedFloatBuffer InputBuffer(MutableAudioData.GetData(), NumFrames);
+
+        Audio::FResamplingParameters ResamplerParams = {
+            Audio::EResamplingMethod::Linear,
+            gNumChannels,
+            SampleRate,
+            gSamplesPerSec,
+            InputBuffer
+        };
+
+        Audio::FAlignedFloatBuffer OutputBuffer;
+        OutputBuffer.AddUninitialized(Audio::GetOutputBufferSize(ResamplerParams));
+
+        Audio::FResamplerResults ResamplerResults;
+        ResamplerResults.OutBuffer = &OutputBuffer;
+
+        if (Audio::Resample(ResamplerParams, ResamplerResults))
+        {
+            MutableAudioData = { ResamplerResults.OutBuffer->GetData(), ResamplerResults.OutputFramesGenerated };
+        }
+    }
+
+    OutData.SetNumUninitialized(MutableAudioData.Num());
+
+    for (int32 CurrentFrame = 0; CurrentFrame < OutData.Num(); CurrentFrame++)
+    {
+        OutData[CurrentFrame] = MutableAudioData[CurrentFrame] * 32767; // 2^15, uint16
+    }
+}
 
 struct FInworldMicrophoneAudioCapture : public FInworldAudioCapture
 {
@@ -533,20 +582,8 @@ void FInworldMicrophoneAudioCapture::SetCaptureDeviceById(const FString& DeviceI
 
 void FInworldMicrophoneAudioCapture::OnAudioCapture(const float* AudioData, int32 NumFrames, int32 NumChannels, int32 SampleRate)
 {
-    const int32 DownsampleRate = SampleRate / gSamplesPerSec;
-    const int32 nFrames = NumFrames / DownsampleRate;
-
     TArray<uint16> Buffer;
-    Buffer.AddUninitialized(nFrames);
-
-    int32 DataOffset = 0;
-    for (int32 CurrentFrame = 0; CurrentFrame < Buffer.Num(); CurrentFrame++)
-    {
-        Buffer[CurrentFrame] = AudioData[DataOffset + NumChannels] * 32767; // 2^15, uint16
-
-        DataOffset += (NumChannels * DownsampleRate);
-    }
-
+    ConvertAudioToInworldFormat(AudioData, NumFrames, NumChannels, SampleRate, Buffer);
     Callback({ (uint8*)Buffer.GetData(), Buffer.Num() * 2 });
 }
 
@@ -598,20 +635,8 @@ void FInworldPixelStreamAudioCapture::StopCapture()
 void FInworldPixelStreamAudioCapture::ConsumeRawPCM(const int16_t* AudioData, int InSampleRate, size_t NChannels, size_t NFrames)
 {
     TArray<uint16> Buffer;
-
-    const int32 DownsampleRate = InSampleRate / gSamplesPerSec;
-    const int32 nFrames = NFrames / DownsampleRate;
-    Buffer.AddUninitialized(nFrames);
-
-    int32 DataOffset = 0;
-    for (int32 CurrentFrame = 0; CurrentFrame < nFrames; CurrentFrame++)
-    {
-        Buffer[CurrentFrame] = AudioData[DataOffset + NChannels];
-
-        DataOffset += (NChannels * DownsampleRate);
-    }
-
-    Callback({(uint8*)Buffer.GetData(), Buffer.Num() * 2});
+    ConvertAudioToInworldFormat(AudioData, NumFrames, NumChannels, SampleRate, Buffer);
+    Callback({ (uint8*)Buffer.GetData(), Buffer.Num() * 2 });
 }
 #endif
 
@@ -644,19 +669,7 @@ void FInworldSubmixAudioCapture::StopCapture()
 void FInworldSubmixAudioCapture::OnNewSubmixBuffer(const USoundSubmix* OwningSubmix, float* AudioData, int32 NumSamples, int32 NumChannels, const int32 SampleRate, double AudioClock)
 {
     const int32 NumFrames = NumSamples / NumChannels;
-    const int32 DownsampleRate = SampleRate / gSamplesPerSec;
-    const int32 nFrames = NumFrames / DownsampleRate;
-
     TArray<uint16> Buffer;
-    Buffer.AddUninitialized(nFrames);
-
-    int32 DataOffset = 0;
-    for (int32 CurrentFrame = 0; CurrentFrame < Buffer.Num(); CurrentFrame++)
-    {
-        Buffer[CurrentFrame] = AudioData[DataOffset + NumChannels] * 32767; // 2^15, uint16
-
-        DataOffset += (NumChannels * DownsampleRate);
-    }
-
+    ConvertAudioToInworldFormat(AudioData, NumFrames, NumChannels, SampleRate, Buffer);
     Callback({ (uint8*)Buffer.GetData(), Buffer.Num() * 2 });
 }
