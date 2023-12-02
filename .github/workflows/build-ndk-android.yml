@@ -1,12 +1,12 @@
 
-name: Build NDK (iOS)
+name: Build NDK (Android)
 
 on:
   workflow_call:
 
 jobs:
-  build-ndk-ios:
-    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
+  build-ndk-android:
+    runs-on: macos-13
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
@@ -17,24 +17,22 @@ jobs:
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/cache/restore@v3
-      id: ndk-cache-ios
+      id: ndk-cache-android
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
     - name: git-update-dependecies
-      if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
+      if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: git submodule update --init --recursive
-    - name: Build NDK (iOS)
+    - name: Build NDK (android)
       shell: bash
-      if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
+      if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: |
-        sudo xcode-select -s /Applications/Xcode_13_0.app/Contents/Developer
-        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=iOS --clean --build
-        sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --platform=Android --clean --build
     - uses: actions/cache/save@v3
-      if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
+      if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true

@@ -8,10 +8,11 @@
 
 #include "InworldMetahumanEditorSettings.h"
 #include "UObject/ConstructorHelpers.h"
-#include "InworldCharacterPlaybackAudio.h"
+
+#include "InworldCharacterComponent.h"
 #include "InworldCharacterPlaybackHistory.h"
 #include "InworldCharacterPlaybackTrigger.h"
-#include "Components/AudioComponent.h"
+#include "InworldCharacterAudioComponent.h"
 
 UInworldMetahumanEditorSettings::UInworldMetahumanEditorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -23,6 +24,6 @@ UInworldMetahumanEditorSettings::UInworldMetahumanEditorSettings(const FObjectIn
 	MetahumanFace = "/Game/MetaHumans/Common/Face/Face_Archetype_Skeleton.Face_Archetype_Skeleton";
 
 	InworldCharacterComponent = UInworldCharacterComponent::StaticClass();
-	CharacterPlaybacks = { UInworldCharacterPlaybackAudio::StaticClass(), UInworldCharacterPlaybackHistory::StaticClass(), UInworldCharacterPlaybackTrigger::StaticClass() };
-	OtherCharacterComponents = { UAudioComponent::StaticClass() };
+	CharacterPlaybacks = { UInworldCharacterPlaybackTrigger::StaticClass() };
+	OtherCharacterComponents = { UInworldCharacterAudioComponent::StaticClass() };
 }
