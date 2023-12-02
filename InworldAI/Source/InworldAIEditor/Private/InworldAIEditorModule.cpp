@@ -73,6 +73,16 @@ TSharedRef<SDockTab> FInworldAIEditorModule::CreateInworldStudioTab(const FSpawn
 	if (TSharedPtr<SDockTab> InworldStudioTabPinned = InworldStudioTab.Pin())
 	{
 		InworldStudioTabPinned->SetContent(CreateInworldStudioWidget());
+		InworldStudioTabPinned->SetOnTabClosed(
+			SDockTab::FOnTabClosedCallback::CreateLambda(
+				[this](TSharedRef<SDockTab> DockTab)
+				{
+					DockTab->SetContent(SNullWidget::NullWidget);
+					InworldStudioUMGWidget->RemoveFromParent();
+					InworldStudioUMGWidget = nullptr;
+				}
+			)
+		);
 	}
 
 	FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
