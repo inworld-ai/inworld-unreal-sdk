@@ -26,6 +26,8 @@
 
 class UInworldPlayerComponent;
 class FInternetAddr;
+struct FLinearColor;
+class UTextureRenderTarget2D;
 
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
 class INWORLDAIINTEGRATION_API UInworldCharacterComponent : public UActorComponent, public InworldPacketVisitor, public Inworld::ICharacterComponent, public ICharacterMessageVisitor
@@ -139,6 +141,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void CancelCurrentInteraction();
+
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void SendSceneScreenshot(UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples);
 
 	UFUNCTION(BlueprintCallable, Category = "Events")
 	bool Register();

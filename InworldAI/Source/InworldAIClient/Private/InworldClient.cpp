@@ -50,6 +50,7 @@ FInworldClient::FOnAudioDumperCVarChanged FInworldClient::OnAudioDumperCVarChang
 
 FAutoConsoleVariableSink FInworldClient::CVarSink(FConsoleCommandDelegate::CreateStatic(&FInworldClient::OnCVarsChanged));
 #endif
+#include "Engine/TextureRenderTarget2D.h"
 
 namespace Inworld
 {
@@ -404,6 +405,31 @@ void FInworldClient::CancelResponse(const FString& AgentId, const FString& Inter
 	}
 
 	InworldClient->CancelResponse(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*InteractionId), utteranceIds);
+}
+
+void FInworldClient::SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples)
+{
+	const int32 SizeX = TextureRenderTarget->SizeX;
+	const int32 SizeY = TextureRenderTarget->SizeY;
+
+	std::string Data;
+	Data.resize(LinearSamples.Num() * 4 * sizeof(float) + 2 * sizeof(int32));
+	uint8* Dest = (uint8*)Data.data();
+	
+	FMemory::Memcpy(Dest, &SizeX, sizeof(int32));
+	Dest += sizeof(int32);
+	FMemory::Memcpy(Dest, &SizeY, sizeof(int32));
+	Dest += sizeof(int32);
+
+	for (int32 i = 0; i < LinearSamples.Num(); i++)
+	{
+		FMemory::Memcpy(Dest + (i + 0) * sizeof(float), &LinearSamples[i].R, sizeof(float));
+		FMemory::Memcpy(Dest + (i + 1) * sizeof(float), &LinearSamples[i].G, sizeof(float));
+		FMemory::Memcpy(Dest + (i + 2) * sizeof(float), &LinearSamples[i].B, sizeof(float));
+		FMemory::Memcpy(Dest + (i + 3) * sizeof(float), &LinearSamples[i].A, sizeof(float));
+	}
+
+	InworldClient->SendTextureMessage(TCHAR_TO_UTF8(*AgentId), Data);
 }
 
 #if !UE_BUILD_SHIPPING

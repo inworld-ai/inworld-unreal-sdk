@@ -21,6 +21,9 @@ namespace Inworld
 	class FClient;
 }
 
+class UTextureRenderTarget2D;
+struct FLinearColor;
+
 DECLARE_DELEGATE_OneParam(FOnInworldSceneLoaded, TArray<FInworldAgentInfo>);
 DECLARE_DELEGATE_TwoParams(FOnInworldSessionSaved, FInworldSave, bool);
 DECLARE_DELEGATE_TwoParams(FOnInworldLatency, FString, int32)
@@ -64,6 +67,8 @@ public:
 	void SendChangeSceneEvent(const FString& SceneName);
 
 	void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
+
+	void SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples);
 
 	FOnInworldSceneLoaded OnSceneLoaded;
 

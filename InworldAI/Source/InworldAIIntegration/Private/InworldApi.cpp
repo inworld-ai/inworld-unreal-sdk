@@ -15,6 +15,8 @@
 #include <UObject/UObjectGlobals.h>
 #include "TimerManager.h"
 #include "InworldAudioRepl.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "UObject/NoExportTypes.h"
 
 static TAutoConsoleVariable<bool> CVarLogAllPackets(
 TEXT("Inworld.Debug.LogAllPackets"), false,
@@ -321,6 +323,11 @@ void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
 	}
 
     Client->StopAudioSession(AgentId);
+}
+
+void UInworldApiSubsystem::SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples)
+{
+    Client->SendSceneScreenshot(AgentId, TextureRenderTarget, LinearSamples);
 }
 
 void UInworldApiSubsystem::ChangeScene(const FString& SceneId)

@@ -26,6 +26,8 @@ namespace Inworld
 }
 class USoundWave;
 class UInworldAudioRepl;
+class UTextureRenderTarget2D;
+struct FLinearColor;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnectionStateChanged, EInworldConnectionState, State);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
@@ -149,6 +151,9 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
     void StopAudioSession(const FString& AgentId);
+
+    UFUNCTION(BlueprintCallable, Category = "Vision")
+	void SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples);
 
     /** Change scene */
     UFUNCTION(BlueprintCallable, Category = "Messages")

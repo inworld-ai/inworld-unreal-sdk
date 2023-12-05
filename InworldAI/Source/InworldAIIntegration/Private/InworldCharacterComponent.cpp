@@ -15,6 +15,8 @@
 #include <Engine/World.h>
 #include <GameFramework/GameStateBase.h>
 #include <GameFramework/PlayerState.h>
+#include "Engine/TextureRenderTarget2D.h"
+#include "UObject/NoExportTypes.h"
 
 UInworldCharacterComponent::UInworldCharacterComponent()
 	: MessageQueue(MakeShared<FCharacterMessageQueue>(this))
@@ -218,6 +220,11 @@ void UInworldCharacterComponent::CancelCurrentInteraction()
 	{
 		InworldSubsystem->CancelResponse(AgentId, CurrentInteractionId, CanceledUtterances);
 	}
+}
+
+void UInworldCharacterComponent::SendSceneScreenshot(UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples)
+{
+	InworldSubsystem->SendSceneScreenshot(AgentId, TextureRenderTarget, LinearSamples);
 }
 
 void UInworldCharacterComponent::SendTextMessage(const FString& Text) const
