@@ -325,9 +325,9 @@ void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
     Client->StopAudioSession(AgentId);
 }
 
-void UInworldApiSubsystem::SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples)
+void UInworldApiSubsystem::SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TexRT)
 {
-    Client->SendSceneScreenshot(AgentId, TextureRenderTarget, LinearSamples);
+    Client->SendSceneScreenshot(AgentId, TexRT);
 }
 
 void UInworldApiSubsystem::ChangeScene(const FString& SceneId)

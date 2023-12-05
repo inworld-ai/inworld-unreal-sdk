@@ -143,7 +143,7 @@ public:
 	void CancelCurrentInteraction();
 
     UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void SendSceneScreenshot(UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples);
+	void SendSceneScreenshot(UTextureRenderTarget2D* TexRT);
 
 	UFUNCTION(BlueprintCallable, Category = "Events")
 	bool Register();

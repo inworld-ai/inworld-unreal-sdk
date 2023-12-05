@@ -222,9 +222,9 @@ void UInworldCharacterComponent::CancelCurrentInteraction()
 	}
 }
 
-void UInworldCharacterComponent::SendSceneScreenshot(UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples)
+void UInworldCharacterComponent::SendSceneScreenshot(UTextureRenderTarget2D* TexRT)
 {
-	InworldSubsystem->SendSceneScreenshot(AgentId, TextureRenderTarget, LinearSamples);
+	InworldSubsystem->SendSceneScreenshot(AgentId, TexRT);
 }
 
 void UInworldCharacterComponent::SendTextMessage(const FString& Text) const

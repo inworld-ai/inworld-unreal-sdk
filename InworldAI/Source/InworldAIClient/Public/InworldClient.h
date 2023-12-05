@@ -68,7 +68,7 @@ public:
 
 	void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
-	void SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples);
+	void SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TexRT);
 
 	FOnInworldSceneLoaded OnSceneLoaded;
 

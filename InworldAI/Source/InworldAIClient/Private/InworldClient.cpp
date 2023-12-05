@@ -51,6 +51,9 @@ FInworldClient::FOnAudioDumperCVarChanged FInworldClient::OnAudioDumperCVarChang
 FAutoConsoleVariableSink FInworldClient::CVarSink(FConsoleCommandDelegate::CreateStatic(&FInworldClient::OnCVarsChanged));
 #endif
 #include "Engine/TextureRenderTarget2D.h"
+#include "ImageUtils.h"
+#include <iosfwd>
+#include "Misc/FileHelper.h"
 
 namespace Inworld
 {
@@ -407,30 +410,41 @@ void FInworldClient::CancelResponse(const FString& AgentId, const FString& Inter
 	InworldClient->CancelResponse(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*InteractionId), utteranceIds);
 }
 
-void FInworldClient::SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples)
+void FInworldClient::SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TexRT)
 {
-	const int32 SizeX = TextureRenderTarget->SizeX;
-	const int32 SizeY = TextureRenderTarget->SizeY;
-
-	std::string Data;
-	Data.resize(LinearSamples.Num() * 4 * sizeof(float) + 2 * sizeof(int32));
-	uint8* Dest = (uint8*)Data.data();
-	
-	FMemory::Memcpy(Dest, &SizeX, sizeof(int32));
-	Dest += sizeof(int32);
-	FMemory::Memcpy(Dest, &SizeY, sizeof(int32));
-	Dest += sizeof(int32);
-
-	for (int32 i = 0; i < LinearSamples.Num(); i++)
+	FImage Img;
+	if (!FImageUtils::GetRenderTargetImage(TexRT, Img))
 	{
-		FMemory::Memcpy(Dest + (i + 0) * sizeof(float), &LinearSamples[i].R, sizeof(float));
-		FMemory::Memcpy(Dest + (i + 1) * sizeof(float), &LinearSamples[i].G, sizeof(float));
-		FMemory::Memcpy(Dest + (i + 2) * sizeof(float), &LinearSamples[i].B, sizeof(float));
-		FMemory::Memcpy(Dest + (i + 3) * sizeof(float), &LinearSamples[i].A, sizeof(float));
+		UE_LOG(LogInworldAIClient, Error, TEXT("FImageUtils::GetRenderTargetImage failed"));
+		return;
 	}
 
+	static uint8 TexIdx = 0;
+	FString Filename = FString::Printf(TEXT("C:/tmp/textures/tex%d.jpg"), TexIdx++);
+
+	TArray64<uint8> Buffer;
+	if (!FImageUtils::CompressImage(Buffer, *Filename, Img))
+	{
+		UE_LOG(LogInworldAIClient, Error, TEXT("FImageUtils::CompressImage failed"));
+		return;
+	}
+
+	std::string Data;
+	Data.resize(Buffer.Num());
+	FMemory::Memcpy((uint8*)Data.data(), Buffer.GetData(), Buffer.Num());
 	InworldClient->SendTextureMessage(TCHAR_TO_UTF8(*AgentId), Data);
+
+	FFileHelper::SaveArrayToFile(Buffer, *Filename);
 }
+
+/*if (LinearSamples[i].R > 0.001f ||
+	LinearSamples[i].G > 0.001f ||
+	LinearSamples[i].B > 0.001f ||
+	LinearSamples[i].A > 0.001f)
+{
+	int32 a = 0;
+	a = 1;
+}*/
 
 #if !UE_BUILD_SHIPPING
 void FInworldClient::OnCVarsChanged()

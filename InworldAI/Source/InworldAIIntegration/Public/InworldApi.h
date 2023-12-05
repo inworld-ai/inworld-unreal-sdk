@@ -153,7 +153,7 @@ public:
     void StopAudioSession(const FString& AgentId);
 
     UFUNCTION(BlueprintCallable, Category = "Vision")
-	void SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TextureRenderTarget, const TArray<FLinearColor>& LinearSamples);
+	void SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TexRT);
 
     /** Change scene */
     UFUNCTION(BlueprintCallable, Category = "Messages")
