@@ -434,7 +434,7 @@ void FInworldClient::SendSceneScreenshot(const FString& AgentId, UTextureRenderT
 	FMemory::Memcpy((uint8*)Data.data(), Buffer.GetData(), Buffer.Num());
 	InworldClient->SendTextureMessage(TCHAR_TO_UTF8(*AgentId), Data);
 
-	FFileHelper::SaveArrayToFile(Buffer, *Filename);
+	//FFileHelper::SaveArrayToFile(Buffer, *Filename);
 }
 
 /*if (LinearSamples[i].R > 0.001f ||

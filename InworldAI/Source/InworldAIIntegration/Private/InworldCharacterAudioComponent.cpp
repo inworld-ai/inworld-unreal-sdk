@@ -83,7 +83,7 @@ void UInworldCharacterAudioComponent::OnSilenceEnd()
 
 float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() const
 {
-	if (Sound != nullptr || !IsPlaying())
+	if (Sound == nullptr || !IsPlaying())
 	{
 		return 0.f;
 	}

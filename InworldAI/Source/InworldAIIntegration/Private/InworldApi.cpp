@@ -327,7 +327,10 @@ void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
 
 void UInworldApiSubsystem::SendSceneScreenshot(const FString& AgentId, UTextureRenderTarget2D* TexRT)
 {
-    Client->SendSceneScreenshot(AgentId, TexRT);
+    if (GetConnectionState() == EInworldConnectionState::Connected)
+    {
+        Client->SendSceneScreenshot(AgentId, TexRT);
+    }
 }
 
 void UInworldApiSubsystem::ChangeScene(const FString& SceneId)
