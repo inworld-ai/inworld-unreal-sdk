@@ -28,7 +28,7 @@ THIRD_PARTY_INCLUDES_END
 
 #include <Interfaces/IPluginManager.h>
 
-const FString DefaultTargetUrl = "api-engine.inworld.ai:443";
+const FString DefaultTargetUrl = "knivesout.dev.inworld.ai:443";
 
 #include <string>
 
