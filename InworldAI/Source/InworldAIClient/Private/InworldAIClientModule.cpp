@@ -30,8 +30,11 @@ void FInworldAIClientModule::StartupModule()
 				UE_LOG(LogInworldAINdk, Warning, TEXT("%s"), UTF8_TO_TCHAR(message));
 				break;
 			case 2:
+			{
+				if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, UTF8_TO_TCHAR(message));
 				UE_LOG(LogInworldAINdk, Error, TEXT("%s"), UTF8_TO_TCHAR(message));
 				break;
+			}
 			default:
 				UE_LOG(LogInworldAINdk, Warning, TEXT("Message with unknown severity, treating as warning: %s"), UTF8_TO_TCHAR(message));
 			}
