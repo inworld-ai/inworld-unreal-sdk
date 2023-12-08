@@ -129,10 +129,126 @@ void UInworldCharacterAudioComponent::OnAudioPlaybackPercent(const UAudioCompone
 	}
 
 	const float Blend = (CurrentAudioPlaybackTime - PreviousVisemeInfo.Timestamp) / (CurrentVisemeInfo.Timestamp - PreviousVisemeInfo.Timestamp);
-
+ 
 	VisemeBlends.STOP = 0.f;
-	*VisemeBlends[PreviousVisemeInfo.Code] = FMath::Clamp(1.f - Blend, 0.f, 1.f);
-	*VisemeBlends[CurrentVisemeInfo.Code] = FMath::Clamp(Blend, 0.f, 1.f);
+	//*VisemeBlends[PreviousVisemeInfo.Code] = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	//*VisemeBlends[CurrentVisemeInfo.Code] = FMath::Clamp(Blend, 0.f, 1.f);
+
+	if ("PP" == PreviousVisemeInfo.Code)
+	{
+		VisemeBlends.PP = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ("FF" == PreviousVisemeInfo.Code)
+	{
+		VisemeBlends.FF = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ( "TH" == PreviousVisemeInfo.Code )
+	{
+		VisemeBlends.TH = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ( "DD" == PreviousVisemeInfo.Code )
+	{
+		VisemeBlends.DD = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ( "Kk" == PreviousVisemeInfo.Code )
+	{
+		VisemeBlends.Kk = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ( "CH" == PreviousVisemeInfo.Code )
+	{
+		VisemeBlends.CH = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ( "SS" == PreviousVisemeInfo.Code )
+	{
+		VisemeBlends.SS = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ("Nn" == PreviousVisemeInfo.Code)
+	{
+		VisemeBlends.Nn = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ("RR" == PreviousVisemeInfo.Code)
+	{
+		VisemeBlends.RR = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ("Aa" == PreviousVisemeInfo.Code)
+	{
+		VisemeBlends.Aa = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ("E" == PreviousVisemeInfo.Code)
+	{
+		VisemeBlends.E = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ("I" == PreviousVisemeInfo.Code)
+	{
+		VisemeBlends.I = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ("O" == PreviousVisemeInfo.Code)
+	{
+		VisemeBlends.O = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+	if ("U" == PreviousVisemeInfo.Code)
+	{
+		VisemeBlends.U = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	}
+
+
+
+	if ("PP" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.PP = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("FF" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.FF = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("TH" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.TH = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("DD" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.DD = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("Kk" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.Kk = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("CH" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.CH = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("SS" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.SS = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("Nn" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.Nn = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("RR" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.RR = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("Aa" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.Aa = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("E" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.E = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("I" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.I = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("O" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.O = FMath::Clamp(Blend, 0.f, 1.f);
+	}
+	if ("U" == CurrentVisemeInfo.Code)
+	{
+		VisemeBlends.U = FMath::Clamp(Blend, 0.f, 1.f);
+	}
 
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
 }
