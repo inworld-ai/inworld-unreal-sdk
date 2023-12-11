@@ -91,9 +91,8 @@ InworldMetahuman/DerivedDataCache/*
 InworldReadyPlayerMe/*/DerivedDataCache/*
 
 # Copied NDK sources
-InworldAI/Source/InworldAINdk/Public/NDK/*
-InworldAI/Source/ThirdParty/Inworld/include/*
-InworldAI/Source/ThirdParty/Inworld/lib/*
-InworldAI/Source/ThirdParty/Inworld/src/*
+InworldAI/Source/ThirdParty/Inworld/NDKLibrary/include/*
+InworldAI/Source/ThirdParty/Inworld/NDKLibrary/lib/*
+InworldAI/Source/ThirdParty/Inworld/NDKLibrary/src/*
 
 package-release/*

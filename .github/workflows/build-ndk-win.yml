@@ -30,7 +30,7 @@ jobs:
       if: steps.ndk-cache-win64.outputs.cache-hit != 'true'
       run: |
         $pythonPath = (Get-Command python.exe).Source
-        $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--platform=Win64,--clean,--build
+        $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\ndk-util.py,--platform=Win64,--clean,--build
         if($process.ExitCode -ne 0)
         {
           exit 1

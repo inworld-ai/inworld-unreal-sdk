@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnrealBuildTool;
 using System;
 
-public class InworldAINdk : ModuleRules
+public class InworldAINDKLibrary : ModuleRules
 {
 
     private string ThirdPartyLibrariesDirectory
@@ -35,7 +35,7 @@ public class InworldAINdk : ModuleRules
         }
     }
 
-    public InworldAINdk(ReadOnlyTargetRules Target) : base(Target)
+    public InworldAINDKLibrary(ReadOnlyTargetRules Target) : base(Target)
     {
         Type = ModuleType.External;
 
@@ -124,13 +124,14 @@ public class InworldAINdk : ModuleRules
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.dll.lib"));
-            RuntimeDependencies.Add(Path.Combine("$(BinaryOutputDir)", "webrtc_aec_plugin.dll"), Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.dll"));
+
+            PublicDelayLoadDLLs.Add("webrtc_aec_plugin.dll");
+            RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/Inworld/NDKLibrary/lib/Win64/webrtc_aec_plugin.dll");
         }
         else if(Target.Platform == UnrealTargetPlatform.Mac)
         {
-            string PathLib = Path.Combine(ThirdPartyLibrariesDirectory, "libwebrtc_aec_plugin.dylib");
-			RuntimeDependencies.Add(PathLib);
-            PublicAdditionalLibraries.Add(PathLib);
+            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libwebrtc_aec_plugin.dylib"));
+            RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/Inworld/NDKLibrary/lib/Mac/webrtc_aec_plugin.dylib");
         }
 
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android)
