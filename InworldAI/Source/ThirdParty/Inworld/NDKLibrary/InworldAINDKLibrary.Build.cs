@@ -131,7 +131,7 @@ public class InworldAINDKLibrary : ModuleRules
         else if(Target.Platform == UnrealTargetPlatform.Mac)
         {
             PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libwebrtc_aec_plugin.dylib"));
-            RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/Inworld/NDKLibrary/lib/Mac/webrtc_aec_plugin.dylib");
+            RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/Inworld/NDKLibrary/lib/Mac/libwebrtc_aec_plugin.dylib");
         }
 
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android)

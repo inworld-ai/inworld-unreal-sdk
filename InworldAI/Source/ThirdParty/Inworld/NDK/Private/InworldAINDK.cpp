@@ -21,17 +21,17 @@ void FInworldAINDKModule::StartupModule()
 #if PLATFORM_WINDOWS
 	LibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/Inworld/NDKLibrary/lib/Win64/webrtc_aec_plugin.dll"));
 #elif PLATFORM_MAC
-  LibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/Inworld/NDKLibrary/lib/Mac/webrtc_aec_plugin.dylib"));
+	LibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/Inworld/NDKLibrary/lib/Mac/libwebrtc_aec_plugin.dylib"));
 #endif
 
-#if PLATFORM_WINDOWS || PLATFORM_MAC
+#if INWORLD_AEC
 	webrtcLibraryHandle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
-#endif
 
 	if (webrtcLibraryHandle == nullptr)
 	{
 		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("InworldAINDKModuleError", "Failed to load third party library"));
 	}
+#endif
 
 	Inworld::LogSetLoggerCallback([](const char* message, int severity)
 		{
@@ -57,7 +57,10 @@ void FInworldAINDKModule::ShutdownModule()
 {
 	Inworld::LogClearLoggerCallback();
 
+#if INWORLD_AEC
 	FPlatformProcess::FreeDllHandle(webrtcLibraryHandle);
+#endif
+
 	webrtcLibraryHandle = nullptr;
 }
 
