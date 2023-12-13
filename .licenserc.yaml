@@ -20,7 +20,12 @@ header:
     spdx-id: Inworld
     copyright-owner: Theai, Inc. (DBA Inworld)
     content : | 
-      // Copyright 2023 Theai, Inc. (DBA Inworld) All Rights Reserved.
+      /*************************************************************************************************
+      * Copyright 2022 Theai, Inc. (DBA Inworld)
+      *
+      * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
+      * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
+      *************************************************************************************************/
 
   paths-ignore:
     - '.github/ISSUE_TEMPLATE'
@@ -101,8 +106,6 @@ header:
     - '**/DEPS'
     - '**/proto/**'
     - '**/include/**'
-    - 'InworldMetahuman/**'
-    - 'InworldReadyPlayerMe/**'
     
   comment: on-failure
 
