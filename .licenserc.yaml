@@ -106,6 +106,7 @@ header:
     - '**/DEPS'
     - '**/proto/**'
     - '**/include/**'
+    - 'InworldReadyPlayerMe/glTFRuntime/**'
     
   comment: on-failure
 
