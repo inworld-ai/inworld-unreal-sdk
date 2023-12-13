@@ -15,13 +15,13 @@ DECLARE_LOG_CATEGORY_CLASS(LogInworldAINDK, Log, All);
 
 void FInworldAINDKModule::StartupModule()
 {
-	FString BaseDir = IPluginManager::Get().FindPlugin("InworldAI")->GetBaseDir();
+	FString DllDirectory = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/Inworld/NDKLibrary/lib"));
 
 	FString LibraryPath;
 #ifdef PLATFORM_WINDOWS
-	LibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/Inworld/NDKLibrary/lib/Win64/webrtc_aec_plugin.dll"));
+	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("Win64/webrtc_aec_plugin.dll"));
 #elif PLATFORM_MAC
-	LibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/Inworld/NDKLibrary/lib/Mac/libwebrtc_aec_plugin.dylib"));
+	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("Mac/libwebrtc_aec_plugin.dylib"));
 #endif
 
 #ifdef INWORLD_AEC
