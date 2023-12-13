@@ -19,8 +19,7 @@ header:
   license:
     spdx-id: Inworld
     copyright-owner: Theai, Inc. (DBA Inworld)
-    content : | 
-      // Copyright 2023 Theai, Inc. (DBA Inworld) All Rights Reserved.
+    content : // Copyright 2023 Theai, Inc. (DBA Inworld) All Rights Reserved.
 
   paths-ignore:
     - '.github/ISSUE_TEMPLATE'
