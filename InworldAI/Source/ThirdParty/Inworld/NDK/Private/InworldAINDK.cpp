@@ -18,20 +18,20 @@ void FInworldAINDKModule::StartupModule()
 	FString BaseDir = IPluginManager::Get().FindPlugin("InworldAI")->GetBaseDir();
 
 	FString LibraryPath;
-#if PLATFORM_WINDOWS
+#ifdef PLATFORM_WINDOWS
 	LibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/Inworld/NDKLibrary/lib/Win64/webrtc_aec_plugin.dll"));
 #elif PLATFORM_MAC
 	LibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/Inworld/NDKLibrary/lib/Mac/libwebrtc_aec_plugin.dylib"));
 #endif
 
-#if INWORLD_AEC
+#ifdef INWORLD_AEC
 	webrtcLibraryHandle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
 
 	if (webrtcLibraryHandle == nullptr)
 	{
 		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("InworldAINDKModuleError", "Failed to load webrtc library"));
 	}
-#endif
+#endif //INWORLD_AEC
 
 	Inworld::LogSetLoggerCallback([](const char* message, int severity)
 		{
@@ -57,9 +57,9 @@ void FInworldAINDKModule::ShutdownModule()
 {
 	Inworld::LogClearLoggerCallback();
 
-#if INWORLD_AEC
+#ifdef INWORLD_AEC
 	FPlatformProcess::FreeDllHandle(webrtcLibraryHandle);
-#endif
+#endif //INWORLD_AEC
 
 	webrtcLibraryHandle = nullptr;
 }
