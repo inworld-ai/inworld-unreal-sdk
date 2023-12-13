@@ -18,11 +18,12 @@ void FInworldAINDKModule::StartupModule()
 	FString DllDirectory = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/Inworld/NDKLibrary/lib"));
 
 	FString LibraryPath;
-#ifdef PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
 	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("Win64/webrtc_aec_plugin.dll"));
-#elif PLATFORM_MAC
+#endif //PLATFORM_WINDOWS
+#if PLATFORM_MAC
 	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("Mac/libwebrtc_aec_plugin.dylib"));
-#endif
+#endif //PLATFORM_MAC
 
 #ifdef INWORLD_AEC
 	webrtcLibraryHandle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
