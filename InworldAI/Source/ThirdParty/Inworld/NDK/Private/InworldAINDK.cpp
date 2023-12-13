@@ -29,7 +29,7 @@ void FInworldAINDKModule::StartupModule()
 
 	if (webrtcLibraryHandle == nullptr)
 	{
-		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("InworldAINDKModuleError", "Failed to load third party library"));
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("InworldAINDKModuleError", "Failed to load webrtc library"));
 	}
 #endif
 
