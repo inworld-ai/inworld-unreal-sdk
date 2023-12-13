@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright 2023 Theai, Inc. (DBA Inworld) All Rights Reserved.
 
 using System.IO;
 using System.Collections.Generic;
