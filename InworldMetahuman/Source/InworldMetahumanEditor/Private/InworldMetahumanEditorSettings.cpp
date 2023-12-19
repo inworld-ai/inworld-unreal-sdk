@@ -17,10 +17,10 @@
 UInworldMetahumanEditorSettings::UInworldMetahumanEditorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	MetahumanAnimBP = "/InworldMetahuman/ABP_Metahuman.ABP_Metahuman";
+	MetahumanAnimBP = "/InworldMetahuman/Body/ABP_Inworld_Metahuman.ABP_Inworld_Metahuman";
 	MetahumanBody = "/Game/MetaHumans/Common/Female/Medium/NormalWeight/Body/metahuman_base_skel.metahuman_base_skel";
 
-	MetahumanFaceAnimBP = "/InworldMetahuman/ABP_Metahuman_Face.ABP_Metahuman_Face";
+	MetahumanFaceAnimBP = "/InworldMetahuman/Face/ABP_Inworld_Metahuman_Face.ABP_Inworld_Metahuman_Face";
 	MetahumanFace = "/Game/MetaHumans/Common/Face/Face_Archetype_Skeleton.Face_Archetype_Skeleton";
 
 	InworldCharacterComponent = UInworldCharacterComponent::StaticClass();
