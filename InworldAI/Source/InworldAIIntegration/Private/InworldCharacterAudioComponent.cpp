@@ -9,6 +9,8 @@
 #include "InworldCharacterAudioComponent.h"
 #include "InworldCharacterComponent.h"
 #include "InworldBlueprintFunctionLibrary.h"
+#include "Sound/SoundWave.h"
+#include "TimerManager.h"
 
 void UInworldCharacterAudioComponent::BeginPlay()
 {

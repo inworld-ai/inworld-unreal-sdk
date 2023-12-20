@@ -130,19 +130,19 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: Win-NDK-lib
-          path: InworldAI/Source/ThirdParty/Inworld/NDKLibrary/lib/Win64
+          path: InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/Win64
       - uses: actions/download-artifact@v3
         with:
           name: Mac-NDK-lib
-          path: InworldAI/Source/ThirdParty/Inworld/NDKLibrary/lib/Mac
+          path: InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/Mac
       - uses: actions/download-artifact@v3
         with:
           name: iOS-NDK-lib
-          path: InworldAI/Source/ThirdParty/Inworld/NDKLibrary/lib/iOS
+          path: InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/iOS
       - uses: actions/download-artifact@v3
         with:
           name: Android-NDK-lib
-          path: InworldAI/Source/ThirdParty/Inworld/NDKLibrary/lib/Android
+          path: InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/Android
       - uses: actions/upload-artifact@v3
         with:
           name: inworld-unreal-sdk

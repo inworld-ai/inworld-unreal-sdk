@@ -15,7 +15,7 @@ DECLARE_LOG_CATEGORY_CLASS(LogInworldAINDK, Log, All);
 
 void FInworldAINDKModule::StartupModule()
 {
-	FString DllDirectory = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/Inworld/NDKLibrary/lib"));
+	FString DllDirectory = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/InworldAINDKLibrary/lib"));
 
 	FString LibraryPath;
 #if PLATFORM_WINDOWS

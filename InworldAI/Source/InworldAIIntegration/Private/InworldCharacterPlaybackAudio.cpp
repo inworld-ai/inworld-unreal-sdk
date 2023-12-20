@@ -11,6 +11,8 @@
 #include "InworldCharacterPlaybackAudio.h"
 #include "InworldCharacterComponent.h"
 #include "InworldBlueprintFunctionLibrary.h"
+#include "Sound/SoundWave.h"
+#include "TimerManager.h"
 #include <Components/AudioComponent.h>
 
 void UInworldCharacterPlaybackAudio::BeginPlay_Implementation()

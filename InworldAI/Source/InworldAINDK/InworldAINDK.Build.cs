@@ -9,6 +9,8 @@ public class InworldAINDK : ModuleRules
 	{
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
+        //bUseUnity = false;
+
         PublicDependencyModuleNames.AddRange(
         new string[]
         {

@@ -126,12 +126,12 @@ public class InworldAINDKLibrary : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.dll.lib"));
 
             PublicDelayLoadDLLs.Add("webrtc_aec_plugin.dll");
-            RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/Inworld/NDKLibrary/lib/Win64/webrtc_aec_plugin.dll");
+            RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Win64/webrtc_aec_plugin.dll");
         }
         else if(Target.Platform == UnrealTargetPlatform.Mac)
         {
             PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libwebrtc_aec_plugin.dylib"));
-            RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/Inworld/NDKLibrary/lib/Mac/libwebrtc_aec_plugin.dylib");
+            RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Mac/libwebrtc_aec_plugin.dylib");
         }
 
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android)
