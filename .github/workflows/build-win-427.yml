@@ -48,10 +48,8 @@ jobs:
           Remove-Item "InworldAI\Content\*" -Recurse -ErrorAction SilentlyContinue
           Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse -ErrorAction SilentlyContinue
           Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse -ErrorAction SilentlyContinue
           Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
           Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
-          Copy-Item -Path "InworldReadyPlayerMe"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldReadyPlayerMe" -Recurse
     - name: BuildEditor-Win-427
       shell: pwsh
       run: |

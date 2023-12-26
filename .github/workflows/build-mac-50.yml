@@ -43,11 +43,9 @@ jobs:
           rm -rf "InworldAI/Content"
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
-          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
           mkdir "TestInworldFPS/TestInworldFPS/Plugins"
           cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins"
           cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
-          cp -r "InworldReadyPlayerMe" "TestInworldFPS/TestInworldFPS/Plugins"
     - name: BuildEditor-Mac-50
       shell: bash
       run: |
