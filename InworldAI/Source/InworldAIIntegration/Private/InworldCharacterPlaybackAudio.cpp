@@ -63,7 +63,7 @@ void UInworldCharacterPlaybackAudio::OnCharacterUtterance_Implementation(const F
 
 		AudioComponent->Play();
 
-		LockMessageQueue();
+		LockMessageQueue(Message);
 	}
 	OnUtteranceStarted.Broadcast(SoundWave != nullptr ? SoundDuration : 0.f, Message.Text);
 }
@@ -74,6 +74,7 @@ void UInworldCharacterPlaybackAudio::OnCharacterUtteranceInterrupt_Implementatio
 	VisemeBlends = FInworldCharacterVisemeBlends();
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
 	OnUtteranceInterrupted.Broadcast();
+	UnlockMessageQueue();
 }
 
 void UInworldCharacterPlaybackAudio::OnCharacterSilence_Implementation(const FCharacterMessageSilence& Message)
@@ -81,13 +82,14 @@ void UInworldCharacterPlaybackAudio::OnCharacterSilence_Implementation(const FCh
 	UWorld* World = CharacterComponent->GetWorld();
 	World->GetTimerManager().SetTimer(SilenceTimerHandle, this, &UInworldCharacterPlaybackAudio::OnSilenceEnd, Message.Duration);
 	OnSilenceStarted.Broadcast(Message.Duration);
-	LockMessageQueue();
+	LockMessageQueue(Message);
 }
 
 void UInworldCharacterPlaybackAudio::OnCharacterSilenceInterrupt_Implementation(const FCharacterMessageSilence& Message)
 {
 	UWorld* World = CharacterComponent->GetWorld();
 	World->GetTimerManager().ClearTimer(SilenceTimerHandle);
+	UnlockMessageQueue();
 }
 
 void UInworldCharacterPlaybackAudio::OnSilenceEnd()

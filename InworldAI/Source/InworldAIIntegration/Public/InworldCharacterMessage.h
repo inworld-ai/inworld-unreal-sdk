@@ -32,6 +32,83 @@ public:
 	virtual void Handle(const FCharacterMessageInteractionEnd& Event) { }
 };
 
+struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
+{
+	FCharacterMessageQueue()
+		: FCharacterMessageQueue(nullptr)
+	{}
+	FCharacterMessageQueue(class ICharacterMessageVisitor* InMessageVisitor)
+		: MessageVisitor(InMessageVisitor)
+	{
+	}
+
+	class ICharacterMessageVisitor* MessageVisitor;
+
+	TSharedPtr<FCharacterMessage> CurrentMessage;
+	TArray<TSharedPtr<FCharacterMessage>> PendingMessageEntries;
+
+	template<class T>
+	void AddOrUpdateMessage(const FInworldPacket& Event, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr)
+	{
+		const FString& InteractionId = Event.PacketId.InteractionId;
+		const FString& UtteranceId = Event.PacketId.UtteranceId;
+
+		TSharedPtr<T> Message = nullptr;
+		const auto Index = PendingMessageEntries.FindLastByPredicate([&InteractionId, &UtteranceId](const TSharedPtr<FCharacterMessage>& MessageQueueEntry)
+			{
+				return MessageQueueEntry->InteractionId == InteractionId && MessageQueueEntry->UtteranceId == UtteranceId;
+			}
+		);
+		if (Index != INDEX_NONE)
+		{
+			Message = StaticCastSharedPtr<T>(PendingMessageEntries[Index]);
+		}
+
+		if (!Message.IsValid() || Message->IsReady())
+		{
+			Message = MakeShared<T>();
+			Message->InteractionId = InteractionId;
+			Message->UtteranceId = UtteranceId;
+			PendingMessageEntries.Emplace(Message);
+		}
+		if (PopulateProperties)
+		{
+			PopulateProperties(Message);
+		}
+
+		TryToProgress();
+	}
+
+	TMap<FString, TArray<FString>> Interrupt();
+	void TryToProgress();
+
+private:
+	bool Locked = false;
+	bool Interrupting = false;
+	TSharedPtr<struct FCharacterMessageQueueLock> MakeLock();
+	friend struct FCharacterMessageQueueLock;
+};
+
+struct FCharacterMessageQueueLock
+{
+	FCharacterMessageQueueLock(TSharedRef<FCharacterMessageQueue> InQueue);
+	~FCharacterMessageQueueLock();
+
+	UPROPERTY()
+	TWeakPtr<FCharacterMessageQueue> QueuePtr;
+
+	UPROPERTY()
+	bool Valid = true;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldCharacterMessageQueueLockHandle
+{
+	GENERATED_BODY()
+
+	TSharedPtr<FCharacterMessageQueueLock> Lock;
+};
+
 USTRUCT(BlueprintType)
 struct FCharacterMessage
 {
@@ -45,6 +122,8 @@ struct FCharacterMessage
 
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString InteractionId;
+
+	TWeakPtr<FCharacterMessageQueueLock> Lock;
 
 	virtual bool IsReady() const { return true; }
 
@@ -163,104 +242,16 @@ struct FCharacterMessageInteractionEnd : public FCharacterMessage
 	virtual FString ToDebugString() const override { return TEXT("InteractionEnd"); }
 };
 
-struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
-{
-	FCharacterMessageQueue()
-		: FCharacterMessageQueue(nullptr)
-	{}
-	FCharacterMessageQueue(class ICharacterMessageVisitor* InMessageVisitor)
-		: MessageVisitor(InMessageVisitor)
-	{
-	}
-
-	class ICharacterMessageVisitor* MessageVisitor;
-
-	TSharedPtr<FCharacterMessage> CurrentMessage;
-
-	struct FCharacterMessageQueueEntry
-	{
-		FCharacterMessageQueueEntry(TSharedPtr<FCharacterMessage> InMessage, float InTimestamp)
-			: Message(InMessage)
-			, Timestamp(InTimestamp)
-		{}
-		TSharedPtr<FCharacterMessage> Message;
-		float Timestamp = 0.f;
-	};
-
-	TArray<FCharacterMessageQueueEntry> PendingMessageEntries;
-
-
-	template<class T>
-	void AddOrUpdateMessage(const FInworldPacket& Event, float Timestamp, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr)
-	{
-		const FString& InteractionId = Event.PacketId.InteractionId;
-		const FString& UtteranceId = Event.PacketId.UtteranceId;
-
-		TSharedPtr<T> Message = nullptr;
-		const auto Index = PendingMessageEntries.FindLastByPredicate( [&InteractionId, &UtteranceId](const auto& Q)
-			{
-				return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId;
-			}
-		);
-		if (Index != INDEX_NONE)
-		{
-			Message = StaticCastSharedPtr<T>(PendingMessageEntries[Index].Message);
-		}
-
-		if (!Message.IsValid() || Message->IsReady())
-		{
-			Message = MakeShared<T>();
-			Message->InteractionId = InteractionId;
-			Message->UtteranceId = UtteranceId;
-			PendingMessageEntries.Emplace(Message, Timestamp);
-		}
-		if (PopulateProperties)
-		{
-			PopulateProperties(Message);
-		}
-
-		if (CanceledInteractions.Contains(InteractionId))
-		{
-			auto FilterPredicate = [InteractionId](const FCharacterMessageQueueEntry& MessageQueueEntry)
-				{
-					return MessageQueueEntry.Message->InteractionId == InteractionId;
-				};
-
-			PendingMessageEntries.RemoveAll(FilterPredicate);
-		}
-
-		if (Message->StaticStruct()->IsChildOf(FCharacterMessageInteractionEnd::StaticStruct()))
-		{
-			CanceledInteractions.Remove(InteractionId);
-		}
-
-		TryToProgress();
-	}
-
-	TArray<FString> CancelInteraction(const FString& InteractionId);
-	void TryToProgress(bool bForce = false);
-	TOptional<float> GetBlockingTimestamp() const;
-	void Clear();
-
-	TArray<FString> CanceledInteractions;
-
-	int32 LockCount = 0;
-	TSharedPtr<struct FCharacterMessageQueueLock> MakeLock();
-};
-
-struct FCharacterMessageQueueLock
-{
-	FCharacterMessageQueueLock(TSharedRef<FCharacterMessageQueue> InQueue);
-	~FCharacterMessageQueueLock();
-
-	TWeakPtr<FCharacterMessageQueue> QueuePtr;
-	TWeakPtr<FCharacterMessage> MessagePtr;
-};
-
-USTRUCT(BlueprintType)
-struct FInworldCharacterMessageQueueLockHandle
+UCLASS()
+class INWORLDAIINTEGRATION_API UInworldCharacterMessageQueueFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
-	TSharedPtr<FCharacterMessageQueueLock> Lock;
+public:
+
+	UFUNCTION(BlueprintCallable, Category = "Inworld|Character")
+	static bool LockMessage(const FCharacterMessage& Message, UPARAM(ref) FInworldCharacterMessageQueueLockHandle& LockHandle);
+
+	UFUNCTION(BlueprintCallable, Category = "Inworld|Character")
+	static void UnlockMessage(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& LockHandle);
 };

@@ -97,7 +97,7 @@ public:
 	 * Locks the Character's message queue
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Message Queue")
-	void LockMessageQueue();
+	bool LockMessageQueue(const FCharacterMessage& Message);
 
 	/**
 	 * Unlocks the Character's message queue
