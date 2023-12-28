@@ -55,7 +55,7 @@ void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessa
 
 		Play();
 
-		CharacterComponent->MakeMessageQueueLock(CharacterMessageQueueLockHandle);
+		UInworldCharacterMessageQueueFunctionLibrary::LockMessage(Message, CharacterMessageQueueLockHandle);
 	}
 }
 
@@ -64,23 +64,24 @@ void UInworldCharacterAudioComponent::OnCharacterUtteranceInterrupt(const FChara
 	Stop();
 	VisemeBlends = FInworldCharacterVisemeBlends();
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
+	UInworldCharacterMessageQueueFunctionLibrary::UnlockMessage(CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterAudioComponent::OnCharacterSilence(const FCharacterMessageSilence& Message)
 {
 	GetWorld()->GetTimerManager().SetTimer(SilenceTimerHandle, this, &UInworldCharacterAudioComponent::OnSilenceEnd, Message.Duration);
-	CharacterComponent->MakeMessageQueueLock(CharacterMessageQueueLockHandle);
+	UInworldCharacterMessageQueueFunctionLibrary::LockMessage(Message, CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterAudioComponent::OnCharacterSilenceInterrupt(const FCharacterMessageSilence& Message)
 {
 	GetWorld()->GetTimerManager().ClearTimer(SilenceTimerHandle);
-	CharacterComponent->ClearMessageQueueLock(CharacterMessageQueueLockHandle);
+	UInworldCharacterMessageQueueFunctionLibrary::UnlockMessage(CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterAudioComponent::OnSilenceEnd()
 {
-	CharacterComponent->ClearMessageQueueLock(CharacterMessageQueueLockHandle);
+	UInworldCharacterMessageQueueFunctionLibrary::UnlockMessage(CharacterMessageQueueLockHandle);
 }
 
 float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() const
@@ -143,5 +144,5 @@ void UInworldCharacterAudioComponent::OnAudioFinished(UAudioComponent* InAudioCo
 {
 	VisemeBlends = FInworldCharacterVisemeBlends();
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
-	CharacterComponent->ClearMessageQueueLock(CharacterMessageQueueLockHandle);
+	UInworldCharacterMessageQueueFunctionLibrary::UnlockMessage(CharacterMessageQueueLockHandle);
 }

@@ -141,8 +141,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession() const;
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void CancelCurrentInteraction();
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void Interrupt();
+	[[deprecated("UInworldCharacterComponent::CancelCurrentInteraction is deprecated, please use UInworldCharacterComponent::Interrupt")]]
+	void CancelCurrentInteraction() { Interrupt(); }
 
 	UFUNCTION(BlueprintCallable, Category = "Events")
 	bool Register();
@@ -157,12 +159,6 @@ public:
 	{ 
 		return MessageQueue->CurrentMessage;
 	}
-
-	UFUNCTION(BlueprintCallable, Category = "Message")
-	void MakeMessageQueueLock(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle);
-
-	UFUNCTION(BlueprintCallable, Category = "Message")
-	static void ClearMessageQueueLock(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle);
 
 	template<class T>
 	T* GetPlaybackNative()
@@ -186,6 +182,7 @@ protected:
 	FString UiName = "Character";
 
 private:
+	void AddPendingInteraction(const FString& InteractionId);
 
 	virtual void Visit(const FInworldTextEvent& Event) override;
 	virtual void Visit(const FInworldAudioDataEvent& Event) override;
@@ -208,8 +205,6 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitRelation(const FInworldRelationEvent& Event);
 
-	bool IsCustomGesture(const FString& CustomEventName) const;
-
 	void VisitAudioOnClient(const FInworldAudioDataEvent& Event);
 
 	UFUNCTION()
@@ -229,7 +224,9 @@ private:
 	TArray<UInworldCharacterPlayback*> Playbacks;
 
 	TSharedRef<FCharacterMessageQueue> MessageQueue;
-	float TimeToForceQueue = 3.f;
+	FString CurrentInteractionId;
+	TArray<FString> PendingInteractionIds;
+	TArray<FString> CanceledInteractionIds;
 
 	virtual void Handle(const FCharacterMessageUtterance& Message) override;
 	virtual void Interrupt(const FCharacterMessageUtterance& Message) override;
