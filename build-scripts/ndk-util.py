@@ -111,7 +111,6 @@ if build:
                     raise SystemExit('Error (build): Unable to generate NDK.')
      
     with in_path(build_path):
-        print(os.getcwd())
         for command in build_configurations[platform].build:
             if os.system(command) != 0:
                 raise SystemExit('Error (build): Unable to build NDK.')
