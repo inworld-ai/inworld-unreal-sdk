@@ -344,19 +344,19 @@ struct INWORLDAICLIENT_API FInworldRelationEvent : public FInworldPacket
 	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
 
 	UPROPERTY()
-	int32 Attraction;
+	int32 Attraction = 0;
 
 	UPROPERTY()
-	int32 Familiar;
+	int32 Familiar = 0;
 
 	UPROPERTY()
-	int32 Flirtatious;
+	int32 Flirtatious = 0;
 
 	UPROPERTY()
-	int32 Respect;
+	int32 Respect = 0;
 
 	UPROPERTY()
-	int32 Trust;
+	int32 Trust = 0;
 
 protected:
 	virtual void AppendDebugString(FString& Str) const;

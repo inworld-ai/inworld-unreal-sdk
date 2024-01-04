@@ -47,7 +47,7 @@ jobs:
     
     - name: Copy NDK
       run: |
-        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --copy
+        python3 "build-scripts/ndk-util.py" --copy
     - run: mkdir -p TestInworldFPS 
     - uses: actions/checkout@v2
       with:
