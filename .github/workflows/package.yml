@@ -126,7 +126,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: NDK-Source
-          path: InworldAI/Source/ThirdParty/Inworld/NDKLibrary
+          path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
       - uses: actions/download-artifact@v3
         with:
           name: Win-NDK-lib
