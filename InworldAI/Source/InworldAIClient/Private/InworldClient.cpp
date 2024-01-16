@@ -266,7 +266,9 @@ FString FInworldClient::GenerateUserId()
 	FString Id = FPlatformMisc::GetDeviceId();
 	if (Id.IsEmpty())
 	{
+#if PLATFORM_WINDOWS || PLATFORM_MAC
 		Id = FPlatformMisc::GetMacAddressString();
+#endif
 	}
 	if (Id.IsEmpty())
 	{

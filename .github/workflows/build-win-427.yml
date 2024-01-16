@@ -32,7 +32,7 @@ jobs:
     - name: Copy NDK
       run: |
           $pythonPath = (Get-Command python.exe).Source
-          $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList InworldAI\Source\ThirdParty\Inworld\dev-tools\ndk-util.py,--copy
+          $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList build-scripts\ndk-util.py,--copy
           if($process.ExitCode -ne 0)
           {
             exit 1

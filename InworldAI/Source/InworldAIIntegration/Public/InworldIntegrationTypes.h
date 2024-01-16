@@ -64,12 +64,6 @@ public:
 	float STOP = 1.f;
 
 public:
-	float* operator[](const FString& Code)
-	{
-		float** Viseme = TMap<FString, float*>{
-			{"PP", &PP }, {"FF", &FF }, {"TH", &TH }, {"DD", &DD },{"Kk", &Kk }, {"CH", &CH }, {"SS", &SS },
-			{"Nn", &Nn }, {"RR", &RR }, {"Aa", &Aa }, {"E", &E }, {"I", &I }, {"O", &O }, {"U", &U },
-		}.Find(Code);
-		return Viseme != nullptr ? *Viseme : &STOP;
-	}
+	float& operator[](const FString& Code);
+	float& operator[](const FName& Code);
 };
