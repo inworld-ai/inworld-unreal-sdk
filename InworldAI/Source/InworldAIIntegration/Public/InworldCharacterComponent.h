@@ -36,6 +36,7 @@ public:
 	UInworldCharacterComponent();
 
 	virtual void InitializeComponent() override;
+	virtual void UninitializeComponent() override;
 
 	DECLARE_MULTICAST_DELEGATE(FOnInworldCharacterPossessed);
 	FOnInworldCharacterPossessed OnPossessed;
