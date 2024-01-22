@@ -121,6 +121,10 @@ public:
     [[deprecated("UInworldApiSubsystem::SendCustomEvent is deprecated, please use UInworldApiSubsystem::SendTrigger")]]
     void SendCustomEvent(const FString& AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
 
+    /** Send narration to agent */
+	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
+	void SendNarrationEvent(const FString& AgentId, const FString& Content);
+
     /**
      * Send audio to agent
      * start audio session before sending audio

@@ -396,6 +396,11 @@ void FInworldClient::SendChangeSceneEvent(const FString& SceneName)
 	InworldClient->SendChangeSceneEvent(TCHAR_TO_UTF8(*SceneName));
 }
 
+void FInworldClient::SendNarrationEvent(const FString& AgentId, const FString& Content)
+{
+	InworldClient->SendNarrationEvent(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*Content));
+}
+
 void FInworldClient::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
 	std::vector<std::string> utteranceIds;
