@@ -17,6 +17,7 @@
 #include <GameFramework/PlayerController.h>
 
 #include <Engine/NetConnection.h>
+#include <Engine/World.h>
 
 void UInworldAudioRepl::PostLoad()
 {

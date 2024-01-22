@@ -11,6 +11,8 @@
 #include "InworldCharacterPlaybackAudio.h"
 #include "InworldCharacterComponent.h"
 #include "InworldBlueprintFunctionLibrary.h"
+#include "Sound/SoundWave.h"
+#include "TimerManager.h"
 #include <Components/AudioComponent.h>
 
 void UInworldCharacterPlaybackAudio::BeginPlay_Implementation()
@@ -146,8 +148,8 @@ void UInworldCharacterPlaybackAudio::OnAudioPlaybackPercent(const UAudioComponen
 	const float Blend = (CurrentAudioPlaybackTime - PreviousVisemeInfo.Timestamp) / (CurrentVisemeInfo.Timestamp - PreviousVisemeInfo.Timestamp);
 
 	VisemeBlends.STOP = 0.f;
-	*VisemeBlends[PreviousVisemeInfo.Code] = FMath::Clamp(1.f - Blend, 0.f, 1.f);
-	*VisemeBlends[CurrentVisemeInfo.Code] = FMath::Clamp(Blend, 0.f, 1.f);
+	VisemeBlends[PreviousVisemeInfo.Code] = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	VisemeBlends[CurrentVisemeInfo.Code] = FMath::Clamp(Blend, 0.f, 1.f);
 
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
 }
