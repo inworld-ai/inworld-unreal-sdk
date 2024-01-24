@@ -33,7 +33,8 @@ for subdir, dirs, files in os.walk(os.path.join(temp_path, 'Copy', 'Source')):
             file.write(filedata)
 
 commands = {
-    'Win64': r'"C:\Program Files\Epic Games\UE_{unreal_version}\Engine\Build\BatchFiles\RunUAT.bat" BuildPlugin -plugin="{temp_path}\Copy\InworldAI.uplugin" -TargetPlatforms=Win64 -package="{output_dir}"'
+    'Win64': r'"C:\Program Files\Epic Games\UE_{unreal_version}\Engine\Build\BatchFiles\RunUAT.bat" BuildPlugin -plugin="{temp_path}\Copy\InworldAI.uplugin" -TargetPlatforms=Win64 -package="{output_dir}"',
+    'Mac': r'"/Users/Shared/Epic Games/UE_{unreal_version}/Engine/Build/BatchFiles/RunUAT.sh" BuildPlugin -plugin="{temp_path}/Copy/InworldAI.uplugin" -TargetPlatforms=Mac -package="{output_dir}"'
 }
 
 platform = ''
@@ -66,7 +67,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 command = commands[platform].format(unreal_version = unreal_version, temp_path = temp_path, output_dir = output_dir)
-if subprocess.run(command).returncode != 0:
+if subprocess.run(command, shell=True).returncode != 0:
     raise SystemExit('Error (command): failed to run {command}'.format(command = command))
 
 def del_dir(path):
