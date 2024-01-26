@@ -116,7 +116,7 @@ void UInworldPlayerTargetingComponent::ClearTargetCharacter()
 {
     if (PlayerComponent->GetTargetCharacter() && ChangeTargetCharacterTimer.CheckPeriod(GetWorld()))
     {
-        PlayerComponent->ClearTargetInworldCharacter();
+        PlayerComponent->ClearAllTargetInworldCharacters();
     }
 }
 

@@ -114,10 +114,16 @@ public:
     /** Send text to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages")
     void SendTextMessage(const FString& AgentId, const FString& Text);
+    /** Send text to multiple agents */
+	UFUNCTION(BlueprintCallable, Category = "Messages")
+    void SendTextMessageMult(const TArray<FString>& AgentIds, const FString& Text);
 
     /** Send trigger to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
 	void SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params);
+    /** Send trigger to multiple agents */
+	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
+	void SendTriggerMult(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
     [[deprecated("UInworldApiSubsystem::SendCustomEvent is deprecated, please use UInworldApiSubsystem::SendTrigger")]]
     void SendCustomEvent(const FString& AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
 
@@ -130,11 +136,13 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Messages")
 	void SendAudioMessage(const FString& AgentId, USoundWave* SoundWave);
     void SendAudioDataMessage(const FString& AgentId, const TArray<uint8>& Data);
+    void SendAudioDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data);
 
 
     UFUNCTION(BlueprintCallable, Category = "Messages")
 	void SendAudioMessageWithAEC(const FString& AgentId, USoundWave* InputWave, USoundWave* OutputWave);
 	void SendAudioDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+    void SendAudioDataMessageWithAEC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
     
     /**
      * Start audio session with agent
@@ -142,6 +150,8 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
     void StartAudioSession(const FString& AgentId);
+    UFUNCTION(BlueprintCallable, Category = "Audio")
+    void StartAudioSessionMulti(const TArray<FString>& AgentIds);
 
     /**
      * Stop audio session with agent
@@ -149,6 +159,8 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
     void StopAudioSession(const FString& AgentId);
+    UFUNCTION(BlueprintCallable, Category = "Audio")
+    void StopAudioSessionMulti(const TArray<FString>& AgentIds);
 
     /** Change scene */
     UFUNCTION(BlueprintCallable, Category = "Messages")
@@ -206,6 +218,9 @@ private:
 	void DispatchPacket(TSharedPtr<FInworldPacket> InworldPacket);
 
     virtual void Visit(const FInworldChangeSceneEvent& Event) override;
+
+    template<typename T>
+    void TSendTrigger(T AgentId, const FString& Name, const TMap<FString, FString>& Params);
 
     UPROPERTY(EditAnywhere, config, Category = "Connection")
     FString SentryDSN;
