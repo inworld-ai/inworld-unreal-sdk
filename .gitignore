@@ -15,10 +15,6 @@
 *.so
 *.dylib
 *.dll
-!InworldAI/Source/ThirdParty/Inworld/lib/Win64/webrtc_aec_plugin.dll
-!InworldAI/Source/ThirdParty/Inworld/lib/Mac/*.dylib
-!InworldAI/Source/ThirdParty/Inworld/lib/Mac/arm64/*.dylib
-!InworldAI/Source/ThirdParty/Inworld/lib/Mac/x86_64/*.dylib
 
 # Fortran module files
 *.mod
@@ -27,11 +23,6 @@
 *.lai
 *.la
 *.a
-!InworldAI/Source/ThirdParty/Inworld/lib/Mac/*.a
-!InworldAI/Source/ThirdParty/Inworld/lib/Mac/arm64/*.a
-!InworldAI/Source/ThirdParty/Inworld/lib/Mac/x86_64/*.a
-!InworldAI/Source/ThirdParty/Inworld/lib/iOS/Clang-1300/*.a
-!InworldAI/Source/ThirdParty/Inworld/lib/Android/arm64-v8a/*.a
 
 # Executables
 *.exe
@@ -87,9 +78,8 @@ InworldAI/DerivedDataCache/*
 InworldMetahuman/DerivedDataCache/*
 
 # Copied NDK sources
-InworldAI/Source/InworldAINdk/Public/NDK/*
-InworldAI/Source/ThirdParty/Inworld/include/*
-InworldAI/Source/ThirdParty/Inworld/lib/*
-InworldAI/Source/ThirdParty/Inworld/src/*
+InworldAI/Source/ThirdParty/InworldAINDKLibrary/include/*
+InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/*
+InworldAI/Source/ThirdParty/InworldAINDKLibrary/src/*
 
 package-release/*

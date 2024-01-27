@@ -10,6 +10,7 @@
 #include "CoreMinimal.h"
 #include "InworldSockets.h"
 #include "IPAddress.h"
+#include "Tickable.h"
 
 #include "InworldAudioRepl.generated.h"
 
