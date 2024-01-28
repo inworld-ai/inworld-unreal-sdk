@@ -483,11 +483,11 @@ void UInworldCharacterComponent::Multicast_VisitRelation_Implementation(const FI
 
 	MessageQueue->AddOrUpdateMessage<FCharacterMessageTrigger>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
 		MessageToUpdate->Name = TEXT("inworld.relation.update");
-		if (Event.Attraction != 0) MessageToUpdate->Params.Add(TEXT("Attraction"), FString::FromInt(Event.Attraction));
-		if (Event.Familiar != 0) MessageToUpdate->Params.Add(TEXT("Familiar"), FString::FromInt(Event.Familiar));
-		if (Event.Flirtatious != 0) MessageToUpdate->Params.Add(TEXT("Flirtatious"), FString::FromInt(Event.Flirtatious));
-		if (Event.Respect != 0) MessageToUpdate->Params.Add(TEXT("Respect"), FString::FromInt(Event.Respect));
-		if (Event.Trust != 0) MessageToUpdate->Params.Add(TEXT("Trust"), FString::FromInt(Event.Trust));
+		MessageToUpdate->Params.Add(TEXT("Attraction"), FString::FromInt(Event.Attraction));
+		MessageToUpdate->Params.Add(TEXT("Familiar"), FString::FromInt(Event.Familiar));
+		MessageToUpdate->Params.Add(TEXT("Flirtatious"), FString::FromInt(Event.Flirtatious));
+		MessageToUpdate->Params.Add(TEXT("Respect"), FString::FromInt(Event.Respect));
+		MessageToUpdate->Params.Add(TEXT("Trust"), FString::FromInt(Event.Trust));
 	});
 }
 
@@ -559,10 +559,7 @@ void UInworldCharacterComponent::Visit(const FInworldCustomEvent& Event)
 
 void UInworldCharacterComponent::Visit(const FInworldRelationEvent& Event)
 {
-	if (Event.Attraction || Event.Familiar || Event.Flirtatious || Event.Respect || Event.Trust)
-	{
-		Multicast_VisitRelation(Event);
-	}
+	Multicast_VisitRelation(Event);
 }
 
 void UInworldCharacterComponent::Handle(const FCharacterMessageUtterance& Message)
