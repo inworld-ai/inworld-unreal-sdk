@@ -336,8 +336,8 @@ If you have any questions about this Agreement, please contact us at
         Inworld and attempt to resolve the claim informally by sending a
         written notice of your claim ("***Notice***") to Inworld by email at
         [legal\@inworld.ai](mailto:support@inworld.ai) or by certified mail
-        addressed to 800 W El Camino Real Suite 180, Mountain View,
-        CA 94040. The Notice must: (a) include your name, residence address,
+        addressed to 1975 W El Camino Real #300, Mountain View, CA 94040
+        . The Notice must: (a) include your name, residence address,
         email address, and telephone number; (b) describe the nature and
         basis of the Dispute; and (c) set forth the specific relief sought.
         Our notice to you will be similar in form to that described above.
