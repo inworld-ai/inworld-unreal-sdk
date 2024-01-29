@@ -1,3 +1,6 @@
+# 1.4.3
+- Fix NDK logging
+
 # 1.4.2
 - Improved metahuman face assets
 - Add studio widget directly to tools menu
