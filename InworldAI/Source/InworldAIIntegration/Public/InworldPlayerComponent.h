@@ -62,7 +62,7 @@ public:
     void ClearAllTargetInworldCharacters();
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-    bool IsInteracting() { return !Targets.IsEmpty(); }
+    bool IsInteracting() { return Targets.Num() != 0; }
 
     UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Interaction")
     void SendTextMessageToTarget(const FString& Message);

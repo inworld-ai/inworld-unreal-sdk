@@ -285,7 +285,7 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
     {
         const bool bIsMicHot = !bMuted;
         const bool bIsWorldPlaying = !GetWorld()->IsPaused();
-        const bool bHasTargetCharacter = !PlayerAudioTarget.AgentIds.IsEmpty();
+        const bool bHasTargetCharacter = PlayerAudioTarget.AgentIds.Num() != 0;
         const bool bHasActiveInworldSession = InworldSubsystem.IsValid() && (InworldSubsystem->GetConnectionState() == EInworldConnectionState::Connected || InworldSubsystem->GetConnectionState() == EInworldConnectionState::Reconnecting);
 
         const bool bShouldCaptureVoice = bIsMicHot && bIsWorldPlaying && bHasTargetCharacter && bHasActiveInworldSession;
@@ -410,7 +410,7 @@ void UInworldPlayerAudioCaptureComponent::StopCapture()
 
 void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implementation(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo)
 {
-    if (!PlayerAudioTarget.AgentIds.IsEmpty())
+    if (!PlayerAudioTarget.AgentIds.Num() == 0)
     {
         if (bEnableAEC)
         {
@@ -418,7 +418,7 @@ void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implem
             {
                 InworldSubsystem->SendAudioDataMessageWithAEC(PlayerAudioTarget.AgentIds[0], PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
             }
-            else if (!PlayerAudioTarget.AgentIds.IsEmpty())
+            else if (!PlayerAudioTarget.AgentIds.Num() == 0)
             {
                 InworldSubsystem->SendAudioDataMessageWithAEC(PlayerAudioTarget.AgentIds, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
             }
@@ -429,7 +429,7 @@ void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implem
             {
                 InworldSubsystem->SendAudioDataMessage(PlayerAudioTarget.AgentIds[0], PlayerVoiceCaptureInfo.MicSoundData);
             }
-            else if (!PlayerAudioTarget.AgentIds.IsEmpty())
+            else if (!PlayerAudioTarget.AgentIds.Num() == 0)
             {
                 InworldSubsystem->SendAudioDataMessage(PlayerAudioTarget.AgentIds, PlayerVoiceCaptureInfo.MicSoundData);
             }

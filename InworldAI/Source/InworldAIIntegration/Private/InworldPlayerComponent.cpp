@@ -55,7 +55,7 @@ void UInworldPlayerComponent::ContinueMultiAgentConversation()
 Inworld::ICharacterComponent* UInworldPlayerComponent::GetTargetCharacter()
 {
     // TODO: deprecate?
-    if (Targets.IsEmpty())
+    if (Targets.Num() == 0)
     {
         return nullptr;
     }

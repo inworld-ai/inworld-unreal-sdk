@@ -255,7 +255,7 @@ void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString
 
 void UInworldApiSubsystem::SendTextMessageMult(const TArray<FString>& AgentIds, const FString& Text)
 {
-    if (!ensureMsgf(!AgentIds.IsEmpty(), TEXT("AgentIds must be valid!")))
+    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
     {
         return;
     }
@@ -317,7 +317,7 @@ void UInworldApiSubsystem::SendAudioDataMessage(const FString& AgentId, const TA
 
 void UInworldApiSubsystem::SendAudioDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data)
 {
-    if (!ensureMsgf(!AgentIds.IsEmpty(), TEXT("AgentIdss must be valid!")))
+    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIdss must be valid!")))
     {
         return;
     }
@@ -347,7 +347,7 @@ void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const FString& AgentId, c
 
 void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    if (!ensureMsgf(!AgentIds.IsEmpty(), TEXT("AgentIds must be valid!")))
+    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
     {
         return;
     }
@@ -367,7 +367,7 @@ void UInworldApiSubsystem::StartAudioSession(const FString& AgentId)
 
 void UInworldApiSubsystem::StartAudioSessionMulti(const TArray<FString>& AgentIds)
 {
-    if (!ensureMsgf(!AgentIds.IsEmpty(), TEXT("AgentIds must be valid!")))
+    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
     {
         return;
     }
@@ -393,7 +393,7 @@ void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
 
 void UInworldApiSubsystem::StopAudioSessionMulti(const TArray<FString>& AgentIds)
 {
-    if (!ensureMsgf(!AgentIds.IsEmpty(), TEXT("AgentIds must be valid!")))
+    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
     {
         return;
     }

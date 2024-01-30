@@ -78,7 +78,7 @@ void FInworldGameplayDebuggerCategory::CollectData(APlayerController* OwnerPC, A
 
 		auto& Data = DataPack.PlayerData.Emplace_GetRef();
 		//TODO: support multi agent
-		Data.TargetCharacterAgentId = PlayerComp->Targets.IsEmpty() ? "" : PlayerComp->Targets[0].AgentId;
+		Data.TargetCharacterAgentId = (PlayerComp->Targets.Num() == 0) ? "" : PlayerComp->Targets[0].AgentId;
 		Data.bServerCapturingVoice = AudioComp->bServerCapturingVoice;
 	}
 }
