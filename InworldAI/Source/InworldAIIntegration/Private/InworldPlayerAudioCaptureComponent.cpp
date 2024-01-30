@@ -294,25 +294,7 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
         {
             if (bShouldCaptureVoice)
             {
-                if (PlayerAudioTarget.AgentIds.Num() == 1)
-                {
-                    InworldSubsystem->StartAudioSession(PlayerAudioTarget.AgentIds[0]);
-                }
-                else if (!PlayerAudioTarget.AgentIds.IsEmpty())
-                {
-                    InworldSubsystem->StartAudioSessionMulti(PlayerAudioTarget.AgentIds);
-                }
-            }
-            else
-            {
-                if (PlayerAudioTarget.AgentIds.Num() == 1)
-                {
-                    InworldSubsystem->StopAudioSession(PlayerAudioTarget.AgentIds[0]);
-                }
-                else if (!PlayerAudioTarget.AgentIds.IsEmpty())
-                {
-                    InworldSubsystem->StopAudioSessionMulti(PlayerAudioTarget.AgentIds);
-                }
+                InworldSubsystem->StartAudioSessionMulti(PlayerAudioTarget.AgentIds);
             }
 
             bServerCapturingVoice = bShouldCaptureVoice;

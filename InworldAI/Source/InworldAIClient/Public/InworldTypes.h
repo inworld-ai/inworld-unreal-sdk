@@ -67,6 +67,9 @@ struct FInworldCapabilitySet
 
     UPROPERTY(BlueprintReadWrite, Category = "Capability")
     bool LoadSceneInSession = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    bool MultiAgent = true;
 };
 
 USTRUCT(BlueprintType)

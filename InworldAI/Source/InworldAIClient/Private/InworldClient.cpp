@@ -198,6 +198,7 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 	Options.Capabilities.SilenceEvents = Capabilities.SilenceEvents;
 	Options.Capabilities.PhonemeInfo = Capabilities.PhonemeInfo;
 	Options.Capabilities.LoadSceneInSession = Capabilities.LoadSceneInSession;
+	Options.Capabilities.Multiagent = Capabilities.MultiAgent;
 
 	Inworld::SessionInfo Info;
 	Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);

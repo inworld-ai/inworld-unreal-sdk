@@ -372,6 +372,12 @@ void UInworldApiSubsystem::StartAudioSessionMulti(const TArray<FString>& AgentId
         return;
     }
 
+    if (AgentIds.Num() == 1)
+    {
+        Client->StartAudioSession(AgentIds[0]);
+        return;
+    }
+
     Client->StartAudioSession(AgentIds);
 }
 
@@ -389,6 +395,12 @@ void UInworldApiSubsystem::StopAudioSessionMulti(const TArray<FString>& AgentIds
 {
     if (!ensureMsgf(!AgentIds.IsEmpty(), TEXT("AgentIds must be valid!")))
     {
+        return;
+    }
+
+    if (AgentIds.Num() == 1)
+    {
+        Client->StopAudioSession(AgentIds[0]);
         return;
     }
 
@@ -511,12 +523,6 @@ void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPack
 	if (SourceComponentPtr)
 	{
 		(*SourceComponentPtr)->HandlePacket(InworldPacket);
-	}
-
-	auto* TargetComponentPtr = CharacterComponentByAgentId.Find(InworldPacket->Routing.Target.Name);
-	if (TargetComponentPtr)
-	{
-		(*TargetComponentPtr)->HandlePacket(InworldPacket);
 	}
 
     if (ensure(InworldPacket))
