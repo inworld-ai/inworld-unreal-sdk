@@ -410,7 +410,7 @@ void UInworldPlayerAudioCaptureComponent::StopCapture()
 
 void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implementation(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo)
 {
-    if (!PlayerAudioTarget.AgentIds.Num() == 0)
+    if (PlayerAudioTarget.AgentIds.Num() == 0)
     {
         if (bEnableAEC)
         {
@@ -418,7 +418,7 @@ void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implem
             {
                 InworldSubsystem->SendAudioDataMessageWithAEC(PlayerAudioTarget.AgentIds[0], PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
             }
-            else if (!PlayerAudioTarget.AgentIds.Num() == 0)
+            else if (PlayerAudioTarget.AgentIds.Num() == 0)
             {
                 InworldSubsystem->SendAudioDataMessageWithAEC(PlayerAudioTarget.AgentIds, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
             }
@@ -429,7 +429,7 @@ void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implem
             {
                 InworldSubsystem->SendAudioDataMessage(PlayerAudioTarget.AgentIds[0], PlayerVoiceCaptureInfo.MicSoundData);
             }
-            else if (!PlayerAudioTarget.AgentIds.Num() == 0)
+            else if (PlayerAudioTarget.AgentIds.Num() == 0)
             {
                 InworldSubsystem->SendAudioDataMessage(PlayerAudioTarget.AgentIds, PlayerVoiceCaptureInfo.MicSoundData);
             }
