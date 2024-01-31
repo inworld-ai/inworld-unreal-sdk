@@ -97,7 +97,7 @@ void UInworldPlayerComponent::SetTargetInworldCharacter(UInworldCharacterCompone
         return;
     }
 
-    if (Targets.FindByPredicate([Character](const auto& T) { return Character->GetAgentId() == T.AgentId; }))
+    if (Targets.FindByPredicate([Character](const auto& T) { return Character->GetAgentId() == T.AgentId; }) != nullptr)
     {
         return;
     }
@@ -133,9 +133,10 @@ void UInworldPlayerComponent::ClearTargetInworldCharacter(UInworldCharacterCompo
 
 void UInworldPlayerComponent::ClearAllTargetInworldCharacters()
 {
-    for (auto& Target : Targets)
+    const int32 NumTargets = Targets.Num();
+    for (int32 i = 0; i < NumTargets; i++)
     {
-        UInworldCharacterComponent* TargetCharacter = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(Target.AgentId));
+        UInworldCharacterComponent* TargetCharacter = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(Targets[0].AgentId));
         ClearTargetInworldCharacter(TargetCharacter);
     }
 }

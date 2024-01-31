@@ -410,7 +410,7 @@ void UInworldPlayerAudioCaptureComponent::StopCapture()
 
 void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implementation(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo)
 {
-    if (PlayerAudioTarget.AgentIds.Num() == 0)
+    if (PlayerAudioTarget.AgentIds.Num() != 0)
     {
         if (bEnableAEC)
         {
