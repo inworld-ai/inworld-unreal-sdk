@@ -274,8 +274,7 @@ void UInworldApiSubsystem::SendTextMessageMult(const TArray<FString>& AgentIds, 
     }
 }
 
-template<typename T>
-void UInworldApiSubsystem::TSendTrigger(T AgentId, const FString& Name, const TMap<FString, FString>& Params)
+void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
 {
     if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
     {
@@ -285,14 +284,14 @@ void UInworldApiSubsystem::TSendTrigger(T AgentId, const FString& Name, const TM
     Client->SendCustomEvent(AgentId, Name, Params);
 }
 
-void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
-{
-    TSendTrigger(AgentId, Name, Params);
-}
-
 void UInworldApiSubsystem::SendTriggerMult(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params)
 {
-    TSendTrigger(AgentIds, Name, Params);
+    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentId must be valid!")))
+    {
+        return;
+    }
+
+    Client->SendCustomEvent(AgentIds, Name, Params);
 }
 
 void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, USoundWave* SoundWave)

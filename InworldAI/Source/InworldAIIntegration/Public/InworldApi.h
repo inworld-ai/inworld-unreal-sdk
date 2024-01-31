@@ -219,9 +219,6 @@ private:
 
     virtual void Visit(const FInworldChangeSceneEvent& Event) override;
 
-    template<typename T>
-    void TSendTrigger(T AgentId, const FString& Name, const TMap<FString, FString>& Params);
-
     UPROPERTY(EditAnywhere, config, Category = "Connection")
     FString SentryDSN;
 
