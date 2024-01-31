@@ -237,23 +237,10 @@ void UInworldApiSubsystem::UpdateCharacterComponentRegistrationOnClient(Inworld:
 
 void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)
 {
-    if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-    {
-        return;
-    }
-
-    TSharedPtr<FInworldPacket> Packet = Client->SendTextMessage(AgentId, Text);
-    if (Packet.IsValid())
-    {
-        auto* AgentComponentPtr = CharacterComponentByAgentId.Find(AgentId);
-        if (AgentComponentPtr)
-        {
-            (*AgentComponentPtr)->HandlePacket(Packet);
-        }
-    }
+    SendTextMessageMultiAgent({ AgentId }, Text);
 }
 
-void UInworldApiSubsystem::SendTextMessageMult(const TArray<FString>& AgentIds, const FString& Text)
+void UInworldApiSubsystem::SendTextMessageMultiAgent(const TArray<FString>& AgentIds, const FString& Text)
 {
     if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
     {
@@ -276,15 +263,10 @@ void UInworldApiSubsystem::SendTextMessageMult(const TArray<FString>& AgentIds, 
 
 void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
 {
-    if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-    {
-        return;
-    }
-
-    Client->SendCustomEvent(AgentId, Name, Params);
+    SendTriggerMultiAgent({ AgentId }, Name, Params);
 }
 
-void UInworldApiSubsystem::SendTriggerMult(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params)
+void UInworldApiSubsystem::SendTriggerMultiAgent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params)
 {
     if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentId must be valid!")))
     {
@@ -301,17 +283,12 @@ void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, USoundWave* 
 		return;
 	}
 
-    Client->SendSoundMessage(AgentId, SoundWave);
+    Client->SendSoundMessage({ AgentId }, SoundWave);
 }
 
 void UInworldApiSubsystem::SendAudioDataMessage(const FString& AgentId, const TArray<uint8>& Data)
 {
-	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-	{
-		return;
-	}
-
-    Client->SendSoundDataMessage(AgentId, Data);
+    SendAudioDataMessage(TArray<FString>{ AgentId }, Data);
 }
 
 void UInworldApiSubsystem::SendAudioDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data)
@@ -331,17 +308,12 @@ void UInworldApiSubsystem::SendAudioMessageWithAEC(const FString& AgentId, USoun
 		return;
 	}
 
-    Client->SendSoundMessageWithEAC(AgentId, InputWave, OutputWave);
+    Client->SendSoundMessageWithEAC({ AgentId }, InputWave, OutputWave);
 }
 
 void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-	{
-		return;
-	}
-
-    Client->SendSoundDataMessageWithEAC(AgentId, InputData, OutputData);
+    SendAudioDataMessageWithAEC(TArray<FString>{ AgentId }, InputData, OutputData);
 }
 
 void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
@@ -356,24 +328,13 @@ void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const TArray<FString>& Ag
 
 void UInworldApiSubsystem::StartAudioSession(const FString& AgentId)
 {
-	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-	{
-		return;
-	}
-
-    Client->StartAudioSession(AgentId);
+    StartAudioSessionMultiAgent({ AgentId });
 }
 
-void UInworldApiSubsystem::StartAudioSessionMulti(const TArray<FString>& AgentIds)
+void UInworldApiSubsystem::StartAudioSessionMultiAgent(const TArray<FString>& AgentIds)
 {
     if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
     {
-        return;
-    }
-
-    if (AgentIds.Num() == 1)
-    {
-        Client->StartAudioSession(AgentIds[0]);
         return;
     }
 
@@ -382,24 +343,13 @@ void UInworldApiSubsystem::StartAudioSessionMulti(const TArray<FString>& AgentId
 
 void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
 {
-	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-	{
-		return;
-	}
-
-    Client->StopAudioSession(AgentId);
+    StopAudioSessionMultiAgent({ AgentId });
 }
 
-void UInworldApiSubsystem::StopAudioSessionMulti(const TArray<FString>& AgentIds)
+void UInworldApiSubsystem::StopAudioSessionMultiAgent(const TArray<FString>& AgentIds)
 {
     if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
     {
-        return;
-    }
-
-    if (AgentIds.Num() == 1)
-    {
-        Client->StopAudioSession(AgentIds[0]);
         return;
     }
 

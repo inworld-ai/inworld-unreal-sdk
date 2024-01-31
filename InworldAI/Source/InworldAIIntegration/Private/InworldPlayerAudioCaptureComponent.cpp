@@ -294,7 +294,7 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
         {
             if (bShouldCaptureVoice)
             {
-                InworldSubsystem->StartAudioSessionMulti(PlayerAudioTarget.AgentIds);
+                InworldSubsystem->StartAudioSessionMultiAgent(PlayerAudioTarget.AgentIds);
             }
 
             bServerCapturingVoice = bShouldCaptureVoice;
@@ -414,25 +414,11 @@ void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implem
     {
         if (bEnableAEC)
         {
-            if (PlayerAudioTarget.AgentIds.Num() == 1)
-            {
-                InworldSubsystem->SendAudioDataMessageWithAEC(PlayerAudioTarget.AgentIds[0], PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
-            }
-            else if (PlayerAudioTarget.AgentIds.Num() == 0)
-            {
-                InworldSubsystem->SendAudioDataMessageWithAEC(PlayerAudioTarget.AgentIds, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
-            }
+            InworldSubsystem->SendAudioDataMessageWithAEC(PlayerAudioTarget.AgentIds, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
         }
         else
         {
-            if (PlayerAudioTarget.AgentIds.Num() == 1)
-            {
-                InworldSubsystem->SendAudioDataMessage(PlayerAudioTarget.AgentIds[0], PlayerVoiceCaptureInfo.MicSoundData);
-            }
-            else if (PlayerAudioTarget.AgentIds.Num() == 0)
-            {
-                InworldSubsystem->SendAudioDataMessage(PlayerAudioTarget.AgentIds, PlayerVoiceCaptureInfo.MicSoundData);
-            }
+            InworldSubsystem->SendAudioDataMessage(PlayerAudioTarget.AgentIds, PlayerVoiceCaptureInfo.MicSoundData);
         }
     }
 }
@@ -453,7 +439,7 @@ void UInworldPlayerAudioCaptureComponent::OnPlayerTargetSet(UInworldCharacterCom
 
     if (bServerCapturingVoice)
     {
-        InworldSubsystem->StopAudioSessionMulti(PlayerAudioTarget.AgentIds);
+        InworldSubsystem->StopAudioSessionMultiAgent(PlayerAudioTarget.AgentIds);
         bServerCapturingVoice = false;
     }
 
@@ -471,7 +457,7 @@ void UInworldPlayerAudioCaptureComponent::OnPlayerTargetClear(UInworldCharacterC
 
     if (bServerCapturingVoice)
     {
-        InworldSubsystem->StopAudioSessionMulti(PlayerAudioTarget.AgentIds);
+        InworldSubsystem->StopAudioSessionMultiAgent(PlayerAudioTarget.AgentIds);
         bServerCapturingVoice = false;
     }
 

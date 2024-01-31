@@ -116,14 +116,14 @@ public:
     void SendTextMessage(const FString& AgentId, const FString& Text);
     /** Send text to multiple agents */
 	UFUNCTION(BlueprintCallable, Category = "Messages")
-    void SendTextMessageMult(const TArray<FString>& AgentIds, const FString& Text);
+    void SendTextMessageMultiAgent(const TArray<FString>& AgentIds, const FString& Text);
 
     /** Send trigger to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
 	void SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params);
     /** Send trigger to multiple agents */
 	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
-	void SendTriggerMult(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
+	void SendTriggerMultiAgent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
     [[deprecated("UInworldApiSubsystem::SendCustomEvent is deprecated, please use UInworldApiSubsystem::SendTrigger")]]
     void SendCustomEvent(const FString& AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
 
@@ -151,7 +151,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Audio")
     void StartAudioSession(const FString& AgentId);
     UFUNCTION(BlueprintCallable, Category = "Audio")
-    void StartAudioSessionMulti(const TArray<FString>& AgentIds);
+    void StartAudioSessionMultiAgent(const TArray<FString>& AgentIds);
 
     /**
      * Stop audio session with agent
@@ -160,7 +160,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Audio")
     void StopAudioSession(const FString& AgentId);
     UFUNCTION(BlueprintCallable, Category = "Audio")
-    void StopAudioSessionMulti(const TArray<FString>& AgentIds);
+    void StopAudioSessionMultiAgent(const TArray<FString>& AgentIds);
 
     /** Change scene */
     UFUNCTION(BlueprintCallable, Category = "Messages")

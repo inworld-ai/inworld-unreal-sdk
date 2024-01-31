@@ -43,6 +43,8 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacter"))
     UInworldCharacterComponent* GetTargetInworldCharacter() { return static_cast<UInworldCharacterComponent*>(GetTargetCharacter()); }
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacters"))
+    TArray<UInworldCharacterComponent*> GetTargetInworldCharacters();
 
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     TArray<FString> GetTargetAgentIds();

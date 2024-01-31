@@ -49,25 +49,17 @@ public:
 
 	FString GetSessionId() const;
 
-	TSharedPtr<FInworldPacket> SendTextMessage(const FString& AgentId, const FString& Text);
 	TSharedPtr<FInworldPacket> SendTextMessage(const TArray<FString>& AgentIds, const FString& Text);
 
-	void SendSoundMessage(const FString& AgentId, class USoundWave* Sound);
 	void SendSoundMessage(const TArray<FString>& AgentIds, class USoundWave* Sound);
-	void SendSoundDataMessage(const FString& AgentId, const TArray<uint8>& Data);
 	void SendSoundDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data);
 
-	void SendSoundMessageWithEAC(const FString& AgentId, class USoundWave* Input, class USoundWave* Output);
 	void SendSoundMessageWithEAC(const TArray<FString>& AgentIds, class USoundWave* Input, class USoundWave* Output);
-	void SendSoundDataMessageWithEAC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 	void SendSoundDataMessageWithEAC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
-	void StartAudioSession(const FString& AgentId);
 	void StartAudioSession(const TArray<FString>& AgentIds);
-	void StopAudioSession(const FString& AgentId);
 	void StopAudioSession(const TArray<FString>& AgentIds);
 
-	void SendCustomEvent(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params);
 	void SendCustomEvent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
 	void SendChangeSceneEvent(const FString& SceneName);
 
