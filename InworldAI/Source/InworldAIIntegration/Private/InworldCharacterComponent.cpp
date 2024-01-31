@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -27,15 +27,42 @@ void UInworldCharacterComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 
+#if WITH_EDITOR
+	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
+	{
+		return;
+	}
+#endif
+
     if (GetNetMode() != NM_DedicatedServer)
     {
         for (auto& Type : PlaybackTypes)
         {
-            auto* Pb = NewObject<UInworldCharacterPlayback>(this, Type);
-            Pb->SetCharacterComponent(this);
-            Playbacks.Add(Pb);
+			if (ensureMsgf(Type != nullptr, TEXT("UInworldCharacterComponent contains null playback type!")))
+			{
+				auto* Pb = NewObject<UInworldCharacterPlayback>(this, Type);
+				Pb->SetCharacterComponent(this);
+				Playbacks.Add(Pb);
+			}
         }
     }
+}
+
+void UInworldCharacterComponent::UninitializeComponent()
+{
+	Super::UninitializeComponent();
+
+#if WITH_EDITOR
+	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
+	{
+		return;
+	}
+#endif
+
+	if (GetNetMode() != NM_DedicatedServer)
+	{
+		Playbacks.Empty();
+	}
 }
 
 void UInworldCharacterComponent::BeginPlay()
