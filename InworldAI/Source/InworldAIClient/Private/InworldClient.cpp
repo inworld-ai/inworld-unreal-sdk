@@ -34,8 +34,6 @@ const FString DefaultTargetUrl = "api-engine.inworld.ai:443";
 
 #if !UE_BUILD_SHIPPING
 
-#include "AudioSessionDumper.h"
-
 static TAutoConsoleVariable<bool> CVarEnableSoundDump(
 	TEXT("Inworld.Debug.EnableSoundDump"), false,
 	TEXT("Enable/Disable recording audio input to dump file")
@@ -124,16 +122,12 @@ void FInworldClient::Init()
 #if !UE_BUILD_SHIPPING
 	auto OnAudioDumperCVarChangedCallback = [this](bool bEnable, FString Path)
 	{
-		if (AsyncAudioDumper.IsValid())
-		{
-			AsyncAudioDumper->Stop();
-			AsyncAudioDumper.Reset();
-		}
+		const std::string DumpPath = TCHAR_TO_UTF8(*CVarSoundDumpPath.GetValueOnGameThread());
+		InworldClient->SetAudioDumpEnabled(false, DumpPath);
 
 		if (bEnable)
 		{
-			AsyncAudioDumper = MakeShared<FAsyncAudioDumper>();
-			AsyncAudioDumper->Start(Path);
+			InworldClient->SetAudioDumpEnabled(true, DumpPath);
 		}
 	};
 	OnAudioDumperCVarChangedHandle = OnAudioDumperCVarChanged.AddLambda(OnAudioDumperCVarChangedCallback);
@@ -144,11 +138,6 @@ void FInworldClient::Init()
 void FInworldClient::Destroy()
 {
 #if !UE_BUILD_SHIPPING
-	if (AsyncAudioDumper.IsValid())
-	{
-		AsyncAudioDumper->Stop();
-		AsyncAudioDumper.Reset();
-	}
 	OnAudioDumperCVarChanged.Remove(OnAudioDumperCVarChangedHandle);
 #endif
 	if (InworldClient)
@@ -314,27 +303,12 @@ TSharedPtr<FInworldPacket> FInworldClient::SendTextMessage(const FString& AgentI
 	return PacketTranslator.GetPacket();
 }
 
-#if !UE_BUILD_SHIPPING
-void DumpAudio(TSharedPtr<class FAsyncAudioDumper> AudioDumper, std::shared_ptr<Inworld::DataEvent> DataEvent)
-{
-	if (AudioDumper.IsValid())
-	{
-		std::string data = DataEvent->GetDataChunk();
-		TArray<uint8> Chunk((uint8*)data.data(), data.size());
-		AudioDumper->QueueChunk(Chunk);
-	}
-}
-#endif
-
 void FInworldClient::SendSoundMessage(const FString& AgentId, USoundWave* Sound)
 {
 	std::string data;
 	if (Inworld::Utils::SoundWaveToString(Sound, data))
 	{
 		auto packet = InworldClient->SendSoundMessage(TCHAR_TO_UTF8(*AgentId), data);
-#if !UE_BUILD_SHIPPING
-		DumpAudio(AsyncAudioDumper, packet);
-#endif
 	}
 }
 
@@ -342,9 +316,6 @@ void FInworldClient::SendSoundDataMessage(const FString& AgentId, const TArray<u
 {
 	std::string data((char*)Data.GetData(), Data.Num());
 	auto packet = InworldClient->SendSoundMessage(TCHAR_TO_UTF8(*AgentId), data);
-#if !UE_BUILD_SHIPPING
-	DumpAudio(AsyncAudioDumper, packet);
-#endif
 }
 
 void FInworldClient::SendSoundMessageWithEAC(const FString& AgentId, USoundWave* Input, USoundWave* Output)
@@ -353,9 +324,6 @@ void FInworldClient::SendSoundMessageWithEAC(const FString& AgentId, USoundWave*
 	if (Inworld::Utils::SoundWaveToVec(Input, inputdata) && Inworld::Utils::SoundWaveToVec(Output, outputdata))
 	{
 		auto packet = InworldClient->SendSoundMessageWithAEC(TCHAR_TO_UTF8(*AgentId), inputdata, outputdata);
-#if !UE_BUILD_SHIPPING
-		DumpAudio(AsyncAudioDumper, packet);
-#endif
 	}
 }
 
@@ -364,9 +332,6 @@ void FInworldClient::SendSoundDataMessageWithEAC(const FString& AgentId, const T
 	std::vector<int16> inputdata((int16*)InputData.GetData(), ((int16*)InputData.GetData()) + (InputData.Num() / 2));
 	std::vector<int16> outputdata((int16*)OutputData.GetData(), ((int16*)OutputData.GetData()) + (OutputData.Num() / 2));
 	auto packet = InworldClient->SendSoundMessageWithAEC(TCHAR_TO_UTF8(*AgentId), inputdata, outputdata);
-#if !UE_BUILD_SHIPPING
-	DumpAudio(AsyncAudioDumper, packet);
-#endif
 }
 
 void FInworldClient::StartAudioSession(const FString& AgentId)
