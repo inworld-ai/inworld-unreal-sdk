@@ -128,7 +128,7 @@ public class InworldAINDKLibrary : ModuleRules
 
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
-            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.dll.lib"));
+            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.lib"));
 
             PublicDelayLoadDLLs.Add("webrtc_aec_plugin.dll");
             RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Win64/webrtc_aec_plugin.dll");
