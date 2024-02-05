@@ -40,7 +40,7 @@ static TAutoConsoleVariable<bool> CVarEnableSoundDump(
 );
 
 static TAutoConsoleVariable<FString> CVarSoundDumpPath(
-	TEXT("Inworld.Debug.SoundDumpPath"), TEXT("C:/Tmp/AudioDump.wav"),
+	TEXT("Inworld.Debug.SoundDumpPath"), FPaths::ConvertRelativePathToFull(FPaths::ProjectLogDir().Append("InworldAudioDump.wav")),
 	TEXT("Specifiy path for audio input dump file")
 );
 
@@ -122,12 +122,20 @@ void FInworldClient::Init()
 #if !UE_BUILD_SHIPPING
 	auto OnAudioDumperCVarChangedCallback = [this](bool bEnable, FString Path)
 	{
-		const std::string DumpPath = TCHAR_TO_UTF8(*CVarSoundDumpPath.GetValueOnGameThread());
-		InworldClient->SetAudioDumpEnabled(false, DumpPath);
+		const auto DumpPath = CVarSoundDumpPath.GetValueOnGameThread();
+		if (!FPaths::DirectoryExists(FPaths::GetPath(DumpPath)))
+		{
+			UE_LOG(LogInworldAIClient, Error, TEXT("Audio dump path is invalid: %s."), *DumpPath);
+			InworldClient->SetAudioDumpEnabled(false, "");
+			return;
+		}
+		const std::string StdPath = TCHAR_TO_UTF8(*DumpPath);
+		InworldClient->SetAudioDumpEnabled(false, StdPath);
 
 		if (bEnable)
 		{
-			InworldClient->SetAudioDumpEnabled(true, DumpPath);
+			UE_LOG(LogInworldAIClient, Log, TEXT("Audio dump path: %s."), *DumpPath);
+			InworldClient->SetAudioDumpEnabled(true, StdPath);
 		}
 	};
 	OnAudioDumperCVarChangedHandle = OnAudioDumperCVarChanged.AddLambda(OnAudioDumperCVarChangedCallback);
