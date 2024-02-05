@@ -10,7 +10,7 @@
 #include "InworldGameplayDebuggerCategory.h"
 #include "InworldApi.h"
 #include "InworldCharacterComponent.h"
-#include "Engine.h"
+#include "Engine/Engine.h"
 #include "Engine/Font.h"
 #include "InworldPlayerAudioCaptureComponent.h"
 #include "InworldPlayerComponent.h"

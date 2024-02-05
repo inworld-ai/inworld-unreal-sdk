@@ -6,9 +6,14 @@
  */
 
 #include "InworldAINDK.h"
-#include "Core.h"
 #include "Modules/ModuleManager.h"
 #include "Interfaces/IPluginManager.h"
+#include "HAL/PlatformProcess.h"
+#include "Misc/Paths.h"
+
+#if WITH_EDITOR
+#include "Misc/MessageDialog.h"
+#endif //WITH_EDITOR
 
 THIRD_PARTY_INCLUDES_START
 #include "Utils/Log.h"
@@ -32,11 +37,12 @@ void FInworldAINDKModule::StartupModule()
 
 #ifdef INWORLD_AEC
 	webrtcLibraryHandle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
-
+#if WITH_EDITOR
 	if (webrtcLibraryHandle == nullptr)
 	{
 		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("InworldAINDKModuleError", "Failed to load webrtc library"));
 	}
+#endif //WITH_EDITOR
 #endif //INWORLD_AEC
 
 	Inworld::LogSetLoggerCallback([](const char* message, int severity)

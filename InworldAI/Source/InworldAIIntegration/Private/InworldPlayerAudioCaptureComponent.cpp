@@ -58,8 +58,8 @@ void ConvertAudioToInworldFormat(const float* AudioData, int32 NumFrames, int32 
         Audio::FResamplingParameters ResamplerParams = {
             Audio::EResamplingMethod::Linear,
             gNumChannels,
-            SampleRate,
-            gSamplesPerSec,
+            (float)SampleRate,
+            (float)gSamplesPerSec,
             InputBuffer
         };
 
