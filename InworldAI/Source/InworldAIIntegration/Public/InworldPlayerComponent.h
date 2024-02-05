@@ -15,6 +15,17 @@
 class UInworldApiSubsystem;
 class UInworldCharacterComponent;
 
+USTRUCT()
+struct FInworldPlayerTargetCharacter
+{
+    GENERATED_BODY()
+
+	FDelegateHandle UnpossessedHandle;
+
+	UPROPERTY()
+	FString AgentId;
+};
+
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
 class INWORLDAIINTEGRATION_API UInworldPlayerComponent : public UActorComponent, public Inworld::IPlayerComponent
 {
@@ -32,6 +43,14 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacter"))
     UInworldCharacterComponent* GetTargetInworldCharacter() { return static_cast<UInworldCharacterComponent*>(GetTargetCharacter()); }
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacters"))
+    TArray<UInworldCharacterComponent*> GetTargetInworldCharacters();
+
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    TArray<FString> GetTargetAgentIds();
+
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    void ContinueMultiAgentConversation();
 
     virtual Inworld::ICharacterComponent* GetTargetCharacter() override;
 
@@ -39,10 +58,13 @@ public:
     void SetTargetInworldCharacter(UInworldCharacterComponent* Character);
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearTargetCharacter"))
-    void ClearTargetInworldCharacter();
+    void ClearTargetInworldCharacter(UInworldCharacterComponent* Character);
+
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearTargetCharacter"))
+    void ClearAllTargetInworldCharacters();
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-    bool IsInteracting() { return !TargetCharacterAgentId.IsEmpty(); }
+    bool IsInteracting() { return Targets.Num() != 0; }
 
     UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Interaction")
     void SendTextMessageToTarget(const FString& Message);
@@ -67,18 +89,17 @@ public:
     void SendAudioDataMessageWithAECToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 private:
-	UFUNCTION()
-	void OnRep_TargetCharacterAgentId(FString OldAgentId);
 
-    FDelegateHandle CharacterTargetUnpossessedHandle;
+	UFUNCTION()
+	void OnRep_Targets(const TArray<FInworldPlayerTargetCharacter>& OldTrgets);
 
     UPROPERTY(EditAnywhere, Category = "UI")
     FString UiName = "Player";
 
     TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
 
-	UPROPERTY(ReplicatedUsing = OnRep_TargetCharacterAgentId)
-	FString TargetCharacterAgentId;
+	UPROPERTY(ReplicatedUsing = OnRep_Targets)
+	TArray<FInworldPlayerTargetCharacter> Targets;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
     friend class FInworldGameplayDebuggerCategory;

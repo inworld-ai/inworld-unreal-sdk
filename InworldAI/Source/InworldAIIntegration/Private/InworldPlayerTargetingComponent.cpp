@@ -37,29 +37,48 @@ void UInworldPlayerTargetingComponent::TickComponent(float DeltaTime, enum ELeve
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    UpdateTargetCharacter();
+    UpdateTargetCharacters();
 }
 
-void UInworldPlayerTargetingComponent::UpdateTargetCharacter()
+void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
 {
-    const auto& CharacterComponents = InworldSubsystem->GetCharacterComponents();
-    TWeakObjectPtr<UInworldCharacterComponent> ClosestCharacter;
-    const float MinDistSq = InteractionDistance * InteractionDistance;
-    float CurMaxDot = -1.f;
-    const FVector Location = GetOwner()->GetActorLocation();
-    for (auto& Character : CharacterComponents)
+    // clear all targets if just switched from multiple targeting
+    if (!bMultipleTargets && TargetCharacters.Num() > 1)
     {
+        for (auto* Character : TargetCharacters)
+        {
+            PlayerComponent->ClearTargetInworldCharacter(Character);
+        }
+        TargetCharacters.Empty();
+    }
+
+    // clear all targets out of range
+    const float MinDistSq = InteractionDistance * InteractionDistance;
+    const FVector Location = GetOwner()->GetActorLocation();
+    for (int32 i = 0; i < TargetCharacters.Num(); i++)
+    {
+        auto* Character = TargetCharacters[i];
+        const FVector CharacterLocation = Character->GetComponentOwner()->GetActorLocation();
+        const float DistSq = FVector::DistSquared(Location, CharacterLocation);
+        if (DistSq > MinDistSq)
+        {
+            PlayerComponent->ClearTargetInworldCharacter(Character);
+            TargetCharacters.RemoveAt(i);
+            i--;
+        }
+    }
+
+    const auto& CharacterComponents = InworldSubsystem->GetCharacterComponents();
+    UInworldCharacterComponent* BestTarget = nullptr;
+    float BestTargetDot = -1.f;
+    for (auto& Char : CharacterComponents)
+    {
+        auto* Character = static_cast<UInworldCharacterComponent*>(Char);
         if (!Character || Character->GetAgentId().IsEmpty())
         {
             continue;
         }
-
-        Inworld::IPlayerComponent* CurrentInteractonPlayer = Character->GetTargetPlayer();
-        if (CurrentInteractonPlayer && CurrentInteractonPlayer != PlayerComponent.Get())
-        {
-            continue;
-        }
-
+        
         const FVector CharacterLocation = Character->GetComponentOwner()->GetActorLocation();
         const float DistSq = FVector::DistSquared(Location, CharacterLocation);
         if (DistSq > MinDistSq)
@@ -67,6 +86,26 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacter()
             continue;
         }
 
+        // if multiple targets enabled add all characters in range
+        if (bMultipleTargets)
+        {
+            if (Character->GetTargetPlayer())
+            {
+                continue;
+            }
+
+            int32 Idx;
+            if (TargetCharacters.Find(Character, Idx))
+            {
+                continue;
+            }
+
+            TargetCharacters.Add(Character);
+            PlayerComponent->SetTargetInworldCharacter(Character);
+            continue;
+        }
+
+        // if multiple targets disabled target one character in range that we're looking at
         const FVector2D Direction2D = FVector2D(CharacterLocation - Location).GetSafeNormal();
         FVector2D Forward2D;
         if (auto* CameraComponent = Cast<UCameraComponent>(GetOwner()->GetComponentByClass(UCameraComponent::StaticClass())))
@@ -79,44 +118,34 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacter()
         }
 
         const float Dot = FVector2D::DotProduct(Forward2D, Direction2D);
-        if (Dot < InteractionDotThreshold)
+        if (Dot < BestTargetDot)
         {
             continue;
         }
 
-        if (Dot < CurMaxDot)
+        BestTarget = Character;
+        BestTargetDot = Dot;
+    }
+
+    if (bMultipleTargets)
+    {
+        return;
+    }
+
+    auto* CurTarget = TargetCharacters.Num() != 0 ? TargetCharacters[0] : nullptr;
+    if (CurTarget != BestTarget)
+    {
+        if (CurTarget)
         {
-            continue;
+			PlayerComponent->ClearTargetInworldCharacter(CurTarget);
+			TargetCharacters.Empty();
         }
 
-        ClosestCharacter = static_cast<UInworldCharacterComponent*>(Character);
-        CurMaxDot = Dot;
-    }
-
-    if (PlayerComponent->GetTargetCharacter() && (!ClosestCharacter.IsValid() || PlayerComponent->GetTargetCharacter() != ClosestCharacter.Get()))
-    {
-        ClearTargetCharacter();
-    }
-
-    if (ClosestCharacter.IsValid() && !PlayerComponent->GetTargetCharacter())
-    {
-        SetTargetCharacter(ClosestCharacter);
-    }
-}
-
-void UInworldPlayerTargetingComponent::SetTargetCharacter(TWeakObjectPtr<UInworldCharacterComponent> Character)
-{
-    if (ChangeTargetCharacterTimer.CheckPeriod(GetWorld()))
-    {
-        PlayerComponent->SetTargetInworldCharacter(Character.Get());
-    }
-}
-
-void UInworldPlayerTargetingComponent::ClearTargetCharacter()
-{
-    if (PlayerComponent->GetTargetCharacter() && ChangeTargetCharacterTimer.CheckPeriod(GetWorld()))
-    {
-        PlayerComponent->ClearTargetInworldCharacter();
+        if (BestTarget)
+        {
+			TargetCharacters.Add(BestTarget);
+			PlayerComponent->SetTargetInworldCharacter(BestTarget);
+        }
     }
 }
 
