@@ -23,30 +23,26 @@ class INWORLDAIINTEGRATION_API UInworldPlayerTargetingComponent : public UActorC
 	GENERATED_BODY()
 
 public:
-    UInworldPlayerTargetingComponent();
+	UInworldPlayerTargetingComponent();
 
     virtual void BeginPlay() override;
     virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
-    void UpdateTargetCharacter();
-    void SetTargetCharacter(TWeakObjectPtr<UInworldCharacterComponent> ClosestCharacter);
-    void ClearTargetCharacter();
+	void UpdateTargetCharacters();
 
 public:
 	/** Minimum distance to start interacting with a character */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	float InteractionDistance = 300.f;
 
-private:
+	/** Enable multiple targets */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	bool bMultipleTargets = false;
 
-    /** How close must player be facing the direction of the character to interact */
-    UPROPERTY(EditAnywhere, Category = "Interaction")
-	float InteractionDotThreshold = 0.5f;
+private:
+	TArray<UInworldCharacterComponent*> TargetCharacters;
 
 	TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
 	TWeakObjectPtr<UInworldPlayerComponent> PlayerComponent;
-
-    Inworld::Utils::FWorldTimer ChangeTargetCharacterTimer = Inworld::Utils::FWorldTimer(0.5f);
-
 };
