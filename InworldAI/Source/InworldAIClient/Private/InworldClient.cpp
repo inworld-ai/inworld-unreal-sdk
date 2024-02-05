@@ -28,6 +28,8 @@ THIRD_PARTY_INCLUDES_END
 
 #include <Interfaces/IPluginManager.h>
 
+#include "Misc/Paths.h"
+
 const FString DefaultTargetUrl = "api-engine.inworld.ai:443";
 
 #include <string>
