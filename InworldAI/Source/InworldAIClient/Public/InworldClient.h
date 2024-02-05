@@ -16,6 +16,11 @@
 
 #include "InworldClient.generated.h"
 
+#if !UE_BUILD_SHIPPING
+	// used in a function template from NDK
+	#define INWORLD_AUDIO_DUMP 1
+#endif
+
 namespace Inworld
 {
 	class FClient;
@@ -81,8 +86,6 @@ private:
 	TSharedPtr<Inworld::FClient> InworldClient;
 
 #if !UE_BUILD_SHIPPING
-	TSharedPtr<class FAsyncAudioDumper> AsyncAudioDumper;
-
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAudioDumperCVarChanged, bool /*Enabled*/, FString /*Path*/);
 	static FOnAudioDumperCVarChanged OnAudioDumperCVarChanged;
 	FDelegateHandle OnAudioDumperCVarChangedHandle;

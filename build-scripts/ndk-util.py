@@ -30,11 +30,11 @@ class BuildConfiguration:
 
 build_configurations = {
     'Win64': BuildConfiguration(
-        ['cmake .. -DAEC=True -DINWORLD_LOG_CALLBACK=True'],
+        ['cmake .. -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target InworldNDK --config Release']
     ),
     'Mac': BuildConfiguration(
-        ['cmake .. -DAEC=True -DMAC=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"'],
+        ['cmake .. -DAEC=True -DMAC=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target InworldNDK --config Release']
     ),
     'iOS': BuildConfiguration(
