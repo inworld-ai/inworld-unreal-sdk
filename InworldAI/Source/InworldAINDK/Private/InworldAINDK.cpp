@@ -15,13 +15,7 @@
 #include "Misc/MessageDialog.h"
 #endif //WITH_EDITOR
 
-THIRD_PARTY_INCLUDES_START
-#include "Utils/Log.h"
-THIRD_PARTY_INCLUDES_END
-
 #define LOCTEXT_NAMESPACE "FInworldAINDKModule"
-
-DECLARE_LOG_CATEGORY_CLASS(LogInworldAINDK, Log, All);
 
 void FInworldAINDKModule::StartupModule()
 {
@@ -44,31 +38,10 @@ void FInworldAINDKModule::StartupModule()
 	}
 #endif //WITH_EDITOR
 #endif //INWORLD_AEC
-
-	Inworld::LogSetLoggerCallback([](const char* message, int severity)
-		{
-			switch (severity)
-			{
-			case 0:
-				UE_LOG(LogInworldAINDK, Log, TEXT("%s"), UTF8_TO_TCHAR(message));
-				break;
-			case 1:
-				UE_LOG(LogInworldAINDK, Warning, TEXT("%s"), UTF8_TO_TCHAR(message));
-				break;
-			case 2:
-				UE_LOG(LogInworldAINDK, Error, TEXT("%s"), UTF8_TO_TCHAR(message));
-				break;
-			default:
-				UE_LOG(LogInworldAINDK, Warning, TEXT("Message with unknown severity, treating as warning: %s"), UTF8_TO_TCHAR(message));
-			}
-		}
-	);
 }
 
 void FInworldAINDKModule::ShutdownModule()
 {
-	Inworld::LogClearLoggerCallback();
-
 #ifdef INWORLD_AEC
 	FPlatformProcess::FreeDllHandle(webrtcLibraryHandle);
 #endif //INWORLD_AEC
