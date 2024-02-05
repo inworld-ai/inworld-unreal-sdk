@@ -30,7 +30,7 @@ class BuildConfiguration:
 
 build_configurations = {
     'Win64': BuildConfiguration(
-        ['cmake .. -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake .. -G "Visual Studio 16 2019" -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target InworldNDK --config Release']
     ),
     'Mac': BuildConfiguration(
