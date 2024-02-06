@@ -156,7 +156,7 @@ public:
     bool StartAudioSessionMultiAgent(const TArray<FString>& AgentIds, const AActor* Owner);
     
     UFUNCTION(BlueprintCallable, Category = "Audio")
-    const UObject* GetAudioSessionOwner() const { return AudioSessionOwner; }
+    const AActor* GetAudioSessionOwner() const { return AudioSessionOwner; }
 
     /**
      * Stop audio session with agent
