@@ -42,12 +42,21 @@ void UInworldPlayerTargetingComponent::TickComponent(float DeltaTime, enum ELeve
 
 void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
 {
+    auto* Player = PlayerComponent.Get();
+
+    // prevent starting another audio session in multiplayer
+    const auto* CurrentAudioSessionOwner = InworldSubsystem->GetAudioSessionOwner();
+    if (CurrentAudioSessionOwner && CurrentAudioSessionOwner != Player->GetOwner())
+    {
+        return;
+    }
+    
     // clear all targets if just switched from multiple targeting
     if (!bMultipleTargets && TargetCharacters.Num() > 1)
     {
         for (auto* Character : TargetCharacters)
         {
-            PlayerComponent->ClearTargetInworldCharacter(Character);
+            Player->ClearTargetInworldCharacter(Character);
         }
         TargetCharacters.Empty();
     }
@@ -62,7 +71,7 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
         const float DistSq = FVector::DistSquared(Location, CharacterLocation);
         if (DistSq > MinDistSq)
         {
-            PlayerComponent->ClearTargetInworldCharacter(Character);
+            Player->ClearTargetInworldCharacter(Character);
             TargetCharacters.RemoveAt(i);
             i--;
         }
@@ -85,15 +94,16 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
         {
             continue;
         }
+        
+        const auto* CurrentTargetPlayer = Character->GetTargetPlayer();
+        if (CurrentTargetPlayer && CurrentTargetPlayer != Player)
+        {
+            continue;
+        }
 
         // if multiple targets enabled add all characters in range
         if (bMultipleTargets)
         {
-            if (Character->GetTargetPlayer())
-            {
-                continue;
-            }
-
             int32 Idx;
             if (TargetCharacters.Find(Character, Idx))
             {

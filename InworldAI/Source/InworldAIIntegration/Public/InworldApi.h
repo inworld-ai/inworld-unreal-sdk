@@ -135,6 +135,7 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Messages")
 	void SendAudioMessage(const FString& AgentId, USoundWave* SoundWave);
+    void SendAudioMessage(const TArray<FString>& AgentIds, USoundWave* SoundWave);
     void SendAudioDataMessage(const FString& AgentId, const TArray<uint8>& Data);
     void SendAudioDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data);
 
@@ -147,11 +148,15 @@ public:
     /**
      * Start audio session with agent
      * call before sending audio messages
+     * pass Owner param in multiplayer to avoid double audio session errors
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
-    void StartAudioSession(const FString& AgentId);
+    bool StartAudioSession(const FString& AgentId, const AActor* Owner);
     UFUNCTION(BlueprintCallable, Category = "Audio")
-    void StartAudioSessionMultiAgent(const TArray<FString>& AgentIds);
+    bool StartAudioSessionMultiAgent(const TArray<FString>& AgentIds, const AActor* Owner);
+    
+    UFUNCTION(BlueprintCallable, Category = "Audio")
+    const UObject* GetAudioSessionOwner() const { return AudioSessionOwner; }
 
     /**
      * Stop audio session with agent
@@ -238,6 +243,9 @@ private:
 
     UPROPERTY()
     UInworldAudioRepl* AudioRepl;
+
+    UPROPERTY()
+    const AActor* AudioSessionOwner = nullptr;
 
     FTimerHandle RetryConnectionTimerHandle;
 
