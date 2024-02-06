@@ -148,7 +148,7 @@ public:
     /**
      * Start audio session with agent
      * call before sending audio messages
-     * pass Owner param in multiplayer to avoid double audio session errors
+     * provide Owner param to avoid multiple audio sessions
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
     bool StartAudioSession(const FString& AgentId, const AActor* Owner);
