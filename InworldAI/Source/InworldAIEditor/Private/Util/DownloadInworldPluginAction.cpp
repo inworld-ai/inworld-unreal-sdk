@@ -16,10 +16,9 @@
 #include "Async/TaskGraphInterfaces.h"
 #include "Interfaces/IPluginManager.h"
 
-UDownloadInworldPluginAction* UDownloadInworldPluginAction::DownloadInworldPlugin(const FString& InPluginName, const FString& InZipURL, FOnDownloadInworldLog InLogCallback)
+UDownloadInworldPluginAction* UDownloadInworldPluginAction::DownloadInworldPlugin(const FString& InZipURL, FOnDownloadInworldLog InLogCallback)
 {
 	UDownloadInworldPluginAction* BlueprintNode = NewObject<UDownloadInworldPluginAction>();
-	BlueprintNode->PluginName = InPluginName;
 	BlueprintNode->ZipURL = InZipURL;
 	BlueprintNode->LogCallback = InLogCallback;
 	return BlueprintNode;
@@ -32,7 +31,7 @@ void UDownloadInworldPluginAction::Activate()
 			auto* InworldEditorApi = GEditor->GetEditorSubsystem<UInworldEditorApiSubsystem>();
 
 			const FString TempPath = FDesktopPlatformModule::Get()->GetUserTempPath();
-			const FString ZipLocation = FString::Format(TEXT("{0}{1}{2}"), { TempPath, PluginName, TEXT("_Temp.zip") });
+			const FString ZipLocation = FString::Format(TEXT("{0}{1}"), { TempPath, TEXT("InworldPluginTemp.zip") });
 			FStringFormatOrderedArguments GetZipFormattedArgs;
 			GetZipFormattedArgs.Add(FStringFormatArg(TEXT("-L")));
 			GetZipFormattedArgs.Add(FStringFormatArg(ZipURL));
@@ -69,7 +68,7 @@ void UDownloadInworldPluginAction::Activate()
 			}
 			NotifyLog(TEXT("Downloading Complete!"));
 
-			const FString PluginLocation = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*FPaths::Combine(FPaths::ProjectPluginsDir(), PluginName));
+			const FString PluginLocation = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*FPaths::ProjectPluginsDir());
 
 			IFileManager::Get().MakeDirectory(*PluginLocation, true);
 

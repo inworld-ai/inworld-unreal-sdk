@@ -22,16 +22,13 @@ class INWORLDAIEDITOR_API UDownloadInworldPluginAction : public UEditorUtilityBl
 	GENERATED_BODY()
 public:
 	UPROPERTY()
-	FString PluginName;
-
-	UPROPERTY()
 	FString ZipURL;
 
 	UPROPERTY(BlueprintAssignable)
 	FDownloadInworldOutputPin DownloadComplete;
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"), Category = "Flow Control")
-	static UDownloadInworldPluginAction* DownloadInworldPlugin(const FString& InPluginName, const FString& InZipURL, FOnDownloadInworldLog InLogCallback);
+	static UDownloadInworldPluginAction* DownloadInworldPlugin(const FString& InZipURL, FOnDownloadInworldLog InLogCallback);
 
 	// UBlueprintAsyncActionBase interface
 	virtual void Activate() override;
