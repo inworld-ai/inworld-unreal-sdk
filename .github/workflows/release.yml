@@ -50,9 +50,25 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: inworld-unreal-sdk
-          path: inworld-unreal-sdk
+          path: InworldAI
       - name: zip-release
-        run: zip -r inworld-unreal-sdk-${{ env.VERSION }}.zip inworld-unreal-sdk/
+        run: zip -r inworld-unreal-sdk-${{ env.VERSION }}.zip InworldAI/
+
+      - name: download-package
+        uses: actions/download-artifact@v2
+        with:
+          name: inworld-unreal-sdk-metahuman
+          path: InworldMetahuman
+      - name: zip-release
+        run: zip -r inworld-unreal-sdk-metahuman-${{ env.VERSION }}.zip InworldMetahuman/
+
+      - name: download-package
+        uses: actions/download-artifact@v2
+        with:
+          name: inworld-unreal-sdk-innequin
+          path: InworldInnequin
+      - name: zip-release
+        run: zip -r inworld-unreal-sdk-innequin-${{ env.VERSION }}.zip InworldInnequin/
 
       - name: create-release
         uses: softprops/action-gh-release@v1

@@ -16,9 +16,10 @@
 #include "Async/TaskGraphInterfaces.h"
 #include "Interfaces/IPluginManager.h"
 
-UDownloadInworldPluginAction* UDownloadInworldPluginAction::DownloadInworldPlugin(const FString& InZipURL, FOnDownloadInworldLog InLogCallback)
+UDownloadInworldPluginAction* UDownloadInworldPluginAction::DownloadInworldPlugin(const FString& InPluginName, const FString& InZipURL, FOnDownloadInworldLog InLogCallback)
 {
 	UDownloadInworldPluginAction* BlueprintNode = NewObject<UDownloadInworldPluginAction>();
+	BlueprintNode->PluginName = InPluginName;
 	BlueprintNode->ZipURL = InZipURL;
 	BlueprintNode->LogCallback = InLogCallback;
 	return BlueprintNode;
@@ -31,12 +32,13 @@ void UDownloadInworldPluginAction::Activate()
 			auto* InworldEditorApi = GEditor->GetEditorSubsystem<UInworldEditorApiSubsystem>();
 
 			const FString TempPath = FDesktopPlatformModule::Get()->GetUserTempPath();
-			const FString ZipLocation = FString::Format(TEXT("{0}{2}"), { TempPath, TEXT("InworldPlugin.zip") });
+			const FString ZipLocation = FString::Format(TEXT("{0}{1}{2}"), { TempPath, PluginName, TEXT("_Temp.zip") });
 			FStringFormatOrderedArguments GetZipFormattedArgs;
+			GetZipFormattedArgs.Add(FStringFormatArg(TEXT("-L")));
 			GetZipFormattedArgs.Add(FStringFormatArg(ZipURL));
 			GetZipFormattedArgs.Add(FStringFormatArg(TEXT("-o")));
 			GetZipFormattedArgs.Add(FStringFormatArg(ZipLocation));
-			const FString GetZipCommandLineArgs = FString::Format(TEXT("\"{0}\" {1} \"{2}\""), GetZipFormattedArgs);
+			const FString GetZipCommandLineArgs = FString::Format(TEXT("{0} \"{1}\" {2} \"{3}\""), GetZipFormattedArgs);
 			const FString CurlURL =
 #if PLATFORM_WINDOWS
 				TEXT("curl");
@@ -67,7 +69,7 @@ void UDownloadInworldPluginAction::Activate()
 			}
 			NotifyLog(TEXT("Downloading Complete!"));
 
-			const FString PluginLocation = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*FPaths::ProjectPluginsDir());
+			const FString PluginLocation = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*FPaths::Combine(FPaths::ProjectPluginsDir(), PluginName));
 
 			IFileManager::Get().MakeDirectory(*PluginLocation, true);
 
