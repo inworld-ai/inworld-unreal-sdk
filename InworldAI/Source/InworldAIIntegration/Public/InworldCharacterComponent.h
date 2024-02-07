@@ -133,7 +133,7 @@ public:
 	void SendAudioMessage(USoundWave* SoundWave) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void StartAudioSession() const;
+	void StartAudioSession(const AActor* Owner) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession() const;

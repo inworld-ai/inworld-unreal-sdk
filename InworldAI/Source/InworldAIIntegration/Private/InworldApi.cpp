@@ -278,12 +278,17 @@ void UInworldApiSubsystem::SendTriggerMultiAgent(const TArray<FString>& AgentIds
 
 void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, USoundWave* SoundWave)
 {
-	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-	{
-		return;
-	}
+    SendAudioMessage(TArray<FString>{ AgentId }, SoundWave);
+}
 
-    Client->SendSoundMessage({ AgentId }, SoundWave);
+void UInworldApiSubsystem::SendAudioMessage(const TArray<FString>& AgentIds, USoundWave* SoundWave)
+{
+    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
+    {
+        return;
+    }
+
+    Client->SendSoundMessage(AgentIds, SoundWave);
 }
 
 void UInworldApiSubsystem::SendAudioDataMessage(const FString& AgentId, const TArray<uint8>& Data)
@@ -326,19 +331,27 @@ void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const TArray<FString>& Ag
     Client->SendSoundDataMessageWithEAC(AgentIds, InputData, OutputData);
 }
 
-void UInworldApiSubsystem::StartAudioSession(const FString& AgentId)
+bool UInworldApiSubsystem::StartAudioSession(const FString& AgentId, const AActor* Owner)
 {
-    StartAudioSessionMultiAgent({ AgentId });
+    return StartAudioSessionMultiAgent({ AgentId }, Owner);
 }
 
-void UInworldApiSubsystem::StartAudioSessionMultiAgent(const TArray<FString>& AgentIds)
+bool UInworldApiSubsystem::StartAudioSessionMultiAgent(const TArray<FString>& AgentIds, const AActor* Owner)
 {
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
+    if (AudioSessionOwner)
     {
-        return;
+        return false;
     }
 
+    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
+    {
+        return false;
+    }
+
+    AudioSessionOwner = Owner;
+
     Client->StartAudioSession(AgentIds);
+    return true;
 }
 
 void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
@@ -352,6 +365,8 @@ void UInworldApiSubsystem::StopAudioSessionMultiAgent(const TArray<FString>& Age
     {
         return;
     }
+
+    AudioSessionOwner = nullptr;
 
     Client->StopAudioSession(AgentIds);
 }
@@ -451,6 +466,7 @@ void UInworldApiSubsystem::Deinitialize()
     {
         Client->Destroy();
     }
+    AudioSessionOwner = nullptr;
     Client.Reset();
 }
 

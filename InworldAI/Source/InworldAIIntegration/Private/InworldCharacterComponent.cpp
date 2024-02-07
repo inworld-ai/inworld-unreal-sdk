@@ -271,11 +271,11 @@ void UInworldCharacterComponent::SendAudioMessage(USoundWave* SoundWave) const
     }
 }
 
-void UInworldCharacterComponent::StartAudioSession() const
+void UInworldCharacterComponent::StartAudioSession(const AActor* Owner) const
 {
     if (ensure(!AgentId.IsEmpty()))
     {
-        InworldSubsystem->StartAudioSession(AgentId);
+        InworldSubsystem->StartAudioSession(AgentId, Owner);
     }
 }
 

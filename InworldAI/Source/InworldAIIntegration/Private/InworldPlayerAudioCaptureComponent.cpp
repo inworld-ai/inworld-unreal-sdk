@@ -294,7 +294,7 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
         {
             if (bShouldCaptureVoice)
             {
-                InworldSubsystem->StartAudioSessionMultiAgent(PlayerAudioTarget.AgentIds);
+                InworldSubsystem->StartAudioSessionMultiAgent(PlayerAudioTarget.AgentIds, GetOwner());
             }
 
             bServerCapturingVoice = bShouldCaptureVoice;
