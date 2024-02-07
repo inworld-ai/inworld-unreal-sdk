@@ -145,10 +145,7 @@ void UInworldPlayerComponent::SendTextMessageToTarget_Implementation(const FStri
 {
     if (!Message.IsEmpty())
     {
-        for (auto& Target : Targets)
-        {
-            InworldSubsystem->SendTextMessage(Target.AgentId, Message);
-        }
+        InworldSubsystem->SendTextMessageMultiAgent(GetTargetAgentIds(), Message);
     }
 }
 
@@ -162,18 +159,12 @@ void UInworldPlayerComponent::SendTextMessage_Implementation(const FString& Mess
 
 void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params)
 {
-    for (auto& Target : Targets)
-    {
-        InworldSubsystem->SendTrigger(Target.AgentId, Name, Params);
-    }
+    InworldSubsystem->SendTriggerMultiAgent(GetTargetAgentIds(), Name, Params);
 }
 
 void UInworldPlayerComponent::StartAudioSessionWithTarget()
 {
-    for (auto& Target : Targets)
-    {
-        InworldSubsystem->StartAudioSession(Target.AgentId);
-    }
+    InworldSubsystem->StartAudioSessionMultiAgent(GetTargetAgentIds(), GetOwner());
 }
 
 void UInworldPlayerComponent::StopAudioSessionWithTarget()
@@ -186,26 +177,17 @@ void UInworldPlayerComponent::StopAudioSessionWithTarget()
 
 void UInworldPlayerComponent::SendAudioMessageToTarget(USoundWave* SoundWave)
 {
-    for (auto& Target : Targets)
-    {
-        InworldSubsystem->SendAudioMessage(Target.AgentId, SoundWave);
-    }
+    InworldSubsystem->SendAudioMessage(GetTargetAgentIds(), SoundWave);
 }
 
 void UInworldPlayerComponent::SendAudioDataMessageToTarget(const TArray<uint8>& Data)
 {
-    for (auto& Target : Targets)
-    {
-        InworldSubsystem->SendAudioDataMessage(Target.AgentId, Data);
-    }
+    InworldSubsystem->SendAudioDataMessage(GetTargetAgentIds(), Data);
 }
 
 void UInworldPlayerComponent::SendAudioDataMessageWithAECToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    for (auto& Target : Targets)
-    {
-        InworldSubsystem->SendAudioDataMessageWithAEC(Target.AgentId, InputData, OutputData);
-    }
+    InworldSubsystem->SendAudioDataMessageWithAEC(GetTargetAgentIds(), InputData, OutputData);
 }
 
 void UInworldPlayerComponent::OnRep_Targets(const TArray<FInworldPlayerTargetCharacter>& OldTargets)
