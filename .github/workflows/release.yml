@@ -73,6 +73,9 @@ jobs:
       - name: create-release
         uses: softprops/action-gh-release@v1
         with:
-          files: inworld-unreal-sdk-${{ env.VERSION }}.zip
+          files: |
+            inworld-unreal-sdk-${{ env.VERSION }}.zip
+            inworld-unreal-sdk-metahuman${{ env.VERSION }}.zip
+            inworld-unreal-sdk-innequin${{ env.VERSION }}.zip
           fail_on_unmatched_files: true
           append_body: true
