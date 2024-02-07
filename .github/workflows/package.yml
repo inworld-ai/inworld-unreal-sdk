@@ -149,4 +149,11 @@ jobs:
           path: |
             InworldAI
             !InworldAI/inworld-ndk
-            InworldMetahuman
+      - uses: actions/upload-artifact@v3
+        with:
+          name: inworld-unreal-sdk-innequin
+          path: InworldInnequin
+      - uses: actions/upload-artifact@v3
+        with:
+          name: inworld-unreal-sdk-metahuman
+          path: InworldMetahuman

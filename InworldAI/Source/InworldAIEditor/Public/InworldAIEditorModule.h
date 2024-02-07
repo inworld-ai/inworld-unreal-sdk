@@ -13,7 +13,7 @@
 #include "InworldStudioTypes.h"
 #include "UnrealEdMisc.h"
 #include "Blueprint/UserWidget.h"
-#include "InworldEditorUtilityWidget.h"
+#include "Studio/InworldStudioWidget.h"
 
 INWORLDAIEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAIEditor, Log, All);
 
@@ -38,12 +38,12 @@ public:
 		return StudioData;
 	}
 
-	void SetStudioWidgetState(const FInworldEditorUtilityWidgetState& Data)
+	void SetStudioWidgetState(const FInworldStudioWidgetState& Data)
 	{
 		StudioWidgetState = Data;
 	}
 
-	const FInworldEditorUtilityWidgetState& GetStudioWidgetState() const
+	const FInworldStudioWidgetState& GetStudioWidgetState() const
 	{
 		return StudioWidgetState;
 	}
@@ -56,11 +56,8 @@ private:
 	void AssetExtenderFunc(FMenuBuilder& MenuBuilder, const TArray<FAssetData> SelectedAssets);
 	TSharedRef<FExtender> OnExtendAssetSelectionMenu(const TArray<FAssetData>& SelectedAssets);
 
-	static bool CanSetupAssetAsInworldPlayer(const FAssetData& AssetData);
-	static void SetupAssetAsInworldPlayer(const FAssetData& AssetData);
-
 	FInworldStudioUserData StudioData;
-	FInworldEditorUtilityWidgetState StudioWidgetState;
+	FInworldStudioWidgetState StudioWidgetState;
 
 public:
 	void BindMenuAssetAction(const FName& Name, const FName& Section, FText Label, FText Tooltip, FAssetAction Action, FAssetActionPermission ActionPermission);
