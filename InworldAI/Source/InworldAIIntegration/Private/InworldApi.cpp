@@ -466,6 +466,7 @@ void UInworldApiSubsystem::Deinitialize()
     {
         Client->Destroy();
     }
+    AudioSessionOwner = nullptr;
     Client.Reset();
 }
 
