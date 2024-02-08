@@ -276,6 +276,16 @@ void UInworldApiSubsystem::SendTriggerMultiAgent(const TArray<FString>& AgentIds
     Client->SendCustomEvent(AgentIds, Name, Params);
 }
 
+void UInworldApiSubsystem::SendNarrationEvent(const FString& AgentId, const FString& Content)
+{
+    if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
+    {
+        return;
+    }
+
+    Client->SendNarrationEvent(AgentId, Content);
+}
+
 void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, USoundWave* SoundWave)
 {
     SendAudioMessage(TArray<FString>{ AgentId }, SoundWave);
