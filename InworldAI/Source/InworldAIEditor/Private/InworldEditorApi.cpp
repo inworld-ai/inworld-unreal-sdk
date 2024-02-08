@@ -395,14 +395,17 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 		FAssetAction::CreateUObject(this, &UInworldEditorApiSubsystem::SetupAssetAsInworldCharacter),
 		FAssetActionPermission::CreateUObject(this, &UInworldEditorApiSubsystem::CanSetupAssetAsInworldCharacter, false)
 	);
-	Module.BindMenuAssetAction(
-		FName("Inworld Metahuman"),
-		FName("Character"),
-		FText::FromString("Setup as Inworld Metahuman"),
-		FText::FromString("Setup this Actor as Inworld Metahuman"),
-		FAssetAction::CreateUObject(this, &UInworldEditorApiSubsystem::SetupAssetAsInworldMetahuman),
-		FAssetActionPermission::CreateUObject(this, &UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman, false)
-	);
+	if (IPluginManager::Get().FindPlugin("InworldMetahuman").IsValid())
+	{
+		Module.BindMenuAssetAction(
+			FName("Inworld Metahuman"),
+			FName("Character"),
+			FText::FromString("Setup as Inworld Metahuman"),
+			FText::FromString("Setup this Actor as Inworld Metahuman"),
+			FAssetAction::CreateUObject(this, &UInworldEditorApiSubsystem::SetupAssetAsInworldMetahuman),
+			FAssetActionPermission::CreateUObject(this, &UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman, false)
+		);
+	}
 
 	FOnCharacterStudioDataPermission PermissionDelegate;
 	PermissionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CanCreateInnequinActor);
@@ -420,7 +423,10 @@ void UInworldEditorApiSubsystem::Deinitialize()
 	FInworldAIEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FInworldAIEditorModule>("InworldAIEditor");
 	Module.UnbindMenuAssetAction(FName("Inworld Player"));
 	Module.UnbindMenuAssetAction(FName("Inworld Character"));
-	Module.UnbindMenuAssetAction(FName("Inworld Metahuman"));
+	if (IPluginManager::Get().FindPlugin("InworldMetahuman").IsValid())
+	{
+		Module.UnbindMenuAssetAction(FName("Inworld Metahuman"));
+	}
 
 	UnbindActionForCharacterData(FName("Create Inworld Avatar"));
 }
