@@ -69,6 +69,18 @@ struct FInworldCapabilitySet
     bool LoadSceneInSession = true;
 
     UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    bool Continuation = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    bool TurnBasedSTT = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    bool NarratedActions = false;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    bool Relations = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
     bool MultiAgent = true;
 };
 
