@@ -128,7 +128,7 @@ public:
     void SendCustomEvent(const FString& AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
 
     /** Send narration to agent */
-	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
+	UFUNCTION(BlueprintCallable, Category = "Messages")
 	void SendNarrationEvent(const FString& AgentId, const FString& Content);
 
     /**
