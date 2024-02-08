@@ -279,11 +279,11 @@ void UInworldCharacterComponent::SendNarrationEvent(const FString& Content)
 	}
 }
 
-void UInworldCharacterComponent::StartAudioSession() const
+void UInworldCharacterComponent::StartAudioSession(const AActor* Owner) const
 {
     if (ensure(!AgentId.IsEmpty()))
     {
-        InworldSubsystem->StartAudioSession(AgentId);
+        InworldSubsystem->StartAudioSession(AgentId, Owner);
     }
 }
 

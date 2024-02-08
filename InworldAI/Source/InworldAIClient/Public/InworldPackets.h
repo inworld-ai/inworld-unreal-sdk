@@ -45,9 +45,10 @@ struct INWORLDAICLIENT_API FInworldRouting
 	
 	FInworldRouting() = default;
 	FInworldRouting(const FInworldRouting& Other) = default;
-	FInworldRouting(const FInworldActor& InSource, const FInworldActor& InTarget)
+	FInworldRouting(const FInworldActor& InSource, const FInworldActor& InTarget, const TArray<FInworldActor>& InTargets)
 		: Source(InSource)
 		, Target(InTarget)
+		, Targets(InTargets)
 	{}
 
 	void Serialize(FMemoryArchive& Ar);
@@ -58,6 +59,8 @@ struct INWORLDAICLIENT_API FInworldRouting
 	FInworldActor Source;
 	UPROPERTY()
 	FInworldActor Target;
+	UPROPERTY()
+	TArray<FInworldActor> Targets;
 };
 
 USTRUCT()

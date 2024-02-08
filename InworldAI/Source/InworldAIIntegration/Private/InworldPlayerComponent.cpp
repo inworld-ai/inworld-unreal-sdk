@@ -30,17 +30,59 @@ void UInworldPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UInworldPlayerComponent, TargetCharacterAgentId);
+	DOREPLIFETIME(UInworldPlayerComponent, Targets);
+}
+
+TArray<UInworldCharacterComponent*> UInworldPlayerComponent::GetTargetInworldCharacters()
+{
+    if (!InworldSubsystem.IsValid())
+    {
+        return {};
+    }
+
+    TArray<UInworldCharacterComponent*> Result;
+    for (auto& Target : Targets)
+    {
+        if (!Target.AgentId.IsEmpty())
+        {
+            Result.Add(static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(Target.AgentId)));
+        }
+    }
+    
+    return Result;
+}
+
+TArray<FString> UInworldPlayerComponent::GetTargetAgentIds()
+{
+    TArray<FString> AgentIds;
+    for (auto& Target : Targets)
+    {
+        AgentIds.Add(Target.AgentId);
+    }
+    return AgentIds;
+}
+
+void UInworldPlayerComponent::ContinueMultiAgentConversation()
+{
+    if (Targets.Num() > 1)
+    {
+        InworldSubsystem->SendTriggerMultiAgent(GetTargetAgentIds(), "inworld.conversation.next_turn", {});
+    }
 }
 
 Inworld::ICharacterComponent* UInworldPlayerComponent::GetTargetCharacter()
 {
-    if (InworldSubsystem.IsValid() && !TargetCharacterAgentId.IsEmpty())
+    if (Targets.Num() == 0)
     {
-        return InworldSubsystem->GetCharacterComponentByAgentId(TargetCharacterAgentId);
+        return nullptr;
     }
 
-    return nullptr;
+	if (InworldSubsystem.IsValid() && !Targets[0].AgentId.IsEmpty())
+	{
+		return InworldSubsystem->GetCharacterComponentByAgentId(Targets[0].AgentId);
+	}
+
+	return nullptr;
 }
 
 void UInworldPlayerComponent::SetTargetInworldCharacter(UInworldCharacterComponent* Character)
@@ -50,32 +92,60 @@ void UInworldPlayerComponent::SetTargetInworldCharacter(UInworldCharacterCompone
         return;
     }
 
-    ClearTargetInworldCharacter();
-
-    if (Character->StartPlayerInteraction(this))
+    if (!Character->StartPlayerInteraction(this))
     {
-        CharacterTargetUnpossessedHandle = Character->OnUnpossessed.AddUObject(this, &UInworldPlayerComponent::ClearTargetInworldCharacter);
-        TargetCharacterAgentId = Character->GetAgentId();
-        OnTargetSet.Broadcast(Character);
+        return;
     }
+
+    if (Targets.FindByPredicate([Character](const auto& T) { return Character->GetAgentId() == T.AgentId; }) != nullptr)
+    {
+        return;
+    }
+
+    FInworldPlayerTargetCharacter Target;
+    Target.UnpossessedHandle = Character->OnUnpossessed.AddLambda([this, Character]() { ClearTargetInworldCharacter(Character); });
+    Target.AgentId = Character->GetAgentId();
+    Targets.Add(Target);
+    OnTargetSet.Broadcast(Character);
 }
 
-void UInworldPlayerComponent::ClearTargetInworldCharacter()
+void UInworldPlayerComponent::ClearTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
-    UInworldCharacterComponent* TargetCharacter = GetTargetInworldCharacter();
-    if (TargetCharacter && TargetCharacter->StopPlayerInteraction(this))
+    if (!ensureMsgf(Character && !Character->GetAgentId().IsEmpty(), TEXT("UInworldPlayerComponent::ClearTargetInworldCharacter: the Character must have valid AgentId")))
     {
-        TargetCharacter->OnUnpossessed.Remove(CharacterTargetUnpossessedHandle);
-        OnTargetClear.Broadcast(TargetCharacter);
-		TargetCharacterAgentId = FString();
+        return;
+    }
+
+    auto* Target = Targets.FindByPredicate([Character](const auto& T) { return Character->GetAgentId() == T.AgentId; });
+    if (!Target)
+    {
+        return;
+    }
+
+    if (Character && Character->StopPlayerInteraction(this))
+    {
+        Character->OnUnpossessed.Remove(Target->UnpossessedHandle);
+        OnTargetClear.Broadcast(Character);
+    }
+
+    Targets.RemoveAt(Target - &Targets[0]);
+}
+
+void UInworldPlayerComponent::ClearAllTargetInworldCharacters()
+{
+    const int32 NumTargets = Targets.Num();
+    for (int32 i = 0; i < NumTargets; i++)
+    {
+        UInworldCharacterComponent* TargetCharacter = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(Targets[0].AgentId));
+        ClearTargetInworldCharacter(TargetCharacter);
     }
 }
 
 void UInworldPlayerComponent::SendTextMessageToTarget_Implementation(const FString& Message)
 {
-    if (!Message.IsEmpty() && !TargetCharacterAgentId.IsEmpty())
+    if (!Message.IsEmpty())
     {
-        InworldSubsystem->SendTextMessage(TargetCharacterAgentId, Message);
+        InworldSubsystem->SendTextMessageMultiAgent(GetTargetAgentIds(), Message);
     }
 }
 
@@ -89,69 +159,59 @@ void UInworldPlayerComponent::SendTextMessage_Implementation(const FString& Mess
 
 void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params)
 {
-    if (!TargetCharacterAgentId.IsEmpty())
-    {
-        InworldSubsystem->SendTrigger(TargetCharacterAgentId, Name, Params);
-    }
+    InworldSubsystem->SendTriggerMultiAgent(GetTargetAgentIds(), Name, Params);
 }
 
 void UInworldPlayerComponent::StartAudioSessionWithTarget()
 {
-    if (!TargetCharacterAgentId.IsEmpty())
-    {
-        InworldSubsystem->StartAudioSession(TargetCharacterAgentId);
-    }
+    InworldSubsystem->StartAudioSessionMultiAgent(GetTargetAgentIds(), GetOwner());
 }
 
 void UInworldPlayerComponent::StopAudioSessionWithTarget()
 {
-    if (!TargetCharacterAgentId.IsEmpty())
-	{
-		InworldSubsystem->StopAudioSession(TargetCharacterAgentId);
+    for (auto& Target : Targets)
+    {
+		InworldSubsystem->StopAudioSession(Target.AgentId);
 	}
 }
 
 void UInworldPlayerComponent::SendAudioMessageToTarget(USoundWave* SoundWave)
 {
-    if (!TargetCharacterAgentId.IsEmpty())
-    {
-        InworldSubsystem->SendAudioMessage(TargetCharacterAgentId, SoundWave);
-    }
+    InworldSubsystem->SendAudioMessage(GetTargetAgentIds(), SoundWave);
 }
 
 void UInworldPlayerComponent::SendAudioDataMessageToTarget(const TArray<uint8>& Data)
 {
-    if (!TargetCharacterAgentId.IsEmpty())
-    {
-        InworldSubsystem->SendAudioDataMessage(TargetCharacterAgentId, Data);
-    }
+    InworldSubsystem->SendAudioDataMessage(GetTargetAgentIds(), Data);
 }
 
 void UInworldPlayerComponent::SendAudioDataMessageWithAECToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    if (!TargetCharacterAgentId.IsEmpty())
-    {
-        InworldSubsystem->SendAudioDataMessageWithAEC(TargetCharacterAgentId, InputData, OutputData);
-    }
+    InworldSubsystem->SendAudioDataMessageWithAEC(GetTargetAgentIds(), InputData, OutputData);
 }
 
-void UInworldPlayerComponent::OnRep_TargetCharacterAgentId(FString OldAgentId)
+void UInworldPlayerComponent::OnRep_Targets(const TArray<FInworldPlayerTargetCharacter>& OldTargets)
 {
     if (!ensure(InworldSubsystem.IsValid()))
     {
         return;
     }
 
-	const bool bHadTarget = !OldAgentId.IsEmpty();
-	const bool bHasTarget = !TargetCharacterAgentId.IsEmpty();
-	if (bHadTarget && !bHasTarget)
-	{
-        auto* Component = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(OldAgentId));
-        OnTargetClear.Broadcast(Component);
-	}
-	if (bHasTarget && OldAgentId != TargetCharacterAgentId)
-	{
-        auto* Component = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(TargetCharacterAgentId));
-		OnTargetSet.Broadcast(Component);
-	}
+    for (auto& Target : OldTargets)
+    {
+        if (Targets.FindByPredicate([&Target](const auto& T) { return T.AgentId == Target.AgentId; }) == nullptr)
+        {
+            auto* Component = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(Target.AgentId));
+            OnTargetClear.Broadcast(Component);
+        }
+    }
+
+    for (auto& Target : Targets)
+    {
+        if (OldTargets.FindByPredicate([&Target](const auto& T) { return T.AgentId == Target.AgentId; }) == nullptr)
+        {
+            auto* Component = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(Target.AgentId));
+            OnTargetSet.Broadcast(Component);
+        }
+    }
 }
