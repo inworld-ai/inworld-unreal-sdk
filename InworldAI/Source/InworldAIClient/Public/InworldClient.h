@@ -68,6 +68,8 @@ public:
 	void SendCustomEvent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
 	void SendChangeSceneEvent(const FString& SceneName);
 
+	void SendNarrationEvent(const FString& AgentId, const FString& Content);
+
 	void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
 	FOnInworldSceneLoaded OnSceneLoaded;

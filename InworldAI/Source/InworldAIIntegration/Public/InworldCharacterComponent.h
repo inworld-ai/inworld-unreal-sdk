@@ -131,6 +131,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void SendAudioMessage(USoundWave* SoundWave) const;
+    
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void SendNarrationEvent(const FString& Content);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StartAudioSession(const AActor* Owner) const;

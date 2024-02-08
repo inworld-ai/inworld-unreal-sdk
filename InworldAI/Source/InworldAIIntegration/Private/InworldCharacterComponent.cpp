@@ -271,6 +271,14 @@ void UInworldCharacterComponent::SendAudioMessage(USoundWave* SoundWave) const
     }
 }
 
+void UInworldCharacterComponent::SendNarrationEvent(const FString& Content)
+{
+	if (ensure(!AgentId.IsEmpty()))
+	{
+		InworldSubsystem->SendNarrationEvent(AgentId, Content);
+	}
+}
+
 void UInworldCharacterComponent::StartAudioSession(const AActor* Owner) const
 {
     if (ensure(!AgentId.IsEmpty()))
