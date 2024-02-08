@@ -57,7 +57,6 @@ namespace Inworld
 		void CancelRequests();
 
 		void RequestFirebaseToken(const FInworldEditorClientOptions& Options, TFunction<void(const FString& FirebaseToken)> InCallback);
-		void RequestReadyPlayerMeModelData(const FInworldStudioUserCharacterData& CharacterData, TFunction<void(const TArray<uint8>& Data)> InCallback);
 
 		bool IsRequestInProgress() const { return HttpRequests.Num() != 0; }
 		const FString& GetError() const { return ErrorMessage; }
@@ -73,7 +72,6 @@ namespace Inworld
 		TArray<FHttpRequest> HttpRequests;
 		
 		TFunction<void(const FString& Token)> FirebaseTokenCallback;
-		TFunction<void(const TArray<uint8>& Data)> RPMActorCreateCallback;
 		FString ServerUrl;
 
 		FString ErrorMessage;
@@ -164,30 +162,6 @@ void Inworld::FEditorClient::HttpRequest(const FString& InURL, const FString& In
     HttpRequests.Emplace(InURL, InVerb, InContent, InCallback);
 }
 
-void Inworld::FEditorClient::RequestReadyPlayerMeModelData(const FInworldStudioUserCharacterData& CharacterData, TFunction<void(const TArray<uint8>& Data)> InCallback)
-{
-    RPMActorCreateCallback = InCallback;
-
-    static const FString UriArgsStr = "?pose=A&meshLod=0&textureAtlas=none&textureSizeLimit=1024&morphTargets=ARKit,Oculus%20Visemes&useHands=true";
-    HttpRequest(FString::Printf(TEXT("%s%s"), *CharacterData.RpmModelUri, *UriArgsStr), "GET", FString(), [this, &CharacterData](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool bSuccess)
-        {
-			CheckDoneRequests();
-
-            if (!bSuccess || InResponse->GetContent().Num() == 0)
-			{
-                Error(FString::Printf(TEXT("EditorClient::RequestReadyPlayerMeModelData request FALURE!, Code: %d"), InResponse ? InResponse->GetResponseCode() : -1));
-                return;
-            }
-
-            if (!ensure(RPMActorCreateCallback))
-            {
-                return;
-            }
-
-            RPMActorCreateCallback(InResponse->GetContent());
-            });
-}
-
 void Inworld::FEditorClient::Error(FString Message)
 {
 	UE_LOG(LogInworldAIEditor, Error, TEXT("%s"), *Message);
@@ -266,11 +240,6 @@ void FInworldEditorClient::Destroy()
 void FInworldEditorClient::RequestFirebaseToken(const FInworldEditorClientOptions& Options, TFunction<void(const FString& FirebaseToken)> InCallback)
 {
 	InworldEditorClient->RequestFirebaseToken(Options, InCallback);
-}
-
-void FInworldEditorClient::RequestReadyPlayerMeModelData(const FInworldStudioUserCharacterData& CharacterData, TFunction<void(const TArray<uint8>& Data)> InCallback)
-{
-	InworldEditorClient->RequestReadyPlayerMeModelData(CharacterData, InCallback);
 }
 
 void FInworldEditorClient::CancelRequests()
