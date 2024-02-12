@@ -42,7 +42,12 @@ static TAutoConsoleVariable<bool> CVarEnableSoundDump(
 );
 
 static TAutoConsoleVariable<FString> CVarSoundDumpPath(
-	TEXT("Inworld.Debug.SoundDumpPath"), FPaths::ConvertRelativePathToFull(FPaths::ProjectLogDir().Append("InworldAudioDump.wav")),
+	TEXT("Inworld.Debug.SoundDumpPath"),
+#if WITH_EDITOR
+	FPaths::ConvertRelativePathToFull(FPaths::ProjectLogDir().Append("InworldAudioDump.wav")),
+#else
+	FPaths::ConvertRelativePathToFull(FPaths::ProjectDir().Append("InworldAudioDump.wav")),
+#endif // WITH_EDITOR
 	TEXT("Specifiy path for audio input dump file")
 );
 

@@ -67,6 +67,7 @@ public class InworldAINDKLibrary : ModuleRules
 
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_LOG_CALLBACK=1");
+        PublicDefinitions.Add("INWORLD_AUDIO_DUMP=1");
 
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include"));
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include/grpc"));
