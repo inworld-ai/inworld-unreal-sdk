@@ -641,11 +641,6 @@ void UInworldCharacterComponent::Interrupt(const FCharacterMessageSilence& Messa
 	OnSilenceInterrupt.Broadcast(Message);
 }
 
-void UInworldCharacterComponent::Handle(const FCharacterMessageTrigger& Message)
-{
-	OnTrigger.Broadcast(Message);
-}
-
 void UInworldCharacterComponent::Handle(const FCharacterMessageInteractionEnd& Message)
 {
 	OnInteractionEnd.Broadcast(Message);

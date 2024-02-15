@@ -13,28 +13,28 @@ TMap<FString, TArray<FString>> FCharacterMessageQueue::Interrupt()
 
 	TMap<FString, TArray<FString>> InterruptedInteractions;
 
-	if (CurrentMessage.IsValid())
+	if (CurrentMessageQueueEntry.IsValid())
 	{
-		InterruptedInteractions.Add(CurrentMessage->InteractionId, { CurrentMessage->UtteranceId });
-		CurrentMessage->AcceptInterrupt(*MessageVisitor);
+		InterruptedInteractions.Add(CurrentMessageQueueEntry->GetCharacterMessage()->InteractionId, { CurrentMessageQueueEntry->GetCharacterMessage()->UtteranceId});
+		CurrentMessageQueueEntry->AcceptInterrupt(*MessageVisitor);
 
 		// Current Message and its lock should never be valid after AcceptInterrupt, as users should clear handle on interrupt.
 		// However, since this can not be guaranteed, make lock invalid if it is still lingering.
-		if (CurrentMessage.IsValid())
+		if (CurrentMessageQueueEntry.IsValid())
 		{
-			auto LockPinned = CurrentMessage->Lock.Pin();
+			auto LockPinned = QueueLock.Pin();
 			if (LockPinned.IsValid())
 			{
 				LockPinned->Valid = false;
 			}
 		}
 	}
-	CurrentMessage = nullptr;
+	CurrentMessageQueueEntry = nullptr;
 
-	for (const TSharedPtr<FCharacterMessage>& EntryToCancel : PendingMessageEntries)
+	for (const TSharedPtr<FCharacterMessageQueueEntryBase>& EntryToCancel : PendingMessageQueueEntries)
 	{
-		const FString& InteractionId = EntryToCancel->InteractionId;
-		const FString& UtteranceId = EntryToCancel->UtteranceId;
+		const FString& InteractionId = EntryToCancel->GetCharacterMessage()->InteractionId;
+		const FString& UtteranceId = EntryToCancel->GetCharacterMessage()->UtteranceId;
 		if (!InterruptedInteractions.Contains(InteractionId))
 		{
 			InterruptedInteractions.Add(InteractionId, {});
@@ -43,7 +43,7 @@ TMap<FString, TArray<FString>> FCharacterMessageQueue::Interrupt()
 		EntryToCancel->AcceptCancel(*MessageVisitor);
 	}
 
-	PendingMessageEntries.Empty();
+	PendingMessageQueueEntries.Empty();
 
 	Interrupting = false;
 
@@ -52,26 +52,28 @@ TMap<FString, TArray<FString>> FCharacterMessageQueue::Interrupt()
 
 void FCharacterMessageQueue::TryToProgress()
 {
-	while (!CurrentMessage.IsValid() && !Interrupting)
+	while (!CurrentMessageQueueEntry.IsValid() && !Interrupting)
 	{
-		if (PendingMessageEntries.Num() == 0)
+		if (PendingMessageQueueEntries.Num() == 0)
 		{
 			return;
 		}
 
-		auto NextQueuedEntry = PendingMessageEntries[0];
+		auto NextQueuedEntry = PendingMessageQueueEntries[0];
 		if(!NextQueuedEntry->IsReady())
 		{
 			return;
 		}
 
-		CurrentMessage = NextQueuedEntry;
-		PendingMessageEntries.RemoveAt(0);
+		CurrentMessageQueueEntry = NextQueuedEntry;
+		PendingMessageQueueEntries.RemoveAt(0);
 
+		auto CurrentMessage = CurrentMessageQueueEntry->GetCharacterMessage();
 		UE_LOG(LogInworldAIIntegration, Log, TEXT("Handle character message '%s::%s'"), *CurrentMessage->InteractionId, *CurrentMessage->UtteranceId);
-		auto LockPinned = MakeLock();
-		CurrentMessage->Lock = LockPinned;
-		CurrentMessage->AcceptHandle(*MessageVisitor);
+
+		TSharedPtr<FCharacterMessageQueueLock> LockPinned = MakeLock();
+		QueueLock = LockPinned;
+		CurrentMessageQueueEntry->AcceptHandle(*MessageVisitor);
 	}
 }
 
@@ -94,14 +96,14 @@ FCharacterMessageQueueLock::~FCharacterMessageQueueLock()
 	auto QueuePinned = QueuePtr.Pin();
 	if (QueuePinned.IsValid())
 	{
-		QueuePinned->CurrentMessage = nullptr;
+		QueuePinned->CurrentMessageQueueEntry = nullptr;
 		QueuePinned->TryToProgress();
 	}
 }
 
-bool UInworldCharacterMessageQueueFunctionLibrary::LockMessage(const FCharacterMessage& Message, FInworldCharacterMessageQueueLockHandle& LockHandle)
+bool FCharacterMessageQueue::Lock(FInworldCharacterMessageQueueLockHandle& LockHandle)
 {
-	auto LockPinned = Message.Lock.Pin();
+	auto LockPinned = QueueLock.Pin();
 	if (!LockPinned.IsValid())
 	{
 		return false;
@@ -113,13 +115,7 @@ bool UInworldCharacterMessageQueueFunctionLibrary::LockMessage(const FCharacterM
 		return false;
 	}
 
-	auto CurrentMessage = QueuePinned->CurrentMessage;
-	if (!CurrentMessage.IsValid())
-	{
-		return false;
-	}
-
-	if (CurrentMessage->InteractionId != Message.InteractionId || CurrentMessage->UtteranceId != Message.UtteranceId)
+	if (!CurrentMessageQueueEntry.IsValid())
 	{
 		return false;
 	}
@@ -128,7 +124,7 @@ bool UInworldCharacterMessageQueueFunctionLibrary::LockMessage(const FCharacterM
 	return true;
 }
 
-void UInworldCharacterMessageQueueFunctionLibrary::UnlockMessage(FInworldCharacterMessageQueueLockHandle& LockHandle)
+void FCharacterMessageQueue::Unlock(FInworldCharacterMessageQueueLockHandle& LockHandle)
 {
 	LockHandle.Lock = {};
 }

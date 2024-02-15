@@ -65,7 +65,7 @@ void UInworldCharacterPlaybackAudio::OnCharacterUtterance_Implementation(const F
 
 		AudioComponent->Play();
 
-		LockMessageQueue(Message);
+		LockMessageQueue();
 	}
 	OnUtteranceStarted.Broadcast(SoundWave != nullptr ? SoundDuration : 0.f, Message.Text);
 }
@@ -84,7 +84,7 @@ void UInworldCharacterPlaybackAudio::OnCharacterSilence_Implementation(const FCh
 	UWorld* World = CharacterComponent->GetWorld();
 	World->GetTimerManager().SetTimer(SilenceTimerHandle, this, &UInworldCharacterPlaybackAudio::OnSilenceEnd, Message.Duration);
 	OnSilenceStarted.Broadcast(Message.Duration);
-	LockMessageQueue(Message);
+	LockMessageQueue();
 }
 
 void UInworldCharacterPlaybackAudio::OnCharacterSilenceInterrupt_Implementation(const FCharacterMessageSilence& Message)

@@ -70,12 +70,12 @@ void UInworldCharacterPlayback::ClearCharacterComponent()
 	OwnerActor = nullptr;
 }
 
-bool UInworldCharacterPlayback::LockMessageQueue(const FCharacterMessage& Message)
+bool UInworldCharacterPlayback::LockMessageQueue()
 {
-	return UInworldCharacterMessageQueueFunctionLibrary::LockMessage(Message, CharacterMessageQueueLockHandle);
+	return CharacterComponent->LockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterPlayback::UnlockMessageQueue()
 {
-	UInworldCharacterMessageQueueFunctionLibrary::UnlockMessage(CharacterMessageQueueLockHandle);
+	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }

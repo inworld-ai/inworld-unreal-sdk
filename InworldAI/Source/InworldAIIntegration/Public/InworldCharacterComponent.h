@@ -157,8 +157,14 @@ public:
 
 	const TSharedPtr<FCharacterMessage> GetCurrentMessage() const
 	{ 
-		return MessageQueue->CurrentMessage;
+		return MessageQueue->CurrentMessageQueueEntry ? MessageQueue->CurrentMessageQueueEntry->GetCharacterMessage() : nullptr;
 	}
+
+	UFUNCTION(BlueprintCallable, Category = "Message")
+	bool LockMessageQueue(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle) { return MessageQueue->Lock(Handle); }
+
+	UFUNCTION(BlueprintCallable, Category = "Message")
+	void UnlockMessageQueue(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle) { MessageQueue->Unlock(Handle); }
 
 	template<class T>
 	T* GetPlaybackNative()
@@ -233,8 +239,6 @@ private:
 
 	virtual void Handle(const FCharacterMessageSilence& Message) override;
 	virtual void Interrupt(const FCharacterMessageSilence& Message) override;
-
-	virtual void Handle(const FCharacterMessageTrigger& Message) override;
 
 	virtual void Handle(const FCharacterMessageInteractionEnd& Message) override;
 

@@ -60,7 +60,7 @@ void FInworldGameplayDebuggerCategory::CollectData(APlayerController* OwnerPC, A
 		Data.GivenName = Comp->GetGivenName();
 		Data.AgentId = Comp->GetAgentId();
 		Data.CurrentMessage = Comp->GetCurrentMessage() ? Comp->GetCurrentMessage()->ToDebugString() : TEXT("");
-		Data.MessageQueueEntries = Comp->MessageQueue->PendingMessageEntries.Num();
+		Data.MessageQueueEntries = Comp->MessageQueue->PendingMessageQueueEntries.Num();
 		Data.EmotionalBehavior = static_cast<uint8>(Comp->GetEmotionalBehavior());
 		Data.EmotionStrength = static_cast<uint8>(Comp->GetEmotionStrength());
 		Data.bPendingRepAudioEvent = !Comp->PendingRepAudioEvents.IsEmpty();

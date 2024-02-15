@@ -15,7 +15,6 @@
 
 struct FCharacterMessageUtterance;
 struct FCharacterMessageSilence;
-struct FCharacterMessageTrigger;
 struct FCharacterMessageInteractionEnd;
 
 class ICharacterMessageVisitor
@@ -27,10 +26,51 @@ public:
 	virtual void Handle(const FCharacterMessageSilence& Event) { }
 	virtual void Interrupt(const FCharacterMessageSilence& Event) { }
 
-	virtual void Handle(const FCharacterMessageTrigger& Event) { }
-
 	virtual void Handle(const FCharacterMessageInteractionEnd& Event) { }
 };
+
+struct FCharacterMessageQueueLock;
+
+struct FCharacterMessageQueueEntryBase
+{
+	FCharacterMessageQueueEntryBase() {};
+	virtual ~FCharacterMessageQueueEntryBase() {};
+
+	virtual TSharedPtr<FCharacterMessage> GetCharacterMessage() const = 0;
+
+	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) = 0;
+	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) = 0;
+	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) = 0;
+
+	virtual bool IsReady() const = 0;
+};
+
+template<class T>
+struct FCharacterMessageQueueEntry : FCharacterMessageQueueEntryBase
+{
+	TSharedPtr<T> Message;
+
+	FCharacterMessageQueueEntry(TSharedPtr<T> InMessage)
+	{
+		Message = InMessage;
+	}
+
+	virtual TSharedPtr<FCharacterMessage> GetCharacterMessage() const { return Message; }
+
+	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override;
+	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override;
+	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override;
+	virtual bool IsReady() const override;
+};
+
+template<class T>
+void FCharacterMessageQueueEntry<T>::AcceptHandle(ICharacterMessageVisitor& Visitor) { Visitor.Handle(*Message); }
+template<class T>
+void FCharacterMessageQueueEntry<T>::AcceptInterrupt(ICharacterMessageVisitor& Visitor) { Visitor.Interrupt(*Message); }
+template<class T>
+void FCharacterMessageQueueEntry<T>::AcceptCancel(ICharacterMessageVisitor& Visitor) { Visitor.Handle(*Message); }
+template<class T>
+bool FCharacterMessageQueueEntry<T>::IsReady() const { return true; }
 
 struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 {
@@ -39,13 +79,12 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 	{}
 	FCharacterMessageQueue(class ICharacterMessageVisitor* InMessageVisitor)
 		: MessageVisitor(InMessageVisitor)
-	{
-	}
+	{}
 
 	class ICharacterMessageVisitor* MessageVisitor;
 
-	TSharedPtr<FCharacterMessage> CurrentMessage;
-	TArray<TSharedPtr<FCharacterMessage>> PendingMessageEntries;
+	TSharedPtr<FCharacterMessageQueueEntryBase> CurrentMessageQueueEntry;
+	TArray<TSharedPtr<FCharacterMessageQueueEntryBase>> PendingMessageQueueEntries;
 
 	template<class T>
 	void AddOrUpdateMessage(const FInworldPacket& Event, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr)
@@ -53,23 +92,25 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 		const FString& InteractionId = Event.PacketId.InteractionId;
 		const FString& UtteranceId = Event.PacketId.UtteranceId;
 
+		TSharedPtr<FCharacterMessageQueueEntryBase> MessageQueueEntry = nullptr;
 		TSharedPtr<T> Message = nullptr;
-		const auto Index = PendingMessageEntries.FindLastByPredicate([&InteractionId, &UtteranceId](const TSharedPtr<FCharacterMessage>& MessageQueueEntry)
+		const auto Index = PendingMessageQueueEntries.FindLastByPredicate([&InteractionId, &UtteranceId](const TSharedPtr<FCharacterMessageQueueEntryBase> MessageQueueEntry)
 			{
-				return MessageQueueEntry->InteractionId == InteractionId && MessageQueueEntry->UtteranceId == UtteranceId;
+				return MessageQueueEntry->GetCharacterMessage()->InteractionId == InteractionId && MessageQueueEntry->GetCharacterMessage()->UtteranceId == UtteranceId;
 			}
 		);
 		if (Index != INDEX_NONE)
 		{
-			Message = StaticCastSharedPtr<T>(PendingMessageEntries[Index]);
+			MessageQueueEntry = PendingMessageQueueEntries[Index];
+			Message = StaticCastSharedPtr<T>(MessageQueueEntry->GetCharacterMessage());
 		}
 
-		if (!Message.IsValid() || Message->IsReady())
+		if (!MessageQueueEntry.IsValid() || MessageQueueEntry->IsReady())
 		{
 			Message = MakeShared<T>();
 			Message->InteractionId = InteractionId;
 			Message->UtteranceId = UtteranceId;
-			PendingMessageEntries.Emplace(Message);
+			PendingMessageQueueEntries.Emplace(MakeShared<FCharacterMessageQueueEntry<T>>(Message));
 		}
 		if (PopulateProperties)
 		{
@@ -82,9 +123,12 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 	TMap<FString, TArray<FString>> Interrupt();
 	void TryToProgress();
 
+	bool Lock(FInworldCharacterMessageQueueLockHandle& LockHandle);
+	void Unlock(FInworldCharacterMessageQueueLockHandle& LockHandle);
+
 private:
-	bool Locked = false;
 	bool Interrupting = false;
+	TWeakPtr<struct FCharacterMessageQueueLock> QueueLock;
 	TSharedPtr<struct FCharacterMessageQueueLock> MakeLock();
 	friend struct FCharacterMessageQueueLock;
 };
@@ -123,14 +167,6 @@ struct FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString InteractionId;
 
-	TWeakPtr<FCharacterMessageQueueLock> Lock;
-
-	virtual bool IsReady() const { return true; }
-
-	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) PURE_VIRTUAL(FCharacterMessage::AcceptHandle)
-	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) PURE_VIRTUAL(FCharacterMessage::AcceptInterrupt)
-	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) PURE_VIRTUAL(FCharacterMessage::AcceptCancel)
-
 	virtual FString ToDebugString() const PURE_VIRTUAL(FCharacterMessage::ToDebugString, return FString();)
 };
 
@@ -166,14 +202,11 @@ struct FCharacterMessageUtterance : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	TArray<uint8> SoundData;
 
-	virtual bool IsReady() const override { return bTextFinal && bAudioFinal; }
-
-	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
-	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { Visitor.Interrupt(*this); }
-	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override { }
-
 	virtual FString ToDebugString() const override { return FString::Printf(TEXT("Utterance. Text: %s"), *Text); }
 };
+
+inline void FCharacterMessageQueueEntry<FCharacterMessageUtterance>::AcceptCancel(ICharacterMessageVisitor& Visitor) { }
+inline bool FCharacterMessageQueueEntry<FCharacterMessageUtterance>::IsReady() const { return Message->bTextFinal && Message->bAudioFinal; }
 
 USTRUCT(BlueprintType)
 struct FCharacterMessagePlayerTalk : public FCharacterMessage
@@ -186,10 +219,6 @@ struct FCharacterMessagePlayerTalk : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	bool bTextFinal = false;
 
-	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { }
-	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { }
-	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override { }
-
 	virtual FString ToDebugString() const override { return FString::Printf(TEXT("PlayerTalk. Text: %s"), *Text); }
 };
 
@@ -201,14 +230,11 @@ struct FCharacterMessageSilence : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	float Duration = 0.f;
 
-	virtual bool IsReady() const override { return Duration != 0.f; }
-
-	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
-	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { Visitor.Interrupt(*this); }
-	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override { }
-
 	virtual FString ToDebugString() const override { return FString::Printf(TEXT("Silence. Duration: %f"), Duration); }
 };
+
+inline void FCharacterMessageQueueEntry<FCharacterMessageSilence>::AcceptCancel(ICharacterMessageVisitor& Visitor) { }
+inline bool FCharacterMessageQueueEntry<FCharacterMessageSilence>::IsReady() const { return Message->Duration != 0; }
 
 USTRUCT(BlueprintType)
 struct FCharacterMessageTrigger : public FCharacterMessage
@@ -221,12 +247,6 @@ struct FCharacterMessageTrigger : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	TMap<FString, FString> Params;
 
-	virtual bool IsReady() const override { return !Name.IsEmpty(); }
-
-	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
-	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { }
-	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
-
 	virtual FString ToDebugString() const override { return FString::Printf(TEXT("Trigger. Name: %s"), *Name); }
 };
 
@@ -235,23 +255,7 @@ struct FCharacterMessageInteractionEnd : public FCharacterMessage
 {
 	GENERATED_BODY()
 
-	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
-	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { }
-	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
-
 	virtual FString ToDebugString() const override { return TEXT("InteractionEnd"); }
 };
 
-UCLASS()
-class INWORLDAIINTEGRATION_API UInworldCharacterMessageQueueFunctionLibrary : public UBlueprintFunctionLibrary
-{
-	GENERATED_BODY()
-
-public:
-
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Character")
-	static bool LockMessage(const FCharacterMessage& Message, UPARAM(ref) FInworldCharacterMessageQueueLockHandle& LockHandle);
-
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Character")
-	static void UnlockMessage(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& LockHandle);
-};
+inline void FCharacterMessageQueueEntry<FCharacterMessageInteractionEnd>::AcceptInterrupt(ICharacterMessageVisitor& Visitor) { }

@@ -55,7 +55,7 @@ void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessa
 
 		Play();
 
-		UInworldCharacterMessageQueueFunctionLibrary::LockMessage(Message, CharacterMessageQueueLockHandle);
+		CharacterComponent->LockMessageQueue(CharacterMessageQueueLockHandle);
 	}
 }
 
@@ -64,24 +64,24 @@ void UInworldCharacterAudioComponent::OnCharacterUtteranceInterrupt(const FChara
 	Stop();
 	VisemeBlends = FInworldCharacterVisemeBlends();
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
-	UInworldCharacterMessageQueueFunctionLibrary::UnlockMessage(CharacterMessageQueueLockHandle);
+	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterAudioComponent::OnCharacterSilence(const FCharacterMessageSilence& Message)
 {
 	GetWorld()->GetTimerManager().SetTimer(SilenceTimerHandle, this, &UInworldCharacterAudioComponent::OnSilenceEnd, Message.Duration);
-	UInworldCharacterMessageQueueFunctionLibrary::LockMessage(Message, CharacterMessageQueueLockHandle);
+	CharacterComponent->LockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterAudioComponent::OnCharacterSilenceInterrupt(const FCharacterMessageSilence& Message)
 {
 	GetWorld()->GetTimerManager().ClearTimer(SilenceTimerHandle);
-	UInworldCharacterMessageQueueFunctionLibrary::UnlockMessage(CharacterMessageQueueLockHandle);
+	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterAudioComponent::OnSilenceEnd()
 {
-	UInworldCharacterMessageQueueFunctionLibrary::UnlockMessage(CharacterMessageQueueLockHandle);
+	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
 float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() const
@@ -144,5 +144,5 @@ void UInworldCharacterAudioComponent::OnAudioFinished(UAudioComponent* InAudioCo
 {
 	VisemeBlends = FInworldCharacterVisemeBlends();
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
-	UInworldCharacterMessageQueueFunctionLibrary::UnlockMessage(CharacterMessageQueueLockHandle);
+	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
