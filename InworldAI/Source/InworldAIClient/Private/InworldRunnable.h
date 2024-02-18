@@ -8,16 +8,11 @@
 #pragma once
 
 THIRD_PARTY_INCLUDES_START
-#include "RunnableCommand.h"
+#include "Runnable.h"
 THIRD_PARTY_INCLUDES_END
 
 #include "HAL/RunnableThread.h"
 #include "HAL/Runnable.h"
-
-namespace Inworld
-{
-	class Runnable;
-}
 
 class FInworldRunnable : public FRunnable
 {

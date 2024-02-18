@@ -187,16 +187,12 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 	}
 
 	Options.Capabilities.Animations = Capabilities.Animations;
-	Options.Capabilities.Text = Capabilities.Text;
 	Options.Capabilities.Audio = Capabilities.Audio;
 	Options.Capabilities.Emotions = Capabilities.Emotions;
-	Options.Capabilities.Gestures = Capabilities.Gestures;
 	Options.Capabilities.Interruptions = Capabilities.Interruptions;
-	Options.Capabilities.Triggers = Capabilities.Triggers;
 	Options.Capabilities.EmotionStreaming = Capabilities.EmotionStreaming;
 	Options.Capabilities.SilenceEvents = Capabilities.SilenceEvents;
 	Options.Capabilities.PhonemeInfo = Capabilities.PhonemeInfo;
-	Options.Capabilities.LoadSceneInSession = Capabilities.LoadSceneInSession;
 	Options.Capabilities.Continuation = Capabilities.Continuation;
 	Options.Capabilities.TurnBasedSTT = Capabilities.TurnBasedSTT;
 	Options.Capabilities.NarratedActions = Capabilities.NarratedActions;
@@ -386,7 +382,7 @@ void FInworldClient::SendCustomEvent(const TArray<FString>& AgentIds, const FStr
 
 void FInworldClient::SendChangeSceneEvent(const FString& SceneName)
 {
-	InworldClient->SendChangeSceneEvent(TCHAR_TO_UTF8(*SceneName));
+	InworldClient->LoadScene(TCHAR_TO_UTF8(*SceneName), nullptr);
 }
 
 void FInworldClient::SendNarrationEvent(const FString& AgentId, const FString& Content)
