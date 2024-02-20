@@ -31,19 +31,19 @@ class BuildConfiguration:
 build_configurations = {
     'Win64': BuildConfiguration(
         ['cmake .. -G "Visual Studio 16 2019" -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
-        ['cmake --build . --target InworldNDK --config Release']
+        ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Mac': BuildConfiguration(
         ['cmake .. -DAEC=True -DMAC=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DINWORLD_AUDIO_DUMP=True'],
-        ['cmake --build . --target InworldNDK --config Release']
+        ['cmake --build . --target inworld-ndk --config Release']
     ),
     'iOS': BuildConfiguration(
         ['cmake -G Xcode .. -DAEC=False -DIOS=True -DCMAKE_TOOLCHAIN_FILE=./ios.toolchain.cmake -DPLATFORM=OS64 -DINWORLD_LOG_CALLBACK=True'],
-        ['cmake --build . --target InworldNDK --config Release']
+        ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Android': BuildConfiguration(
         ['cmake .. -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/25.2.9519653 -DINWORLD_LOG_CALLBACK=True'],
-        ['cmake --build . --target InworldNDK --config Release']
+        ['cmake --build . --target inworld-ndk --config Release']
     )
 }
 
