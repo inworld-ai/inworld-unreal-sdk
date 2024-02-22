@@ -231,11 +231,11 @@ void FInworldCustomEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Custom"));
 	AppendToDebugString(Str, Name);
-	if (Params.Num() > 0)
+	if (Params.RepMap.Num() > 0)
 	{
 		AppendToDebugString(Str, TEXT("Params"));
 	}
-	for (const auto& Param : Params)
+	for (const auto& Param : Params.RepMap)
 	{
 		AppendToDebugString(Str, Param.Key + ":" + Param.Value);
 	}

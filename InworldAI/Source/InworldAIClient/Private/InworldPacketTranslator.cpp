@@ -103,7 +103,7 @@ void InworldPacketTranslator::TranslateEvent<Inworld::CustomEvent, FInworldCusto
 	New.Name = UTF8_TO_TCHAR(Original.GetName().c_str());
 	for (const auto& Param : Original.GetParams())
 	{
-		New.Params.Add(UTF8_TO_TCHAR(Param.first.c_str()), UTF8_TO_TCHAR(Param.second.c_str()));
+		New.Params.RepMap.Add(UTF8_TO_TCHAR(Param.first.c_str()), UTF8_TO_TCHAR(Param.second.c_str()));
 	}
 }
 

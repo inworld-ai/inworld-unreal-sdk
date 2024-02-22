@@ -17,6 +17,50 @@
 #include "InworldPackets.generated.h"
 
 USTRUCT()
+struct FInworldReplicatedMapStruct
+{
+	GENERATED_BODY()
+
+	UPROPERTY(NotReplicated)
+	TMap<FString, FString> RepMap;
+
+	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
+	{
+		TArray<FString> ParamKeys;
+		TArray<FString> ParamValues;
+
+		if (Ar.IsLoading())
+		{
+			Ar << ParamKeys;
+			Ar << ParamValues;
+			for (auto It = ParamKeys.CreateConstIterator(); It; ++It)
+			{
+				RepMap.Add(ParamKeys[It.GetIndex()], ParamValues[It.GetIndex()]);
+			}
+		}
+		else
+		{
+			RepMap.GenerateKeyArray(ParamKeys);
+			RepMap.GenerateValueArray(ParamValues);
+			Ar << ParamKeys;
+			Ar << ParamValues;
+		}
+
+		bOutSuccess = true;
+		return true;
+	}
+};
+
+template<>
+struct TStructOpsTypeTraits<FInworldReplicatedMapStruct> : public TStructOpsTypeTraitsBase2<FInworldReplicatedMapStruct>
+{
+	enum
+	{
+		WithNetSerializer = true
+	};
+};
+
+USTRUCT()
 struct INWORLDAICLIENT_API FInworldActor
 {
 	GENERATED_BODY()
@@ -278,48 +322,11 @@ struct INWORLDAICLIENT_API FInworldCustomEvent : public FInworldPacket
 	UPROPERTY()
 	FString Name;
 
-	UPROPERTY(NotReplicated)
-	TMap<FString, FString> Params;
-	
-	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
-	{
-		TArray<FString> ParamKeys;
-		TArray<FString> ParamValues;
-
-		if (Ar.IsLoading())
-		{
-			Ar << Name;
-			Ar << ParamKeys;
-			Ar << ParamValues;
-			for (auto It = ParamKeys.CreateConstIterator(); It; ++It)
-			{
-				Params.Add(ParamKeys[It.GetIndex()], ParamValues[It.GetIndex()]);
-			}
-		}
-		else
-		{
-			Ar << Name;
-			Params.GenerateKeyArray(ParamKeys);
-			Params.GenerateValueArray(ParamValues);
-			Ar << ParamKeys;
-			Ar << ParamValues;
-		}
-
-		bOutSuccess = true;
-		return true;
-	}
+	UPROPERTY()
+	FInworldReplicatedMapStruct Params;
 	
 protected:
 	virtual void AppendDebugString(FString& Str) const;
-};
-
-template<>
-struct TStructOpsTypeTraits<FInworldCustomEvent> : public TStructOpsTypeTraitsBase2<FInworldCustomEvent>
-{
-	enum
-	{
-		WithNetSerializer = true
-	};
 };
 
 USTRUCT()
