@@ -87,6 +87,72 @@ struct FInworldStudioUserApiKeyData
 };
 
 USTRUCT(BlueprintType)
+struct FInworldStudioGraphNodeQuote
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	FString Character;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	FString Text;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioGraphNodeData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	FString Name;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	FString Scene;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	TArray<FInworldStudioGraphNodeQuote> Quotes;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	bool bIsStart;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioGraphConnectionData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	FString Name;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	FString From;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	FString To;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	FString Text;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioGraphData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	FString Name;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	FString DisplayName;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	TArray<FInworldStudioGraphNodeData> Nodes;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio|Graph")
+	TArray<FInworldStudioGraphConnectionData> Connections;
+};
+
+USTRUCT(BlueprintType)
 struct FInworldStudioUserWorkspaceData
 {
 	GENERATED_BODY()
@@ -105,6 +171,9 @@ struct FInworldStudioUserWorkspaceData
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
 	TArray<FInworldStudioUserApiKeyData> ApiKeys;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
+	TArray<FInworldStudioGraphData> Graphs;
 };
 
 USTRUCT(BlueprintType)

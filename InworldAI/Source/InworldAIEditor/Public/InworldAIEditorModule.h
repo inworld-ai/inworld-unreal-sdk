@@ -14,6 +14,7 @@
 #include "UnrealEdMisc.h"
 #include "Blueprint/UserWidget.h"
 #include "Studio/InworldStudioWidget.h"
+#include "EdGraphUtilities.h"
 
 INWORLDAIEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAIEditor, Log, All);
 
@@ -64,6 +65,9 @@ public:
 	void UnbindMenuAssetAction(const FName& Name);
 
 private:
+	TSharedPtr<FGraphPanelNodeFactory> InworldNarrativeGraphPanelNodeFactory;
+	TSharedPtr<FGraphPanelPinConnectionFactory> InworldNarrativeGraphPanelPinConnectionFactory;
+
 	struct FAssetActionMenuFunction
 	{
 	public:

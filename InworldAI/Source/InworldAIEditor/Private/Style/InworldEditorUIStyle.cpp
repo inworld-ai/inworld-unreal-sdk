@@ -14,6 +14,8 @@
 
 
 #define IMAGE_BRUSH(RelativePath, ...) FSlateImageBrush(StyleSet->RootToContentDir(RelativePath, TEXT(".png")), __VA_ARGS__)
+#define BOX_BRUSH( RelativePath, ... ) FSlateBoxBrush(StyleSet->RootToContentDir(RelativePath, TEXT(".png") ), __VA_ARGS__)
+#define BORDER_BRUSH( RelativePath, ... ) FSlateBorderBrush(StyleSet->RootToContentDir(RelativePath, TEXT(".png") ), __VA_ARGS__)
 
 TSharedPtr< FSlateStyleSet > FInworldEditorUIStyle::StyleSet = nullptr;
 TSharedPtr< class ISlateStyle > FInworldEditorUIStyle::Get() { return StyleSet; }
@@ -46,6 +48,9 @@ void FInworldEditorUIStyle::Initialize()
 
 	// Inworld Asset Editor
 	StyleSet->Set("InworldEditor.Icon", new IMAGE_BRUSH("Icons/InworldIcon_40x", Icon40x40));
+
+	StyleSet->Set("InworldEditor.NarrativeGraph.Body", new BOX_BRUSH("/NarrativeGraph/GraphNodeBody", FMargin(16.f / 64.f, 25.f / 64.f, 16.f / 64.f, 16.f / 64.f)));
+	StyleSet->Set("InworldEditor.NarrativeGraph.ColorSpill", new BOX_BRUSH("/NarrativeGraph/GraphNodeColorSpill", FMargin(4.0f / 64.0f, 4.0f / 32.0f)));
 
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Get());
 };

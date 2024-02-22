@@ -33,7 +33,7 @@
 #include "Interfaces/IPluginManager.h"
 #include "UObject/SavePackage.h"
 
-static FString ServerUrl = "api-studio.inworld.ai:443";
+static FString ServerUrl = "studio.knivesout.dev.inworld.ai:443";
 
 FString UInworldEditorApiSubsystem::GetInworldAIPluginVersion()
 {

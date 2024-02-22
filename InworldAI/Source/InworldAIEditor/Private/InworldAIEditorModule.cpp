@@ -22,14 +22,55 @@
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
 #include "Interfaces/IPluginManager.h"
+#include "NarrativeGraph/SInworldNarrativeGraphNode.h"
+#include "NarrativeGraph/InworldNarrativeGraphNode.h"
+#include "NarrativeGraph/InworldNarrativeGraphSchema.h"
+#include "NarrativeGraph/InworldNarrativeGraphConnectionDrawingPolicy.h"
 
 #define LOCTEXT_NAMESPACE "FInworldAIEditorModule"
 
 DEFINE_LOG_CATEGORY(LogInworldAIEditor);
 
+class FInworldNarrativeGraphPanelNodeFactory : public FGraphPanelNodeFactory
+{
+	virtual TSharedPtr<class SGraphNode> CreateNode(UEdGraphNode* Node) const override
+	{
+		if (UInworldNarrativeGraphNode_Root* RootNode = Cast<UInworldNarrativeGraphNode_Root>(Node))
+		{
+			return SNew(SInworldNarrativeGraphNode_Root, RootNode);
+		}
+
+		if (UInworldNarrativeGraphNode_Scene* SceneNode = Cast<UInworldNarrativeGraphNode_Scene>(Node))
+		{
+			return SNew(SInworldNarrativeGraphNode_Scene, SceneNode);
+		}
+
+		return nullptr;
+	}
+};
+
+class FInworldNarrativeGraphPanelPinConnectionFactory : public FGraphPanelPinConnectionFactory
+{
+	virtual class FConnectionDrawingPolicy* CreateConnectionPolicy(const class UEdGraphSchema* Schema, int32 InBackLayerID, int32 InFrontLayerID, float ZoomFactor, const class FSlateRect& InClippingRect, class FSlateWindowElementList& InDrawElements, class UEdGraph* InGraphObj) const override
+	{
+		if (Schema->IsA(UInworldNarrativeGraphSchema::StaticClass()))
+		{
+			return new FInworldNarrativeGraphConnectionDrawingPolicy(InBackLayerID, InFrontLayerID, ZoomFactor, InClippingRect, InDrawElements, InGraphObj);
+		}
+
+		return nullptr;
+	}
+};
+
 void FInworldAIEditorModule::StartupModule()
 {
 	FInworldEditorUIStyle::Initialize();
+
+	InworldNarrativeGraphPanelNodeFactory = MakeShared<FInworldNarrativeGraphPanelNodeFactory>();
+	FEdGraphUtilities::RegisterVisualNodeFactory(InworldNarrativeGraphPanelNodeFactory);
+
+	InworldNarrativeGraphPanelPinConnectionFactory = MakeShared<FInworldNarrativeGraphPanelPinConnectionFactory>();
+	FEdGraphUtilities::RegisterVisualPinConnectionFactory(InworldNarrativeGraphPanelPinConnectionFactory);
 
 	FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
 	TArray<FContentBrowserMenuExtender_SelectedAssets>& CBMenuAssetExtenderDelegates = ContentBrowserModule.GetAllAssetViewContextMenuExtenders();
@@ -69,6 +110,9 @@ void FInworldAIEditorModule::StartupModule()
 void FInworldAIEditorModule::ShutdownModule()
 {
 	FInworldEditorUIStyle::Shutdown();
+
+	FEdGraphUtilities::UnregisterVisualNodeFactory(InworldNarrativeGraphPanelNodeFactory);
+	FEdGraphUtilities::UnregisterVisualPinConnectionFactory(InworldNarrativeGraphPanelPinConnectionFactory);
 
 	ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 	if (SettingsModule)

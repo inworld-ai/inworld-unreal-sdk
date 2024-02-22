@@ -58,6 +58,7 @@ namespace Inworld
 
 		void OnGenerateUserToken(const InworldV1alpha::GenerateTokenUserResponse& Response);
 		void OnWorkspacesReady(const InworldV1alpha::ListWorkspacesResponse& Response);
+		void OnGraphsReady(const InworldV1alpha::ListGraphsResponse& Response, FInworldStudioUserWorkspaceData& Workspace);
 		void OnApiKeysReady(const InworldV1alpha::ListApiKeysResponse& Response, FInworldStudioUserWorkspaceData& Workspace);
 		void OnScenesReady(const InworldV1alpha::ListScenesResponse& Response, FInworldStudioUserWorkspaceData& Workspace);
 		void OnCharactersReady(const InworldV1alpha::ListCharactersResponse& Response, FInworldStudioUserWorkspaceData& Workspace);
@@ -235,6 +236,65 @@ void Inworld::FStudio::OnWorkspacesReady(const InworldV1alpha::ListWorkspacesRes
 				}
 			)
 		);
+
+		Request(
+			"RunnableListNarrativeGraphsRequest",
+			std::make_unique<Inworld::RunnableListGraphsRequest>(
+				TCHAR_TO_UTF8(*InworldToken),
+				TCHAR_TO_UTF8(*ServerUrl),
+				GrpcWorkspace.name(),
+				[this, &Workspace](const grpc::Status& Status, const InworldV1alpha::ListGraphsResponse& Response)
+				{
+					if (!Status.ok())
+					{
+						Error(FString::Printf(TEXT("FRunnableListGraphsRequest FALURE! %s, Code: %d"), UTF8_TO_TCHAR(Status.error_message().c_str()), Status.error_code()));
+						return;
+					}
+
+					OnGraphsReady(Response, Workspace);
+					CheckDoneRequests();
+				}
+			)
+		);
+	}
+}
+
+void Inworld::FStudio::OnGraphsReady(const InworldV1alpha::ListGraphsResponse& Response, FInworldStudioUserWorkspaceData& Workspace)
+{
+	Workspace.Graphs.Reserve(Response.graphs_size());
+
+	for (int32 i = 0; i < Response.graphs_size(); i++)
+	{
+		const auto& GrpcGraph = Response.graphs(i);
+		auto& Graph = Workspace.Graphs.Emplace_GetRef();
+		Graph.Name = UTF8_TO_TCHAR(GrpcGraph.name().data());
+		Graph.DisplayName = UTF8_TO_TCHAR(GrpcGraph.display_name().data());
+
+		for (int32 j = 0; j < GrpcGraph.nodes_size(); j++)
+		{
+			const auto& GrpcNode = GrpcGraph.nodes(j);
+			auto& Node = Graph.Nodes.Emplace_GetRef();
+			Node.Name = UTF8_TO_TCHAR(GrpcNode.name().data());
+			Node.Scene = UTF8_TO_TCHAR(GrpcNode.scene().data());
+			for (int32 k = 0; k < GrpcNode.quotes_size(); k++)
+			{
+				const auto& GrpcQuote = GrpcNode.quotes(k);
+				auto& Quote = Node.Quotes.Emplace_GetRef();
+				Quote.Character = UTF8_TO_TCHAR(GrpcQuote.character().data());
+				Quote.Text = UTF8_TO_TCHAR(GrpcQuote.text().data());
+			}
+			Node.bIsStart = GrpcNode.is_start();
+		}
+
+		for (int32 j = 0; j < GrpcGraph.connections_size(); j++)
+		{
+			const auto& GrpcConnection = GrpcGraph.connections(j);
+			auto& Connection = Graph.Connections.Emplace_GetRef();
+			Connection.Name = UTF8_TO_TCHAR(GrpcConnection.name().data());
+			Connection.From = UTF8_TO_TCHAR(GrpcConnection.node_from().data());
+			Connection.To = UTF8_TO_TCHAR(GrpcConnection.node_to().data());
+			Connection.Text = UTF8_TO_TCHAR(GrpcConnection.text().data());
+		}
 	}
 }
 

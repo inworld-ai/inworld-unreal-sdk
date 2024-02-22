@@ -33,6 +33,8 @@ public class InworldAIEditor : ModuleRules
                 "Slate",
                 "SlateCore",
                 "UnrealEd",
+                "KismetWidgets",
+                "GraphEditor",
                 "EditorSubsystem",
                 "Projects",
                 "HTTP",
