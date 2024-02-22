@@ -288,6 +288,7 @@ struct INWORLDAICLIENT_API FInworldCustomEvent : public FInworldPacket
 
 		if (Ar.IsLoading())
 		{
+			Ar << Name;
 			Ar << ParamKeys;
 			Ar << ParamValues;
 			for (auto It = ParamKeys.CreateConstIterator(); It; ++It)
@@ -297,6 +298,7 @@ struct INWORLDAICLIENT_API FInworldCustomEvent : public FInworldPacket
 		}
 		else
 		{
+			Ar << Name;
 			Params.GenerateKeyArray(ParamKeys);
 			Params.GenerateValueArray(ParamValues);
 			Ar << ParamKeys;
