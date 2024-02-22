@@ -16,11 +16,6 @@
 
 #include "InworldClient.generated.h"
 
-#if !UE_BUILD_SHIPPING
-	// used in a function template from NDK
-	#define INWORLD_AUDIO_DUMP 1
-#endif
-
 namespace Inworld
 {
 	class FClient;
