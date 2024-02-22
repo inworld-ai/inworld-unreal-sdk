@@ -137,7 +137,8 @@ private:
 
     struct FPlayerAudioTarget
     {
-        TArray<FString> AgentIds;
+        TArray<FString> ActiveAgentIds;
+        TArray<FString> DesiredAgentIds;
 
     } PlayerAudioTarget;
 
