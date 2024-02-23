@@ -13,13 +13,8 @@
 
 THIRD_PARTY_INCLUDES_START
 #include "AsyncRoutine.h"
-#include "RunnableCommand.h"
+#include "Runnable.h"
 THIRD_PARTY_INCLUDES_END
-
-namespace Inworld
-{
-	class Runnable;
-}
 
 namespace Inworld
 {
