@@ -20,7 +20,7 @@ THIRD_PARTY_INCLUDES_START
 #include "GrpcHelpers.h"
 #pragma warning(pop)
 // UNREAL ENGINE 4
-#include "RunnableCommand.h"
+#include "Service.h"
 THIRD_PARTY_INCLUDES_END
 
 #include <string>
