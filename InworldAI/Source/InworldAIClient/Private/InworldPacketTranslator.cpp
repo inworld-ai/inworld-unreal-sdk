@@ -75,6 +75,18 @@ void InworldPacketTranslator::TranslateEvent<Inworld::AudioDataEvent, FInworldAu
 }
 
 template<>
+void InworldPacketTranslator::TranslateEvent<Inworld::A2FAnimationHeaderEvent, FInworldA2FAnimationHeaderEvent>(const Inworld::A2FAnimationHeaderEvent& Original, FInworldA2FAnimationHeaderEvent& New)
+{
+	TranslateEvent<Inworld::DataEvent, FInworldDataEvent>(Original, New);
+}
+
+template<>
+void InworldPacketTranslator::TranslateEvent<Inworld::A2FAnimationEvent, FInworldA2FAnimationEvent>(const Inworld::A2FAnimationEvent& Original, FInworldA2FAnimationEvent& New)
+{
+	TranslateEvent<Inworld::DataEvent, FInworldDataEvent>(Original, New);
+}
+
+template<>
 void InworldPacketTranslator::TranslateEvent<Inworld::SilenceEvent, FInworldSilenceEvent>(const Inworld::SilenceEvent& Original, FInworldSilenceEvent& New)
 {
 	TranslateInworldPacket(Original, New);

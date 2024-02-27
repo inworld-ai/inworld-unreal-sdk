@@ -70,6 +70,9 @@ struct FInworldCapabilitySet
 
     UPROPERTY(BlueprintReadWrite, Category = "Capability")
     bool MultiAgent = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    bool Audio2Face = false;
 };
 
 USTRUCT(BlueprintType)

@@ -91,6 +91,8 @@ struct INWORLDAICLIENT_API FInworldPacketId
 struct FInworldTextEvent;
 struct FInworldDataEvent;
 struct FInworldAudioDataEvent;
+struct FInworldA2FAnimationHeaderEvent;
+struct FInworldA2FAnimationEvent;
 struct FInworldSilenceEvent;
 struct FInworldControlEvent;
 struct FInworldEmotionEvent;
@@ -107,6 +109,8 @@ public:
 	virtual void Visit(const FInworldTextEvent& Event) {  }
 	virtual void Visit(const FInworldDataEvent& Event) {  }
 	virtual void Visit(const FInworldAudioDataEvent& Event) {  }
+	virtual void Visit(const FInworldA2FAnimationHeaderEvent& Event) {  }
+	virtual void Visit(const FInworldA2FAnimationEvent& Event) {  }
 	virtual void Visit(const FInworldSilenceEvent& Event) {  }
 	virtual void Visit(const FInworldControlEvent& Event) {  }
 	virtual void Visit(const FInworldEmotionEvent& Event) {  }
@@ -210,6 +214,34 @@ struct INWORLDAICLIENT_API FInworldAudioDataEvent : public FInworldDataEvent
 
 protected:
 	virtual void AppendDebugString(FString& Str) const;
+};
+
+USTRUCT()
+struct INWORLDAICLIENT_API FInworldA2FAnimationHeaderEvent : public FInworldDataEvent
+{
+	GENERATED_BODY()
+
+	FInworldA2FAnimationHeaderEvent() = default;
+	virtual ~FInworldA2FAnimationHeaderEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+protected:
+	virtual void AppendDebugString(FString& Str) const {};
+};
+
+USTRUCT()
+struct INWORLDAICLIENT_API FInworldA2FAnimationEvent : public FInworldDataEvent
+{
+	GENERATED_BODY()
+
+	FInworldA2FAnimationEvent() = default;
+	virtual ~FInworldA2FAnimationEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+protected:
+	virtual void AppendDebugString(FString& Str) const {};
 };
 
 USTRUCT()

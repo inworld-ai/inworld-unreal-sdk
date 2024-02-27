@@ -572,6 +572,22 @@ void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
 	}
 }
 
+void UInworldCharacterComponent::Visit(const FInworldA2FAnimationHeaderEvent& Event)
+{
+	// TODO: Multiplayer Support
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
+		MessageToUpdate->OnA2FAnimationHeaderData.Broadcast(Event.Chunk);
+	});
+}
+
+void UInworldCharacterComponent::Visit(const FInworldA2FAnimationEvent& Event)
+{
+	// TODO: Multiplayer Support
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
+		MessageToUpdate->OnA2FAnimationData.Broadcast(Event.Chunk);
+	});
+}
+
 void UInworldCharacterComponent::Visit(const FInworldSilenceEvent& Event)
 {
     Multicast_VisitSilence(Event);

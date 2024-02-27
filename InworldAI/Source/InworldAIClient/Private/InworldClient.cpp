@@ -203,6 +203,7 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 	Options.Capabilities.NarratedActions = Capabilities.NarratedActions;
 	Options.Capabilities.Relations = Capabilities.Relations;
 	Options.Capabilities.Multiagent = Capabilities.MultiAgent;
+	Options.Capabilities.Audio2Face = Capabilities.Audio2Face;
 
 	Inworld::SessionInfo Info;
 	Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);

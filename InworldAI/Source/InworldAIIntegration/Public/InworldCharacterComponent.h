@@ -189,6 +189,8 @@ private:
 
 	virtual void Visit(const FInworldTextEvent& Event) override;
 	virtual void Visit(const FInworldAudioDataEvent& Event) override;
+	virtual void Visit(const FInworldA2FAnimationHeaderEvent& Event) override;
+	virtual void Visit(const FInworldA2FAnimationEvent& Event) override;
 	virtual void Visit(const FInworldSilenceEvent& Event) override;
 	virtual void Visit(const FInworldControlEvent& Event) override;
 	virtual void Visit(const FInworldEmotionEvent& Event) override;

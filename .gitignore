@@ -51,6 +51,7 @@ SourceArt/**/*.tga
 InworldAI/Binaries/*
 InworldMetahuman/Binaries/*
 InworldInnequin/Binaries/*
+InworldAIAudio2Face/Binaries/*
 
 # Builds
 Build/*
@@ -70,16 +71,19 @@ Build/*/**
 InworldAI/Saved/*
 InworldMetahuman/Saved/*
 InworldInnequin/Saved/*
+InworldAIAudio2Face/Saved/*
 
 # Compiled source files for the engine to use
 InworldAI/Intermediate/*
 InworldMetahuman/Intermediate/*
 InworldInnequin/Intermediate/*
+InworldAIAudio2Face/Intermediate/*
 
 # Cache files for the editor to use
 InworldAI/DerivedDataCache/*
 InworldMetahuman/DerivedDataCache/*
 InworldInnequin/DerivedDataCache/*
+InworldAIAudio2Face/DerivedDataCache/*
 
 # Copied NDK sources
 InworldAI/Source/ThirdParty/InworldAINDKLibrary/include/*

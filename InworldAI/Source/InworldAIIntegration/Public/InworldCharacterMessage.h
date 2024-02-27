@@ -87,6 +87,11 @@ struct FCharacterMessageUtterance : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	TArray<uint8> SoundData;
 
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FAnimationHeaderDataSet, const TArray<uint8>&);
+	mutable FOnInworldA2FAnimationHeaderDataSet OnA2FAnimationHeaderData;
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FAnimationData, const TArray<uint8>&);
+	mutable FOnInworldA2FAnimationData OnA2FAnimationData;
+
 	virtual bool IsReady() const override { return bTextFinal && bAudioFinal; }
 
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
