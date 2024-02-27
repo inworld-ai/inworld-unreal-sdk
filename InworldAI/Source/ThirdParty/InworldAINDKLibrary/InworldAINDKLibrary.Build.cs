@@ -148,6 +148,22 @@ public class InworldAINDKLibrary : ModuleRules
         {
             PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libwebrtc_aec_plugin.dylib"));
             RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Mac/libwebrtc_aec_plugin.dylib");
+
+            if (bUseSharedInworldNDK)
+            {
+                PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dylib");
+                RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Mac/inworld-ndk.dll");
+            }
+        }
+        else if(Target.Platform == UnrealTargetPlatform.IOS && bUseSharedInworldNDK)
+        {
+            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dylib"));
+            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dylib"));
+        }
+        else if(Target.Platform == UnrealTargetPlatform.Android && bUseSharedInworldNDK)
+        {
+            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.so");
+            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.so"));
         }
 
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android)
