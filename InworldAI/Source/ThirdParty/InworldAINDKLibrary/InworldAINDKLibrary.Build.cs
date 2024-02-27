@@ -162,7 +162,7 @@ public class InworldAINDKLibrary : ModuleRules
         }
         else if(Target.Platform == UnrealTargetPlatform.Android && bUseSharedInworldNDK)
         {
-            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.so");
+            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.so"));
             RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.so"));
         }
 
