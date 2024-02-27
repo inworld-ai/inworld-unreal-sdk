@@ -88,9 +88,12 @@ FInworldStudioUserData FInworldStudio::GetStudioUserData() const
 
 void Inworld::FStudio::AddTaskToMainThread(std::function<void()> Task)
 {
-	AsyncTask(ENamedThreads::GameThread, [this, Task]()
+	AsyncTask(ENamedThreads::GameThread, [Task, SelfPtr = SelfWeakPtr]()
 		{
-			Task();
+			if (SelfPtr.IsValid())
+			{
+				Task();
+			}
 		}
 	);
 }
