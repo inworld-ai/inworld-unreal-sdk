@@ -61,10 +61,11 @@ public class InworldAINDKLibrary : ModuleRules
                 "libcurl",
             });
 
-        // Audio Echo Cancellation (AEC) supported on Windows and Mac only
+        // Audio Echo Cancellation (AEC) and Audio Dump supported on Windows and Mac only
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac)
         {
             PublicDefinitions.Add("INWORLD_AEC=1");
+            PublicDefinitions.Add("INWORLD_AUDIO_DUMP=1");
         }
 
         PublicDefinitions.Add("INWORLD_LOG=1");
