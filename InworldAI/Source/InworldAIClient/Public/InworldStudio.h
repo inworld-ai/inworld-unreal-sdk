@@ -30,7 +30,7 @@ public:
 	void CancelRequests();
 	bool IsRequestInProgress() const;
 
-	const FString& GetError() const;
+	FString GetError() const;
 	FInworldStudioUserData GetStudioUserData() const;
 
 private:

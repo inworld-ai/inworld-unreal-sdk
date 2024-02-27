@@ -303,7 +303,7 @@ void FInworldClient::GetConnectionError(FString& OutErrorMessage, int32& OutErro
 
 FString FInworldClient::GetSessionId() const
 {
-	return UTF8_TO_TCHAR(Inworld::g_SessionId.c_str());
+	return UTF8_TO_TCHAR(Inworld::GetSessionId().c_str());
 }
 
 std::vector<std::string> ToStd(const TArray<FString>& Array)
