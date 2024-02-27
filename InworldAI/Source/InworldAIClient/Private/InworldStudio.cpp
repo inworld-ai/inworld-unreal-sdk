@@ -25,6 +25,55 @@ THIRD_PARTY_INCLUDES_END
 
 #include <string>
 
+FInworldStudioUserData ConvertStudioUserData(const Inworld::StudioUserData& Data)
+{
+	FInworldStudioUserData D;
+	for (const auto& W : Data.Workspaces)
+	{
+		auto& WNew = D.Workspaces.Emplace_GetRef();
+		WNew.Name = UTF8_TO_TCHAR(W.Name.c_str());
+		WNew.ShortName = UTF8_TO_TCHAR(W.ShortName.c_str());
+
+		WNew.ApiKeys.Reserve(W.ApiKeys.size());
+		for (const auto& A : W.ApiKeys)
+		{
+			auto& ANew = WNew.ApiKeys.Emplace_GetRef();
+			ANew.Name = UTF8_TO_TCHAR(A.Name.c_str());
+			ANew.Key = UTF8_TO_TCHAR(A.Key.c_str());
+			ANew.Secret = UTF8_TO_TCHAR(A.Secret.c_str());
+			ANew.IsActive = A.IsActive;
+		}
+
+		WNew.Characters.Reserve(W.Characters.size());
+		for (const auto& C : W.Characters)
+		{
+			auto& CNew = WNew.Characters.Emplace_GetRef();
+			CNew.Name = UTF8_TO_TCHAR(C.Name.c_str());
+			CNew.RpmImageUri = UTF8_TO_TCHAR(C.RpmImageUri.c_str());
+			CNew.RpmModelData = UTF8_TO_TCHAR(C.RpmModelData.c_str());
+			CNew.RpmModelUri = UTF8_TO_TCHAR(C.RpmModelUri.c_str());
+			CNew.RpmPortraitUri = UTF8_TO_TCHAR(C.RpmPortraitUri.c_str());
+			CNew.RpmPostureUri = UTF8_TO_TCHAR(C.RpmPostureUri.c_str());
+			CNew.bMale = C.bMale;
+		}
+
+		WNew.Scenes.Reserve(W.Scenes.size());
+		for (const auto& S : W.Scenes)
+		{
+			auto& SNew = WNew.Scenes.Emplace_GetRef();
+			SNew.Name = UTF8_TO_TCHAR(S.Name.c_str());
+			SNew.ShortName = UTF8_TO_TCHAR(S.ShortName.c_str());
+
+			SNew.Characters.Reserve(S.Characters.size());
+			for (const auto& C : S.Characters)
+			{
+				SNew.Characters.Add(UTF8_TO_TCHAR(C.c_str()));
+			}
+		}
+	}
+	return D;
+}
+
 namespace Inworld
 {
 	class FStudio : public StudioClientBase
@@ -35,7 +84,7 @@ namespace Inworld
 
 		FInworldStudioUserData GetData() const
 		{
-			if (Data.Workspaces.IsEmpty())
+			if (Data.Workspaces.Num() == 0)
 			{
 				Data = ConvertStudioUserData(GetStudioUserData());
 			}

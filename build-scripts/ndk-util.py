@@ -30,7 +30,7 @@ class BuildConfiguration:
 
 build_configurations = {
     'Win64': BuildConfiguration(
-        ['cmake .. -DINWORLD_SHARED=True -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake ..-G "Visual Studio 16 2019" -DINWORLD_SHARED=True -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Mac': BuildConfiguration(
@@ -39,7 +39,7 @@ build_configurations = {
     ),
     'iOS': BuildConfiguration(
         ['cmake -G Xcode .. -DINWORLD_SHARED=True -DAEC=False -DIOS=True -DCMAKE_TOOLCHAIN_FILE=./ios.toolchain.cmake -DPLATFORM=OS64 -DINWORLD_LOG_CALLBACK=True'],
-        ['cmake --build . --target inworld-ndk --config Release']
+        ['cmake --build . --target inworld-ndk --config Release -- CODE_SIGNING_ALLOWED=NO']
     ),
     'Android': BuildConfiguration(
         ['cmake .. -DINWORLD_SHARED=True -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/25.2.9519653 -DINWORLD_LOG_CALLBACK=True'],
