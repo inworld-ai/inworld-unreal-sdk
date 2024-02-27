@@ -151,7 +151,7 @@ public class InworldAINDKLibrary : ModuleRules
 
             if (bUseSharedInworldNDK)
             {
-                PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dylib");
+                PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dylib"));
                 RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Mac/inworld-ndk.dll");
             }
         }
