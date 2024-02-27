@@ -68,14 +68,9 @@ public class InworldAINDKLibrary : ModuleRules
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_LOG_CALLBACK=1");
 
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include"));
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include/grpc"));
+        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "src/Public"));
 
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "src"));
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "src/proto"));
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "src/ThirdParty"));
-
-        List<string> NdkLibs = new List<string>();
+        /*List<string> NdkLibs = new List<string>();
         NdkLibs.AddRange(
             new string[]
             {
@@ -124,14 +119,17 @@ public class InworldAINDKLibrary : ModuleRules
                     string.Concat("lib", Name, ".a") : string.Concat(Name, ".a");
             }
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, Name));
-        }
+        }*/
 
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.lib"));
-
             PublicDelayLoadDLLs.Add("webrtc_aec_plugin.dll");
             RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Win64/webrtc_aec_plugin.dll");
+
+            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.lib"));
+            PublicDelayLoadDLLs.Add("inworld-ndk.dll");
+            RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Win64/inworld-ndk.dll");
         }
         else if(Target.Platform == UnrealTargetPlatform.Mac)
         {
