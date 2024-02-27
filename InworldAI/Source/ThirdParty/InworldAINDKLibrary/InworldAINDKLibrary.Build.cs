@@ -151,19 +151,19 @@ public class InworldAINDKLibrary : ModuleRules
 
             if (bUseSharedInworldNDK)
             {
-                PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dylib"));
-                RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Mac/inworld-ndk.dll");
+                PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
+                RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Mac/libinworld-ndk.dll");
             }
         }
         else if(Target.Platform == UnrealTargetPlatform.IOS && bUseSharedInworldNDK)
         {
-            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dylib"));
-            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dylib"));
+            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
+            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
         }
         else if(Target.Platform == UnrealTargetPlatform.Android && bUseSharedInworldNDK)
         {
-            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.so"));
-            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.so"));
+            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.so"));
+            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.so"));
         }
 
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android)
@@ -172,7 +172,7 @@ public class InworldAINDKLibrary : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.IOS)
         {
-            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libz.a"));
+            //PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libz.a"));
         }
     }
 }
