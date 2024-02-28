@@ -56,12 +56,17 @@ void FCharacterMessageQueueEntry<T>::AcceptCancel(ICharacterMessageVisitor& Visi
 template<class T>
 bool FCharacterMessageQueueEntry<T>::IsReady() const { return true; }
 
+template<>
 inline void FCharacterMessageQueueEntry<FCharacterMessageUtterance>::AcceptCancel(ICharacterMessageVisitor& Visitor) { }
+template<>
 inline bool FCharacterMessageQueueEntry<FCharacterMessageUtterance>::IsReady() const { return Message->bTextFinal && Message->bAudioFinal; }
 
+template<>
 inline void FCharacterMessageQueueEntry<FCharacterMessageSilence>::AcceptCancel(ICharacterMessageVisitor& Visitor) { }
+template<>
 inline bool FCharacterMessageQueueEntry<FCharacterMessageSilence>::IsReady() const { return Message->Duration != 0; }
 
+template<>
 inline void FCharacterMessageQueueEntry<FCharacterMessageInteractionEnd>::AcceptInterrupt(ICharacterMessageVisitor& Visitor) { }
 
 struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
