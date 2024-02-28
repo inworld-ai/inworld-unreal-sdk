@@ -190,6 +190,7 @@ protected:
 private:
 	void AddPendingInteraction(const FString& InteractionId);
 
+	virtual void Visit(const FInworldPacket& Event) override;
 	virtual void Visit(const FInworldTextEvent& Event) override;
 	virtual void Visit(const FInworldAudioDataEvent& Event) override;
 	virtual void Visit(const FInworldSilenceEvent& Event) override;

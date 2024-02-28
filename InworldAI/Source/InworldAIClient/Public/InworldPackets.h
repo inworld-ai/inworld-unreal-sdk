@@ -148,6 +148,7 @@ struct FInworldRelationEvent;
 class InworldPacketVisitor
 {
 public:
+	virtual void Visit(const FInworldPacket& Packet) {  }
 	virtual void Visit(const FInworldTextEvent& Event) {  }
 	virtual void Visit(const FInworldDataEvent& Event) {  }
 	virtual void Visit(const FInworldAudioDataEvent& Event) {  }
@@ -170,7 +171,7 @@ struct INWORLDAICLIENT_API FInworldPacket
 	FInworldPacket() = default;
 	virtual ~FInworldPacket() = default;
 
-	virtual void Accept(InworldPacketVisitor& Visitor) {}
+	void Accept(InworldPacketVisitor& Visitor) { Visitor.Visit(*this); Accept_Internal(Visitor); }
 
 	virtual void Serialize(FMemoryArchive& Ar);
 
@@ -182,6 +183,8 @@ struct INWORLDAICLIENT_API FInworldPacket
 	FInworldRouting Routing;
 
 protected:
+	virtual void Accept_Internal(InworldPacketVisitor& Visitor) PURE_VIRTUAL(FInworldPacket::Accept_Internal);
+
 	virtual void AppendDebugString(FString& Str) const PURE_VIRTUAL(FInworldPacket::AppendDebugString);
 };
 
@@ -193,14 +196,14 @@ struct INWORLDAICLIENT_API FInworldTextEvent : public FInworldPacket
 	FInworldTextEvent() = default;
 	virtual ~FInworldTextEvent() = default;
 
-	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
-
 	UPROPERTY()
 	FString Text;
 	UPROPERTY()
 	bool Final = false;
 
 protected:
+	virtual void Accept_Internal(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
 	virtual void AppendDebugString(FString& Str) const override;
 };
 
@@ -212,13 +215,13 @@ struct INWORLDAICLIENT_API FInworldDataEvent : public FInworldPacket
 	FInworldDataEvent() = default;
 	virtual ~FInworldDataEvent() = default;
 
-	virtual void Accept(InworldPacketVisitor & Visitor) override { Visitor.Visit(*this); }
-
 	virtual void Serialize(FMemoryArchive& Ar) override;
 
 	TArray<uint8> Chunk;
 
 protected:
+	virtual void Accept_Internal(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
 	virtual void AppendDebugString(FString& Str) const;
 };
 
@@ -243,8 +246,6 @@ struct INWORLDAICLIENT_API FInworldAudioDataEvent : public FInworldDataEvent
 	FInworldAudioDataEvent() = default;
 	virtual ~FInworldAudioDataEvent() = default;
 
-	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
-
 	static void ConvertToReplicatableEvents(const FInworldAudioDataEvent& Event, TArray<FInworldAudioDataEvent>& RepEvents);
 
 	virtual void Serialize(FMemoryArchive& Ar) override;
@@ -253,6 +254,8 @@ struct INWORLDAICLIENT_API FInworldAudioDataEvent : public FInworldDataEvent
 	bool bFinal = true;
 
 protected:
+	virtual void Accept_Internal(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
 	virtual void AppendDebugString(FString& Str) const;
 };
 
@@ -264,12 +267,12 @@ struct INWORLDAICLIENT_API FInworldSilenceEvent : public FInworldPacket
 	FInworldSilenceEvent() = default;
 	virtual ~FInworldSilenceEvent() = default;
 
-	virtual void Accept(InworldPacketVisitor & Visitor) override { Visitor.Visit(*this); }
-
 	UPROPERTY()
 	float Duration = 0.f;
 
 protected:
+	virtual void Accept_Internal(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
 	virtual void AppendDebugString(FString& Str) const;
 };
 
@@ -281,12 +284,12 @@ struct INWORLDAICLIENT_API FInworldControlEvent : public FInworldPacket
 	FInworldControlEvent() = default;
 	virtual ~FInworldControlEvent() = default;
 
-	virtual void Accept(InworldPacketVisitor & Visitor) override { Visitor.Visit(*this); }
-
 	UPROPERTY()
 	EInworldControlEventAction Action = EInworldControlEventAction::UNKNOWN;
 
 protected:
+	virtual void Accept_Internal(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
 	virtual void AppendDebugString(FString& Str) const;
 };
 
@@ -297,8 +300,6 @@ struct INWORLDAICLIENT_API FInworldEmotionEvent : public FInworldPacket
 
 	FInworldEmotionEvent() = default;
 	virtual ~FInworldEmotionEvent() = default;
-
-	virtual void Accept(InworldPacketVisitor & Visitor) override { Visitor.Visit(*this); }
 	
 	UPROPERTY()
 	EInworldCharacterEmotionalBehavior Behavior = EInworldCharacterEmotionalBehavior::NEUTRAL;
@@ -306,6 +307,8 @@ struct INWORLDAICLIENT_API FInworldEmotionEvent : public FInworldPacket
 	EInworldCharacterEmotionStrength Strength = EInworldCharacterEmotionStrength::NORMAL;
 
 protected:
+	virtual void Accept_Internal(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
 	virtual void AppendDebugString(FString& Str) const;
 };
 
@@ -316,8 +319,6 @@ struct INWORLDAICLIENT_API FInworldCustomEvent : public FInworldPacket
 
 	FInworldCustomEvent() = default;
 	virtual ~FInworldCustomEvent() = default;
-
-	virtual void Accept(InworldPacketVisitor & Visitor) override { Visitor.Visit(*this); }
 		
 	UPROPERTY()
 	FString Name;
@@ -326,6 +327,8 @@ struct INWORLDAICLIENT_API FInworldCustomEvent : public FInworldPacket
 	FInworldReplicatedMapStruct Params;
 	
 protected:
+	virtual void Accept_Internal(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
 	virtual void AppendDebugString(FString& Str) const;
 };
 
@@ -337,11 +340,11 @@ struct INWORLDAICLIENT_API FInworldChangeSceneEvent : public FInworldPacket
 	FInworldChangeSceneEvent() = default;
 	virtual ~FInworldChangeSceneEvent() = default;
 
-	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
-
 	TArray<FInworldAgentInfo> AgentInfos;
 
 protected:
+	virtual void Accept_Internal(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
 	virtual void AppendDebugString(FString& Str) const;
 };
 
@@ -352,8 +355,6 @@ struct INWORLDAICLIENT_API FInworldRelationEvent : public FInworldPacket
 
 	FInworldRelationEvent() = default;
 	virtual ~FInworldRelationEvent() = default;
-
-	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
 
 	UPROPERTY()
 	int32 Attraction = 0;
@@ -371,5 +372,7 @@ struct INWORLDAICLIENT_API FInworldRelationEvent : public FInworldPacket
 	int32 Trust = 0;
 
 protected:
+	virtual void Accept_Internal(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
 	virtual void AppendDebugString(FString& Str) const;
 };
