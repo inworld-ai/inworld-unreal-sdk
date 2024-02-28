@@ -9,6 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "InworldCharacterMessage.h"
+#include "InworldCharacterMessageQueue.h"
 #include "InworldEnums.h"
 
 #include "InworldCharacterPlayback.generated.h"

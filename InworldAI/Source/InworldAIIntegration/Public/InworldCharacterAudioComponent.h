@@ -11,6 +11,7 @@
 #include "Components/AudioComponent.h"
 #include "InworldIntegrationtypes.h"
 #include "InworldCharacterMessage.h"
+#include "InworldCharacterMessageQueue.h"
 #include "InworldCharacterAudioComponent.generated.h"
 
 struct FCharacterMessageUtterance;

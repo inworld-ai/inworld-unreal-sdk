@@ -4,8 +4,7 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
-#include "InworldCharacterMessage.h"
-#include "InworldAIIntegrationModule.h"
+#include "InworldCharacterMessageQueue.h"
 
 TMap<FString, TArray<FString>> FCharacterMessageQueue::Interrupt()
 {
