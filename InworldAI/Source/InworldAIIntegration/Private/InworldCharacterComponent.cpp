@@ -513,7 +513,7 @@ void UInworldCharacterComponent::Multicast_VisitCustom_Implementation(const FInw
 
 	MessageQueue->AddOrUpdateMessage<FCharacterMessageTrigger>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
 		MessageToUpdate->Name = Event.Name;
-		MessageToUpdate->Params = Event.Params;
+		MessageToUpdate->Params = Event.Params.RepMap;
 	});
 }
 
