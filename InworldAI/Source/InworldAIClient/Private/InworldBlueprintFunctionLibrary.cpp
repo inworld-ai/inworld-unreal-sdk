@@ -7,6 +7,11 @@
 
 
 #include "InworldBlueprintFunctionLibrary.h"
+#include "Networking.h"
+#include "InworldPacketTranslator.h"
+THIRD_PARTY_INCLUDES_START
+#include "Packets.h"
+THIRD_PARTY_INCLUDES_END
 
 #include "Audio.h"
 #include "Sound/SoundWave.h"
@@ -85,4 +90,52 @@ USoundWave* UInworldBlueprintFunctionLibrary::DataArrayToSoundWave(const TArray<
     FMemory::Memcpy(SoundWave->RawPCMData, WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
 
     return SoundWave;
+}
+
+UInworldBlueprintFunctionLibrary::FOnTestPacket UInworldBlueprintFunctionLibrary::OnTestPacket;
+
+void UInworldBlueprintFunctionLibrary::DoTest()
+{
+    const FString Path = "C:\\dev\\test_outputs";
+    int32 Index = 0;
+    TArray64<uint8> Bytes;
+    FFileHelper::LoadFileToArray(Bytes, *Path);
+    if (Bytes.Num() == 0) return;
+    uint8* Ptr = Bytes.GetData();
+    uint32 HeaderSize = 0;
+    for (int i = 0; i < 4; ++i)
+    {
+        HeaderSize <<= 8;
+        HeaderSize |= *(Ptr + Index);
+        ++Index;
+    }
+
+    Inworld::A2FAnimationHeaderEvent Header(Ptr + Index, HeaderSize);
+    InworldPacketTranslator HeaderPacketTranslator;
+    Header.Accept(HeaderPacketTranslator);
+    TSharedPtr<FInworldPacket> ReceivedHeaderPacket = HeaderPacketTranslator.GetPacket();
+
+    OnTestPacket.ExecuteIfBound(ReceivedHeaderPacket);
+
+    Index += HeaderSize;
+
+    while (Index < Bytes.Num())
+    {
+        uint32 BodySize = 0;
+        for (int i = 0; i < 4; ++i)
+        {
+            BodySize <<= 8;
+            BodySize |= *(Ptr + Index);
+            ++Index;
+        }
+
+        Inworld::A2FAnimationEvent Body(Ptr + Index, BodySize);
+        InworldPacketTranslator BodyPacketTranslator;
+        Body.Accept(BodyPacketTranslator);
+        TSharedPtr<FInworldPacket> ReceivedBodyPacket = BodyPacketTranslator.GetPacket();
+
+        Index += BodySize;
+
+        OnTestPacket.ExecuteIfBound(ReceivedBodyPacket);
+    }
 }

@@ -15,6 +15,7 @@
 #include <UObject/UObjectGlobals.h>
 #include "TimerManager.h"
 #include "InworldAudioRepl.h"
+#include "InworldBlueprintFunctionLibrary.h"
 
 static TAutoConsoleVariable<bool> CVarLogAllPackets(
 TEXT("Inworld.Debug.LogAllPackets"), false,
@@ -466,6 +467,13 @@ void UInworldApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         }
     );
 
+    UInworldBlueprintFunctionLibrary::OnTestPacket.BindLambda([this](TSharedPtr<FInworldPacket> Packet)
+        {
+            UInworldCharacterComponent* IWC = static_cast<UInworldCharacterComponent*>(CharacterComponentRegistry[0]);
+            IWC->HandlePacket(Packet);
+        }
+    );
+
     Client->Init();
 }
 
@@ -499,6 +507,15 @@ void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPack
 	{
 		(*SourceComponentPtr)->HandlePacket(InworldPacket);
 	}
+
+    if (InworldPacket->Routing.Source.Type == EInworldActorType::PLAYER)
+    {
+        auto* TargetComponentPtr = CharacterComponentByAgentId.Find(InworldPacket->Routing.Target.Name);
+        if (TargetComponentPtr)
+        {
+            (*TargetComponentPtr)->HandlePacket(InworldPacket);
+        }
+    }
 
     if (ensure(InworldPacket))
     {

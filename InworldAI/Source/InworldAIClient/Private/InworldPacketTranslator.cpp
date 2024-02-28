@@ -64,7 +64,7 @@ void InworldPacketTranslator::TranslateEvent<Inworld::AudioDataEvent, FInworldAu
 	New.VisemeInfos.Reserve(Original.GetPhonemeInfos().size());
 	for (const auto& PhonemeInfo : Original.GetPhonemeInfos())
 	{
-		const FString Code = UTF8_TO_TCHAR(Inworld::Utils::PhonemeToViseme(PhonemeInfo.Code).c_str());
+		const FString Code = UTF8_TO_TCHAR(/*Inworld::Utils::PhonemeToViseme(*/PhonemeInfo.Code/*)*/.c_str());
 		if (!Code.IsEmpty())
 		{
 			auto& VisemeInfoRef = New.VisemeInfos.AddDefaulted_GetRef();
@@ -77,13 +77,37 @@ void InworldPacketTranslator::TranslateEvent<Inworld::AudioDataEvent, FInworldAu
 template<>
 void InworldPacketTranslator::TranslateEvent<Inworld::A2FAnimationHeaderEvent, FInworldA2FAnimationHeaderEvent>(const Inworld::A2FAnimationHeaderEvent& Original, FInworldA2FAnimationHeaderEvent& New)
 {
-	TranslateEvent<Inworld::DataEvent, FInworldDataEvent>(Original, New);
+	TranslateInworldPacket(Original, New);
+	New.ChannelCount = Original.GetChannelCount();
+	New.SamplesPerSecond = Original.GetSamplesPerSecond();
+	New.BitsPerSample = Original.GetBitsPerSample();
+
+	for (const auto& BlendShape : Original.GetBlendShapes())
+	{
+		New.BlendShapes.Add(FName(UTF8_TO_TCHAR(BlendShape.c_str())));
+	}
 }
 
 template<>
 void InworldPacketTranslator::TranslateEvent<Inworld::A2FAnimationEvent, FInworldA2FAnimationEvent>(const Inworld::A2FAnimationEvent& Original, FInworldA2FAnimationEvent& New)
 {
-	TranslateEvent<Inworld::DataEvent, FInworldDataEvent>(Original, New);
+	TranslateInworldPacket(Original, New);
+
+	const Inworld::A2FAnimationEvent::FAudioInfo& OriginalAudioInfo = Original.GetAudioInfo();
+
+	New.AudioInfo.TimeCode = OriginalAudioInfo._TimeCode;
+
+	const std::string& OriginalAudioData = OriginalAudioInfo._Audio;
+	New.AudioInfo.Audio.SetNumUninitialized(OriginalAudioData.size());
+	FMemory::Memcpy(New.AudioInfo.Audio.GetData(), OriginalAudioData.data(), OriginalAudioData.size());
+
+	if (Original.GetSkeletalAnim()._BlendShapeWeights.size() > 0)
+	{
+		const auto& OriginalBlendShapeWeight = Original.GetSkeletalAnim()._BlendShapeWeights[0];
+		New.BlendShapeWeights.TimeCode = OriginalBlendShapeWeight._TimeCode;
+		New.BlendShapeWeights.Values.SetNumUninitialized(OriginalBlendShapeWeight._Values.size());
+		FMemory::Memcpy(New.BlendShapeWeights.Values.GetData(), OriginalBlendShapeWeight._Values.data(), OriginalBlendShapeWeight._Values.size());
+	}
 }
 
 template<>

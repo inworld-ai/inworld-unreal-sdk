@@ -67,10 +67,27 @@ struct FCharacterUtteranceVisemeInfo
 	float Timestamp = 0.f;
 };
 
+struct FCharacterMessageUtteranceA2FData : public TSharedFromThis<FCharacterMessageUtteranceA2FData>
+{
+	TArray<uint8> AnimHeaderData;
+
+	TArray<TArray<uint8>> AnimData;
+
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FAnimationHeaderDataSet, const FInworldA2FAnimationHeaderEvent&);
+	FOnInworldA2FAnimationHeaderDataSet OnA2FAnimationHeaderData;
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FAnimationData, const FInworldA2FAnimationEvent&);
+	FOnInworldA2FAnimationData OnA2FAnimationData;
+};
+
 USTRUCT(BlueprintType)
 struct FCharacterMessageUtterance : public FCharacterMessage
 {
 	GENERATED_BODY()
+
+	FCharacterMessageUtterance()
+		: FCharacterMessage()
+		, A2FData(MakeShared<FCharacterMessageUtteranceA2FData>())
+	{}
 
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString Text;
@@ -87,10 +104,7 @@ struct FCharacterMessageUtterance : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	TArray<uint8> SoundData;
 
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FAnimationHeaderDataSet, const TArray<uint8>&);
-	mutable FOnInworldA2FAnimationHeaderDataSet OnA2FAnimationHeaderData;
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FAnimationData, const TArray<uint8>&);
-	mutable FOnInworldA2FAnimationData OnA2FAnimationData;
+	TSharedPtr<FCharacterMessageUtteranceA2FData> A2FData;
 
 	virtual bool IsReady() const override { return bTextFinal && bAudioFinal; }
 
@@ -202,14 +216,22 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 		const FString& UtteranceId = Event.PacketId.UtteranceId;
 
 		TSharedPtr<T> Message = nullptr;
-		const auto Index = PendingMessageEntries.FindLastByPredicate( [&InteractionId, &UtteranceId](const auto& Q)
-			{
-				return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId;
-			}
-		);
-		if (Index != INDEX_NONE)
+
+		if (CurrentMessage.IsValid() && CurrentMessage->InteractionId == InteractionId && CurrentMessage->UtteranceId == CurrentMessage->UtteranceId)
 		{
-			Message = StaticCastSharedPtr<T>(PendingMessageEntries[Index].Message);
+			Message = StaticCastSharedPtr<T>(CurrentMessage);
+		}
+		else
+		{
+			const auto Index = PendingMessageEntries.FindLastByPredicate([&InteractionId, &UtteranceId](const auto& Q)
+				{
+					return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId;
+				}
+			);
+			if (Index != INDEX_NONE)
+			{
+				Message = StaticCastSharedPtr<T>(PendingMessageEntries[Index].Message);
+			}
 		}
 
 		if (!Message.IsValid() || Message->IsReady())

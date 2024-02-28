@@ -16,6 +16,9 @@ void UInworldCharacterPlaybackA2F::BeginPlay_Implementation()
 
 	AudioComponent = Cast<UAudioComponent>(OwnerActor->GetComponentByClass(UAudioComponent::StaticClass()));
 
+	GetCharacterComponent()->Global.A2FData->OnA2FAnimationHeaderData.AddUObject(this, &UInworldCharacterPlaybackA2F::OnA2FAnimationHeaderData);
+	GetCharacterComponent()->Global.A2FData->OnA2FAnimationData.AddUObject(this, &UInworldCharacterPlaybackA2F::OnA2FAnimationData);
+
 	if (ensureMsgf(AudioComponent.IsValid(), TEXT("UInworldCharacterPlaybackA2F owner doesn't contain AudioComponent")))
 	{
 		SoundStreaming = NewObject<USoundWaveProcedural>();
@@ -51,6 +54,7 @@ void UInworldCharacterPlaybackA2F::OnCharacterUtterance_Implementation(const FCh
 	Message.A2FData->OnA2FAnimationHeaderData.AddUObject(this, &UInworldCharacterPlaybackA2F::OnA2FAnimationHeaderData);
 	Message.A2FData->OnA2FAnimationData.AddUObject(this, &UInworldCharacterPlaybackA2F::OnA2FAnimationData);
 	NumGotForUtterance = 0;
+	LockMessageQueue();
 }
 
 void UInworldCharacterPlaybackA2F::OnCharacterUtteranceInterrupt_Implementation(const FCharacterMessageUtterance& Message)
@@ -85,9 +89,6 @@ void UInworldCharacterPlaybackA2F::OnA2FAnimationData(const FInworldA2FAnimation
 	}
 
 	NumGotForUtterance++;
-
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("World delta for current frame equals %f"), GetWorld()->TimeSeconds));
 	if (!AudioComponent->IsActive())
 	{
 		AudioComponent->Play();

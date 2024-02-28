@@ -158,6 +158,8 @@ public:
 		return MessageQueue->CurrentMessage;
 	}
 
+	FCharacterMessageUtterance Global;
+
 	UFUNCTION(BlueprintCallable, Category = "Message")
 	void MakeMessageQueueLock(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle);
 

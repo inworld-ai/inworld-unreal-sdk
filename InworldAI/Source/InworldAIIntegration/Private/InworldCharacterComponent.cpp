@@ -544,7 +544,7 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 
 void UInworldCharacterComponent::Visit(const FInworldTextEvent& Event)
 {
-    Multicast_VisitText(Event);
+	Multicast_VisitText(Event);
 }
 
 void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
@@ -575,17 +575,35 @@ void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
 void UInworldCharacterComponent::Visit(const FInworldA2FAnimationHeaderEvent& Event)
 {
 	// TODO: Multiplayer Support
-	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
-		MessageToUpdate->OnA2FAnimationHeaderData.Broadcast(Event.Chunk);
-	});
+	if (MessageQueue->CurrentMessage.IsValid())
+	{
+		TSharedPtr<FCharacterMessageUtterance> Message = StaticCastSharedPtr<FCharacterMessageUtterance>(MessageQueue->CurrentMessage);
+		Message->A2FData->OnA2FAnimationHeaderData.Broadcast(Event);
+	}
+	else
+	{
+		Global.A2FData->OnA2FAnimationHeaderData.Broadcast(Event);
+	}
+	//MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
+	//	MessageToUpdate->A2FData->OnA2FAnimationHeaderData.Broadcast(Event.Chunk);
+	//});
 }
 
 void UInworldCharacterComponent::Visit(const FInworldA2FAnimationEvent& Event)
 {
 	// TODO: Multiplayer Support
-	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
-		MessageToUpdate->OnA2FAnimationData.Broadcast(Event.Chunk);
-	});
+	if (MessageQueue->CurrentMessage.IsValid())
+	{
+		TSharedPtr<FCharacterMessageUtterance> Message = StaticCastSharedPtr<FCharacterMessageUtterance>(MessageQueue->CurrentMessage);
+		Message->A2FData->OnA2FAnimationData.Broadcast(Event);
+	}
+	else
+	{
+		Global.A2FData->OnA2FAnimationData.Broadcast(Event);
+	}
+	//MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
+	//	MessageToUpdate->A2FData->OnA2FAnimationData.Broadcast(Event.Chunk);
+	//});
 }
 
 void UInworldCharacterComponent::Visit(const FInworldSilenceEvent& Event)

@@ -226,8 +226,31 @@ struct INWORLDAICLIENT_API FInworldA2FAnimationHeaderEvent : public FInworldData
 
 	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
 
+	int32 ChannelCount = 0;
+	int32 SamplesPerSecond = 0;
+	int32 BitsPerSample = 0;
+	TArray<FName> BlendShapes;
+
 protected:
 	virtual void AppendDebugString(FString& Str) const {};
+};
+
+USTRUCT()
+struct FInworldA2FAudioInfo
+{
+	GENERATED_BODY()
+
+	double TimeCode;
+	TArray<uint8> Audio;
+};
+
+USTRUCT()
+struct FInworldA2FBlendShapeWeights
+{
+	GENERATED_BODY()
+
+	double TimeCode;
+	TArray<float> Values;
 };
 
 USTRUCT()
@@ -239,6 +262,9 @@ struct INWORLDAICLIENT_API FInworldA2FAnimationEvent : public FInworldDataEvent
 	virtual ~FInworldA2FAnimationEvent() = default;
 
 	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	FInworldA2FAudioInfo AudioInfo;
+	FInworldA2FBlendShapeWeights BlendShapeWeights;
 
 protected:
 	virtual void AppendDebugString(FString& Str) const {};
