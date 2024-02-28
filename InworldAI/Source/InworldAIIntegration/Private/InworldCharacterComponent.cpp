@@ -373,28 +373,29 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
     }
 
 	const auto& FromActor = Event.Routing.Source;
-	const auto& ToActor = Event.Routing.Target;
-
-	if (ToActor.Type == EInworldActorType::AGENT)
+	for (const auto& ToActor : Event.Routing.Targets)
 	{
-		if (Event.Final)
+		if (ToActor.Type == EInworldActorType::AGENT && ToActor.Name == GetAgentId())
 		{
-			UE_LOG(LogInworldAIIntegration, Log, TEXT("%s to %s: %s"), *FromActor.Name, *ToActor.Name, *Event.Text);
-		}
+			if (Event.Final)
+			{
+				UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *ToActor.Name, *Event.Text);
+			}
 
-		// Don't add to queue, player talking is instant.
-		FCharacterMessagePlayerTalk PlayerTalk;
-		PlayerTalk.InteractionId = Event.PacketId.InteractionId;
-		PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
-		PlayerTalk.Text = Event.Text;
-		PlayerTalk.bTextFinal = Event.Final;
+			// Don't add to queue, player talking is instant.
+			FCharacterMessagePlayerTalk PlayerTalk;
+			PlayerTalk.InteractionId = Event.PacketId.InteractionId;
+			PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
+			PlayerTalk.Text = Event.Text;
+			PlayerTalk.bTextFinal = Event.Final;
 
-		OnPlayerTalk.Broadcast(PlayerTalk);
+			OnPlayerTalk.Broadcast(PlayerTalk);
 
-		TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
-		if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
-		{
-			CancelCurrentInteraction();
+			TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
+			if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
+			{
+				CancelCurrentInteraction();
+			}
 		}
 	}
 
@@ -402,7 +403,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 	{
 		if (Event.Final)
 		{
-			UE_LOG(LogInworldAIIntegration, Log, TEXT("%s to %s: %s"), *FromActor.Name, *ToActor.Name, *Event.Text);
+			UE_LOG(LogInworldAIIntegration, Log, TEXT("From %s: %s"), *FromActor.Name, *Event.Text);
 		}
 
 		MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {

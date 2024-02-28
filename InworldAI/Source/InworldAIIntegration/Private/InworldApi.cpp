@@ -502,10 +502,13 @@ void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPack
 
     if (InworldPacket->Routing.Source.Type == EInworldActorType::PLAYER)
     {
-        auto* TargetComponentPtr = CharacterComponentByAgentId.Find(InworldPacket->Routing.Target.Name);
-        if (TargetComponentPtr)
+        for (const auto& Target : InworldPacket->Routing.Targets)
         {
-            (*TargetComponentPtr)->HandlePacket(InworldPacket);
+            auto* TargetComponentPtr = CharacterComponentByAgentId.Find(Target.Name);
+            if (TargetComponentPtr)
+            {
+                (*TargetComponentPtr)->HandlePacket(InworldPacket);
+            }
         }
     }
 
