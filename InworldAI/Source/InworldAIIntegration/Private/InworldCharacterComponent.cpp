@@ -372,33 +372,40 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
         return;
     }
 
-	const auto& FromActor = Event.Routing.Source;
+	auto ProcessTarget = [this, Event](const FInworldActor& ToActor)
+		{
+			if (ToActor.Type == EInworldActorType::AGENT && ToActor.Name == GetAgentId())
+			{
+				if (Event.Final)
+				{
+					UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *ToActor.Name, *Event.Text);
+				}
+
+				// Don't add to queue, player talking is instant.
+				FCharacterMessagePlayerTalk PlayerTalk;
+				PlayerTalk.InteractionId = Event.PacketId.InteractionId;
+				PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
+				PlayerTalk.Text = Event.Text;
+				PlayerTalk.bTextFinal = Event.Final;
+
+				OnPlayerTalk.Broadcast(PlayerTalk);
+
+				TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
+				if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
+				{
+					CancelCurrentInteraction();
+				}
+			}
+		};
+
+	ProcessTarget(Event.Routing.Target);
+
 	for (const auto& ToActor : Event.Routing.Targets)
 	{
-		if (ToActor.Type == EInworldActorType::AGENT && ToActor.Name == GetAgentId())
-		{
-			if (Event.Final)
-			{
-				UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *ToActor.Name, *Event.Text);
-			}
-
-			// Don't add to queue, player talking is instant.
-			FCharacterMessagePlayerTalk PlayerTalk;
-			PlayerTalk.InteractionId = Event.PacketId.InteractionId;
-			PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
-			PlayerTalk.Text = Event.Text;
-			PlayerTalk.bTextFinal = Event.Final;
-
-			OnPlayerTalk.Broadcast(PlayerTalk);
-
-			TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
-			if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
-			{
-				CancelCurrentInteraction();
-			}
-		}
+		ProcessTarget(ToActor);
 	}
 
+	const auto& FromActor = Event.Routing.Source;
 	if (FromActor.Type == EInworldActorType::AGENT)
 	{
 		if (Event.Final)
