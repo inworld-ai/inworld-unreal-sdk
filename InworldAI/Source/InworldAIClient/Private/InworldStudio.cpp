@@ -49,6 +49,7 @@ FInworldStudioUserData ConvertStudioUserData(const Inworld::StudioUserData& Data
 		{
 			auto& CNew = WNew.Characters.Emplace_GetRef();
 			CNew.Name = UTF8_TO_TCHAR(C.Name.c_str());
+			CNew.ShortName = UTF8_TO_TCHAR(C.ShortName.c_str());
 			CNew.RpmImageUri = UTF8_TO_TCHAR(C.RpmImageUri.c_str());
 			CNew.RpmModelData = UTF8_TO_TCHAR(C.RpmModelData.c_str());
 			CNew.RpmModelUri = UTF8_TO_TCHAR(C.RpmModelUri.c_str());
