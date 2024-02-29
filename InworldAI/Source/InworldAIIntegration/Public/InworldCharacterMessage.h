@@ -47,6 +47,7 @@ struct FCharacterMessage
 	FString InteractionId;
 
 	virtual bool IsReady() const { return true; }
+	virtual bool IsUtterance() const { return false; }
 
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) PURE_VIRTUAL(FCharacterMessage::AcceptHandle)
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) PURE_VIRTUAL(FCharacterMessage::AcceptInterrupt)
@@ -69,14 +70,15 @@ struct FCharacterUtteranceVisemeInfo
 
 struct FCharacterMessageUtteranceA2FData : public TSharedFromThis<FCharacterMessageUtteranceA2FData>
 {
-	TArray<uint8> AnimHeaderData;
-
-	TArray<TArray<uint8>> AnimData;
-
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FAnimationHeaderDataSet, const FInworldA2FAnimationHeaderEvent&);
 	FOnInworldA2FAnimationHeaderDataSet OnA2FAnimationHeaderData;
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FAnimationData, const FInworldA2FAnimationEvent&);
 	FOnInworldA2FAnimationData OnA2FAnimationData;
+
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FOldAnimationHeaderDataSet, const FInworldA2FOldAnimationHeaderEvent&);
+	FOnInworldA2FOldAnimationHeaderDataSet OnA2FOldAnimationHeaderData;
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FOldAnimationContentData, const FInworldA2FOldAnimationContentEvent&);
+	FOnInworldA2FOldAnimationContentData OnA2FOldAnimationContentData;
 };
 
 USTRUCT(BlueprintType)
@@ -107,6 +109,7 @@ struct FCharacterMessageUtterance : public FCharacterMessage
 	TSharedPtr<FCharacterMessageUtteranceA2FData> A2FData;
 
 	virtual bool IsReady() const override { return bTextFinal && bAudioFinal; }
+	virtual bool IsUtterance() const override { return true; }
 
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { Visitor.Interrupt(*this); }

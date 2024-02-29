@@ -96,7 +96,7 @@ UInworldBlueprintFunctionLibrary::FOnTestPacket UInworldBlueprintFunctionLibrary
 
 void UInworldBlueprintFunctionLibrary::DoTest()
 {
-    const FString Path = "C:\\dev\\test_outputs";
+    const FString Path = "C:\\dev\\test_output";
     int32 Index = 0;
     TArray64<uint8> Bytes;
     FFileHelper::LoadFileToArray(Bytes, *Path);
@@ -109,14 +109,15 @@ void UInworldBlueprintFunctionLibrary::DoTest()
         HeaderSize |= *(Ptr + Index);
         ++Index;
     }
-
-    Inworld::A2FAnimationHeaderEvent Header(Ptr + Index, HeaderSize);
+    if(HeaderSize > 0)
+    {
+    Inworld::A2FOldAnimationHeaderEvent Header(Ptr + Index, HeaderSize);
     InworldPacketTranslator HeaderPacketTranslator;
     Header.Accept(HeaderPacketTranslator);
     TSharedPtr<FInworldPacket> ReceivedHeaderPacket = HeaderPacketTranslator.GetPacket();
 
     OnTestPacket.ExecuteIfBound(ReceivedHeaderPacket);
-
+    }
     Index += HeaderSize;
 
     while (Index < Bytes.Num())
@@ -129,7 +130,7 @@ void UInworldBlueprintFunctionLibrary::DoTest()
             ++Index;
         }
 
-        Inworld::A2FAnimationEvent Body(Ptr + Index, BodySize);
+        Inworld::A2FOldAnimationContentEvent Body(Ptr + Index, BodySize);
         InworldPacketTranslator BodyPacketTranslator;
         Body.Accept(BodyPacketTranslator);
         TSharedPtr<FInworldPacket> ReceivedBodyPacket = BodyPacketTranslator.GetPacket();

@@ -245,6 +245,8 @@ void UInworldCharacterComponent::CancelCurrentInteraction()
 	{
 		InworldSubsystem->CancelResponse(AgentId, CurrentInteractionId, CanceledUtterances);
 	}
+
+	ActiveInteraction = {};
 }
 
 void UInworldCharacterComponent::SendTextMessage(const FString& Text) const
@@ -367,42 +369,52 @@ bool UInworldCharacterComponent::IsCustomGesture(const FString& CustomEventName)
 
 void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInworldTextEvent& Event)
 {
-    if (GetNetMode() == NM_DedicatedServer)
-    {
-        return;
-    }
-
-	const auto& FromActor = Event.Routing.Source;
-	const auto& ToActor = Event.Routing.Target;
-
-	if (ToActor.Type == EInworldActorType::AGENT)
+	if (GetNetMode() == NM_DedicatedServer)
 	{
-		if (Event.Final)
-		{
-			UE_LOG(LogInworldAIIntegration, Log, TEXT("%s to %s: %s"), *FromActor.Name, *ToActor.Name, *Event.Text);
-		}
-
-		// Don't add to queue, player talking is instant.
-		FCharacterMessagePlayerTalk PlayerTalk;
-		PlayerTalk.InteractionId = Event.PacketId.InteractionId;
-		PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
-		PlayerTalk.Text = Event.Text;
-		PlayerTalk.bTextFinal = Event.Final;
-
-		OnPlayerTalk.Broadcast(PlayerTalk);
-
-		TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
-		if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
-		{
-			CancelCurrentInteraction();
-		}
+		return;
 	}
 
+	auto ProcessTarget = [this, Event](const FInworldActor& ToActor)
+		{
+			if (ToActor.Type == EInworldActorType::AGENT && ToActor.Name == GetAgentId())
+			{
+				if (Event.Final)
+				{
+					UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *ToActor.Name, *Event.Text);
+				}
+
+				// Don't add to queue, player talking is instant.
+				FCharacterMessagePlayerTalk PlayerTalk;
+				PlayerTalk.InteractionId = Event.PacketId.InteractionId;
+				PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
+				PlayerTalk.Text = Event.Text;
+				PlayerTalk.bTextFinal = Event.Final;
+
+				OnPlayerTalk.Broadcast(PlayerTalk);
+
+				TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
+				if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
+				{
+					CancelCurrentInteraction();
+				}
+
+				ActiveInteraction = Event.PacketId.InteractionId;
+			}
+		};
+
+	//ProcessTarget(Event.Routing.Target);
+
+	for (const auto& ToActor : Event.Routing.Targets)
+	{
+		ProcessTarget(ToActor);
+	}
+
+	const auto& FromActor = Event.Routing.Source;
 	if (FromActor.Type == EInworldActorType::AGENT)
 	{
 		if (Event.Final)
 		{
-			UE_LOG(LogInworldAIIntegration, Log, TEXT("%s to %s: %s"), *FromActor.Name, *ToActor.Name, *Event.Text);
+			UE_LOG(LogInworldAIIntegration, Log, TEXT("From %s: %s"), *FromActor.Name, *Event.Text);
 		}
 
 		MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
@@ -589,6 +601,23 @@ void UInworldCharacterComponent::Visit(const FInworldA2FAnimationHeaderEvent& Ev
 	//});
 }
 
+void UInworldCharacterComponent::Visit(const FInworldA2FOldAnimationHeaderEvent& Event)
+{
+	// TODO: Multiplayer Support
+	if (MessageQueue->CurrentMessage.IsValid())
+	{
+		TSharedPtr<FCharacterMessageUtterance> Message = StaticCastSharedPtr<FCharacterMessageUtterance>(MessageQueue->CurrentMessage);
+		Message->A2FData->OnA2FOldAnimationHeaderData.Broadcast(Event);
+	}
+	else
+	{
+		Global.A2FData->OnA2FOldAnimationHeaderData.Broadcast(Event);
+	}
+	//MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
+	//	MessageToUpdate->A2FData->OnA2FAnimationHeaderData.Broadcast(Event.Chunk);
+	//});
+}
+
 void UInworldCharacterComponent::Visit(const FInworldA2FAnimationEvent& Event)
 {
 	// TODO: Multiplayer Support
@@ -600,6 +629,23 @@ void UInworldCharacterComponent::Visit(const FInworldA2FAnimationEvent& Event)
 	else
 	{
 		Global.A2FData->OnA2FAnimationData.Broadcast(Event);
+	}
+	//MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
+	//	MessageToUpdate->A2FData->OnA2FAnimationData.Broadcast(Event.Chunk);
+	//});
+}
+
+void UInworldCharacterComponent::Visit(const FInworldA2FOldAnimationContentEvent& Event)
+{
+	// TODO: Multiplayer Support
+	if (MessageQueue->CurrentMessage.IsValid())
+	{
+		TSharedPtr<FCharacterMessageUtterance> Message = StaticCastSharedPtr<FCharacterMessageUtterance>(MessageQueue->CurrentMessage);
+		Message->A2FData->OnA2FOldAnimationContentData.Broadcast(Event);
+	}
+	else
+	{
+		Global.A2FData->OnA2FOldAnimationContentData.Broadcast(Event);
 	}
 	//MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
 	//	MessageToUpdate->A2FData->OnA2FAnimationData.Broadcast(Event.Chunk);
@@ -633,6 +679,10 @@ void UInworldCharacterComponent::Visit(const FInworldRelationEvent& Event)
 
 void UInworldCharacterComponent::Handle(const FCharacterMessageUtterance& Message)
 {
+	if (Message.InteractionId != ActiveInteraction)
+	{
+		return;
+	}
 	OnUtterance.Broadcast(Message);
 }
 
@@ -659,4 +709,5 @@ void UInworldCharacterComponent::Handle(const FCharacterMessageTrigger& Message)
 void UInworldCharacterComponent::Handle(const FCharacterMessageInteractionEnd& Message)
 {
 	OnInteractionEnd.Broadcast(Message);
+	ActiveInteraction = {};
 }

@@ -64,7 +64,7 @@ void InworldPacketTranslator::TranslateEvent<Inworld::AudioDataEvent, FInworldAu
 	New.VisemeInfos.Reserve(Original.GetPhonemeInfos().size());
 	for (const auto& PhonemeInfo : Original.GetPhonemeInfos())
 	{
-		const FString Code = UTF8_TO_TCHAR(/*Inworld::Utils::PhonemeToViseme(*/PhonemeInfo.Code/*)*/.c_str());
+		const FString Code = UTF8_TO_TCHAR(Inworld::Utils::PhonemeToViseme(PhonemeInfo.Code).c_str());
 		if (!Code.IsEmpty())
 		{
 			auto& VisemeInfoRef = New.VisemeInfos.AddDefaulted_GetRef();
@@ -89,6 +89,14 @@ void InworldPacketTranslator::TranslateEvent<Inworld::A2FAnimationHeaderEvent, F
 }
 
 template<>
+void InworldPacketTranslator::TranslateEvent<Inworld::A2FOldAnimationHeaderEvent, FInworldA2FOldAnimationHeaderEvent>(const Inworld::A2FOldAnimationHeaderEvent& Original, FInworldA2FOldAnimationHeaderEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+	New.bSuccess = Original.GetSuccess();
+	New.Message = UTF8_TO_TCHAR(Original.GetMessage().c_str());
+}
+
+template<>
 void InworldPacketTranslator::TranslateEvent<Inworld::A2FAnimationEvent, FInworldA2FAnimationEvent>(const Inworld::A2FAnimationEvent& Original, FInworldA2FAnimationEvent& New)
 {
 	TranslateInworldPacket(Original, New);
@@ -107,6 +115,67 @@ void InworldPacketTranslator::TranslateEvent<Inworld::A2FAnimationEvent, FInworl
 		New.BlendShapeWeights.TimeCode = OriginalBlendShapeWeight._TimeCode;
 		New.BlendShapeWeights.Values.SetNumUninitialized(OriginalBlendShapeWeight._Values.size());
 		FMemory::Memcpy(New.BlendShapeWeights.Values.GetData(), OriginalBlendShapeWeight._Values.data(), OriginalBlendShapeWeight._Values.size());
+	}
+}
+
+template<>
+void InworldPacketTranslator::TranslateEvent<Inworld::A2FOldAnimationContentEvent, FInworldA2FOldAnimationContentEvent>(const Inworld::A2FOldAnimationContentEvent& Original, FInworldA2FOldAnimationContentEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+	FString USDA = UTF8_TO_TCHAR(Original.GetUSDA().c_str());
+	TMap<FString, TArray<uint8>> Files;
+	for (const auto& File : Original.GetFiles())
+	{
+		TArray<uint8> Data((uint8*)File.second.data(), File.second.size());
+		Files.Add(UTF8_TO_TCHAR(File.first.c_str()), Data);
+	}
+
+	TArray<FString> OutKeys;
+	Files.GetKeys(OutKeys);
+	if (OutKeys.Num() > 0)
+	{
+		TArray<uint8> RawData;
+		if (Files.Contains(OutKeys[0]))
+		{
+			RawData = Files[OutKeys[0]];
+		}
+		{
+			TArray<float> FloatData{ (float*)(RawData.GetData() + 44), (RawData.Num() - 44) / 4 };
+			TArray<int16> PCMData;
+			PCMData.AddUninitialized(FloatData.Num());
+			for (int32 i = 0; i < FloatData.Num(); ++i)
+			{
+				PCMData[i] = FloatData[i] * 32767;  // 2^15, int16
+			}
+
+			New.Audio = { (uint8*)PCMData.GetData(), PCMData.Num() * 2 };
+		}
+
+		// TODO: Use UnrealUSDWrapper -> UsdStage.GetRootLater().ImportFromString() is unavailable(?)
+		// This is not optimal, but quck hack to extract data
+		const int32 BlendshapesBegin = USDA.Find(FString("uniform token[] blendShapes = [")) + 31;
+		const int32 BlendshapesEnd = USDA.Find(FString("]"), ESearchCase::IgnoreCase, ESearchDir::FromStart, BlendshapesBegin);
+		const FString Blendshapes = USDA.Mid(BlendshapesBegin, BlendshapesEnd - BlendshapesBegin);
+		TArray<FString> BlendKeys;
+		Blendshapes.ParseIntoArray(BlendKeys, TEXT(","));
+		for (FString& BlendKey : BlendKeys)
+		{
+			BlendKey = BlendKey.TrimQuotes();
+		}
+
+		const int32 BlendshapeWeightsBegin = USDA.Find(FString("float[] blendShapeWeights = [")) + 29;
+		const int32 BlendshapeWeightsEnd = USDA.Find(FString("]"), ESearchCase::IgnoreCase, ESearchDir::FromStart, BlendshapeWeightsBegin);
+		const FString BlendshapeWeights = USDA.Mid(BlendshapeWeightsBegin, BlendshapeWeightsEnd - BlendshapeWeightsBegin);
+		TArray<FString> BlendValues;
+		BlendshapeWeights.ParseIntoArray(BlendValues, TEXT(","));
+
+		for (int32 i = 0; i < BlendKeys.Num(); ++i)
+		{
+			New.BlendShapeMap.Add(
+				FName(*BlendKeys[i]),
+				FCString::Atof(*BlendValues[i])
+			);
+		}
 	}
 }
 

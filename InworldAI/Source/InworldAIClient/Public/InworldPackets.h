@@ -92,7 +92,9 @@ struct FInworldTextEvent;
 struct FInworldDataEvent;
 struct FInworldAudioDataEvent;
 struct FInworldA2FAnimationHeaderEvent;
+struct FInworldA2FOldAnimationHeaderEvent;
 struct FInworldA2FAnimationEvent;
+struct FInworldA2FOldAnimationContentEvent;
 struct FInworldSilenceEvent;
 struct FInworldControlEvent;
 struct FInworldEmotionEvent;
@@ -110,7 +112,9 @@ public:
 	virtual void Visit(const FInworldDataEvent& Event) {  }
 	virtual void Visit(const FInworldAudioDataEvent& Event) {  }
 	virtual void Visit(const FInworldA2FAnimationHeaderEvent& Event) {  }
+	virtual void Visit(const FInworldA2FOldAnimationHeaderEvent& Event) {  }
 	virtual void Visit(const FInworldA2FAnimationEvent& Event) {  }
+	virtual void Visit(const FInworldA2FOldAnimationContentEvent& Event) {  }
 	virtual void Visit(const FInworldSilenceEvent& Event) {  }
 	virtual void Visit(const FInworldControlEvent& Event) {  }
 	virtual void Visit(const FInworldEmotionEvent& Event) {  }
@@ -217,7 +221,7 @@ protected:
 };
 
 USTRUCT()
-struct INWORLDAICLIENT_API FInworldA2FAnimationHeaderEvent : public FInworldDataEvent
+struct INWORLDAICLIENT_API FInworldA2FAnimationHeaderEvent : public FInworldPacket
 {
 	GENERATED_BODY()
 
@@ -230,6 +234,23 @@ struct INWORLDAICLIENT_API FInworldA2FAnimationHeaderEvent : public FInworldData
 	int32 SamplesPerSecond = 0;
 	int32 BitsPerSample = 0;
 	TArray<FName> BlendShapes;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const {};
+};
+
+USTRUCT()
+struct INWORLDAICLIENT_API FInworldA2FOldAnimationHeaderEvent : public FInworldPacket
+{
+	GENERATED_BODY()
+
+	FInworldA2FOldAnimationHeaderEvent() = default;
+	virtual ~FInworldA2FOldAnimationHeaderEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	bool bSuccess;
+	FString Message;
 
 protected:
 	virtual void AppendDebugString(FString& Str) const {};
@@ -254,7 +275,7 @@ struct FInworldA2FBlendShapeWeights
 };
 
 USTRUCT()
-struct INWORLDAICLIENT_API FInworldA2FAnimationEvent : public FInworldDataEvent
+struct INWORLDAICLIENT_API FInworldA2FAnimationEvent : public FInworldPacket
 {
 	GENERATED_BODY()
 
@@ -265,6 +286,23 @@ struct INWORLDAICLIENT_API FInworldA2FAnimationEvent : public FInworldDataEvent
 
 	FInworldA2FAudioInfo AudioInfo;
 	FInworldA2FBlendShapeWeights BlendShapeWeights;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const {};
+};
+
+USTRUCT()
+struct INWORLDAICLIENT_API FInworldA2FOldAnimationContentEvent : public FInworldPacket
+{
+	GENERATED_BODY()
+
+	FInworldA2FOldAnimationContentEvent() = default;
+	virtual ~FInworldA2FOldAnimationContentEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	TArray<uint8> Audio;
+	TMap<FName, float> BlendShapeMap;
 
 protected:
 	virtual void AppendDebugString(FString& Str) const {};

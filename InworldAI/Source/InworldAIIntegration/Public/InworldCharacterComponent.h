@@ -192,7 +192,9 @@ private:
 	virtual void Visit(const FInworldTextEvent& Event) override;
 	virtual void Visit(const FInworldAudioDataEvent& Event) override;
 	virtual void Visit(const FInworldA2FAnimationHeaderEvent& Event) override;
+	virtual void Visit(const FInworldA2FOldAnimationHeaderEvent& Event) override;
 	virtual void Visit(const FInworldA2FAnimationEvent& Event) override;
+	virtual void Visit(const FInworldA2FOldAnimationContentEvent& Event) override;
 	virtual void Visit(const FInworldSilenceEvent& Event) override;
 	virtual void Visit(const FInworldControlEvent& Event) override;
 	virtual void Visit(const FInworldEmotionEvent& Event) override;
@@ -255,6 +257,8 @@ private:
 	FString AgentId;
 	
 	FString GivenName;
+
+	FString ActiveInteraction;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
 	friend class FInworldGameplayDebuggerCategory;

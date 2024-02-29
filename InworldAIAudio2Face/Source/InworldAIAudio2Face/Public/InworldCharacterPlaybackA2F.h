@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InworldCharacterPlayback.h"
+#include "InworldIntegrationTypes.h"
 #include "InworldCharacterPlaybackA2F.generated.h"
 
 USTRUCT(BlueprintType)
@@ -69,6 +70,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Audio2Face")
 	FOnInworldAudio2FaceBlendShapeUpdate OnInworldAudio2FaceBlendShapeUpdate;
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldAudio2FaceBlendShapeBackupUpdate, const FInworldCharacterVisemeBlends&, VisemeBlends);
+	UPROPERTY(BlueprintAssignable, Category = "Audio2Face")
+	FOnInworldAudio2FaceBlendShapeBackupUpdate OnInworldAudio2FaceBlendShapeBackupUpdate;
+
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldCharacterUtteranceStarted);
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterUtteranceStarted OnUtteranceStarted;
@@ -89,7 +94,10 @@ protected:
 	FA2FSkeletalHeaderData SkeletalHeaderData;
 
 	void OnA2FAnimationHeaderData(const FInworldA2FAnimationHeaderEvent& AnimationHeaderData);
-	void OnA2FAnimationData(const FInworldA2FAnimationEvent& AnimationHeaderData);
+	void OnA2FOldAnimationHeaderData(const FInworldA2FOldAnimationHeaderEvent& AnimationHeaderData);
+
+	void OnA2FAnimationData(const FInworldA2FAnimationEvent& AnimationData);
+	void OnA2FOldAnimationContentData(const FInworldA2FOldAnimationContentEvent& AnimationData);
 
 private:
 	void GenerateData(USoundWaveProcedural* InProceduralWave, int32 SamplesRequired);
@@ -97,6 +105,12 @@ private:
 	mutable FCriticalSection QueueLock;
 	TArray<FName> BlendShapes;
 	TQueue<TArray<uint8>> AudioToPlay;
-	TQueue<TArray<float>> AnimsToPlay;
+	TQueue<TMap<FName, float>> AnimsToPlay;
+	TQueue<TArray<uint8>> BackupAudioToPlay;
+	TQueue<FInworldCharacterVisemeBlends> BackupAnimsToPlay;
+	bool bWaitForA2F = true;
+	FTimerHandle WaitForA2FHandle;
+	int32 SkippedA2FAudio = 0;
+
 	int32 NumGotForUtterance = 0;
 };

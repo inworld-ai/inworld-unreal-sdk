@@ -22,7 +22,9 @@ public:
 	virtual void Visit(const Inworld::DataEvent& Event) override { MakePacket<Inworld::DataEvent, FInworldDataEvent>(Event); }
 	virtual void Visit(const Inworld::AudioDataEvent& Event) override { MakePacket<Inworld::AudioDataEvent, FInworldAudioDataEvent>(Event); }
 	virtual void Visit(const Inworld::A2FAnimationHeaderEvent& Event) override { MakePacket<Inworld::A2FAnimationHeaderEvent, FInworldA2FAnimationHeaderEvent>(Event); }
+	virtual void Visit(const Inworld::A2FOldAnimationHeaderEvent& Event) override { MakePacket<Inworld::A2FOldAnimationHeaderEvent, FInworldA2FOldAnimationHeaderEvent>(Event); }
 	virtual void Visit(const Inworld::A2FAnimationEvent& Event) override { MakePacket<Inworld::A2FAnimationEvent, FInworldA2FAnimationEvent>(Event); }
+	virtual void Visit(const Inworld::A2FOldAnimationContentEvent& Event) override { MakePacket<Inworld::A2FOldAnimationContentEvent, FInworldA2FOldAnimationContentEvent>(Event); }
 	virtual void Visit(const Inworld::SilenceEvent& Event) override { MakePacket<Inworld::SilenceEvent, FInworldSilenceEvent>(Event); }
 	virtual void Visit(const Inworld::ControlEvent& Event) override { MakePacket<Inworld::ControlEvent, FInworldControlEvent>(Event); }
 	virtual void Visit(const Inworld::EmotionEvent& Event) override { MakePacket<Inworld::EmotionEvent, FInworldEmotionEvent>(Event); };
