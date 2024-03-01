@@ -93,10 +93,8 @@ protected:
 	FA2FAudioHeaderData AudioHeaderData;
 	FA2FSkeletalHeaderData SkeletalHeaderData;
 
-	void OnA2FAnimationHeaderData(const FInworldA2FAnimationHeaderEvent& AnimationHeaderData);
 	void OnA2FOldAnimationHeaderData(const FInworldA2FOldAnimationHeaderEvent& AnimationHeaderData);
 
-	void OnA2FAnimationData(const FInworldA2FAnimationEvent& AnimationData);
 	void OnA2FOldAnimationContentData(const FInworldA2FOldAnimationContentEvent& AnimationData);
 
 private:
@@ -108,9 +106,19 @@ private:
 	TQueue<TMap<FName, float>> AnimsToPlay;
 	TQueue<TArray<uint8>> BackupAudioToPlay;
 	TQueue<FInworldCharacterVisemeBlends> BackupAnimsToPlay;
-	bool bWaitForA2F = true;
-	FTimerHandle WaitForA2FHandle;
-	int32 SkippedA2FAudio = 0;
 
-	int32 NumGotForUtterance = 0;
+	TArray<uint8> OriginalPCMData;
+	TArray<FCharacterUtteranceVisemeInfo> VisemeInfoPlayback;
+
+	bool bUseFallback = false;
+	float AllowedLatencyDelay = 0.25f;
+	float TimeToGiveUp = 0.f;
+	int32 ExpectedRemainingAudio = 0;
+	int32 GotPackets = 0;
+	bool bHasStartedProcessingAudio = false;
+	bool bIsActive = false;
+
+	TSharedPtr<FCharacterMessageUtteranceA2FData> A2FData;
+	FDelegateHandle HeaderDataHandle;
+	FDelegateHandle ContentDataHandle;
 };

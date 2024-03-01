@@ -260,6 +260,8 @@ private:
 
 	FString ActiveInteraction;
 
+	TSet<FString> UniqueUtteranceIds;
+
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
 	friend class FInworldGameplayDebuggerCategory;
 #endif

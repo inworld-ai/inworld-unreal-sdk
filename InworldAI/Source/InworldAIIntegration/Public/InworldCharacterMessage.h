@@ -75,6 +75,10 @@ struct FCharacterMessageUtteranceA2FData : public TSharedFromThis<FCharacterMess
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FAnimationData, const FInworldA2FAnimationEvent&);
 	FOnInworldA2FAnimationData OnA2FAnimationData;
 
+	bool bHasAnyYet = false;
+	TQueue<TArray<uint8>> PendingAudio;
+	TQueue<TMap<FName, float>> PendingBlendShapeMap;
+
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FOldAnimationHeaderDataSet, const FInworldA2FOldAnimationHeaderEvent&);
 	FOnInworldA2FOldAnimationHeaderDataSet OnA2FOldAnimationHeaderData;
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FOldAnimationContentData, const FInworldA2FOldAnimationContentEvent&);
@@ -213,14 +217,14 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 
 
 	template<class T>
-	void AddOrUpdateMessage(const FInworldPacket& Event, float Timestamp, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr)
+	bool AddOrUpdateMessage(const FInworldPacket& Event, float Timestamp, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr, bool bAttachMessage = false)
 	{
 		const FString& InteractionId = Event.PacketId.InteractionId;
 		const FString& UtteranceId = Event.PacketId.UtteranceId;
 
 		TSharedPtr<T> Message = nullptr;
 
-		if (CurrentMessage.IsValid() && CurrentMessage->InteractionId == InteractionId && CurrentMessage->UtteranceId == CurrentMessage->UtteranceId)
+		if (CurrentMessage.IsValid() && CurrentMessage->InteractionId == InteractionId && CurrentMessage->UtteranceId == UtteranceId)
 		{
 			Message = StaticCastSharedPtr<T>(CurrentMessage);
 		}
@@ -237,7 +241,9 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 			}
 		}
 
-		if (!Message.IsValid() || Message->IsReady())
+		if (!Message.IsValid() && bAttachMessage) return false;
+
+		if (!Message.IsValid() || (Message->IsReady() && !bAttachMessage))
 		{
 			Message = MakeShared<T>();
 			Message->InteractionId = InteractionId;
@@ -265,6 +271,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 		}
 
 		TryToProgress();
+		return true;
 	}
 
 	TArray<FString> CancelInteraction(const FString& InteractionId);
