@@ -28,6 +28,7 @@ public class InworldAIAudio2Face : ModuleRules
 				"Slate",
 				"SlateCore",
                 "InworldAIIntegration",
+                "InworldAIClient",
                 "AudioPlatformConfiguration",
             }
 			);

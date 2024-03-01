@@ -71,7 +71,7 @@ void UInworldCharacterPlaybackA2F::OnCharacterUtterance_Implementation(const FCh
 		VisemeInfoPlayback = {};
 
 		bUseFallback = false;
-		TimeToGiveUp = 0.f;
+		TimeToGiveUp = AllowedLatencyDelay;
 		ExpectedRemainingAudio = 0;
 		GotPackets = 0;
 		bHasStartedProcessingAudio = false;
@@ -117,14 +117,13 @@ void UInworldCharacterPlaybackA2F::OnCharacterUtterance_Implementation(const FCh
 				PCMData[i] = ResampledAudioData[i] * 32767;  // 2^15, int16
 			}
 
-			ExpectedRemainingAudio = PCMData.Num() * 2;
+			SoundDuration = UInworldBlueprintFunctionLibrary::DataArrayToSoundWave(Message.SoundData)->GetDuration();
+			SoundSize = PCMData.Num() * 2;
+			ExpectedRemainingAudio = SoundSize;
 			OriginalPCMData = {};
-			OriginalPCMData.SetNumUninitialized(ExpectedRemainingAudio);
-			FMemory::Memcpy(OriginalPCMData.GetData(), PCMData.GetData(), ExpectedRemainingAudio);
+			OriginalPCMData.SetNumUninitialized(SoundSize);
+			FMemory::Memcpy(OriginalPCMData.GetData(), PCMData.GetData(), SoundSize);
 			VisemeInfoPlayback = {};
-
-			FCharacterUtteranceVisemeInfo CurrentVisemeInfo;
-			FCharacterUtteranceVisemeInfo PreviousVisemeInfo;
 
 			for (const auto& VisemeInfo : Message.VisemeInfos)
 			{
@@ -157,11 +156,9 @@ void UInworldCharacterPlaybackA2F::OnCharacterUtterance_Implementation(const FCh
 
 		LockMessageQueue();
 
-		if (GotPackets < 5)
-		{
-			TimeToGiveUp = AllowedLatencyDelay;
-		}
-		else if (!AudioComponent->IsActive())
+
+		TimeToGiveUp = AllowedLatencyDelay;
+		if (!AudioComponent->IsActive())
 		{
 			AudioComponent->Play();
 		}
@@ -236,19 +233,20 @@ void UInworldCharacterPlaybackA2F::GenerateData(USoundWaveProcedural* InProcedur
 	{
 		return;
 	}
-	if (TimeToGiveUp > 0.f && !bHasStartedProcessingAudio && ExpectedRemainingAudio > 0 && GotPackets < 10)
+	if (TimeToGiveUp > 0.f && !bHasStartedProcessingAudio && ExpectedRemainingAudio >= 0 && GotPackets < 20)
 	{
 		return;
 	}
 
 	FScopeLock ScopeLock(&QueueLock);
 	bHasStartedProcessingAudio = true;
-	if (AudioToPlay.IsEmpty() && OriginalPCMData.Num() > 0 && false)
+	if (AudioToPlay.IsEmpty() && OriginalPCMData.Num() > 0)
 	{
 		bUseFallback = true;
 		const int32 DataPerFrame = 1066;
 		while (!OriginalPCMData.IsEmpty())
 		{
+			const float CurrentTime = (1.f - (OriginalPCMData.Num() / SoundSize)) * SoundDuration;
 			TArray<uint8> AudioData = OriginalPCMData;
 			AudioData.SetNum(DataPerFrame);
 			ExpectedRemainingAudio -= AudioData.Num();
@@ -259,6 +257,45 @@ void UInworldCharacterPlaybackA2F::GenerateData(USoundWaveProcedural* InProcedur
 			}
 			OriginalPCMData.SetNum(FMath::Max(0, ExpectedRemainingAudio));
 			AudioToPlay.Enqueue(AudioData);
+
+			const int32 INVALID_INDEX = -1;
+			int32 Target = INVALID_INDEX;
+			int32 L = 0;
+			int32 R = VisemeInfoPlayback.Num() - 1;
+			while (L <= R)
+			{
+				const int32 Mid = (L + R) >> 1;
+				const FCharacterUtteranceVisemeInfo& Sample = VisemeInfoPlayback[Mid];
+				if (CurrentTime > Sample.Timestamp)
+				{
+					L = Mid + 1;
+				}
+				else
+				{
+					Target = Mid;
+					R = Mid - 1;
+				}
+			}
+
+			FCharacterUtteranceVisemeInfo CurrentVisemeInfo;
+			FCharacterUtteranceVisemeInfo PreviousVisemeInfo;
+
+			if (VisemeInfoPlayback.IsValidIndex(Target))
+			{
+				CurrentVisemeInfo = VisemeInfoPlayback[Target];
+			}
+			if (VisemeInfoPlayback.IsValidIndex(Target - 1))
+			{
+				PreviousVisemeInfo = VisemeInfoPlayback[Target - 1];
+			}
+
+			const float Blend = (CurrentTime - PreviousVisemeInfo.Timestamp) / (CurrentVisemeInfo.Timestamp - PreviousVisemeInfo.Timestamp);
+
+			FInworldCharacterVisemeBlends VisemeBlends;
+			VisemeBlends[PreviousVisemeInfo.Code] = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+			VisemeBlends[CurrentVisemeInfo.Code] = FMath::Clamp(Blend, 0.f, 1.f);
+
+			BackupAnimsToPlay.Enqueue(VisemeBlends);
 		}
 	}
 
@@ -266,14 +303,26 @@ void UInworldCharacterPlaybackA2F::GenerateData(USoundWaveProcedural* InProcedur
 	if (AudioToPlay.Dequeue(ToQueue))
 	{
 		InProceduralWave->QueueAudio(ToQueue.GetData(), ToQueue.Num());
-		TMap<FName, float> AnimToPlay;
-		AnimsToPlay.Dequeue(AnimToPlay);
-		AsyncTask(ENamedThreads::GameThread, [this, AnimToPlay]()
-			{
-				FA2FBlendShapeData Data;
-				Data.Map = AnimToPlay;
-				OnInworldAudio2FaceBlendShapeUpdate.Broadcast(Data);
-			});
+		if (bUseFallback)
+		{
+			FInworldCharacterVisemeBlends VisemeBlend;
+			BackupAnimsToPlay.Dequeue(VisemeBlend);
+			AsyncTask(ENamedThreads::GameThread, [this, VisemeBlend]()
+				{
+					OnInworldAudio2FaceBlendShapeBackupUpdate.Broadcast(VisemeBlend);
+				});
+		}
+		else
+		{
+			TMap<FName, float> AnimToPlay;
+			AnimsToPlay.Dequeue(AnimToPlay);
+			AsyncTask(ENamedThreads::GameThread, [this, AnimToPlay]()
+				{
+					FA2FBlendShapeData Data;
+					Data.Map = AnimToPlay;
+					OnInworldAudio2FaceBlendShapeUpdate.Broadcast(Data);
+				});
+		}
 	}
 	else if (ExpectedRemainingAudio <= 0)
 	{

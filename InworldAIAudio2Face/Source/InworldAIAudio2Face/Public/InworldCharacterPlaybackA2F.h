@@ -111,7 +111,9 @@ private:
 	TArray<FCharacterUtteranceVisemeInfo> VisemeInfoPlayback;
 
 	bool bUseFallback = false;
-	float AllowedLatencyDelay = 0.25f;
+	float AllowedLatencyDelay = 0.66f;
+	float SoundDuration = 0.f;
+	float SoundSize = 0.f;
 	float TimeToGiveUp = 0.f;
 	int32 ExpectedRemainingAudio = 0;
 	int32 GotPackets = 0;

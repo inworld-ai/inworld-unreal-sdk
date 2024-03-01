@@ -695,7 +695,7 @@ void UInworldCharacterComponent::Visit(const FInworldA2FOldAnimationContentEvent
 		}
 		}, true))
 	{
-		//Global.A2FData->OnA2FOldAnimationContentData.Broadcast(Event);
+		Global.A2FData->OnA2FOldAnimationContentData.Broadcast(Event);
 	}
 }
 
