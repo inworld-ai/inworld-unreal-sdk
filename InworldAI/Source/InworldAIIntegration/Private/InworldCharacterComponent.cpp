@@ -601,57 +601,17 @@ void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
 
 void UInworldCharacterComponent::Visit(const FInworldA2FAnimationHeaderEvent& Event)
 {
-	// TODO: Multiplayer Support
-	if (MessageQueue->CurrentMessage.IsValid())
-	{
-		TSharedPtr<FCharacterMessageUtterance> Message = StaticCastSharedPtr<FCharacterMessageUtterance>(MessageQueue->CurrentMessage);
-		Message->A2FData->OnA2FAnimationHeaderData.Broadcast(Event);
-	}
-	else
-	{
-		Global.A2FData->OnA2FAnimationHeaderData.Broadcast(Event);
-	}
-	//MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
-	//	MessageToUpdate->A2FData->OnA2FAnimationHeaderData.Broadcast(Event.Chunk);
-	//});
+	// Empty - A2F upgrade TODO
 }
 
 void UInworldCharacterComponent::Visit(const FInworldA2FOldAnimationHeaderEvent& Event)
 {
-	// TODO: Multiplayer Support
-	if (MessageQueue->CurrentMessage.IsValid())
-	{
-		TSharedPtr<FCharacterMessageUtterance> Message = StaticCastSharedPtr<FCharacterMessageUtterance>(MessageQueue->CurrentMessage);
-		Message->A2FData->OnA2FOldAnimationHeaderData.Broadcast(Event);
-	}
-	else
-	{
-		Global.A2FData->OnA2FOldAnimationHeaderData.Broadcast(Event);
-	}
-	//MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
-	//	MessageToUpdate->A2FData->OnA2FAnimationHeaderData.Broadcast(Event.Chunk);
-	//});
+	// Empty - No useful info in header
 }
 
 void UInworldCharacterComponent::Visit(const FInworldA2FAnimationEvent& Event)
 {
-	if (Event.PacketId.InteractionId != ActiveInteraction)
-	{
-		return;
-	}
-	// TODO: Multiplayer Support
-	if (MessageQueue->CurrentMessage.IsValid())
-	{
-		TSharedPtr<FCharacterMessageUtterance> Message = StaticCastSharedPtr<FCharacterMessageUtterance>(MessageQueue->CurrentMessage);
-		Message->A2FData->OnA2FAnimationData.Broadcast(Event);
-	}
-	else
-	{
-		Global.A2FData->OnA2FAnimationData.Broadcast(Event);
-	}
-	//MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
-	//	MessageToUpdate->A2FData->OnA2FAnimationData.Broadcast(Event.Chunk);
-	//});
+	// Empty - A2F upgrade TODO
 }
 
 void UInworldCharacterComponent::Visit(const FInworldA2FOldAnimationContentEvent& Event)
@@ -660,17 +620,7 @@ void UInworldCharacterComponent::Visit(const FInworldA2FOldAnimationContentEvent
 	{
 		return;
 	}
-	// TODO: Multiplayer Support
-	/*
-	if (MessageQueue->CurrentMessage.IsValid())
-	{
-		TSharedPtr<FCharacterMessageUtterance> Message = StaticCastSharedPtr<FCharacterMessageUtterance>(MessageQueue->CurrentMessage);
-		Message->A2FData->OnA2FOldAnimationContentData.Broadcast(Event);
-	}
-	else
-	{
-		Global.A2FData->OnA2FOldAnimationContentData.Broadcast(Event);
-	}*/
+
 	if (Event.Audio.Num() == 0)
 	{
 		return;

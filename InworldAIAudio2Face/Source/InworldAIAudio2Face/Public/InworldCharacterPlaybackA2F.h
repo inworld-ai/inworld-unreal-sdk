@@ -7,6 +7,7 @@
 #include "InworldIntegrationTypes.h"
 #include "InworldCharacterPlaybackA2F.generated.h"
 
+
 USTRUCT(BlueprintType)
 struct FA2FBlendShapeData
 {
@@ -15,7 +16,7 @@ struct FA2FBlendShapeData
 	UPROPERTY(BlueprintReadWrite)
 	TMap<FName, float> Map;
 };
-
+/*
 UENUM(BlueprintType)
 enum class EA2FAudioFormat : uint8
 {
@@ -48,6 +49,7 @@ struct FA2FSkeletalHeaderData
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FString> BlendShapes;
 };
+*/
 
 /**
  * 
@@ -90,11 +92,7 @@ protected:
 	TWeakObjectPtr<UAudioComponent> AudioComponent;
 	class USoundWaveProcedural* SoundStreaming;
 
-	FA2FAudioHeaderData AudioHeaderData;
-	FA2FSkeletalHeaderData SkeletalHeaderData;
-
 	void OnA2FOldAnimationHeaderData(const FInworldA2FOldAnimationHeaderEvent& AnimationHeaderData);
-
 	void OnA2FOldAnimationContentData(const FInworldA2FOldAnimationContentEvent& AnimationData);
 
 private:
