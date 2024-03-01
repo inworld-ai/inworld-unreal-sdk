@@ -77,11 +77,32 @@ FInworldStudioUserData ConvertStudioUserData(const Inworld::StudioUserData& Data
 
 namespace Inworld
 {
-	class FStudio : public StudioClientBase
+	class FStudio
 	{
 
 	public:
 		TWeakPtr<FStudio> SelfWeakPtr;
+
+		void RequestStudioUserData(const std::string& Token, const std::string& ServerUrl, std::function<void(bool bSuccess)> Callback)
+		{
+			Client.RequestStudioUserData(Token, ServerUrl, [Callback, SelfPtr = SelfWeakPtr](bool bSuccess)
+				{
+					AsyncTask(ENamedThreads::GameThread, [Callback, bSuccess, SelfPtr]()
+						{
+							if (SelfPtr.IsValid())
+							{
+								Callback(bSuccess);
+							}
+						}
+					);
+				});
+		}
+
+		void CancelRequests() { Client.CancelRequests(); }
+		bool IsRequestInProgress() const { return Client.IsRequestInProgress(); }
+
+		const std::string& GetError() const { return Client.GetError(); }
+		const StudioUserData& GetStudioUserData() const { return Client.GetStudioUserData(); }
 
 		FInworldStudioUserData GetData() const
 		{
@@ -92,8 +113,8 @@ namespace Inworld
 			return Data;
 		}
 
-	protected:
-		virtual void AddTaskToMainThread(std::function<void()> Task) override;
+	private:
+		StudioClient Client;
 
 		mutable FInworldStudioUserData Data;
 	};
@@ -132,18 +153,5 @@ FString FInworldStudio::GetError() const
 
 FInworldStudioUserData FInworldStudio::GetStudioUserData() const
 {
-
 	return InworldStudio->GetData();
-}
-
-void Inworld::FStudio::AddTaskToMainThread(std::function<void()> Task)
-{
-	AsyncTask(ENamedThreads::GameThread, [Task, SelfPtr = SelfWeakPtr]()
-		{
-			if (SelfPtr.IsValid())
-			{
-				Task();
-			}
-		}
-	);
 }
