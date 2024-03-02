@@ -63,12 +63,18 @@ namespace Inworld
 	public:
 		FClient()
 		{	
-			//_Client.CreateAsyncRoutines<FInworldAsyncRoutine>();
+			Inworld::CreateClient();
+			Client().CreateAsyncRoutines<Inworld::AsyncRoutine>();
+		}
+
+		~FClient()
+		{
+			Inworld::DestroyClient();
 		}
 
 		void StartClient(const ClientOptions& Options, const SessionInfo& Info, CharactersLoadedCb LoadSceneCallback)
 		{
-			_Client.StartClient(Options, Info, LoadSceneCallback, [this, SelfPtr = SelfWeakPtr](std::function<void()> Task)
+			Client().StartClient(Options, Info, LoadSceneCallback, [this, SelfPtr = SelfWeakPtr](std::function<void()> Task)
 				{
 					AsyncTask(ENamedThreads::GameThread, [Task, SelfPtr]() {
 						if (SelfPtr.IsValid())
@@ -79,12 +85,11 @@ namespace Inworld
 				});
 		}
 
-		Inworld::Client& Client() { return _Client; }
+		Inworld::Client& Client() { return *Inworld::GetClient().get(); }
 
 	protected:
 
 	public:
-		Inworld::Client _Client;
 		TWeakPtr<FClient> SelfWeakPtr;
 	};
 }
@@ -174,7 +179,7 @@ void FInworldClient::Destroy()
 
 void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldSave& Save, const FInworldEnvironment& Environment)
 {
-	/*Inworld::ClientOptions Options;
+	Inworld::ClientOptions Options;
 	Options.ServerUrl = TCHAR_TO_UTF8(*(!Environment.TargetUrl.IsEmpty() ? Environment.TargetUrl : DefaultTargetUrl));
 	// Use first segment of scene for resource
 	// 'workspaces/sample-workspace'
@@ -239,7 +244,7 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 			}
 			OnSceneLoaded.ExecuteIfBound(AgentInfos);
 		}
-	);*/
+	);
 }
 
 void FInworldClient::Stop()
