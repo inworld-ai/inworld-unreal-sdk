@@ -104,9 +104,6 @@ void FInworldClient::Init()
 	}
 	FString ClientId("unreal");
 
-	int64 Size0 = Inworld::SizeOfSdkInfo();
-	int64 Size1 = sizeof(Inworld::SdkInfo);
-
 	Inworld::SdkInfo Sdk;
 	Sdk.Type = TCHAR_TO_UTF8(*ClientId);
 	Sdk.Version = TCHAR_TO_UTF8(*ClientVer);

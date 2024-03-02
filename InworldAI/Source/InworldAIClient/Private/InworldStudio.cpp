@@ -81,11 +81,21 @@ namespace Inworld
 	{
 
 	public:
+		FStudio()
+		{
+			Inworld::CreateStudioClient();
+		}
+
+		~FStudio()
+		{
+			Inworld::DestroyStudioClient();
+		}
+
 		TWeakPtr<FStudio> SelfWeakPtr;
 
 		void RequestStudioUserData(const std::string& Token, const std::string& ServerUrl, std::function<void(bool bSuccess)> Callback)
 		{
-			Client.RequestStudioUserData(Token, ServerUrl, [Callback, SelfPtr = SelfWeakPtr](bool bSuccess)
+			Client().RequestStudioUserData(Token, ServerUrl, [Callback, SelfPtr = SelfWeakPtr](bool bSuccess)
 				{
 					AsyncTask(ENamedThreads::GameThread, [Callback, bSuccess, SelfPtr]()
 						{
@@ -98,11 +108,11 @@ namespace Inworld
 				});
 		}
 
-		void CancelRequests() { Client.CancelRequests(); }
-		bool IsRequestInProgress() const { return Client.IsRequestInProgress(); }
+		void CancelRequests() { Client().CancelRequests(); }
+		bool IsRequestInProgress() const { return Client().IsRequestInProgress(); }
 
-		const std::string& GetError() const { return Client.GetError(); }
-		const StudioUserData& GetStudioUserData() const { return Client.GetStudioUserData(); }
+		const std::string& GetError() const { return Client().GetError(); }
+		const StudioUserData& GetStudioUserData() const { return Client().GetStudioUserData(); }
 
 		FInworldStudioUserData GetData() const
 		{
@@ -114,8 +124,9 @@ namespace Inworld
 		}
 
 	private:
-		StudioClient Client;
-
+		Inworld::StudioClient& Client() { return *Inworld::GetStudioClient().get(); }
+		const Inworld::StudioClient& Client() const { return *Inworld::GetStudioClient().get(); }
+		
 		mutable FInworldStudioUserData Data;
 	};
 }
