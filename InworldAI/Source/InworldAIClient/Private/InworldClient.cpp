@@ -304,7 +304,6 @@ FString FInworldClient::GenerateUserId()
 	FMemory::Memcpy(Data.GetData(), SId.data(), SId.size());
 
 	Data = Inworld::Utils::HmacSha256(Data, Data);
-	SId = Inworld::Utils::ToHex(Data);
 
 	return FString(UTF8_TO_TCHAR(Inworld::Utils::ToHex(Data).c_str()));
 }

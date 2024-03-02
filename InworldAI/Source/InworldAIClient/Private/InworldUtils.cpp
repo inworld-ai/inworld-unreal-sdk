@@ -272,7 +272,7 @@ TArray<uint8> Inworld::Utils::HmacSha256(const TArray<uint8>& Data, const TArray
 	DataArrayToVec(Data, VData);
 	DataArrayToVec(Key, VKey);
 	
-	std::vector<uint8> VRes = HmacSha256(VData, VKey);
+	std::vector<uint8> VRes = HmacSha256Safe(VData, VKey);
     TArray<uint8> Res;
     VecToDataArray(VRes, Res);
     return Res;
