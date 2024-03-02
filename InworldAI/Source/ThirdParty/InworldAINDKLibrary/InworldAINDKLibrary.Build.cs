@@ -140,7 +140,7 @@ public class InworldAINDKLibrary : ModuleRules
 
             if (bUseSharedInworldNDK)
             {
-                PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.lib"));
+                PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dll.lib"));
                 PublicDelayLoadDLLs.Add("inworld-ndk.dll");
                 RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dll"));
             }
