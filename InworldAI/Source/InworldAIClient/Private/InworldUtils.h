@@ -26,15 +26,15 @@ namespace Inworld
         template<typename T>
         void DataArrayToVec(const TArray<T>& ArrData, std::vector<T>& VecData)
         {
-            VecData.resize(ArrData.Num());
-            FMemory::Memcpy((void*)VecData.data(), (void*)ArrData.GetData(), VecData.size() * sizeof(T));
+            VecData.resize(ArrData.Num() * sizeof(T));
+            FMemory::Memcpy((void*)VecData.data(), (void*)ArrData.GetData(), VecData.size());
         }
 
         template<typename T>
         void VecToDataArray(const std::vector<T>& VecData, TArray<T>& ArrData)
         {
-            ArrData.SetNumUninitialized(VecData.size());
-            FMemory::Memcpy((void*)ArrData.GetData(), (void*)VecData.data(), ArrData.Num() * sizeof(T));
+            ArrData.SetNumUninitialized(VecData.size() * sizeof(T));
+            FMemory::Memcpy((void*)ArrData.GetData(), (void*)VecData.data(), ArrData.Num());
         }
         
         void DataArray16ToString(const TArray<int16>& Data, std::string& String);
