@@ -247,6 +247,7 @@ void UInworldCharacterPlaybackA2F::GenerateData(USoundWaveProcedural* InProcedur
 			TArray<uint8> AudioData = OriginalPCMData;
 			AudioData.SetNum(DataPerFrame);
 			ExpectedRemainingAudio -= AudioData.Num();
+			A2FData->bIsDone = true;
 
 			if (ExpectedRemainingAudio > 0)
 			{
