@@ -16,13 +16,10 @@ void UInworldCharacterPlaybackA2F::BeginPlay_Implementation()
 
 	AudioComponent = Cast<UAudioComponent>(OwnerActor->GetComponentByClass(UAudioComponent::StaticClass()));
 
-	GetCharacterComponent()->Global.A2FData->OnA2FOldAnimationHeaderData.AddUObject(this, &UInworldCharacterPlaybackA2F::OnA2FOldAnimationHeaderData);
-	GetCharacterComponent()->Global.A2FData->OnA2FOldAnimationContentData.AddUObject(this, &UInworldCharacterPlaybackA2F::OnA2FOldAnimationContentData);
-
 	if (ensureMsgf(AudioComponent.IsValid(), TEXT("UInworldCharacterPlaybackA2F owner doesn't contain AudioComponent")))
 	{
 		SoundStreaming = NewObject<USoundWaveProcedural>();
-		SoundStreaming->SetSampleRate(16000);
+		SoundStreaming->SetSampleRate(22050);
 		SoundStreaming->NumChannels = 1;
 		SoundStreaming->Duration = INDEFINITELY_LOOPING_DURATION;
 		SoundStreaming->SoundGroup = SOUNDGROUP_Voice;
@@ -60,8 +57,7 @@ void UInworldCharacterPlaybackA2F::OnCharacterUtterance_Implementation(const FCh
 	if (Message.SoundData.Num() > 0 && Message.bAudioFinal)
 	{
 		A2FData = Message.A2FData;
-		HeaderDataHandle = A2FData->OnA2FOldAnimationHeaderData.AddUObject(this, &UInworldCharacterPlaybackA2F::OnA2FOldAnimationHeaderData);
-		ContentDataHandle = A2FData->OnA2FOldAnimationContentData.AddUObject(this, &UInworldCharacterPlaybackA2F::OnA2FOldAnimationContentData);
+		A2FDataUpdateHandle = A2FData->OnCharacterMessageUtteranceA2FDataUpdate.AddUObject(this, &UInworldCharacterPlaybackA2F::OnCharacterMessageUtteranceA2FDataUpdate);
 
 		FScopeLock ScopeLock(&QueueLock);
 		AudioToPlay.Empty();
@@ -171,8 +167,7 @@ void UInworldCharacterPlaybackA2F::OnCharacterUtteranceInterrupt_Implementation(
 
 	if (A2FData)
 	{
-		A2FData->OnA2FOldAnimationHeaderData.Remove(HeaderDataHandle);
-		A2FData->OnA2FOldAnimationContentData.Remove(ContentDataHandle);
+		A2FData->OnCharacterMessageUtteranceA2FDataUpdate.Remove(A2FDataUpdateHandle);
 	}
 
 	AudioToPlay.Empty();
@@ -194,32 +189,29 @@ void UInworldCharacterPlaybackA2F::OnCharacterUtteranceInterrupt_Implementation(
 	UnlockMessageQueue();
 }
 
-void UInworldCharacterPlaybackA2F::OnA2FOldAnimationHeaderData(const FInworldA2FOldAnimationHeaderEvent& AnimationHeaderData)
-{
-	// Do Nothing...
-}
-
-void UInworldCharacterPlaybackA2F::OnA2FOldAnimationContentData(const FInworldA2FOldAnimationContentEvent& AnimationData)
+void UInworldCharacterPlaybackA2F::OnCharacterMessageUtteranceA2FDataUpdate()
 {
 	FScopeLock ScopeLock(&QueueLock);
-	if (AnimationData.Audio.IsEmpty() || AnimationData.BlendShapeMap.IsEmpty() || bUseFallback)
-	{
-		return;
-	}
 
+	while (!A2FData->PendingAudio.IsEmpty())
 	{
-		AudioToPlay.Enqueue(AnimationData.Audio);
-		AnimsToPlay.Enqueue(AnimationData.BlendShapeMap);
+		TArray<uint8> Audio;
+		A2FData->PendingAudio.Dequeue(Audio);
+		AudioToPlay.Enqueue(Audio);
+		ExpectedRemainingAudio -= Audio.Num();
+		if (ExpectedRemainingAudio > 0)
+		{
+			FMemory::Memcpy(OriginalPCMData.GetData(), OriginalPCMData.GetData() + Audio.Num(), ExpectedRemainingAudio);
+		}
+		OriginalPCMData.SetNum(FMath::Max(0, ExpectedRemainingAudio));
+		GotPackets++;
 	}
-
-	ExpectedRemainingAudio -= AnimationData.Audio.Num();
-	GotPackets++;
-
-	if (ExpectedRemainingAudio > 0)
+	while (!A2FData->PendingBlendShapeMap.IsEmpty())
 	{
-		FMemory::Memcpy(OriginalPCMData.GetData(), OriginalPCMData.GetData() + AnimationData.Audio.Num(), ExpectedRemainingAudio);
+		TMap<FName, float> BlendShapeMap;
+		A2FData->PendingBlendShapeMap.Dequeue(BlendShapeMap);
+		AnimsToPlay.Enqueue(BlendShapeMap);
 	}
-	OriginalPCMData.SetNum(FMath::Max(0, ExpectedRemainingAudio));
 
 	if (!AudioComponent->IsActive())
 	{
@@ -233,7 +225,7 @@ void UInworldCharacterPlaybackA2F::GenerateData(USoundWaveProcedural* InProcedur
 	{
 		return;
 	}
-	if (TimeToGiveUp > 0.f && !bHasStartedProcessingAudio && ExpectedRemainingAudio >= 0 && GotPackets < 20)
+	if (TimeToGiveUp > 0.f && !bHasStartedProcessingAudio && !A2FData->bIsDone && GotPackets < MinPacketsToStart)
 	{
 		return;
 	}
@@ -324,15 +316,14 @@ void UInworldCharacterPlaybackA2F::GenerateData(USoundWaveProcedural* InProcedur
 				});
 		}
 	}
-	else if (ExpectedRemainingAudio <= 0)
+	else if (A2FData->bIsDone)
 	{
 		AsyncTask(ENamedThreads::GameThread, [this]()
 			{
 				FScopeLock ScopeLock(&QueueLock);
 				if (A2FData)
 				{
-					A2FData->OnA2FOldAnimationHeaderData.Remove(HeaderDataHandle);
-					A2FData->OnA2FOldAnimationContentData.Remove(ContentDataHandle);
+					A2FData->OnCharacterMessageUtteranceA2FDataUpdate.Remove(A2FDataUpdateHandle);
 				}
 				AudioToPlay.Empty();
 				AnimsToPlay.Empty();
@@ -348,6 +339,7 @@ void UInworldCharacterPlaybackA2F::GenerateData(USoundWaveProcedural* InProcedur
 				bIsActive = false;
 				SoundStreaming->ResetAudio();
 				OnUtteranceStopped.Broadcast();
+
 				UnlockMessageQueue();
 			});
 	}

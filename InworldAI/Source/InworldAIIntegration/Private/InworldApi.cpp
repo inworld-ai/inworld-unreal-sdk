@@ -467,13 +467,6 @@ void UInworldApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         }
     );
 
-    UInworldBlueprintFunctionLibrary::OnTestPacket.BindLambda([this](TSharedPtr<FInworldPacket> Packet)
-        {
-            UInworldCharacterComponent* IWC = static_cast<UInworldCharacterComponent*>(CharacterComponentRegistry[0]);
-            IWC->HandlePacket(Packet);
-        }
-    );
-
     Client->Init();
 }
 

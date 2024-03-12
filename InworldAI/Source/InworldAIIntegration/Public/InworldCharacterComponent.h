@@ -158,8 +158,6 @@ public:
 		return MessageQueue->CurrentMessage;
 	}
 
-	FCharacterMessageUtterance Global;
-
 	UFUNCTION(BlueprintCallable, Category = "Message")
 	void MakeMessageQueueLock(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle);
 
@@ -192,9 +190,7 @@ private:
 	virtual void Visit(const FInworldTextEvent& Event) override;
 	virtual void Visit(const FInworldAudioDataEvent& Event) override;
 	virtual void Visit(const FInworldA2FAnimationHeaderEvent& Event) override;
-	virtual void Visit(const FInworldA2FOldAnimationHeaderEvent& Event) override;
-	virtual void Visit(const FInworldA2FAnimationEvent& Event) override;
-	virtual void Visit(const FInworldA2FOldAnimationContentEvent& Event) override;
+	virtual void Visit(const FInworldA2FAnimationContentEvent& Event) override;
 	virtual void Visit(const FInworldSilenceEvent& Event) override;
 	virtual void Visit(const FInworldControlEvent& Event) override;
 	virtual void Visit(const FInworldEmotionEvent& Event) override;

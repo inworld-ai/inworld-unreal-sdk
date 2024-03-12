@@ -70,19 +70,14 @@ struct FCharacterUtteranceVisemeInfo
 
 struct FCharacterMessageUtteranceA2FData : public TSharedFromThis<FCharacterMessageUtteranceA2FData>
 {
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FAnimationHeaderDataSet, const FInworldA2FAnimationHeaderEvent&);
-	FOnInworldA2FAnimationHeaderDataSet OnA2FAnimationHeaderData;
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FAnimationData, const FInworldA2FAnimationEvent&);
-	FOnInworldA2FAnimationData OnA2FAnimationData;
-
 	bool bHasAnyYet = false;
+	bool bIsDone = false;
+	TArray<FName> BlendShapeNames;
 	TQueue<TArray<uint8>> PendingAudio;
 	TQueue<TMap<FName, float>> PendingBlendShapeMap;
 
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FOldAnimationHeaderDataSet, const FInworldA2FOldAnimationHeaderEvent&);
-	FOnInworldA2FOldAnimationHeaderDataSet OnA2FOldAnimationHeaderData;
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FOldAnimationContentData, const FInworldA2FOldAnimationContentEvent&);
-	FOnInworldA2FOldAnimationContentData OnA2FOldAnimationContentData;
+	DECLARE_MULTICAST_DELEGATE(FOnCharacterMessageUtteranceA2FDataUpdate);
+	FOnCharacterMessageUtteranceA2FDataUpdate OnCharacterMessageUtteranceA2FDataUpdate;
 };
 
 USTRUCT(BlueprintType)

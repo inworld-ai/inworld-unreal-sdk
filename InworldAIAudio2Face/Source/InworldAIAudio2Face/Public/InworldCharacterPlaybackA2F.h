@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InworldCharacterPlayback.h"
 #include "InworldIntegrationTypes.h"
+#include <Components/AudioComponent.h>
 #include "InworldCharacterPlaybackA2F.generated.h"
 
 
@@ -92,14 +93,12 @@ protected:
 	TWeakObjectPtr<UAudioComponent> AudioComponent;
 	class USoundWaveProcedural* SoundStreaming;
 
-	void OnA2FOldAnimationHeaderData(const FInworldA2FOldAnimationHeaderEvent& AnimationHeaderData);
-	void OnA2FOldAnimationContentData(const FInworldA2FOldAnimationContentEvent& AnimationData);
+	void OnCharacterMessageUtteranceA2FDataUpdate();
 
 private:
 	void GenerateData(USoundWaveProcedural* InProceduralWave, int32 SamplesRequired);
 	
 	mutable FCriticalSection QueueLock;
-	TArray<FName> BlendShapes;
 	TQueue<TArray<uint8>> AudioToPlay;
 	TQueue<TMap<FName, float>> AnimsToPlay;
 	TQueue<TArray<uint8>> BackupAudioToPlay;
@@ -109,16 +108,16 @@ private:
 	TArray<FCharacterUtteranceVisemeInfo> VisemeInfoPlayback;
 
 	bool bUseFallback = false;
-	float AllowedLatencyDelay = 0.66f;
+	float AllowedLatencyDelay = 1.5f;
 	float SoundDuration = 0.f;
 	float SoundSize = 0.f;
 	float TimeToGiveUp = 0.f;
 	int32 ExpectedRemainingAudio = 0;
 	int32 GotPackets = 0;
+	int32 MinPacketsToStart = 20;
 	bool bHasStartedProcessingAudio = false;
 	bool bIsActive = false;
 
 	TSharedPtr<FCharacterMessageUtteranceA2FData> A2FData;
-	FDelegateHandle HeaderDataHandle;
-	FDelegateHandle ContentDataHandle;
+	FDelegateHandle A2FDataUpdateHandle;
 };

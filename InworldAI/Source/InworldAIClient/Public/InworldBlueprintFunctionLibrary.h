@@ -29,10 +29,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Audio")
 	static USoundWave* DataArrayToSoundWave(const TArray<uint8>& DataArray);
-
-	DECLARE_DELEGATE_OneParam(FOnTestPacket, TSharedPtr<FInworldPacket>);
-	static FOnTestPacket OnTestPacket;
-
-	UFUNCTION(BlueprintCallable, Category = "TEST")
-	static void DoTest();
 };

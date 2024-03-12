@@ -576,6 +576,7 @@ void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
 	{
 		return;
 	}
+
 	if (GetNetMode() == NM_Standalone || GetNetMode() == NM_Client)
 	{
 		VisitAudioOnClient(Event);
@@ -601,52 +602,57 @@ void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
 
 void UInworldCharacterComponent::Visit(const FInworldA2FAnimationHeaderEvent& Event)
 {
-	// Empty - A2F upgrade TODO
+	if (Event.PacketId.InteractionId != ActiveInteraction)
+	{
+		return;
+	}
+
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [this, Event](auto MessageToUpdate) {
+		if (Event.ChannelCount == 0)
+		{
+			MessageToUpdate->A2FData->bIsDone = true;
+		}
+		else
+		{
+			MessageToUpdate->A2FData->BlendShapeNames = Event.BlendShapes;
+		}
+	}, true);
 }
 
-void UInworldCharacterComponent::Visit(const FInworldA2FOldAnimationHeaderEvent& Event)
-{
-	// Empty - No useful info in header
-}
-
-void UInworldCharacterComponent::Visit(const FInworldA2FAnimationEvent& Event)
-{
-	// Empty - A2F upgrade TODO
-}
-
-void UInworldCharacterComponent::Visit(const FInworldA2FOldAnimationContentEvent& Event)
+void UInworldCharacterComponent::Visit(const FInworldA2FAnimationContentEvent& Event)
 {
 	if (Event.PacketId.InteractionId != ActiveInteraction)
 	{
 		return;
 	}
 
-	if (Event.Audio.Num() == 0)
+	if (Event.AudioInfo.Audio.Num() == 0)
 	{
 		return;
 	}
 
-	if (!MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [this, Event](auto MessageToUpdate) {
-		FInworldA2FOldAnimationContentEvent Copy = Event;
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [this, Event](auto MessageToUpdate) {
+		FInworldA2FAnimationContentEvent Copy = Event;
 		if (!MessageToUpdate->A2FData->bHasAnyYet)
 		{
-			FMemory::Memcpy((void*)Copy.Audio.GetData(), (void*)(Copy.Audio.GetData() + 44), Copy.Audio.Num() - 44);
-			Copy.Audio.SetNum(Copy.Audio.Num() - 44);
+			FMemory::Memcpy((void*)Copy.AudioInfo.Audio.GetData(), (void*)(Copy.AudioInfo.Audio.GetData() + 44), Copy.AudioInfo.Audio.Num() - 44);
+			Copy.AudioInfo.Audio.SetNum(Copy.AudioInfo.Audio.Num() - 44);
 			MessageToUpdate->A2FData->bHasAnyYet = true;
 		}
+
+		MessageToUpdate->A2FData->PendingAudio.Enqueue(Copy.AudioInfo.Audio);
+		TMap<FName, float> BlendShapeMap;
+		for (int32 i = 0; i < MessageToUpdate->A2FData->BlendShapeNames.Num(); ++i)
+		{
+			BlendShapeMap.Add(MessageToUpdate->A2FData->BlendShapeNames[i], Copy.BlendShapeWeights.Values[i]);
+		}
+		MessageToUpdate->A2FData->PendingBlendShapeMap.Enqueue(BlendShapeMap);
+
 		if (MessageQueue->CurrentMessage == MessageToUpdate)
 		{
-			MessageToUpdate->A2FData->OnA2FOldAnimationContentData.Broadcast(Copy);
+			MessageToUpdate->A2FData->OnCharacterMessageUtteranceA2FDataUpdate.Broadcast();
 		}
-		else
-		{
-			MessageToUpdate->A2FData->PendingAudio.Enqueue(Copy.Audio);
-			MessageToUpdate->A2FData->PendingBlendShapeMap.Enqueue(Copy.BlendShapeMap);
-		}
-		}, true))
-	{
-		Global.A2FData->OnA2FOldAnimationContentData.Broadcast(Event);
-	}
+	}, true);
 }
 
 void UInworldCharacterComponent::Visit(const FInworldSilenceEvent& Event)
