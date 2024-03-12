@@ -134,26 +134,7 @@ void UInworldCharacterPlaybackA2F::OnCharacterUtterance_Implementation(const FCh
 				}
 			}
 		}
-
-		while (!Message.A2FData->PendingAudio.IsEmpty())
-		{
-			TArray<uint8> Audio;
-			Message.A2FData->PendingAudio.Dequeue(Audio);
-			AudioToPlay.Enqueue(Audio);
-			ExpectedRemainingAudio -= Audio.Num();
-			if (ExpectedRemainingAudio > 0)
-			{
-				FMemory::Memcpy(OriginalPCMData.GetData(), OriginalPCMData.GetData() + Audio.Num(), ExpectedRemainingAudio);
-			}
-			OriginalPCMData.SetNum(FMath::Max(0, ExpectedRemainingAudio));
-			GotPackets++;
-		}
-		while (!Message.A2FData->PendingBlendShapeMap.IsEmpty())
-		{
-			TMap<FName, float> BlendShapeMap;
-			Message.A2FData->PendingBlendShapeMap.Dequeue(BlendShapeMap);
-			AnimsToPlay.Enqueue(BlendShapeMap);
-		}
+		OnCharacterMessageUtteranceA2FDataUpdate();
 
 		LockMessageQueue();
 
