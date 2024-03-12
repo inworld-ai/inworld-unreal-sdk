@@ -10,6 +10,7 @@
 #include "CoreMinimal.h"
 
 #include "InworldPackets.h"
+#include "Containers/Queue.h"
 
 #include "InworldCharacterMessage.generated.h"
 
