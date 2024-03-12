@@ -1,13 +1,9 @@
-/*
- * /*************************************************************************************************
- * * Copyright 2022 Theai, Inc. (DBA Inworld)
- * *
- * * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
- * * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
- * *************************************************************************************************/
+/**
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ *
+ * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
+ * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
-
-// Copyright 2023 Theai, Inc. (DBA Inworld) All Rights Reserved.
 
 #pragma once
 
@@ -26,40 +22,6 @@ struct FA2FBlendShapeData
 	UPROPERTY(BlueprintReadWrite)
 	TMap<FName, float> Map;
 };
-/*
-UENUM(BlueprintType)
-enum class EA2FAudioFormat : uint8
-{
-	AUDIO_FORMAT_PCM = 0,
-};
-
-USTRUCT(BlueprintType)
-struct FA2FAudioHeaderData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly)
-	EA2FAudioFormat AudioFormat = EA2FAudioFormat::AUDIO_FORMAT_PCM;
-
-	UPROPERTY(BlueprintReadOnly)
-	int32 ChannelCount;
-
-	UPROPERTY(BlueprintReadOnly)
-	int32 SamplesPerSecond;
-
-	UPROPERTY(BlueprintReadOnly)
-	int32 BitsPerSample;
-};
-
-USTRUCT(BlueprintType)
-struct FA2FSkeletalHeaderData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly)
-	TArray<FString> BlendShapes;
-};
-*/
 
 /**
  * 
