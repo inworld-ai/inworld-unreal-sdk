@@ -96,7 +96,7 @@ void UInworldCharacterPlaybackA2F::OnCharacterUtterance_Implementation(const FCh
 			Audio::EResamplingMethod::Linear,
 			1,
 			(float)*WaveInfo.pSamplesPerSec,
-			16000.f,
+			22050.f,
 			InputBuffer
 		};
 
