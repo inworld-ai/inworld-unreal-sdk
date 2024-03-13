@@ -309,7 +309,7 @@ void UInworldCharacterA2FComponent::GenerateData(USoundWaveProcedural* InProcedu
 				});
 		}
 	}
-	else if (A2FData->bIsDone)
+	else if (A2FData->bIsDone || ExpectedRemainingAudio < 0)
 	{
 		AsyncTask(ENamedThreads::GameThread, [this]()
 			{
