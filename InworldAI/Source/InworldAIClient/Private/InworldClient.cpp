@@ -14,7 +14,6 @@
 #include "IPAddress.h"
 
 #include "InworldUtils.h"
-#include "InworldAsyncRoutine.h"
 #include "InworldPacketTranslator.h"
 
 THIRD_PARTY_INCLUDES_START
