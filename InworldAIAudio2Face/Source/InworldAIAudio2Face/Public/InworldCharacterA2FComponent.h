@@ -8,29 +8,26 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InworldCharacterPlayback.h"
-#include "InworldIntegrationTypes.h"
+#include "Components/AudioComponent.h"
+#include "InworldIntegrationtypes.h"
 #include "InworldA2FTypes.h"
-#include <Components/AudioComponent.h>
-#include "InworldCharacterPlaybackA2F.generated.h"
+#include "InworldCharacterMessage.h"
+#include "InworldCharacterA2FComponent.generated.h"
 
+struct FCharacterMessageUtterance;
+struct FCharacterMessageSilence;
 
-/**
- * 
- */
-UCLASS()
-class INWORLDAIAUDIO2FACE_API UInworldCharacterPlaybackA2F : public UInworldCharacterPlayback
+UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
+class INWORLDAIAUDIO2FACE_API UInworldCharacterA2FComponent : public UAudioComponent
 {
 	GENERATED_BODY()
 
 public:
-	virtual void BeginPlay_Implementation() override;
-	virtual void EndPlay_Implementation() override;
-	virtual void Tick_Implementation(float DeltaTime) override;
+	UInworldCharacterA2FComponent();
 
-	virtual void OnCharacterUtterance_Implementation(const FCharacterMessageUtterance& Message) override;
-	virtual void OnCharacterUtteranceInterrupt_Implementation(const FCharacterMessageUtterance& Message) override;
-
+	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type Reason) override;
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldAudio2FaceBlendShapeUpdate, const FA2FBlendShapeData&, Blendshapes);
 	UPROPERTY(BlueprintAssignable, Category = "Audio2Face")
@@ -53,14 +50,15 @@ public:
 	FOnInworldCharacterUtteranceInterrupted OnUtteranceInterrupted;
 
 protected:
-	TWeakObjectPtr<UAudioComponent> AudioComponent;
+	TWeakObjectPtr<class UInworldCharacterComponent> CharacterComponent;
+	FInworldCharacterMessageQueueLockHandle CharacterMessageQueueLockHandle;
 	class USoundWaveProcedural* SoundStreaming;
 
 	void OnCharacterMessageUtteranceA2FDataUpdate();
 
 private:
 	void GenerateData(USoundWaveProcedural* InProceduralWave, int32 SamplesRequired);
-	
+
 	mutable FCriticalSection QueueLock;
 	TQueue<TArray<uint8>> AudioToPlay;
 	TQueue<TMap<FName, float>> AnimsToPlay;
@@ -83,4 +81,10 @@ private:
 
 	TSharedPtr<FCharacterMessageUtteranceA2FData> A2FData;
 	FDelegateHandle A2FDataUpdateHandle;
+
+private:
+	UFUNCTION()
+	void OnCharacterUtterance(const FCharacterMessageUtterance& Message);
+	UFUNCTION()
+	void OnCharacterUtteranceInterrupt(const FCharacterMessageUtterance& Message);
 };
