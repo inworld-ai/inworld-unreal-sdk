@@ -75,20 +75,26 @@ void FInworldClient::Init()
 	Sdk.OS = TCHAR_TO_UTF8(*OSFullVersion);
 
 	Inworld::CreateClient();
-	Inworld::GetClient()->InitClient(Sdk,
+	Inworld::GetClient()->InitClientAsync(Sdk,
 		[this](Inworld::Client::ConnectionState ConnectionState)
 		{
-			OnConnectionStateChanged.ExecuteIfBound(static_cast<EInworldConnectionState>(ConnectionState));
+			AsyncTask(ENamedThreads::GameThread, [this, ConnectionState]() 
+			{
+				OnConnectionStateChanged.ExecuteIfBound(static_cast<EInworldConnectionState>(ConnectionState));
+			});
 		},
 		[this](std::shared_ptr<Inworld::Packet> Packet)
 		{
-			InworldPacketTranslator PacketTranslator;
-			Packet->Accept(PacketTranslator);
-			TSharedPtr<FInworldPacket> ReceivedPacket = PacketTranslator.GetPacket();
-			if (ReceivedPacket.IsValid())
+			AsyncTask(ENamedThreads::GameThread, [this, Packet]()
 			{
-				OnInworldPacketReceived.ExecuteIfBound(ReceivedPacket);
-			}
+				InworldPacketTranslator PacketTranslator;
+				Packet->Accept(PacketTranslator);
+				TSharedPtr<FInworldPacket> ReceivedPacket = PacketTranslator.GetPacket();
+				if (ReceivedPacket.IsValid())
+				{
+					OnInworldPacketReceived.ExecuteIfBound(ReceivedPacket);
+				}
+			});
 		}
 	);
 

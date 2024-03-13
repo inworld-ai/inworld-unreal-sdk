@@ -69,7 +69,7 @@ public class InworldAINDKLibrary : ModuleRules
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_LOG_CALLBACK=1");
 
-        bool bUseSharedInworldNDK = false;
+        bool bUseSharedInworldNDK = Target.Platform == UnrealTargetPlatform.Win64;
         if (bUseSharedInworldNDK)
         {
             PublicDefinitions.Add("INWORLD_NDK_SHARED=1");
