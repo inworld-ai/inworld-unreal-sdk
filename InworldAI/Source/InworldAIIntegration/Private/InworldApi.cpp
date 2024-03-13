@@ -15,6 +15,7 @@
 #include <UObject/UObjectGlobals.h>
 #include "TimerManager.h"
 #include "InworldAudioRepl.h"
+#include "InworldBlueprintFunctionLibrary.h"
 
 static TAutoConsoleVariable<bool> CVarLogAllPackets(
 TEXT("Inworld.Debug.LogAllPackets"), false,
@@ -499,6 +500,25 @@ void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPack
 	{
 		(*SourceComponentPtr)->HandlePacket(InworldPacket);
 	}
+
+    if (InworldPacket->Routing.Source.Type == EInworldActorType::PLAYER)
+    {
+        auto ProcessTarget = [this, InworldPacket](const FInworldActor& TargetActor)
+            {
+                auto* TargetComponentPtr = CharacterComponentByAgentId.Find(TargetActor.Name);
+                if (TargetComponentPtr)
+                {
+                    (*TargetComponentPtr)->HandlePacket(InworldPacket);
+                }
+            };
+
+        //ProcessTarget(InworldPacket->Routing.Target);
+
+        for (const auto& Target : InworldPacket->Routing.Targets)
+        {
+            ProcessTarget(Target);
+        }
+    }
 
     if (ensure(InworldPacket))
     {

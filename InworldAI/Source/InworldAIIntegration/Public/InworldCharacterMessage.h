@@ -10,6 +10,7 @@
 #include "CoreMinimal.h"
 
 #include "InworldPackets.h"
+#include "Containers/Queue.h"
 
 #include "InworldCharacterMessage.generated.h"
 
@@ -47,6 +48,7 @@ struct FCharacterMessage
 	FString InteractionId;
 
 	virtual bool IsReady() const { return true; }
+	virtual bool IsUtterance() const { return false; }
 
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) PURE_VIRTUAL(FCharacterMessage::AcceptHandle)
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) PURE_VIRTUAL(FCharacterMessage::AcceptInterrupt)
@@ -67,10 +69,27 @@ struct FCharacterUtteranceVisemeInfo
 	float Timestamp = 0.f;
 };
 
+struct FCharacterMessageUtteranceA2FData : public TSharedFromThis<FCharacterMessageUtteranceA2FData>
+{
+	bool bHasAnyYet = false;
+	bool bIsDone = false;
+	TArray<FName> BlendShapeNames;
+	TQueue<TArray<uint8>> PendingAudio;
+	TQueue<TMap<FName, float>> PendingBlendShapeMap;
+
+	DECLARE_MULTICAST_DELEGATE(FOnCharacterMessageUtteranceA2FDataUpdate);
+	FOnCharacterMessageUtteranceA2FDataUpdate OnCharacterMessageUtteranceA2FDataUpdate;
+};
+
 USTRUCT(BlueprintType)
 struct FCharacterMessageUtterance : public FCharacterMessage
 {
 	GENERATED_BODY()
+
+	FCharacterMessageUtterance()
+		: FCharacterMessage()
+		, A2FData(MakeShared<FCharacterMessageUtteranceA2FData>())
+	{}
 
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString Text;
@@ -87,7 +106,10 @@ struct FCharacterMessageUtterance : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	TArray<uint8> SoundData;
 
+	TSharedPtr<FCharacterMessageUtteranceA2FData> A2FData;
+
 	virtual bool IsReady() const override { return bTextFinal && bAudioFinal; }
+	virtual bool IsUtterance() const override { return true; }
 
 	virtual void AcceptHandle(ICharacterMessageVisitor& Visitor) override { Visitor.Handle(*this); }
 	virtual void AcceptInterrupt(ICharacterMessageVisitor& Visitor) override { Visitor.Interrupt(*this); }
@@ -191,23 +213,33 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 
 
 	template<class T>
-	void AddOrUpdateMessage(const FInworldPacket& Event, float Timestamp, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr)
+	bool AddOrUpdateMessage(const FInworldPacket& Event, float Timestamp, TFunction<void(TSharedPtr<T> MessageToPopulate)> PopulateProperties = nullptr, bool bAttachMessage = false)
 	{
 		const FString& InteractionId = Event.PacketId.InteractionId;
 		const FString& UtteranceId = Event.PacketId.UtteranceId;
 
 		TSharedPtr<T> Message = nullptr;
-		const auto Index = PendingMessageEntries.FindLastByPredicate( [&InteractionId, &UtteranceId](const auto& Q)
-			{
-				return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId;
-			}
-		);
-		if (Index != INDEX_NONE)
+
+		if (CurrentMessage.IsValid() && CurrentMessage->InteractionId == InteractionId && CurrentMessage->UtteranceId == UtteranceId)
 		{
-			Message = StaticCastSharedPtr<T>(PendingMessageEntries[Index].Message);
+			Message = StaticCastSharedPtr<T>(CurrentMessage);
+		}
+		else
+		{
+			const auto Index = PendingMessageEntries.FindLastByPredicate([&InteractionId, &UtteranceId](const auto& Q)
+				{
+					return Q.Message->InteractionId == InteractionId && Q.Message->UtteranceId == UtteranceId;
+				}
+			);
+			if (Index != INDEX_NONE)
+			{
+				Message = StaticCastSharedPtr<T>(PendingMessageEntries[Index].Message);
+			}
 		}
 
-		if (!Message.IsValid() || Message->IsReady())
+		if (!Message.IsValid() && bAttachMessage) return false;
+
+		if (!Message.IsValid() || (Message->IsReady() && !bAttachMessage))
 		{
 			Message = MakeShared<T>();
 			Message->InteractionId = InteractionId;
@@ -235,6 +267,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 		}
 
 		TryToProgress();
+		return true;
 	}
 
 	TArray<FString> CancelInteraction(const FString& InteractionId);
