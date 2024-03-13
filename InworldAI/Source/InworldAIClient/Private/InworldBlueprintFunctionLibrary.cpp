@@ -7,11 +7,6 @@
 
 
 #include "InworldBlueprintFunctionLibrary.h"
-#include "Networking.h"
-#include "InworldPacketTranslator.h"
-THIRD_PARTY_INCLUDES_START
-#include "Packets.h"
-THIRD_PARTY_INCLUDES_END
 
 #include "Audio.h"
 #include "Sound/SoundWave.h"
