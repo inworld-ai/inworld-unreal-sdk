@@ -38,7 +38,7 @@ build_configurations = {
         ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Mac': BuildConfiguration(
-        ['cmake .. -DINWORLD_SHARED=False -DAEC=False -DMAC=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake .. -DINWORLD_SHARED=False -DAEC=True -DMAC=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target inworld-ndk --config Release']
     ),
     'iOS': BuildConfiguration(
