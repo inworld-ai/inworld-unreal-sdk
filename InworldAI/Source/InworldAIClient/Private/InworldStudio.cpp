@@ -75,94 +75,47 @@ FInworldStudioUserData ConvertStudioUserData(const Inworld::StudioUserData& Data
 	return D;
 }
 
-namespace Inworld
-{
-	class FStudio
-	{
-
-	public:
-		FStudio()
-		{
-			Inworld::CreateStudioClient();
-		}
-
-		~FStudio()
-		{
-			Inworld::DestroyStudioClient();
-		}
-
-		TWeakPtr<FStudio> SelfWeakPtr;
-
-		void RequestStudioUserData(const std::string& Token, const std::string& ServerUrl, std::function<void(bool bSuccess)> Callback)
-		{
-			Client().RequestStudioUserData(Token, ServerUrl, [Callback, SelfPtr = SelfWeakPtr](bool bSuccess)
-				{
-					AsyncTask(ENamedThreads::GameThread, [Callback, bSuccess, SelfPtr]()
-						{
-							if (SelfPtr.IsValid())
-							{
-								Callback(bSuccess);
-							}
-						}
-					);
-				});
-		}
-
-		void CancelRequests() { Client().CancelRequests(); }
-		bool IsRequestInProgress() const { return Client().IsRequestInProgress(); }
-
-		const std::string& GetError() const { return Client().GetError(); }
-		const StudioUserData& GetStudioUserData() const { return Client().GetStudioUserData(); }
-
-		FInworldStudioUserData GetData() const
-		{
-			if (Data.Workspaces.Num() == 0)
-			{
-				Data = ConvertStudioUserData(GetStudioUserData());
-			}
-			return Data;
-		}
-
-	private:
-		Inworld::StudioClient& Client() { return *Inworld::GetStudioClient().get(); }
-		const Inworld::StudioClient& Client() const { return *Inworld::GetStudioClient().get(); }
-		
-		mutable FInworldStudioUserData Data;
-	};
-}
-
 FInworldStudio::FInworldStudio()
 {
-	InworldStudio = MakeShared<Inworld::FStudio>();
-	InworldStudio->SelfWeakPtr = InworldStudio;
+	Inworld::CreateStudioClient();
 }
 
 FInworldStudio::~FInworldStudio()
 {
-	InworldStudio.Reset();
+	Inworld::DestroyStudioClient();
 }
 
 void FInworldStudio::CancelRequests()
 {
-	InworldStudio->CancelRequests();
+	Inworld::GetStudioClient()->CancelRequests();
 }
 
 bool FInworldStudio::IsRequestInProgress() const
 {
-	return InworldStudio->IsRequestInProgress();
+	return Inworld::GetStudioClient()->IsRequestInProgress();
 }
 
 void FInworldStudio::RequestStudioUserData(const FString& Token, const FString& ServerUrl, TFunction<void(bool bSuccess)> InCallback)
 {
-	InworldStudio->RequestStudioUserData(TCHAR_TO_UTF8(*Token), TCHAR_TO_UTF8(*ServerUrl), InCallback);
+	Inworld::GetStudioClient()->RequestStudioUserDataAsync(TCHAR_TO_UTF8(*Token), TCHAR_TO_UTF8(*ServerUrl), [InCallback](bool bSuccess)
+		{
+			AsyncTask(ENamedThreads::GameThread, [InCallback, bSuccess]()
+				{
+					InCallback(bSuccess);
+				});
+		});	
 }
 
 FString FInworldStudio::GetError() const
 {
-	return UTF8_TO_TCHAR(InworldStudio->GetError().c_str());
+	return UTF8_TO_TCHAR(Inworld::GetStudioClient()->GetError().c_str());
 }
 
 FInworldStudioUserData FInworldStudio::GetStudioUserData() const
 {
-	return InworldStudio->GetData();
+	if (Data.Workspaces.Num() == 0)
+	{
+		Data = ConvertStudioUserData(Inworld::GetStudioClient()->GetStudioUserData());
+	}
+	return Data;
 }

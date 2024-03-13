@@ -34,6 +34,5 @@ public:
 	FInworldStudioUserData GetStudioUserData() const;
 
 private:
-
-	TSharedPtr<Inworld::FStudio> InworldStudio;
+	mutable FInworldStudioUserData Data;
 };
