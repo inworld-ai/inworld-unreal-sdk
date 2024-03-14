@@ -109,10 +109,10 @@ if build:
 
     if not os.path.exists(build_path):
         os.mkdir(build_path)
-        with in_path(build_path):
-            for command in build_configurations[platform].gen:
-                if os.system(command) != 0:
-                    raise SystemExit('Error (build): Unable to generate NDK.')
+    with in_path(build_path):
+        for command in build_configurations[platform].gen:
+            if os.system(command) != 0:
+                raise SystemExit('Error (build): Unable to generate NDK.')
      
     with in_path(build_path):
         for command in build_configurations[platform].build:
