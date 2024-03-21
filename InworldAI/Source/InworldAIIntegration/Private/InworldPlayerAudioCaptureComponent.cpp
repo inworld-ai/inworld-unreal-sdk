@@ -641,8 +641,14 @@ void FInworldPixelStreamAudioCapture::StopCapture()
 #if defined(INWORLD_PIXEL_STREAMING)
 void FInworldPixelStreamAudioCapture::ConsumeRawPCM(const int16_t* AudioData, int InSampleRate, size_t NChannels, size_t NFrames)
 {
+    TArray<float> fAudioData;
+    fAudioData.SetNumUninitialized(NFrames * NChannels);
+    for (int32 i = 0; i < fAudioData.Num(); i++)
+    {
+        fAudioData[i] = ((float)AudioData[i]) / 32767.f; // 2^15, uint16
+    }
     TArray<uint16> Buffer;
-    ConvertAudioToInworldFormat(AudioData, NumFrames, NumChannels, SampleRate, Buffer);
+    ConvertAudioToInworldFormat(fAudioData.GetData(), NFrames, NChannels, InSampleRate, Buffer);
     Callback({ (uint8*)Buffer.GetData(), Buffer.Num() * 2 });
 }
 #endif
