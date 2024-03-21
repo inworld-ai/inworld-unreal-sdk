@@ -374,7 +374,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 
 	auto ProcessTarget = [this, Event](const FInworldActor& ToActor)
 		{
-			if (ToActor.Type == EInworldActorType::AGENT && ToActor.Name == GetAgentId())
+			if (Event.Routing.Source.Type == EInworldActorType::PLAYER && ToActor.Type == EInworldActorType::AGENT && ToActor.Name == GetAgentId())
 			{
 				if (Event.Final)
 				{
@@ -402,7 +402,10 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 
 	for (const auto& ToActor : Event.Routing.Targets)
 	{
-		ProcessTarget(ToActor);
+		if (ToActor.Name != Event.Routing.Target.Name)
+		{
+			ProcessTarget(ToActor);
+		}
 	}
 
 	const auto& FromActor = Event.Routing.Source;

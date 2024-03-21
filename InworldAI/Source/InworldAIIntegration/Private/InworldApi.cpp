@@ -515,7 +515,10 @@ void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPack
 
         for (const auto& Target : InworldPacket->Routing.Targets)
         {
-            ProcessTarget(Target);
+            if (Target.Name != InworldPacket->Routing.Target.Name)
+            {
+                ProcessTarget(Target);
+            }
         }
     }
 
