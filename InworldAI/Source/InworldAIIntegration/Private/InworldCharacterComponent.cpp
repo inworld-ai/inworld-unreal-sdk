@@ -492,6 +492,10 @@ void UInworldCharacterComponent::Multicast_VisitControl_Implementation(const FIn
 	{
 		MessageQueue->AddOrUpdateMessage<FCharacterMessageInteractionEnd>(Event, GetWorld()->GetTimeSeconds());
 	}
+	else if (Event.Action == EInworldControlEventAction::WARNING)
+	{
+		UE_LOG(LogInworldAIIntegration, Warning, TEXT("Warning: %s"), *Event.Description);
+	}
 }
 
 void UInworldCharacterComponent::Multicast_VisitCustom_Implementation(const FInworldCustomEvent& Event)

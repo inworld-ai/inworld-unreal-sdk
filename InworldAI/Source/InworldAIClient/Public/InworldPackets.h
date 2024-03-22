@@ -286,6 +286,9 @@ struct INWORLDAICLIENT_API FInworldControlEvent : public FInworldPacket
 	UPROPERTY()
 	EInworldControlEventAction Action = EInworldControlEventAction::UNKNOWN;
 
+	UPROPERTY()
+	FString Description;
+
 protected:
 	virtual void AppendDebugString(FString& Str) const;
 };
