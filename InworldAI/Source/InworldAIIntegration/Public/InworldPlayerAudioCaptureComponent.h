@@ -97,7 +97,7 @@ private:
 
 protected:
     UPROPERTY(EditDefaultsOnly, Category = "Filter")
-	bool bEnableAEC = false;
+	bool bEnableAEC = true;
 
     UPROPERTY(EditDefaultsOnly, Category = "Pixel Stream")
     bool bPixelStream = false;
