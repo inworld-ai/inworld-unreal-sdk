@@ -30,20 +30,24 @@ class BuildConfiguration:
 
 build_configurations = {
     'Win64': BuildConfiguration(
-        ['cmake .. -G "Visual Studio 16 2019" -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
-        ['cmake --build . --target InworldNDK --config Release']
+        ['cmake .. -G "Visual Studio 16 2019" -DINWORLD_SHARED=False -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake --build . --target inworld-ndk --config Release']
+    ),
+    'Win64-shared': BuildConfiguration(
+        ['cmake .. -G "Visual Studio 16 2019" -DINWORLD_SHARED=True -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Mac': BuildConfiguration(
-        ['cmake .. -DAEC=True -DMAC=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DINWORLD_AUDIO_DUMP=True'],
-        ['cmake --build . --target InworldNDK --config Release']
+        ['cmake .. -DINWORLD_SHARED=False -DAEC=True -DMAC=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake --build . --target inworld-ndk --config Release']
     ),
     'iOS': BuildConfiguration(
-        ['cmake -G Xcode .. -DAEC=False -DIOS=True -DCMAKE_TOOLCHAIN_FILE=./ios.toolchain.cmake -DPLATFORM=OS64 -DINWORLD_LOG_CALLBACK=True'],
-        ['cmake --build . --target InworldNDK --config Release']
+        ['cmake -G Xcode .. -DINWORLD_SHARED=False -DAEC=False -DIOS=True -DCMAKE_TOOLCHAIN_FILE=./ios.toolchain.cmake -DPLATFORM=OS64 -DINWORLD_LOG_CALLBACK=True'],
+        ['cmake --build . --target inworld-ndk --config Release -- CODE_SIGNING_ALLOWED=NO']
     ),
     'Android': BuildConfiguration(
-        ['cmake .. -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/25.2.9519653 -DINWORLD_LOG_CALLBACK=True'],
-        ['cmake --build . --target InworldNDK --config Release']
+        ['cmake .. -DINWORLD_SHARED=False -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/25.2.9519653 -DINWORLD_LOG_CALLBACK=True'],
+        ['cmake --build . --target inworld-ndk --config Release']
     )
 }
 
@@ -105,10 +109,10 @@ if build:
 
     if not os.path.exists(build_path):
         os.mkdir(build_path)
-        with in_path(build_path):
-            for command in build_configurations[platform].gen:
-                if os.system(command) != 0:
-                    raise SystemExit('Error (build): Unable to generate NDK.')
+    with in_path(build_path):
+        for command in build_configurations[platform].gen:
+            if os.system(command) != 0:
+                raise SystemExit('Error (build): Unable to generate NDK.')
      
     with in_path(build_path):
         for command in build_configurations[platform].build:

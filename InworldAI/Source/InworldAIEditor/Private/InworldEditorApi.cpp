@@ -543,8 +543,21 @@ void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCha
 		return;
 	}
 
-	MeshComponent->SetSkeletalMesh(InworldInnequinEditorSettings->InnequinMesh.LoadSynchronous());
-	MeshComponent->SetAnimInstanceClass(InworldInnequinEditorSettings->InnequinABP.LoadSynchronous()->GeneratedClass);
+	auto* InnequinMesh = InworldInnequinEditorSettings->InnequinMesh.LoadSynchronous();
+	if (!InnequinMesh)
+	{
+		UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CreateInnequinActor couldn't load InnequinMesh"));
+		return;
+	}
+	MeshComponent->SetSkeletalMesh(InnequinMesh);
+
+	auto* InnequinABP = InworldInnequinEditorSettings->InnequinABP.LoadSynchronous();
+	if (!InnequinABP)
+	{
+		UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CreateInnequinActor couldn't load InnequinABP"));
+		return;
+	}
+	MeshComponent->SetAnimInstanceClass(InnequinABP->GeneratedClass);
 
 	SetupBlueprintAsInworldCharacter(Blueprint);
 
