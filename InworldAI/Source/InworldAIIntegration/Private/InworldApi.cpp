@@ -129,6 +129,21 @@ void UInworldApiSubsystem::ClearResponseLatencyTrackerDelegate()
     Client->OnPerceivedLatency.Unbind();
 }
 
+void UInworldApiSubsystem::LoadCharacters(const TArray<FString>& Names)
+{
+    Client->LoadCharacters(Names);
+}
+
+void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
+{
+	Client->UnloadCharacters(Names);
+}
+
+void UInworldApiSubsystem::LoadSavedState(const FString& SavedState)
+{
+    Client->LoadSavedState(SavedState);
+}
+
 void UInworldApiSubsystem::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
 {
     for (const auto& AgentInfo : AgentInfos)
@@ -138,9 +153,12 @@ void UInworldApiSubsystem::PossessAgents(const TArray<FInworldAgentInfo>& AgentI
         if (CharacterComponentByBrainName.Contains(BrainName))
         {
             auto Component = CharacterComponentByBrainName[BrainName];
-            CharacterComponentByAgentId.Add(AgentInfo.AgentId, Component);
-            Component->Possess(AgentInfo);
-            CharacterComponentByAgentId.Add(Component->GetAgentId(), Component);
+            if (!Component->IsPossessing())
+            {
+				CharacterComponentByAgentId.Add(AgentInfo.AgentId, Component);
+				Component->Possess(AgentInfo);
+				CharacterComponentByAgentId.Add(Component->GetAgentId(), Component);
+            }
         }
         else if (BrainName != FString("__DUMMY__"))
         {
@@ -193,7 +211,7 @@ void UInworldApiSubsystem::RegisterCharacterComponent(Inworld::ICharacterCompone
         }
         else
         {
-            UE_LOG(LogInworldAIIntegration, Error, TEXT("No agent found for BrainName: %s"), *BrainName);
+            Client->LoadCharacters({ BrainName });
         }
     }
 }

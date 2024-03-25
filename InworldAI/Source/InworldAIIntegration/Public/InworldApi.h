@@ -94,6 +94,24 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void ClearResponseLatencyTrackerDelegate();
 
+    /**
+	 * Load new characters
+	 */
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void LoadCharacters(const TArray<FString>& Names);
+
+    /**
+     * Unload characters
+     */
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void UnloadCharacters(const TArray<FString>& Names);
+
+    /**
+     * Load saved state
+     */
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void LoadSavedState(const FString& SavedState);
+
 private:
     void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
     void UnpossessAgents();
