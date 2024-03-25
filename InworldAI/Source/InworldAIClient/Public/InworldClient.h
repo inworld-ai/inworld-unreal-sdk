@@ -16,11 +16,6 @@
 
 #include "InworldClient.generated.h"
 
-namespace Inworld
-{
-	class FClient;
-}
-
 DECLARE_DELEGATE_OneParam(FOnInworldSceneLoaded, TArray<FInworldAgentInfo>);
 DECLARE_DELEGATE_TwoParams(FOnInworldSessionSaved, FInworldSave, bool);
 DECLARE_DELEGATE_TwoParams(FOnInworldLatency, FString, int32)
@@ -79,8 +74,6 @@ public:
 
 private:
 	FString GenerateUserId();
-
-	TSharedPtr<Inworld::FClient> InworldClient;
 
 #if !UE_BUILD_SHIPPING
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAudioDumperCVarChanged, bool /*Enabled*/, FString /*Path*/);

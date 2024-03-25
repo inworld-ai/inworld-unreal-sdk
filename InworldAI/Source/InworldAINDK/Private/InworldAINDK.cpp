@@ -38,6 +38,25 @@ void FInworldAINDKModule::StartupModule()
 	}
 #endif //WITH_EDITOR
 #endif //INWORLD_AEC
+	
+#ifdef INWORLD_NDK_SHARED
+#if PLATFORM_WINDOWS
+	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("Win64/inworld-ndk.dll"));
+#elif PLATFORM_MAC
+	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("Mac/libinworld-ndk.dylib"));
+#elif PLATFORM_IOS
+	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("iOS/libinworld-ndk.dylib"));
+#elif PLATFORM_ANDROID
+	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("Android/arm64-v8a/libinworld-ndk.so"));
+#endif
+	ndkLibraryHandle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
+#if WITH_EDITOR
+	if (ndkLibraryHandle == nullptr)
+	{
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("InworldAINDKModuleError", "Failed to load ndk library"));
+	}
+#endif //WITH_EDITOR
+#endif
 }
 
 void FInworldAINDKModule::ShutdownModule()
@@ -45,8 +64,13 @@ void FInworldAINDKModule::ShutdownModule()
 #ifdef INWORLD_AEC
 	FPlatformProcess::FreeDllHandle(webrtcLibraryHandle);
 #endif //INWORLD_AEC
-
 	webrtcLibraryHandle = nullptr;
+
+#ifdef INWORLD_NDK_SHARED
+	FPlatformProcess::FreeDllHandle(ndkLibraryHandle);
+#endif // INWORLD_NDK_SHARED
+	ndkLibraryHandle = nullptr;
+
 }
 
 #undef LOCTEXT_NAMESPACE
