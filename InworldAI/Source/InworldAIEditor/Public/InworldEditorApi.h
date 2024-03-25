@@ -50,7 +50,7 @@ public:
 	bool IsRequestInProgress() const { return EditorClient.IsRequestInProgress() || Studio.IsRequestInProgress(); }
 
 	UFUNCTION(BlueprintPure, Category = "Inworld")
-	const FString& GetError() { return !EditorClient.GetError().IsEmpty() ? EditorClient.GetError() : Studio.GetError(); }
+	FString GetError() { return !EditorClient.GetError().IsEmpty() ? EditorClient.GetError() : Studio.GetError(); }
 
 	UFUNCTION(BlueprintPure, Category = "Inworld")
 	const FInworldStudioUserData& GetCachedStudioData() const;

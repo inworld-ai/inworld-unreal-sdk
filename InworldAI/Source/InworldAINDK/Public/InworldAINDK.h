@@ -18,5 +18,6 @@ public:
 	virtual void ShutdownModule() override;
 
 private:
+	void* ndkLibraryHandle;
 	void* webrtcLibraryHandle;
 };

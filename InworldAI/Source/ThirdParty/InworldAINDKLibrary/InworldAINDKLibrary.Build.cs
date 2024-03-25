@@ -69,18 +69,22 @@ public class InworldAINDKLibrary : ModuleRules
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_LOG_CALLBACK=1");
 
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include"));
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "include/grpc"));
+        bool bUseSharedInworldNDK = Target.Platform == UnrealTargetPlatform.Win64;
+        if (bUseSharedInworldNDK)
+        {
+            PublicDefinitions.Add("INWORLD_NDK_SHARED=1");
+        }
 
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "src"));
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "src/proto"));
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "src/ThirdParty"));
+        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "src/Public"));
 
-        List<string> NdkLibs = new List<string>();
-        NdkLibs.AddRange(
-            new string[]
-            {
-                "InworldNdk",
+        if (!bUseSharedInworldNDK)
+        {
+            List<string> NdkLibs = new List<string>();
+            NdkLibs.AddRange(
+                new string[]
+                {
+                "inworld-ndk",
+                "inworld-ndk-proto",
                 "absl_base",
                 "absl_malloc_internal",
                 "absl_raw_logging_internal",
@@ -108,36 +112,59 @@ public class InworldAINDKLibrary : ModuleRules
                 "libprotobuf",
                 "re2",
                 "upb",
-            });
+                });
 
-        foreach (string NdkLib in NdkLibs)
-        {
-            string Name = NdkLib;
-            if (Target.Platform == UnrealTargetPlatform.Win64)
+            foreach (string NdkLib in NdkLibs)
             {
-                Name = string.Concat(Name, ".lib");
+                string Name = NdkLib;
+                if (Target.Platform == UnrealTargetPlatform.Win64)
+                {
+                    Name = string.Concat(Name, ".lib");
+                }
+                else if (Target.Platform == UnrealTargetPlatform.Mac ||
+                    Target.Platform == UnrealTargetPlatform.IOS ||
+                    Target.Platform == UnrealTargetPlatform.Android)
+                {
+                    Name = Name.IndexOf("lib") != 0 ?
+                        string.Concat("lib", Name, ".a") : string.Concat(Name, ".a");
+                }
+                PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, Name));
             }
-            else if (Target.Platform == UnrealTargetPlatform.Mac ||
-                Target.Platform == UnrealTargetPlatform.IOS ||
-                Target.Platform == UnrealTargetPlatform.Android)
-            {
-                Name = Name.IndexOf("lib") != 0 ?
-                    string.Concat("lib", Name, ".a") : string.Concat(Name, ".a");
-            }
-            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, Name));
         }
 
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.lib"));
-
             PublicDelayLoadDLLs.Add("webrtc_aec_plugin.dll");
-            RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Win64/webrtc_aec_plugin.dll");
+            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.dll"));
+
+            if (bUseSharedInworldNDK)
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dll.lib"));
+                PublicDelayLoadDLLs.Add("inworld-ndk.dll");
+                RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dll"));
+            }
         }
         else if(Target.Platform == UnrealTargetPlatform.Mac)
         {
             PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libwebrtc_aec_plugin.dylib"));
-            RuntimeDependencies.Add("$(PluginDir)/Source/ThirdParty/InworldAINDKLibrary/lib/Mac/libwebrtc_aec_plugin.dylib");
+            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libwebrtc_aec_plugin.dylib"));
+
+            if (bUseSharedInworldNDK)
+            {
+                PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
+                RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
+            }
+        }
+        else if(Target.Platform == UnrealTargetPlatform.IOS && bUseSharedInworldNDK)
+        {
+            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
+            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
+        }
+        else if(Target.Platform == UnrealTargetPlatform.Android && bUseSharedInworldNDK)
+        {
+            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.so"));
+            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.so"));
         }
 
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android)
