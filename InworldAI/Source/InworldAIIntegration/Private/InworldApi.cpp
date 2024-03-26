@@ -139,7 +139,7 @@ void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
 	Client->UnloadCharacters(Names);
 }
 
-void UInworldApiSubsystem::LoadSavedState(const FString& SavedState)
+void UInworldApiSubsystem::LoadSavedState(const TArray<uint8>& SavedState)
 {
     Client->LoadSavedState(SavedState);
 }

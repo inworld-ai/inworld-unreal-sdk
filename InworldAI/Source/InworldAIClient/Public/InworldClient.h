@@ -42,7 +42,7 @@ public:
 
 	void LoadCharacters(const TArray<FString>& Names);
 	void UnloadCharacters(const TArray<FString>& Names);
-	void LoadSavedState(const FString& SavedState);
+	void LoadSavedState(const TArray<uint8>& SavedState);
 	
 	EInworldConnectionState GetConnectionState() const;
 	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const;

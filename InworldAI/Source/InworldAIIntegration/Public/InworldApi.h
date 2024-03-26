@@ -110,7 +110,7 @@ public:
      * Load saved state
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    void LoadSavedState(const FString& SavedState);
+    void LoadSavedState(const TArray<uint8>& SavedState);
 
 private:
     void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);

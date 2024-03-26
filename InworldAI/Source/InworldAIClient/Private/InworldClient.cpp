@@ -272,9 +272,10 @@ void FInworldClient::UnloadCharacters(const TArray<FString>& Names)
 	Inworld::GetClient()->UnloadCharacters(ToStd(Names));
 }
 
-void FInworldClient::LoadSavedState(const FString& SavedState)
+void FInworldClient::LoadSavedState(const TArray<uint8>& SavedState)
 {
-	Inworld::GetClient()->LoadSavedState(TCHAR_TO_UTF8(*SavedState));
+	std::string Data((char*)SavedState.GetData(), SavedState.Num());
+	Inworld::GetClient()->LoadSavedState(Data);
 }
 
 FString FInworldClient::GenerateUserId()
