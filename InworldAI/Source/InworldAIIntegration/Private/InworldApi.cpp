@@ -500,6 +500,28 @@ void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPack
 		(*SourceComponentPtr)->HandlePacket(InworldPacket);
 	}
 
+    if (InworldPacket->Routing.Source.Type == EInworldActorType::PLAYER)
+    {
+        auto ProcessTarget = [this, InworldPacket](const FInworldActor& TargetActor)
+            {
+                auto* TargetComponentPtr = CharacterComponentByAgentId.Find(TargetActor.Name);
+                if (TargetComponentPtr)
+                {
+                    (*TargetComponentPtr)->HandlePacket(InworldPacket);
+                }
+            };
+
+        ProcessTarget(InworldPacket->Routing.Target);
+
+        for (const auto& Target : InworldPacket->Routing.Targets)
+        {
+            if (Target.Name != InworldPacket->Routing.Target.Name)
+            {
+                ProcessTarget(Target);
+            }
+        }
+    }
+
     if (ensure(InworldPacket))
     {
         InworldPacket->Accept(*this);
