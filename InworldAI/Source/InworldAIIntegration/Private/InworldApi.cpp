@@ -166,13 +166,19 @@ void UInworldApiSubsystem::PossessAgents(const TArray<FInworldAgentInfo>& AgentI
         }
     }
 
+    TArray<FString> BrainsToLoad;
     for (const auto& CharacterComponent : CharacterComponentRegistry)
     {
         auto BrainName = CharacterComponent->GetBrainName();
         if (!AgentInfoByBrain.Contains(BrainName))
         {
-            UE_LOG(LogInworldAIIntegration, Error, TEXT("No agent found for BrainName: %s"), *BrainName);
+            BrainsToLoad.Add(BrainName);
         }
+    }
+
+    if (BrainsToLoad.Num() > 0)
+    {
+        Client->LoadCharacters(BrainsToLoad);
     }
 
     bCharactersInitialized = true;
@@ -478,12 +484,6 @@ void UInworldApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         }
     );
 
-    Client->OnSceneLoaded.BindLambda([this](const TArray<FInworldAgentInfo>& AgentInfo)
-        {
-            PossessAgents(AgentInfo);
-        }
-    );
-
     Client->Init();
 }
 
@@ -527,6 +527,11 @@ void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPack
 void UInworldApiSubsystem::Visit(const FInworldChangeSceneEvent& Event)
 {
     UnpossessAgents();
+    PossessAgents(Event.AgentInfos);
+}
+
+void UInworldApiSubsystem::Visit(const FInworldLoadCharactersEvent& Event)
+{
     PossessAgents(Event.AgentInfos);
 }
 

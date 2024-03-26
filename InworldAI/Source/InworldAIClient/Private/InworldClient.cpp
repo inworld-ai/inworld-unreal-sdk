@@ -136,22 +136,6 @@ void FInworldClient::Destroy()
 	Inworld::DestroyClient();
 }
 
-void HandleAgentInfoLoaded(const std::vector<Inworld::AgentInfo>& ResultAgentInfos, FOnInworldSceneLoaded Cb)
-{
-	AsyncTask(ENamedThreads::GameThread, [Cb, ResultAgentInfos]() {
-		TArray<FInworldAgentInfo> AgentInfos;
-		AgentInfos.Reserve(ResultAgentInfos.size());
-		for (const auto& ResultAgentInfo : ResultAgentInfos)
-		{
-			auto& AgentInfo = AgentInfos.AddDefaulted_GetRef();
-			AgentInfo.AgentId = UTF8_TO_TCHAR(ResultAgentInfo.AgentId.c_str());
-			AgentInfo.BrainName = UTF8_TO_TCHAR(ResultAgentInfo.BrainName.c_str());
-			AgentInfo.GivenName = UTF8_TO_TCHAR(ResultAgentInfo.GivenName.c_str());
-		}
-		Cb.ExecuteIfBound(AgentInfos);
-	});
-}
-
 void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldSave& Save, const FInworldEnvironment& Environment)
 {
 	Inworld::ClientOptions Options;
@@ -205,12 +189,7 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
         FMemory::Memcpy((uint8*)Info.SessionSavedState.data(), (uint8*)Save.Data.GetData(), Info.SessionSavedState.size());
     }
 
-	Inworld::GetClient()->StartClientAsync(Options, Info,
-		[this](const std::vector<Inworld::AgentInfo>& ResultAgentInfos)
-		{
-			HandleAgentInfoLoaded(ResultAgentInfos, OnSceneLoaded);
-		}
-	);
+	Inworld::GetClient()->StartClientAsync(Options, Info, nullptr);
 }
 
 void FInworldClient::Stop()
@@ -261,10 +240,7 @@ std::vector<std::string> ToStd(const TArray<FString>& Array)
 
 void FInworldClient::LoadCharacters(const TArray<FString>& Names)
 {
-	Inworld::GetClient()->LoadCharactersAsync(ToStd(Names), [this](const std::vector<Inworld::AgentInfo>& AgentInfos)
-	{
-		HandleAgentInfoLoaded(AgentInfos, OnSceneLoaded);
-	});
+	Inworld::GetClient()->LoadCharactersAsync(ToStd(Names), nullptr);
 }
 
 void FInworldClient::UnloadCharacters(const TArray<FString>& Names)
@@ -388,10 +364,7 @@ void FInworldClient::SendCustomEvent(const TArray<FString>& AgentIds, const FStr
 
 void FInworldClient::SendChangeSceneEvent(const FString& SceneName)
 {
-	Inworld::GetClient()->LoadSceneAsync(TCHAR_TO_UTF8(*SceneName), [this](const std::vector<Inworld::AgentInfo>& AgentInfos)
-		{
-			HandleAgentInfoLoaded(AgentInfos, OnSceneLoaded);
-		});
+	Inworld::GetClient()->LoadSceneAsync(TCHAR_TO_UTF8(*SceneName), nullptr);
 }
 
 void FInworldClient::SendNarrationEvent(const FString& AgentId, const FString& Content)

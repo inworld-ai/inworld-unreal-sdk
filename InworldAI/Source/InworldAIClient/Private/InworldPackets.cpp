@@ -241,7 +241,7 @@ void FInworldCustomEvent::AppendDebugString(FString& Str) const
 	}
 }
 
-void FInworldChangeSceneEvent::AppendDebugString(FString& Str) const
+void FInworldLoadCharactersEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("ChangeScene"));
 	for (auto& Agent : AgentInfos)

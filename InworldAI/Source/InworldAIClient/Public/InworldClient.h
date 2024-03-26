@@ -67,8 +67,6 @@ public:
 
 	void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
-	FOnInworldSceneLoaded OnSceneLoaded;
-
 	FOnInworldSessionSaved OnSessionSaved;
 
 	FOnInworldLatency OnPerceivedLatency;

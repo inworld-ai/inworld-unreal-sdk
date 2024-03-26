@@ -245,6 +245,7 @@ private:
 	void DispatchPacket(TSharedPtr<FInworldPacket> InworldPacket);
 
     virtual void Visit(const FInworldChangeSceneEvent& Event) override;
+    virtual void Visit(const FInworldLoadCharactersEvent& Event) override;
 
     UPROPERTY(EditAnywhere, config, Category = "Connection")
     FString SentryDSN;
