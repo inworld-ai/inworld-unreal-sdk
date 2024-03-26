@@ -111,7 +111,7 @@ void UInworldPlayerComponent::SetTargetInworldCharacter(UInworldCharacterCompone
 
 void UInworldPlayerComponent::ClearTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
-    if (!ensureMsgf(Character && !Character->GetAgentId().IsEmpty(), TEXT("UInworldPlayerComponent::ClearTargetInworldCharacter: the Character must have valid AgentId")))
+    if (!Character)
     {
         return;
     }
