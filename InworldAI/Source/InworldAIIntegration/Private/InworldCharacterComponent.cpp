@@ -360,20 +360,13 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
         return;
     }
 
-	const auto& FromActor = Event.Routing.Source;
-
 	auto ProcessTarget = [this, Event](const FInworldActor& ToActor)
 		{
-			if (ToActor.Type == EInworldActorType::AGENT && ToActor.Name == GetAgentId())
+			if (Event.Routing.Source.Type == EInworldActorType::PLAYER && ToActor.Type == EInworldActorType::AGENT && ToActor.Name == GetAgentId())
 			{
-				CurrentInteractionId = Event.PacketId.InteractionId;
-
-				Interrupt();
-
 				if (Event.Final)
 				{
 					UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *ToActor.Name, *Event.Text);
-					CurrentInteractionId = {};
 				}
 
 				// Don't add to queue, player talking is instant.
@@ -384,6 +377,12 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 				PlayerTalk.bTextFinal = Event.Final;
 
 				OnPlayerTalk.Broadcast(PlayerTalk);
+
+				TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
+				if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
+				{
+					CancelCurrentInteraction();
+				}
 			}
 		};
 
@@ -391,9 +390,13 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 
 	for (const auto& ToActor : Event.Routing.Targets)
 	{
-		ProcessTarget(ToActor);
+		if (ToActor.Name != Event.Routing.Target.Name)
+		{
+			ProcessTarget(ToActor);
+		}
 	}
 
+	const auto& FromActor = Event.Routing.Source;
 	if (FromActor.Type == EInworldActorType::AGENT)
 	{
 		if (Event.Final)
