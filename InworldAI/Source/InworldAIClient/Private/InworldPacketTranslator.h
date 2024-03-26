@@ -26,6 +26,7 @@ public:
 	virtual void Visit(const Inworld::EmotionEvent& Event) override { MakePacket<Inworld::EmotionEvent, FInworldEmotionEvent>(Event); };
 	virtual void Visit(const Inworld::CustomEvent& Event) override { MakePacket<Inworld::CustomEvent, FInworldCustomEvent>(Event); };
 	virtual void Visit(const Inworld::SessionControlResponse_LoadScene& Event) override { MakePacket<Inworld::SessionControlResponse_LoadScene, FInworldChangeSceneEvent>(Event); };
+	virtual void Visit(const Inworld::SessionControlResponse_LoadCharacters& Event) override { MakePacket<Inworld::SessionControlResponse_LoadCharacters, FInworldLoadCharactersEvent>(Event); };
 	virtual void Visit(const Inworld::RelationEvent& Event) override { MakePacket<Inworld::RelationEvent, FInworldRelationEvent>(Event); }
 
 	TSharedPtr<FInworldPacket> GetPacket() { return Packet; }

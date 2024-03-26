@@ -94,6 +94,24 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void ClearResponseLatencyTrackerDelegate();
 
+    /**
+	 * Load new characters
+	 */
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void LoadCharacters(const TArray<FString>& Names);
+
+    /**
+     * Unload characters
+     */
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void UnloadCharacters(const TArray<FString>& Names);
+
+    /**
+     * Load saved state
+     */
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void LoadSavedState(const TArray<uint8>& SavedState);
+
 private:
     void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
     void UnpossessAgents();
@@ -227,6 +245,7 @@ private:
 	void DispatchPacket(TSharedPtr<FInworldPacket> InworldPacket);
 
     virtual void Visit(const FInworldChangeSceneEvent& Event) override;
+    virtual void Visit(const FInworldLoadCharactersEvent& Event) override;
 
     UPROPERTY(EditAnywhere, config, Category = "Connection")
     FString SentryDSN;

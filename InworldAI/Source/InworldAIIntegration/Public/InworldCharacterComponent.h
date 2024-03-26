@@ -82,6 +82,7 @@ public:
 
 	virtual void Possess(const FInworldAgentInfo& AgentInfo) override;
 	virtual void Unpossess() override;
+	virtual bool IsPossessing() override { return !AgentId.IsEmpty(); }
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	void SetBrainName(const FString& Name);
