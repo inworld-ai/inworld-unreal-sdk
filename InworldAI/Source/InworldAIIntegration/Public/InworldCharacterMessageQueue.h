@@ -52,22 +52,25 @@ void FCharacterMessageQueueEntry<T>::AcceptHandle(ICharacterMessageVisitor& Visi
 template<class T>
 void FCharacterMessageQueueEntry<T>::AcceptInterrupt(ICharacterMessageVisitor& Visitor) { Visitor.Interrupt(*Message); }
 template<class T>
-void FCharacterMessageQueueEntry<T>::AcceptCancel(ICharacterMessageVisitor& Visitor) { Visitor.Handle(*Message); }
+void FCharacterMessageQueueEntry<T>::AcceptCancel(ICharacterMessageVisitor& Visitor) { }
 template<class T>
 bool FCharacterMessageQueueEntry<T>::IsReady() const { return true; }
 
 template<>
-inline void FCharacterMessageQueueEntry<FCharacterMessageUtterance>::AcceptCancel(ICharacterMessageVisitor& Visitor) { }
-template<>
 inline bool FCharacterMessageQueueEntry<FCharacterMessageUtterance>::IsReady() const { return Message->bTextFinal && Message->bAudioFinal; }
 
-template<>
-inline void FCharacterMessageQueueEntry<FCharacterMessageSilence>::AcceptCancel(ICharacterMessageVisitor& Visitor) { }
 template<>
 inline bool FCharacterMessageQueueEntry<FCharacterMessageSilence>::IsReady() const { return Message->Duration != 0; }
 
 template<>
-inline void FCharacterMessageQueueEntry<FCharacterMessageInteractionEnd>::AcceptInterrupt(ICharacterMessageVisitor& Visitor) { }
+inline void FCharacterMessageQueueEntry<FCharacterMessageTrigger>::AcceptInterrupt(ICharacterMessageVisitor& Visitor) { Visitor.Handle(*Message); }
+template<>
+inline void FCharacterMessageQueueEntry<FCharacterMessageTrigger>::AcceptCancel(ICharacterMessageVisitor& Visitor) { Visitor.Handle(*Message); }
+
+template<>
+inline void FCharacterMessageQueueEntry<FCharacterMessageInteractionEnd>::AcceptInterrupt(ICharacterMessageVisitor& Visitor) { Visitor.Handle(*Message); }
+template<>
+inline void FCharacterMessageQueueEntry<FCharacterMessageInteractionEnd>::AcceptCancel(ICharacterMessageVisitor& Visitor) { Visitor.Handle(*Message); }
 
 struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 {
@@ -117,7 +120,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 		TryToProgress();
 	}
 
-	TMap<FString, TArray<FString>> Interrupt();
+	void Interrupt();
 	void TryToProgress();
 
 	bool Lock(FInworldCharacterMessageQueueLockHandle& LockHandle);

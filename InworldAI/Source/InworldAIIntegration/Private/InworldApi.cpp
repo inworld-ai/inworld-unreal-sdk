@@ -273,7 +273,18 @@ void UInworldApiSubsystem::SendTriggerMultiAgent(const TArray<FString>& AgentIds
         return;
     }
 
-    Client->SendCustomEvent(AgentIds, Name, Params);
+    TSharedPtr<FInworldPacket> Packet = Client->SendCustomEvent(AgentIds, Name, Params);
+    if (Packet.IsValid())
+    {
+        for (auto& AgentId : AgentIds)
+        {
+            auto* AgentComponentPtr = CharacterComponentByAgentId.Find(AgentId);
+            if (AgentComponentPtr)
+            {
+                (*AgentComponentPtr)->HandlePacket(Packet);
+            }
+        }
+    }
 }
 
 void UInworldApiSubsystem::SendNarrationEvent(const FString& AgentId, const FString& Content)

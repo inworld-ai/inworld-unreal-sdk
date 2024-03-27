@@ -148,7 +148,6 @@ struct FInworldRelationEvent;
 class InworldPacketVisitor
 {
 public:
-	virtual void Visit(const FInworldPacket& Packet) {  }
 	virtual void Visit(const FInworldTextEvent& Event) {  }
 	virtual void Visit(const FInworldDataEvent& Event) {  }
 	virtual void Visit(const FInworldAudioDataEvent& Event) {  }
@@ -171,7 +170,7 @@ struct INWORLDAICLIENT_API FInworldPacket
 	FInworldPacket() = default;
 	virtual ~FInworldPacket() = default;
 
-	void Accept(InworldPacketVisitor& Visitor) { Visitor.Visit(*this); Accept_Internal(Visitor); }
+	void Accept(InworldPacketVisitor& Visitor) { Accept_Internal(Visitor); }
 
 	virtual void Serialize(FMemoryArchive& Ar);
 

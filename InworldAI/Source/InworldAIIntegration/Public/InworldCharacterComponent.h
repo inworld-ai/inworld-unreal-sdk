@@ -188,9 +188,6 @@ protected:
 	FString UiName = "Character";
 
 private:
-	void AddPendingInteraction(const FString& InteractionId);
-
-	virtual void Visit(const FInworldPacket& Event) override;
 	virtual void Visit(const FInworldTextEvent& Event) override;
 	virtual void Visit(const FInworldAudioDataEvent& Event) override;
 	virtual void Visit(const FInworldSilenceEvent& Event) override;
@@ -231,7 +228,7 @@ private:
 	TArray<UInworldCharacterPlayback*> Playbacks;
 
 	TSharedRef<FCharacterMessageQueue> MessageQueue;
-	FString CurrentInteractionId;
+	TMap<FString, TSet<FString>> PendingInteractionToUtterancesMap;
 	TArray<FString> PendingInteractionIds;
 	TArray<FString> CanceledInteractionIds;
 
@@ -240,6 +237,8 @@ private:
 
 	virtual void Handle(const FCharacterMessageSilence& Message) override;
 	virtual void Interrupt(const FCharacterMessageSilence& Message) override;
+
+	virtual void Handle(const FCharacterMessageTrigger& Message) override;
 
 	virtual void Handle(const FCharacterMessageInteractionEnd& Message) override;
 

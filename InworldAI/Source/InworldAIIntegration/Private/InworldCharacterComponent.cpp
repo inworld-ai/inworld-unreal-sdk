@@ -232,22 +232,10 @@ void UInworldCharacterComponent::Interrupt()
 		return;
 	}
 
-	TArray<FString> PendingInteractionIdsCopy = PendingInteractionIds;
-	for (const FString& PendingInteractionId : PendingInteractionIdsCopy)
-	{
-		if (PendingInteractionId == CurrentInteractionId)
-		{
-			break;
-		}
-		PendingInteractionIds.Remove(PendingInteractionId);
-		CanceledInteractionIds.Add(PendingInteractionId);
-	}
+	CanceledInteractionIds.Append(PendingInteractionIds);
+	PendingInteractionIds.Empty();
 
-	TMap<FString, TArray<FString>> InterruptedInteractions = MessageQueue->Interrupt();
-	for (const auto& InterruptedInteraction : InterruptedInteractions)
-	{
-		InworldSubsystem->CancelResponse(AgentId, InterruptedInteraction.Key, InterruptedInteraction.Value);
-	}
+	MessageQueue->Interrupt();
 }
 
 void UInworldCharacterComponent::SendTextMessage(const FString& Text) const
@@ -360,44 +348,42 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
         return;
     }
 
-	auto ProcessTarget = [this, Event](const FInworldActor& ToActor)
-		{
-			if (Event.Routing.Source.Type == EInworldActorType::PLAYER && ToActor.Type == EInworldActorType::AGENT && ToActor.Name == GetAgentId())
-			{
-				if (Event.Final)
-				{
-					UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *ToActor.Name, *Event.Text);
-				}
-
-				// Don't add to queue, player talking is instant.
-				FCharacterMessagePlayerTalk PlayerTalk;
-				PlayerTalk.InteractionId = Event.PacketId.InteractionId;
-				PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
-				PlayerTalk.Text = Event.Text;
-				PlayerTalk.bTextFinal = Event.Final;
-
-				OnPlayerTalk.Broadcast(PlayerTalk);
-
-				TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
-				if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
-				{
-					CancelCurrentInteraction();
-				}
-			}
-		};
-
-	ProcessTarget(Event.Routing.Target);
-
-	for (const auto& ToActor : Event.Routing.Targets)
+	if (Event.Routing.Source.Type != EInworldActorType::PLAYER)
 	{
-		if (ToActor.Name != Event.Routing.Target.Name)
+		const FString& InteractionId = Event.PacketId.InteractionId;
+		if (!PendingInteractionToUtterancesMap.Contains(InteractionId))
 		{
-			ProcessTarget(ToActor);
+			PendingInteractionToUtterancesMap.Add(InteractionId, {});
 		}
+		PendingInteractionToUtterancesMap[InteractionId].Add(Event.PacketId.UtteranceId);
+	}
+
+	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
+	{
+		return;
 	}
 
 	const auto& FromActor = Event.Routing.Source;
-	if (FromActor.Type == EInworldActorType::AGENT)
+
+	if (FromActor.Type == EInworldActorType::PLAYER)
+	{
+		Interrupt();
+		if (Event.Final)
+		{
+			UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *GetAgentId(), *Event.Text);
+			PendingInteractionIds.AddUnique(Event.PacketId.InteractionId);
+		}
+
+		// Don't add to queue, player talking is instant.
+		FCharacterMessagePlayerTalk PlayerTalk;
+		PlayerTalk.InteractionId = Event.PacketId.InteractionId;
+		PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
+		PlayerTalk.Text = Event.Text;
+		PlayerTalk.bTextFinal = Event.Final;
+
+		OnPlayerTalk.Broadcast(PlayerTalk);
+	}
+	else if (FromActor.Type == EInworldActorType::AGENT)
 	{
 		if (Event.Final)
 		{
@@ -415,6 +401,22 @@ void UInworldCharacterComponent::VisitAudioOnClient(const FInworldAudioDataEvent
 {
 	if (GetNetMode() == NM_DedicatedServer)
 	{
+		return;
+	}
+
+	if (Event.Routing.Source.Type != EInworldActorType::PLAYER)
+	{
+		const FString& InteractionId = Event.PacketId.InteractionId;
+		if (!PendingInteractionToUtterancesMap.Contains(InteractionId))
+		{
+			PendingInteractionToUtterancesMap.Add(InteractionId, {});
+		}
+		PendingInteractionToUtterancesMap[InteractionId].Add(Event.PacketId.UtteranceId);
+	}
+
+	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
+	{
+		UE_LOG(LogInworldAIIntegration, Warning, TEXT("Got canceled for %s"), *Event.PacketId.InteractionId);
 		return;
 	}
 
@@ -475,6 +477,11 @@ void UInworldCharacterComponent::Multicast_VisitSilence_Implementation(const FIn
 		return;
 	}
 
+	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
+	{
+		return;
+	}
+
 	MessageQueue->AddOrUpdateMessage<FCharacterMessageSilence>(Event, [Event](auto MessageToUpdate) {
 		MessageToUpdate->Duration = Event.Duration;
 	});
@@ -500,20 +507,34 @@ void UInworldCharacterComponent::Multicast_VisitCustom_Implementation(const FInw
 		return;
 	}
 
-	UE_LOG(LogInworldAIIntegration, Log, TEXT("CustomEvent arrived: %s - %s"), *Event.Name, *Event.PacketId.InteractionId);
+	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
+	{
+		return;
+	}
 
-	FCharacterMessageTrigger CharacterMessageTrigger;
-	CharacterMessageTrigger.InteractionId = Event.PacketId.InteractionId;
-	CharacterMessageTrigger.UtteranceId = Event.PacketId.UtteranceId;
-	CharacterMessageTrigger.Name = Event.Name;
-	CharacterMessageTrigger.Params = Event.Params.RepMap;
+	if (Event.Routing.Source.Type == EInworldActorType::PLAYER)
+	{
+		PendingInteractionIds.AddUnique(Event.PacketId.InteractionId);
+	}
+	else
+	{
+		UE_LOG(LogInworldAIIntegration, Log, TEXT("CustomEvent arrived: %s - %s"), *Event.Name, *Event.PacketId.InteractionId);
 
-	OnTrigger.Broadcast(CharacterMessageTrigger);
+		MessageQueue->AddOrUpdateMessage<FCharacterMessageTrigger>(Event, [Event](auto MessageToUpdate) {
+			MessageToUpdate->Name = Event.Name;
+			MessageToUpdate->Params = Event.Params.RepMap;
+			});
+	}
 }
 
 void UInworldCharacterComponent::Multicast_VisitRelation_Implementation(const FInworldRelationEvent& Event)
 {
 	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
 	{
 		return;
 	}
@@ -538,6 +559,11 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 		return;
 	}
 
+	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
+	{
+		return;
+	}
+
 	EmotionStrength = static_cast<EInworldCharacterEmotionStrength>(Event.Strength);
 
 	if (Event.Behavior != EmotionalBehavior)
@@ -547,36 +573,13 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 	}
 }
 
-void UInworldCharacterComponent::AddPendingInteraction(const FString& InteractionId)
-{
-	if (!CanceledInteractionIds.Contains(InteractionId) && !PendingInteractionIds.Contains(InteractionId))
-	{
-		PendingInteractionIds.Add(InteractionId);
-	}
-}
-
-void UInworldCharacterComponent::Visit(const FInworldPacket& Event)
-{
-	AddPendingInteraction(Event.PacketId.InteractionId);
-}
-
 void UInworldCharacterComponent::Visit(const FInworldTextEvent& Event)
 {
-	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
-	{
-		return;
-	}
-
 	Multicast_VisitText(Event);
 }
 
 void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
 {
-	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
-	{
-		return;
-	}
-
 	if (GetNetMode() == NM_Standalone || GetNetMode() == NM_Client)
 	{
 		VisitAudioOnClient(Event);
@@ -602,53 +605,36 @@ void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
 
 void UInworldCharacterComponent::Visit(const FInworldSilenceEvent& Event)
 {
-	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
-	{
-		return;
-	}
 	Multicast_VisitSilence(Event);
 }
 
 void UInworldCharacterComponent::Visit(const FInworldControlEvent& Event)
 {
-	if (Event.Action == EInworldControlEventAction::INTERACTION_END)
-	{
-		PendingInteractionIds.Remove(Event.PacketId.InteractionId);
-		CanceledInteractionIds.Remove(Event.PacketId.InteractionId);
-	}
-
 	Multicast_VisitControl(Event);
 }
 
 void UInworldCharacterComponent::Visit(const FInworldEmotionEvent& Event)
 {
-	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
-	{
-		return;
-	}
 	Multicast_VisitEmotion(Event);
 }
 
 void UInworldCharacterComponent::Visit(const FInworldCustomEvent& Event)
 {
-	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
-	{
-		return;
-	}
 	Multicast_VisitCustom(Event);
 }
 
 void UInworldCharacterComponent::Visit(const FInworldRelationEvent& Event)
 {
-	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
-	{
-		return;
-	}
 	Multicast_VisitRelation(Event);
 }
 
 void UInworldCharacterComponent::Handle(const FCharacterMessageUtterance& Message)
 {
+	const FString& InteractionId = Message.InteractionId;
+	if (PendingInteractionToUtterancesMap.Contains(InteractionId))
+	{
+		PendingInteractionToUtterancesMap[InteractionId].Remove(Message.UtteranceId);
+	}
 	OnUtterance.Broadcast(Message);
 }
 
@@ -667,7 +653,25 @@ void UInworldCharacterComponent::Interrupt(const FCharacterMessageSilence& Messa
 	OnSilenceInterrupt.Broadcast(Message);
 }
 
+void UInworldCharacterComponent::Handle(const FCharacterMessageTrigger& Message)
+{
+	OnTrigger.Broadcast(Message);
+}
+
 void UInworldCharacterComponent::Handle(const FCharacterMessageInteractionEnd& Message)
 {
+	UE_LOG(LogInworldAIIntegration, Log, TEXT("Got Interaction End: %s"), *Message.InteractionId);
+	const FString& InteractionId = Message.InteractionId;
+	if (PendingInteractionToUtterancesMap.Contains(InteractionId))
+	{
+		TSet<FString>& RemainingUtterances = PendingInteractionToUtterancesMap[InteractionId];
+		if (!RemainingUtterances.IsEmpty())
+		{
+			InworldSubsystem->CancelResponse(GetAgentId(), InteractionId, RemainingUtterances.Array());
+		}
+	}
+	PendingInteractionToUtterancesMap.Remove(InteractionId);
+	PendingInteractionIds.Remove(InteractionId);
+	CanceledInteractionIds.Remove(InteractionId);
 	OnInteractionEnd.Broadcast(Message);
 }

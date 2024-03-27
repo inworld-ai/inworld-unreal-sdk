@@ -55,7 +55,7 @@ public:
 	void StartAudioSession(const TArray<FString>& AgentIds);
 	void StopAudioSession(const TArray<FString>& AgentIds);
 
-	void SendCustomEvent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
+	TSharedPtr<FInworldPacket> SendCustomEvent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
 	void SendChangeSceneEvent(const FString& SceneName);
 
 	void SendNarrationEvent(const FString& AgentId, const FString& Content);

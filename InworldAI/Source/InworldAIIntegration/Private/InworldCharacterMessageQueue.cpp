@@ -6,15 +6,12 @@
  */
 #include "InworldCharacterMessageQueue.h"
 
-TMap<FString, TArray<FString>> FCharacterMessageQueue::Interrupt()
+void FCharacterMessageQueue::Interrupt()
 {
 	Interrupting = true;
 
-	TMap<FString, TArray<FString>> InterruptedInteractions;
-
 	if (CurrentMessageQueueEntry.IsValid())
 	{
-		InterruptedInteractions.Add(CurrentMessageQueueEntry->GetCharacterMessage()->InteractionId, { CurrentMessageQueueEntry->GetCharacterMessage()->UtteranceId});
 		CurrentMessageQueueEntry->AcceptInterrupt(*MessageVisitor);
 
 		// Current Message and its lock should never be valid after AcceptInterrupt, as users should clear handle on interrupt.
@@ -32,21 +29,12 @@ TMap<FString, TArray<FString>> FCharacterMessageQueue::Interrupt()
 
 	for (const TSharedPtr<FCharacterMessageQueueEntryBase>& EntryToCancel : PendingMessageQueueEntries)
 	{
-		const FString& InteractionId = EntryToCancel->GetCharacterMessage()->InteractionId;
-		const FString& UtteranceId = EntryToCancel->GetCharacterMessage()->UtteranceId;
-		if (!InterruptedInteractions.Contains(InteractionId))
-		{
-			InterruptedInteractions.Add(InteractionId, {});
-		}
-		InterruptedInteractions[InteractionId].Add(UtteranceId);
 		EntryToCancel->AcceptCancel(*MessageVisitor);
 	}
 
 	PendingMessageQueueEntries.Empty();
 
 	Interrupting = false;
-
-	return InterruptedInteractions;
 }
 
 void FCharacterMessageQueue::TryToProgress()

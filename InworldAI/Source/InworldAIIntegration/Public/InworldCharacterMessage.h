@@ -26,6 +26,8 @@ public:
 	virtual void Handle(const FCharacterMessageSilence& Event) { }
 	virtual void Interrupt(const FCharacterMessageSilence& Event) { }
 
+	virtual void Handle(const FCharacterMessageTrigger& Event) { }
+
 	virtual void Handle(const FCharacterMessageInteractionEnd& Event) { }
 };
 
