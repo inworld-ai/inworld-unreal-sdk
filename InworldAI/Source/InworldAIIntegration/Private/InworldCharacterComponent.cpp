@@ -419,7 +419,6 @@ void UInworldCharacterComponent::VisitAudioOnClient(const FInworldAudioDataEvent
 
 	if (CanceledInteractionIds.Contains(Event.PacketId.InteractionId))
 	{
-		UE_LOG(LogInworldAIIntegration, Warning, TEXT("Got canceled for %s"), *Event.PacketId.InteractionId);
 		return;
 	}
 
@@ -663,7 +662,6 @@ void UInworldCharacterComponent::Handle(const FCharacterMessageTrigger& Message)
 
 void UInworldCharacterComponent::Handle(const FCharacterMessageInteractionEnd& Message)
 {
-	UE_LOG(LogInworldAIIntegration, Log, TEXT("Got Interaction End: %s"), *Message.InteractionId);
 	const FString& InteractionId = Message.InteractionId;
 	if (PendingInteractionToUtterancesMap.Contains(InteractionId))
 	{
@@ -672,9 +670,10 @@ void UInworldCharacterComponent::Handle(const FCharacterMessageInteractionEnd& M
 		{
 			InworldSubsystem->CancelResponse(GetAgentId(), InteractionId, RemainingUtterances.Array());
 		}
+		OnInteractionEnd.Broadcast(Message);
 	}
 	PendingInteractionToUtterancesMap.Remove(InteractionId);
 	PendingInteractionIds.Remove(InteractionId);
-	CanceledInteractionIds.Remove(InteractionId);
-	OnInteractionEnd.Broadcast(Message);
+	// TEMP: This isn't safe to do for now =( need to fix backend race condition....
+	// CanceledInteractionIds.Remove(InteractionId);
 }
