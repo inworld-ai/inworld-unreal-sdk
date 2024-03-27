@@ -357,7 +357,7 @@ struct INWORLDAICLIENT_API FInworldChangeSceneEvent : public FInworldLoadCharact
 	FInworldChangeSceneEvent() = default;
 	virtual ~FInworldChangeSceneEvent() = default;
 
-	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+	virtual void Accept_Internal(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
 };
 
 USTRUCT()
