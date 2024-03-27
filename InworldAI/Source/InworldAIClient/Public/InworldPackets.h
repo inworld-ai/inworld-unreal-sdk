@@ -142,6 +142,7 @@ struct FInworldCancelResponseEvent;
 struct FInworldSimpleGestureEvent;
 struct FInworldCustomGestureEvent;
 struct FInworldCustomEvent;
+struct FInworldLoadCharactersEvent;
 struct FInworldChangeSceneEvent;
 struct FInworldRelationEvent;
 
@@ -159,6 +160,7 @@ public:
 	virtual void Visit(const FInworldSimpleGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomEvent& Event) {  }
+	virtual void Visit(const FInworldLoadCharactersEvent& Event) {  }
 	virtual void Visit(const FInworldChangeSceneEvent& Event) {  }
 	virtual void Visit(const FInworldRelationEvent& Event) {  }
 };
@@ -333,12 +335,12 @@ protected:
 };
 
 USTRUCT()
-struct INWORLDAICLIENT_API FInworldChangeSceneEvent : public FInworldPacket
+struct INWORLDAICLIENT_API FInworldLoadCharactersEvent : public FInworldPacket
 {
 	GENERATED_BODY()
 
-	FInworldChangeSceneEvent() = default;
-	virtual ~FInworldChangeSceneEvent() = default;
+	FInworldLoadCharactersEvent() = default;
+	virtual ~FInworldLoadCharactersEvent() = default;
 
 	TArray<FInworldAgentInfo> AgentInfos;
 
@@ -346,6 +348,17 @@ protected:
 	virtual void Accept_Internal(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
 
 	virtual void AppendDebugString(FString& Str) const;
+};
+
+USTRUCT()
+struct INWORLDAICLIENT_API FInworldChangeSceneEvent : public FInworldLoadCharactersEvent
+{
+	GENERATED_BODY()
+
+	FInworldChangeSceneEvent() = default;
+	virtual ~FInworldChangeSceneEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
 };
 
 USTRUCT()
