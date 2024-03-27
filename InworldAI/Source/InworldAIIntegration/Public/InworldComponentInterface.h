@@ -19,6 +19,7 @@ namespace Inworld
 	public:
 		virtual void Possess(const FInworldAgentInfo& AgentInfo) = 0;
 		virtual void Unpossess() = 0;
+		virtual bool IsPossessing() = 0;
 		virtual const FString& GetAgentId() const = 0;
 		virtual const FString& GetGivenName() const = 0;
 		virtual const FString& GetBrainName() const = 0;

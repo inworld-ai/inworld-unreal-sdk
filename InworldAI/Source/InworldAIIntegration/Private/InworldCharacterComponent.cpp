@@ -142,9 +142,12 @@ void UInworldCharacterComponent::Possess(const FInworldAgentInfo& AgentInfo)
 
 void UInworldCharacterComponent::Unpossess()
 {
-	OnUnpossessed.Broadcast();
-	AgentId = FString();
-	GivenName = FString();
+	if (IsPossessing())
+	{
+		OnUnpossessed.Broadcast();
+		AgentId = FString();
+		GivenName = FString();
+	}
 }
 
 void UInworldCharacterComponent::SetBrainName(const FString& Name)

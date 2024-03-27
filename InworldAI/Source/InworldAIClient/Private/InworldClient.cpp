@@ -189,23 +189,7 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
         FMemory::Memcpy((uint8*)Info.SessionSavedState.data(), (uint8*)Save.Data.GetData(), Info.SessionSavedState.size());
     }
 
-	Inworld::GetClient()->StartClientAsync(Options, Info,
-		[this](const std::vector<Inworld::AgentInfo>& ResultAgentInfos)
-		{
-			AsyncTask(ENamedThreads::GameThread, [this, ResultAgentInfos]() {
-				TArray<FInworldAgentInfo> AgentInfos;
-				AgentInfos.Reserve(ResultAgentInfos.size());
-				for (const auto& ResultAgentInfo : ResultAgentInfos)
-				{
-					auto& AgentInfo = AgentInfos.AddDefaulted_GetRef();
-					AgentInfo.AgentId = UTF8_TO_TCHAR(ResultAgentInfo.AgentId.c_str());
-					AgentInfo.BrainName = UTF8_TO_TCHAR(ResultAgentInfo.BrainName.c_str());
-					AgentInfo.GivenName = UTF8_TO_TCHAR(ResultAgentInfo.GivenName.c_str());
-				}
-				OnSceneLoaded.ExecuteIfBound(AgentInfos);
-			});
-		}
-	);
+	Inworld::GetClient()->StartClientAsync(Options, Info, nullptr);
 }
 
 void FInworldClient::Stop()
@@ -242,6 +226,32 @@ void FInworldClient::SaveSession()
 				OnSessionSaved.ExecuteIfBound(Save, true);
 			});
 		});
+}
+
+std::vector<std::string> ToStd(const TArray<FString>& Array)
+{
+	std::vector<std::string> Vec;
+	for (auto& Str : Array)
+	{
+		Vec.emplace_back(TCHAR_TO_UTF8(*Str));
+	}
+	return Vec;
+}
+
+void FInworldClient::LoadCharacters(const TArray<FString>& Names)
+{
+	Inworld::GetClient()->LoadCharactersAsync(ToStd(Names), nullptr);
+}
+
+void FInworldClient::UnloadCharacters(const TArray<FString>& Names)
+{
+	Inworld::GetClient()->UnloadCharacters(ToStd(Names));
+}
+
+void FInworldClient::LoadSavedState(const TArray<uint8>& SavedState)
+{
+	std::string Data((char*)SavedState.GetData(), SavedState.Num());
+	Inworld::GetClient()->LoadSavedState(Data);
 }
 
 FString FInworldClient::GenerateUserId()
@@ -286,16 +296,6 @@ void FInworldClient::GetConnectionError(FString& OutErrorMessage, int32& OutErro
 FString FInworldClient::GetSessionId() const
 {
 	return UTF8_TO_TCHAR(Inworld::GetSessionId().c_str());
-}
-
-std::vector<std::string> ToStd(const TArray<FString>& Array)
-{
-	std::vector<std::string> Vec;
-	for (auto& Str : Array)
-	{
-		Vec.emplace_back(TCHAR_TO_UTF8(*Str));
-	}
-	return Vec;
 }
 
 TSharedPtr<FInworldPacket> FInworldClient::SendTextMessage(const TArray<FString>& AgentIds, const FString& Text)

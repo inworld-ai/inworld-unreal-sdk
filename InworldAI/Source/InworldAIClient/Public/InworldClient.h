@@ -32,12 +32,17 @@ public:
 	void Destroy();
 
 	void Start(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldSave& Save, const FInworldEnvironment& Environment);
+
 	void Stop();
 
 	void Pause();
 	void Resume();
 
 	void SaveSession();
+
+	void LoadCharacters(const TArray<FString>& Names);
+	void UnloadCharacters(const TArray<FString>& Names);
+	void LoadSavedState(const TArray<uint8>& SavedState);
 	
 	EInworldConnectionState GetConnectionState() const;
 	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const;
@@ -61,8 +66,6 @@ public:
 	void SendNarrationEvent(const FString& AgentId, const FString& Content);
 
 	void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
-
-	FOnInworldSceneLoaded OnSceneLoaded;
 
 	FOnInworldSessionSaved OnSessionSaved;
 

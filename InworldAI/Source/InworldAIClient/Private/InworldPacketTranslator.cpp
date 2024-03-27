@@ -110,10 +110,9 @@ void InworldPacketTranslator::TranslateEvent<Inworld::CustomEvent, FInworldCusto
 	}
 }
 
-template<>
-void InworldPacketTranslator::TranslateEvent<Inworld::SessionControlResponse_LoadScene, FInworldChangeSceneEvent>(const Inworld::SessionControlResponse_LoadScene& Original, FInworldChangeSceneEvent& New)
+template<typename TOriginal, typename TNew>
+void TranslateAgents(const TOriginal& Original, TNew& New)
 {
-	TranslateInworldPacket(Original, New);
 	for (const auto& AgentInfo : Original.GetAgentInfos())
 	{
 		auto& AgentInfoRef = New.AgentInfos.AddDefaulted_GetRef();
@@ -121,6 +120,20 @@ void InworldPacketTranslator::TranslateEvent<Inworld::SessionControlResponse_Loa
 		AgentInfoRef.AgentId = UTF8_TO_TCHAR(AgentInfo.AgentId.c_str());
 		AgentInfoRef.GivenName = UTF8_TO_TCHAR(AgentInfo.GivenName.c_str());
 	}
+}
+
+template<>
+void InworldPacketTranslator::TranslateEvent<Inworld::SessionControlResponse_LoadCharacters, FInworldLoadCharactersEvent>(const Inworld::SessionControlResponse_LoadCharacters& Original, FInworldLoadCharactersEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+	TranslateAgents(Original, New);
+}
+
+template<>
+void InworldPacketTranslator::TranslateEvent<Inworld::SessionControlResponse_LoadScene, FInworldChangeSceneEvent>(const Inworld::SessionControlResponse_LoadScene& Original, FInworldChangeSceneEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+	TranslateAgents(Original, New);
 }
 
 template<>
