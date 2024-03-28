@@ -357,9 +357,12 @@ std::unordered_map<std::string, std::string> ToStd(const TMap<FString, FString>&
 	return StdMap;
 }
 
-void FInworldClient::SendCustomEvent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params)
+TSharedPtr<FInworldPacket> FInworldClient::SendCustomEvent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params)
 {
-	Inworld::GetClient()->SendCustomEvent(ToStd(AgentIds), TCHAR_TO_UTF8(*Name), ToStd(Params));
+	auto Packet = Inworld::GetClient()->SendCustomEvent(ToStd(AgentIds), TCHAR_TO_UTF8(*Name), ToStd(Params));
+	InworldPacketTranslator PacketTranslator;
+	Packet->Accept(PacketTranslator);
+	return PacketTranslator.GetPacket();
 }
 
 void FInworldClient::SendChangeSceneEvent(const FString& SceneName)

@@ -45,6 +45,7 @@ template<>
 void InworldPacketTranslator::TranslateEvent<Inworld::TextEvent, FInworldTextEvent>(const Inworld::TextEvent& Original, FInworldTextEvent& New)
 {
 	TranslateInworldPacket(Original, New);
+	UE_LOG(LogInworldAIClient, Error, TEXT("Got TextEvent: %s."), *New.PacketId.InteractionId);
 	New.Text = UTF8_TO_TCHAR(Original.GetText().c_str());
 	New.Final = Original.IsFinal();
 }
@@ -61,6 +62,7 @@ template<>
 void InworldPacketTranslator::TranslateEvent<Inworld::AudioDataEvent, FInworldAudioDataEvent>(const Inworld::AudioDataEvent& Original, FInworldAudioDataEvent& New)
 {
 	TranslateEvent<Inworld::DataEvent, FInworldDataEvent>(Original, New);
+	UE_LOG(LogInworldAIClient, Error, TEXT("Got AudioDataEvent: %s."), *New.PacketId.InteractionId);
 	New.VisemeInfos.Reserve(Original.GetPhonemeInfos().size());
 	for (const auto& PhonemeInfo : Original.GetPhonemeInfos())
 	{
@@ -85,6 +87,7 @@ template<>
 void InworldPacketTranslator::TranslateEvent<Inworld::ControlEvent, FInworldControlEvent>(const Inworld::ControlEvent& Original, FInworldControlEvent& New)
 {
 	TranslateInworldPacket(Original, New);
+	UE_LOG(LogInworldAIClient, Error, TEXT("Got ControlEvent: %s."), *New.PacketId.InteractionId);
 	New.Action = static_cast<EInworldControlEventAction>(Original.GetControlAction());
 }
 

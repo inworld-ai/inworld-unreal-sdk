@@ -76,6 +76,7 @@ void UInworldCharacterPlaybackAudio::OnCharacterUtteranceInterrupt_Implementatio
 	VisemeBlends = FInworldCharacterVisemeBlends();
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
 	OnUtteranceInterrupted.Broadcast();
+	UnlockMessageQueue();
 }
 
 void UInworldCharacterPlaybackAudio::OnCharacterSilence_Implementation(const FCharacterMessageSilence& Message)
@@ -90,6 +91,7 @@ void UInworldCharacterPlaybackAudio::OnCharacterSilenceInterrupt_Implementation(
 {
 	UWorld* World = CharacterComponent->GetWorld();
 	World->GetTimerManager().ClearTimer(SilenceTimerHandle);
+	UnlockMessageQueue();
 }
 
 void UInworldCharacterPlaybackAudio::OnSilenceEnd()

@@ -9,6 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "InworldCharacterMessage.h"
+#include "InworldCharacterMessageQueue.h"
 #include "InworldEnums.h"
 
 #include "InworldCharacterPlayback.generated.h"
@@ -97,7 +98,7 @@ public:
 	 * Locks the Character's message queue
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Message Queue")
-	void LockMessageQueue();
+	bool LockMessageQueue();
 
 	/**
 	 * Unlocks the Character's message queue
