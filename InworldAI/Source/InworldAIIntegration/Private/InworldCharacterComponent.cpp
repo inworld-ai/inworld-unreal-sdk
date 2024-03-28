@@ -666,7 +666,7 @@ void UInworldCharacterComponent::Handle(const FCharacterMessageInteractionEnd& M
 	if (PendingInteractionToUtterancesMap.Contains(InteractionId))
 	{
 		TSet<FString>& RemainingUtterances = PendingInteractionToUtterancesMap[InteractionId];
-		if (!RemainingUtterances.IsEmpty())
+		if (RemainingUtterances.Num() > 0)
 		{
 			InworldSubsystem->CancelResponse(GetAgentId(), InteractionId, RemainingUtterances.Array());
 		}
