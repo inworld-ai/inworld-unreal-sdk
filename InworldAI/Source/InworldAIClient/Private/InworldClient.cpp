@@ -153,9 +153,9 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 	Options.Base64 = TCHAR_TO_UTF8(*Auth.Base64Signature);
 	Options.ApiKey = TCHAR_TO_UTF8(*Auth.ApiKey);
 	Options.ApiSecret = TCHAR_TO_UTF8(*Auth.ApiSecret);
-	Options.PlayerName = TCHAR_TO_UTF8(*PlayerProfile.Name);
 	Options.ProjectName = TCHAR_TO_UTF8(*PlayerProfile.ProjectName);
-	Options.UserId = PlayerProfile.UniqueId.IsEmpty() ? TCHAR_TO_UTF8(*GenerateUserId()) : TCHAR_TO_UTF8(*PlayerProfile.UniqueId);
+	Options.UserSettings.Name = TCHAR_TO_UTF8(*PlayerProfile.Name);
+	Options.UserSettings.Id = PlayerProfile.UniqueId.IsEmpty() ? TCHAR_TO_UTF8(*GenerateUserId()) : TCHAR_TO_UTF8(*PlayerProfile.UniqueId);
 	Options.UserSettings.Profile.Fields.reserve(PlayerProfile.Fields.Num());
 	for (const auto& ProfileField : PlayerProfile.Fields)
 	{
