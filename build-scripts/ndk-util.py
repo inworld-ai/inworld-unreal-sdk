@@ -41,12 +41,24 @@ build_configurations = {
         ['cmake .. -DINWORLD_SHARED=False -DAEC=True -DMAC=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target inworld-ndk --config Release']
     ),
+    'Mac-shared': BuildConfiguration(
+        ['cmake .. -DINWORLD_SHARED=True -DAEC=True -DMAC=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake --build . --target inworld-ndk --config Release']
+    ),
     'iOS': BuildConfiguration(
         ['cmake -G Xcode .. -DINWORLD_SHARED=False -DAEC=False -DIOS=True -DCMAKE_TOOLCHAIN_FILE=./ios.toolchain.cmake -DPLATFORM=OS64 -DINWORLD_LOG_CALLBACK=True'],
         ['cmake --build . --target inworld-ndk --config Release -- CODE_SIGNING_ALLOWED=NO']
     ),
+    'iOS-shared': BuildConfiguration(
+        ['cmake -G Xcode .. -DINWORLD_SHARED=True -DAEC=False -DIOS=True -DCMAKE_TOOLCHAIN_FILE=./ios.toolchain.cmake -DPLATFORM=OS64 -DINWORLD_LOG_CALLBACK=True'],
+        ['cmake --build . --target inworld-ndk --config Release -- CODE_SIGNING_ALLOWED=NO']
+    ),
     'Android': BuildConfiguration(
         ['cmake .. -DINWORLD_SHARED=False -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/25.2.9519653 -DINWORLD_LOG_CALLBACK=True'],
+        ['cmake --build . --target inworld-ndk --config Release']
+    ),
+    'Android-shared': BuildConfiguration(
+        ['cmake .. -DINWORLD_SHARED=True -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/25.2.9519653 -DINWORLD_LOG_CALLBACK=True'],
         ['cmake --build . --target inworld-ndk --config Release']
     )
 }
