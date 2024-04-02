@@ -158,12 +158,12 @@ public class InworldAINDKLibrary : ModuleRules
         }
         else if(Target.Platform == UnrealTargetPlatform.IOS && bUseSharedInworldNDK)
         {
-            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
+            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
             RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
         }
         else if(Target.Platform == UnrealTargetPlatform.Android && bUseSharedInworldNDK)
         {
-            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.so"));
+            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.so"));
             RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.so"));
         }
 
