@@ -78,6 +78,11 @@ void FInworldClient::Init()
 	Inworld::GetClient()->InitClientAsync(Sdk,
 		[this](Inworld::Client::ConnectionState ConnectionState)
 		{
+			if (bIsBeingDestroyed)
+			{
+				return;
+			}
+
 			AsyncTask(ENamedThreads::GameThread, [this, ConnectionState]() 
 			{
 				OnConnectionStateChanged.ExecuteIfBound(static_cast<EInworldConnectionState>(ConnectionState));
@@ -130,6 +135,7 @@ void FInworldClient::Init()
 
 void FInworldClient::Destroy()
 {
+	bIsBeingDestroyed = true;
 #if !UE_BUILD_SHIPPING
 	OnAudioDumperCVarChanged.Remove(OnAudioDumperCVarChangedHandle);
 #endif
