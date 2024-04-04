@@ -73,7 +73,8 @@
 	"Plugins": [
 		{
 			"Name": "AndroidPermission",
-			"Enabled": true
+			"Enabled": true,
+			"PlatformAllowList": [ "Android" ]
 		}
 	]
 }
