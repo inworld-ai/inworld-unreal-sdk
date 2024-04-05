@@ -136,6 +136,63 @@ void FInworldClient::Destroy()
 	Inworld::DestroyClient();
 }
 
+static void ConvertCapabilities(const FInworldCapabilitySet& Capabilities, Inworld::Capabilities& OutCapabilities)
+{
+	OutCapabilities.Animations = Capabilities.Animations;
+	OutCapabilities.Audio = Capabilities.Audio;
+	OutCapabilities.Emotions = Capabilities.Emotions;
+	OutCapabilities.Interruptions = Capabilities.Interruptions;
+	OutCapabilities.EmotionStreaming = Capabilities.EmotionStreaming;
+	OutCapabilities.SilenceEvents = Capabilities.SilenceEvents;
+	OutCapabilities.PhonemeInfo = Capabilities.PhonemeInfo;
+	OutCapabilities.Continuation = Capabilities.Continuation;
+	OutCapabilities.TurnBasedSTT = Capabilities.TurnBasedSTT;
+	OutCapabilities.NarratedActions = Capabilities.NarratedActions;
+	OutCapabilities.Relations = Capabilities.Relations;
+	OutCapabilities.Multiagent = Capabilities.MultiAgent;
+}
+
+static FString GenerateUserId()
+{
+	FString Id = FPlatformMisc::GetDeviceId();
+	if (Id.IsEmpty())
+	{
+#if PLATFORM_WINDOWS || PLATFORM_MAC
+		Id = FPlatformMisc::GetMacAddressString();
+#endif
+	}
+	if (Id.IsEmpty())
+	{
+		UE_LOG(LogInworldAIClient, Error, TEXT("Couldn't generate user id."));
+		return FString();
+	}
+
+	UE_LOG(LogInworldAIClient, Log, TEXT("Device Id: %s"), *Id);
+
+	std::string SId = TCHAR_TO_UTF8(*Id);
+	TArray<uint8> Data;
+	Data.SetNumZeroed(SId.size());
+	FMemory::Memcpy(Data.GetData(), SId.data(), SId.size());
+
+	Data = Inworld::Utils::HmacSha256(Data, Data);
+
+	return FString(UTF8_TO_TCHAR(Inworld::Utils::ToHex(Data).c_str()));
+}
+
+static void ConvertPlayerProfile(const FInworldPlayerProfile& PlayerProfile, Inworld::UserConfiguration& UserConfig)
+{
+	UserConfig.Name = TCHAR_TO_UTF8(*PlayerProfile.Name);
+	UserConfig.Id = PlayerProfile.UniqueId.IsEmpty() ? TCHAR_TO_UTF8(*GenerateUserId()) : TCHAR_TO_UTF8(*PlayerProfile.UniqueId);
+	UserConfig.Profile.Fields.reserve(PlayerProfile.Fields.Num());
+	for (const auto& ProfileField : PlayerProfile.Fields)
+	{
+		Inworld::UserConfiguration::PlayerProfile::PlayerField PlayerField;
+		PlayerField.Id = TCHAR_TO_UTF8(*ProfileField.Key);
+		PlayerField.Value = TCHAR_TO_UTF8(*ProfileField.Value);
+		UserConfig.Profile.Fields.push_back(PlayerField);
+	}
+}
+
 void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldSave& Save, const FInworldEnvironment& Environment)
 {
 	Inworld::ClientOptions Options;
@@ -154,29 +211,9 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 	Options.ApiKey = TCHAR_TO_UTF8(*Auth.ApiKey);
 	Options.ApiSecret = TCHAR_TO_UTF8(*Auth.ApiSecret);
 	Options.ProjectName = TCHAR_TO_UTF8(*PlayerProfile.ProjectName);
-	Options.UserSettings.Name = TCHAR_TO_UTF8(*PlayerProfile.Name);
-	Options.UserSettings.Id = PlayerProfile.UniqueId.IsEmpty() ? TCHAR_TO_UTF8(*GenerateUserId()) : TCHAR_TO_UTF8(*PlayerProfile.UniqueId);
-	Options.UserSettings.Profile.Fields.reserve(PlayerProfile.Fields.Num());
-	for (const auto& ProfileField : PlayerProfile.Fields)
-	{
-		Inworld::UserSettings::PlayerProfile::PlayerField PlayerField;
-		PlayerField.Id = TCHAR_TO_UTF8(*ProfileField.Key);
-		PlayerField.Value = TCHAR_TO_UTF8(*ProfileField.Value);
-		Options.UserSettings.Profile.Fields.push_back(PlayerField);
-	}
 
-	Options.Capabilities.Animations = Capabilities.Animations;
-	Options.Capabilities.Audio = Capabilities.Audio;
-	Options.Capabilities.Emotions = Capabilities.Emotions;
-	Options.Capabilities.Interruptions = Capabilities.Interruptions;
-	Options.Capabilities.EmotionStreaming = Capabilities.EmotionStreaming;
-	Options.Capabilities.SilenceEvents = Capabilities.SilenceEvents;
-	Options.Capabilities.PhonemeInfo = Capabilities.PhonemeInfo;
-	Options.Capabilities.Continuation = Capabilities.Continuation;
-	Options.Capabilities.TurnBasedSTT = Capabilities.TurnBasedSTT;
-	Options.Capabilities.NarratedActions = Capabilities.NarratedActions;
-	Options.Capabilities.Relations = Capabilities.Relations;
-	Options.Capabilities.Multiagent = Capabilities.MultiAgent;
+	ConvertPlayerProfile(PlayerProfile, Options.UserConfig);
+	ConvertCapabilities(Capabilities, Options.Capabilities);
 
 	Inworld::SessionInfo Info;
 	Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);
@@ -189,7 +226,7 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
         FMemory::Memcpy((uint8*)Info.SessionSavedState.data(), (uint8*)Save.Data.GetData(), Info.SessionSavedState.size());
     }
 
-	Inworld::GetClient()->StartClientAsync(Options, Info, nullptr);
+	Inworld::GetClient()->StartClient(Options, Info);
 }
 
 void FInworldClient::Stop()
@@ -240,7 +277,7 @@ std::vector<std::string> ToStd(const TArray<FString>& Array)
 
 void FInworldClient::LoadCharacters(const TArray<FString>& Names)
 {
-	Inworld::GetClient()->LoadCharactersAsync(ToStd(Names), nullptr);
+	Inworld::GetClient()->LoadCharacters(ToStd(Names));
 }
 
 void FInworldClient::UnloadCharacters(const TArray<FString>& Names)
@@ -254,31 +291,18 @@ void FInworldClient::LoadSavedState(const TArray<uint8>& SavedState)
 	Inworld::GetClient()->LoadSavedState(Data);
 }
 
-FString FInworldClient::GenerateUserId()
+void FInworldClient::LoadCapabilities(const FInworldCapabilitySet& Capabilities)
 {
-	FString Id = FPlatformMisc::GetDeviceId();
-	if (Id.IsEmpty())
-	{
-#if PLATFORM_WINDOWS || PLATFORM_MAC
-		Id = FPlatformMisc::GetMacAddressString();
-#endif
-	}
-	if (Id.IsEmpty())
-	{
-		UE_LOG(LogInworldAIClient, Error, TEXT("Couldn't generate user id."));
-		return FString();
-	}
+	Inworld::Capabilities Cpb;
+	ConvertCapabilities(Capabilities, Cpb);
+	Inworld::GetClient()->LoadCapabilities(Cpb);
+}
 
-	UE_LOG(LogInworldAIClient, Log, TEXT("Device Id: %s"), *Id);
-
-	std::string SId = TCHAR_TO_UTF8(*Id);
-	TArray<uint8> Data;
-	Data.SetNumZeroed(SId.size());
-	FMemory::Memcpy(Data.GetData(), SId.data(), SId.size());
-
-	Data = Inworld::Utils::HmacSha256(Data, Data);
-
-	return FString(UTF8_TO_TCHAR(Inworld::Utils::ToHex(Data).c_str()));
+void FInworldClient::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
+{
+	Inworld::UserConfiguration UserConfig;
+	ConvertPlayerProfile(PlayerProfile, UserConfig);
+	Inworld::GetClient()->LoadUserConfiguration(UserConfig);
 }
 
 EInworldConnectionState FInworldClient::GetConnectionState() const
@@ -364,7 +388,7 @@ void FInworldClient::SendCustomEvent(const TArray<FString>& AgentIds, const FStr
 
 void FInworldClient::SendChangeSceneEvent(const FString& SceneName)
 {
-	Inworld::GetClient()->LoadSceneAsync(TCHAR_TO_UTF8(*SceneName), nullptr);
+	Inworld::GetClient()->LoadScene(TCHAR_TO_UTF8(*SceneName));
 }
 
 void FInworldClient::SendNarrationEvent(const FString& AgentId, const FString& Content)

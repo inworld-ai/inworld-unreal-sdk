@@ -43,6 +43,8 @@ public:
 	void LoadCharacters(const TArray<FString>& Names);
 	void UnloadCharacters(const TArray<FString>& Names);
 	void LoadSavedState(const TArray<uint8>& SavedState);
+	void LoadCapabilities(const FInworldCapabilitySet& Capabilities);
+	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
 	
 	EInworldConnectionState GetConnectionState() const;
 	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const;
@@ -76,7 +78,6 @@ public:
 	FOnInworldPacketReceived OnInworldPacketReceived;
 
 private:
-	FString GenerateUserId();
 
 #if !UE_BUILD_SHIPPING
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAudioDumperCVarChanged, bool /*Enabled*/, FString /*Path*/);
