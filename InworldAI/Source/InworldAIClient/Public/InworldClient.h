@@ -78,6 +78,8 @@ public:
 private:
 	FString GenerateUserId();
 
+	bool bIsBeingDestroyed = false;
+
 #if !UE_BUILD_SHIPPING
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAudioDumperCVarChanged, bool /*Enabled*/, FString /*Path*/);
 	static FOnAudioDumperCVarChanged OnAudioDumperCVarChanged;
