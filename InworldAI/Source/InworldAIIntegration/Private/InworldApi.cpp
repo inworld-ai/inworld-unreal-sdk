@@ -144,6 +144,16 @@ void UInworldApiSubsystem::LoadSavedState(const TArray<uint8>& SavedState)
     Client->LoadSavedState(SavedState);
 }
 
+void UInworldApiSubsystem::LoadCapabilities(const FInworldCapabilitySet& Capabilities)
+{
+    Client->LoadCapabilities(Capabilities);
+}
+
+void UInworldApiSubsystem::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
+{
+    Client->LoadPlayerProfile(PlayerProfile);
+}
+
 void UInworldApiSubsystem::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
 {
     for (const auto& AgentInfo : AgentInfos)
