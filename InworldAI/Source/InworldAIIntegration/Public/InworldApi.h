@@ -113,6 +113,18 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void LoadSavedState(const TArray<uint8>& SavedState);
 
+	/**
+	 * Load capabilities
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Inworld")
+	void LoadCapabilities(const FInworldCapabilitySet& Capabilities);
+
+	/**
+	 * Load player profile
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Inworld")
+	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
+
 private:
     void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
     void UnpossessAgents();
