@@ -192,10 +192,16 @@ void UInworldApiSubsystem::PossessAgents(const TArray<FInworldAgentInfo>& AgentI
     }
 
     bCharactersInitialized = true;
+    OnCharactersInitialized.Broadcast(bCharactersInitialized);
 }
 
 void UInworldApiSubsystem::UnpossessAgents()
 {
+    if (!bCharactersInitialized)
+    {
+        return;
+    }
+
     auto ComponentsToUnpossess = CharacterComponentRegistry;
     for (auto* Component : ComponentsToUnpossess)
     {
@@ -204,6 +210,7 @@ void UInworldApiSubsystem::UnpossessAgents()
     CharacterComponentByAgentId.Empty();
     AgentInfoByBrain.Empty();
     bCharactersInitialized = false;
+    OnCharactersInitialized.Broadcast(bCharactersInitialized);
 }
 
 void UInworldApiSubsystem::RegisterCharacterComponent(Inworld::ICharacterComponent* Component)

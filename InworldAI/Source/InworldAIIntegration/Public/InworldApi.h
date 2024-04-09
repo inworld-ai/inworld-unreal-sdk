@@ -28,6 +28,7 @@ class USoundWave;
 class UInworldAudioRepl;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnectionStateChanged, EInworldConnectionState, State);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharactersInitialized, bool, bCharactersInitialized);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSaveReady, FInworldSave, Save, bool, bSuccess);
@@ -249,6 +250,9 @@ public:
 
     UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
     FOnConnectionStateChanged OnConnectionStateChanged;
+
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
+    FOnCharactersInitialized OnCharactersInitialized;
 
     UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
     FCustomTrigger OnCustomTrigger;
