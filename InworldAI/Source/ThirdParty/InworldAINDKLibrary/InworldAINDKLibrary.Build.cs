@@ -69,7 +69,7 @@ public class InworldAINDKLibrary : ModuleRules
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_LOG_CALLBACK=1");
 
-        const bool bUseSharedInworldNDK = true;
+        bool bUseSharedInworldNDK = Target.Platform != UnrealTargetPlatform.IOS;
         if (bUseSharedInworldNDK)
         {
             PublicDefinitions.Add("INWORLD_NDK_SHARED=1");
@@ -160,6 +160,7 @@ public class InworldAINDKLibrary : ModuleRules
         {
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
             RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
+            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
         }
         else if(Target.Platform == UnrealTargetPlatform.Android && bUseSharedInworldNDK)
         {
