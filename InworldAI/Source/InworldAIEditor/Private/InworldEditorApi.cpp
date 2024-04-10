@@ -89,6 +89,15 @@ const FInworldStudioUserData& UInworldEditorApiSubsystem::GetCachedStudioData() 
 	return Data;
 }
 
+void UInworldEditorApiSubsystem::CacheStudioData(const FInworldStudioUserData& Data)
+{
+	FInworldAIEditorModule* Module = static_cast<FInworldAIEditorModule*>(FModuleManager::Get().GetModule("InworldAIEditor"));
+	if (ensure(Module))
+	{
+		Module->SetStudioData(Data);
+	}
+}
+
 void UInworldEditorApiSubsystem::BindActionForCharacterData(const FName& Name, FOnCharacterStudioDataPermission Permission, FOnCharacterStudioDataAction Action)
 {
 	FCharacterStudioDataFunctions FunctionsForName;
@@ -358,6 +367,17 @@ void UInworldEditorApiSubsystem::SetupBlueprintAsInworldMetahuman(UBlueprint* Bl
 		FaceComponent->SetAnimInstanceClass(InworldMetahumanEditorSettings->MetahumanFaceABP.LoadSynchronous()->GeneratedClass);
 	}
 
+	USCS_Node* FaceNode = Blueprint->SimpleConstructionScript->FindSCSNode(TEXT("Face"));
+	USCS_Node* AudioNode = Blueprint->SimpleConstructionScript->FindSCSNode(TEXT("InworldCharacterAudioComponent"));
+	if (FaceNode && AudioNode)
+	{
+		Blueprint->SimpleConstructionScript->RemoveNode(AudioNode);
+		FaceNode->AddChildNode(AudioNode);
+		FaceNode->Modify();
+		AudioNode->Modify();
+		AudioNode->AttachToName = FName("head");
+	}
+
 	auto* BodyComponent = Cast<USkeletalMeshComponent>(GetNodeFromBlueprint(Blueprint, "Body"));
 	if (BodyComponent)
 	{
@@ -480,15 +500,6 @@ UObject* UInworldEditorApiSubsystem::GetNodeFromBlueprint(UBlueprint* Blueprint,
 	return nullptr;
 }
 
-void UInworldEditorApiSubsystem::CacheStudioData(const FInworldStudioUserData& Data)
-{
-	FInworldAIEditorModule* Module = static_cast<FInworldAIEditorModule*>(FModuleManager::Get().GetModule("InworldAIEditor"));
-	if (ensure(Module))
-	{
-		Module->SetStudioData(Data);
-	}
-}
-
 UBlueprint* UInworldEditorApiSubsystem::CreateCharacterActorBP(const FInworldStudioUserCharacterData& CharacterData)
 {
 	FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
@@ -579,16 +590,25 @@ void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCha
 		AddNodeToBlueprint(Blueprint, ActorComponentClass, ActorComponentClass->GetName());
 	}
 
-	auto* EmoteComponent = Cast<USceneComponent>(GetNodeFromBlueprint(Blueprint, TEXT("PaperSpriteComponent")));
-
-	EmoteComponent->SetupAttachment(MeshComponent, TEXT("EmoteSocket"));
-	if (USCS_Node* SCS_Node = Blueprint->SimpleConstructionScript->FindSCSNode(TEXT("PaperSpriteComponent")))
+	auto* AudioNode = Blueprint->SimpleConstructionScript->FindSCSNode(TEXT("InworldCharacterAudioComponent"));
+	if(AudioNode)
 	{
-		SCS_Node->Modify();
-		SCS_Node->AttachToName = FName("EmoteSocket");
+		AudioNode->Modify();
+		AudioNode->AttachToName = FName("Head");
 	}
-	EmoteComponent->SetRelativeScale3D(FVector(0.0475f, 0.0475f, 0.0475f));
-	EmoteComponent->SetRelativeRotation(FRotator(0.f, 0.f, -90.f));
+
+	auto* EmoteComponent = Cast<USceneComponent>(GetNodeFromBlueprint(Blueprint, TEXT("PaperFlipbookComponent")));
+	if (EmoteComponent)
+	{
+		EmoteComponent->SetupAttachment(MeshComponent, TEXT("EmoteSocket"));
+		if (USCS_Node* SCS_Node = Blueprint->SimpleConstructionScript->FindSCSNode(TEXT("PaperFlipbookComponent")))
+		{
+			SCS_Node->Modify();
+			SCS_Node->AttachToName = FName("EmoteSocket");
+		}
+		EmoteComponent->SetRelativeScale3D(FVector(0.0475f, 0.0475f, 0.0475f));
+		EmoteComponent->SetRelativeRotation(FRotator(0.f, 0.f, -90.f));
+	}
 
 	FKismetEditorUtilities::CompileBlueprint(Blueprint);
 	SavePackageToCharacterFolder(Blueprint, CharacterData, "BP");

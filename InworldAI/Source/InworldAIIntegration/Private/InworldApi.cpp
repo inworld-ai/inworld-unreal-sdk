@@ -144,6 +144,16 @@ void UInworldApiSubsystem::LoadSavedState(const TArray<uint8>& SavedState)
     Client->LoadSavedState(SavedState);
 }
 
+void UInworldApiSubsystem::LoadCapabilities(const FInworldCapabilitySet& Capabilities)
+{
+    Client->LoadCapabilities(Capabilities);
+}
+
+void UInworldApiSubsystem::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
+{
+    Client->LoadPlayerProfile(PlayerProfile);
+}
+
 void UInworldApiSubsystem::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
 {
     for (const auto& AgentInfo : AgentInfos)
@@ -182,10 +192,16 @@ void UInworldApiSubsystem::PossessAgents(const TArray<FInworldAgentInfo>& AgentI
     }
 
     bCharactersInitialized = true;
+    OnCharactersInitialized.Broadcast(bCharactersInitialized);
 }
 
 void UInworldApiSubsystem::UnpossessAgents()
 {
+    if (!bCharactersInitialized)
+    {
+        return;
+    }
+
     auto ComponentsToUnpossess = CharacterComponentRegistry;
     for (auto* Component : ComponentsToUnpossess)
     {
@@ -194,6 +210,7 @@ void UInworldApiSubsystem::UnpossessAgents()
     CharacterComponentByAgentId.Empty();
     AgentInfoByBrain.Empty();
     bCharactersInitialized = false;
+    OnCharactersInitialized.Broadcast(bCharactersInitialized);
 }
 
 void UInworldApiSubsystem::RegisterCharacterComponent(Inworld::ICharacterComponent* Component)

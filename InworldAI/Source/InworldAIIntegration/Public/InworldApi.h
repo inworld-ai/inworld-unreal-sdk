@@ -28,6 +28,7 @@ class USoundWave;
 class UInworldAudioRepl;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnectionStateChanged, EInworldConnectionState, State);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharactersInitialized, bool, bCharactersInitialized);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSaveReady, FInworldSave, Save, bool, bSuccess);
@@ -111,6 +112,18 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void LoadSavedState(const TArray<uint8>& SavedState);
+
+	/**
+	 * Load capabilities
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Inworld")
+	void LoadCapabilities(const FInworldCapabilitySet& Capabilities);
+
+	/**
+	 * Load player profile
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Inworld")
+	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
 
 private:
     void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
@@ -237,6 +250,9 @@ public:
 
     UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
     FOnConnectionStateChanged OnConnectionStateChanged;
+
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
+    FOnCharactersInitialized OnCharactersInitialized;
 
     UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
     FCustomTrigger OnCustomTrigger;

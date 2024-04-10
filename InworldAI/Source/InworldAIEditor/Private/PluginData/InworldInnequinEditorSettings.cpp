@@ -29,6 +29,6 @@ UInworldInnequinEditorSettings::UInworldInnequinEditorSettings(const FObjectInit
 	CharacterComponents =
 	{
 		LoadClass<UActorComponent>(nullptr, TEXT("BlueprintGeneratedClass'/InworldInnequin/BP_InnequinComponent.BP_InnequinComponent_C'")),
-		LoadClass<UActorComponent>(nullptr, TEXT("Class'/Script/Paper2D.PaperSpriteComponent'"))
+		LoadClass<UActorComponent>(nullptr, TEXT("Class'/Script/Paper2D.PaperFlipbookComponent'"))
 	};
 }
