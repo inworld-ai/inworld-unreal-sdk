@@ -31,6 +31,8 @@ jobs:
       run: |
         sudo xcode-select -s /Applications/Xcode_13_0.app/Contents/Developer
         python3 "build-scripts/ndk-util.py" --platform=iOS --clean --build
+        rm InworldAI/inworld-ndk/build/CMakeCache.txt
+        python3 "build-scripts/ndk-util.py" --platform=iOS-shared --build
         sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
     - uses: actions/cache/save@v3
       if: steps.ndk-cache-ios.outputs.cache-hit != 'true'

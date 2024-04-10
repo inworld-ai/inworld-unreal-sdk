@@ -41,7 +41,7 @@ To build the NDK, utilize the script at InworldAI/Source/ThirdParty/Inworld/dev-
 
 -x Copy the NDK to the Unreal Module folder
 
-Example: ```python ndk-util.py -c -b -p Win64 -x```
+Example: ```python ndk-util.py -c -b -p Win64-shared -x```
 
 #### Download prebuilt NDK
 For most use cases, simply downloading prebuilt versions of NDK will suffice.

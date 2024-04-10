@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<init>
+		<log text="Inworld Android: init"/>
+	</init>
+	<resourceCopies>
+		<log text="Inworld Android: add libinworld-ndk.so"/>
+		<copyFile src="$S(PluginDir)/lib/Android/arm64-v8a/libinworld-ndk.so" dst="$S(BuildDir)/libs/arm64-v8a/libinworld-ndk.so" />
+	</resourceCopies>
+</root>
