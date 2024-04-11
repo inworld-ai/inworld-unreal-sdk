@@ -49,7 +49,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     TArray<FString> GetTargetAgentIds();
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
     void ContinueMultiAgentConversation();
 
     virtual Inworld::ICharacterComponent* GetTargetCharacter() override;

@@ -145,15 +145,15 @@ public:
     /** Send text to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages")
     void SendTextMessage(const FString& AgentId, const FString& Text);
-    /** Send text to multiple agents */
-	UFUNCTION(BlueprintCallable, Category = "Messages")
+    /** Deprecated */
+	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
     void SendTextMessageMultiAgent(const TArray<FString>& AgentIds, const FString& Text);
 
     /** Send trigger to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
 	void SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params);
-    /** Send trigger to multiple agents */
-	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
+    /** Deprecated */
+	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
 	void SendTriggerMultiAgent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
     [[deprecated("UInworldApiSubsystem::SendCustomEvent is deprecated, please use UInworldApiSubsystem::SendTrigger")]]
     void SendCustomEvent(const FString& AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
@@ -187,7 +187,8 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
     bool StartAudioSession(const FString& AgentId, const AActor* Owner);
-    UFUNCTION(BlueprintCallable, Category = "Audio")
+	/** Deprecated */
+    UFUNCTION(BlueprintCallable, Category = "Audio", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
     bool StartAudioSessionMultiAgent(const TArray<FString>& AgentIds, const AActor* Owner);
     
     UFUNCTION(BlueprintCallable, Category = "Audio")
@@ -199,7 +200,8 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
     void StopAudioSession(const FString& AgentId);
-    UFUNCTION(BlueprintCallable, Category = "Audio")
+	/** Deprecated */
+    UFUNCTION(BlueprintCallable, Category = "Audio", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
     void StopAudioSessionMultiAgent(const TArray<FString>& AgentIds);
 
     /** Change scene */
