@@ -1,3 +1,13 @@
+# 1.5.0
+- Fix for Dialog Map
+- Fix character attachments for audio
+- Fix for Pixel Streaming
+- Fix multiple GRPC versions in one project issues(Windows, Mac, Android)
+- Unitary Session support
+- Audio dumper fixes
+- Add Inworld Innequin Plugin
+- Multiplayer fixes
+
 # 1.4.3
 - Fix NDK logging
 
