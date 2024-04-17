@@ -330,6 +330,13 @@ FString FInworldClient::GetSessionId() const
 	return UTF8_TO_TCHAR(Inworld::GetSessionId().c_str());
 }
 
+FString FInworldClient::UpdateConversation(const FString& ConversationId, bool bIncludePlayer,
+	const TArray<FString>& AgentIds)
+{
+	auto Packet = Inworld::GetClient()->UpdateConversation(ToStd(AgentIds), TCHAR_TO_UTF8(*ConversationId), bIncludePlayer);
+	return UTF8_TO_TCHAR(Packet->_Routing._ConversationId.c_str());
+}
+
 TSharedPtr<FInworldPacket> FInworldClient::SendTextMessage(const FString& AgentId, const FString& Text)
 {
 	const auto Packet = Inworld::GetClient()->SendTextMessage(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*Text));

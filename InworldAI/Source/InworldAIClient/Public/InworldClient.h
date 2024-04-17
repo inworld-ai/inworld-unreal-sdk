@@ -51,6 +51,8 @@ public:
 
 	FString GetSessionId() const;
 
+	FString UpdateConversation(const FString& ConversationId, bool bIncludePlayer, const TArray<FString>& AgentIds);
+
 	TSharedPtr<FInworldPacket> SendTextMessage(const FString& AgentId, const FString& Text);
 	TSharedPtr<FInworldPacket> SendTextMessageToConversation(const FString& ConversationId, const FString& Text);
 
