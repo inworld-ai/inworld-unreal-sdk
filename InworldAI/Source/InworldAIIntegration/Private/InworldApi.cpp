@@ -276,30 +276,72 @@ void UInworldApiSubsystem::UpdateCharacterComponentRegistrationOnClient(Inworld:
     }
 }
 
-void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)
+FString UInworldApiSubsystem::UpdateConversation(const FString& ConversationId, bool bIncludePlayer,
+    const TArray<FString>& AgentIds)
 {
-    SendTextMessageMultiAgent({ AgentId }, Text);
 }
 
-void UInworldApiSubsystem::SendTextMessageMultiAgent(const TArray<FString>& AgentIds, const FString& Text)
+void UInworldApiSubsystem::SendTextMessageToConversation(const FString& ConversationId, const FString& Text)
 {
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
+    if (!ensureMsgf(ConversationId.IsEmpty(), TEXT("ConversationId must be valid!")))
     {
         return;
     }
 
-    TSharedPtr<FInworldPacket> Packet = Client->SendTextMessage(AgentIds, Text);
+    TSharedPtr<FInworldPacket> Packet = Client->SendTextMessageToConversation(ConversationId, Text);
     if (Packet.IsValid())
     {
-        for (auto& AgentId : AgentIds)
+        auto* AgentComponentPtr = CharacterComponentByAgentId.Find(AgentId);
+        if (AgentComponentPtr)
         {
-            auto* AgentComponentPtr = CharacterComponentByAgentId.Find(AgentId);
-            if (AgentComponentPtr)
-            {
-                (*AgentComponentPtr)->HandlePacket(Packet);
-            }
+            (*AgentComponentPtr)->HandlePacket(Packet);
         }
     }
+}
+
+void UInworldApiSubsystem::SendTriggerToConversation(const FString& ConversationId, const FString& Name,
+    const TMap<FString, FString>& Params)
+{
+}
+
+void UInworldApiSubsystem::SendAudioMessageToConversation(const FString& ConversationId, USoundWave* SoundWave)
+{
+}
+
+void UInworldApiSubsystem::SendAudioMessageWithAECToConversation(const FString& ConversationId, USoundWave* InputWave,
+    USoundWave* OutputWave)
+{
+}
+
+bool UInworldApiSubsystem::StartAudioSessionInConversation(const FString& ConversationId, const AActor* Owner)
+{
+}
+
+bool UInworldApiSubsystem::StopAudioSessionInConversation(const FString& ConversationId, const AActor* Owner)
+{
+}
+
+void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)
+{
+    if (!ensureMsgf(AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
+    {
+        return;
+    }
+
+    TSharedPtr<FInworldPacket> Packet = Client->SendTextMessage(AgentId, Text);
+    if (Packet.IsValid())
+    {
+        auto* AgentComponentPtr = CharacterComponentByAgentId.Find(AgentId);
+        if (AgentComponentPtr)
+        {
+            (*AgentComponentPtr)->HandlePacket(Packet);
+        }
+    }
+}
+
+void UInworldApiSubsystem::SendTextMessageMultiAgent(const TArray<FString>& AgentIds, const FString& Text)
+{
+    
 }
 
 void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
@@ -442,6 +484,12 @@ Inworld::ICharacterComponent* UInworldApiSubsystem::GetCharacterComponentByAgent
     return nullptr;
 }
 
+TArray<FString> UInworldApiSubsystem::GetConversationAgents(const FString& ConversationId) const
+{
+    auto* Agents = ConversationAgentIds.Find(ConversationId);
+    return Agents ? *Agents : TArray<FString>();
+}
+
 void UInworldApiSubsystem::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
 	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
@@ -577,6 +625,19 @@ void UInworldApiSubsystem::Visit(const FInworldChangeSceneEvent& Event)
 void UInworldApiSubsystem::Visit(const FInworldLoadCharactersEvent& Event)
 {
     PossessAgents(Event.AgentInfos);
+}
+
+void UInworldApiSubsystem::Visit(const FInworldControlEventConversationUpdate& Event)
+{
+    if (Event.EventType == EInworldConversationUpdateType::EVICTED)
+    {
+        ConversationAgentIds.Remove(Event.Routing.ConversationId);
+    }
+    else
+    {
+        ConversationAgentIds.FindOrAdd(Event.Routing.ConversationId) = Event.Agents;
+    }
+    OnConversationUpdate.Broadcast(Event.Routing.ConversationId, Event.EventType, Event.Agents, Event.bIncludePlayer);
 }
 
 void UInworldApiSubsystem::ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet)

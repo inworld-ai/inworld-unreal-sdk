@@ -32,8 +32,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharactersInitialized, bool, bCha
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSaveReady, FInworldSave, Save, bool, bSuccess);
-
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FResponseLatencyTrackerDelegate, FString, InteractionId, int32, LatencyMs);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnConversationUpdate, FString, Id, EInworldConversationUpdateType, Type, const TArray<FString>&, AgentIds, bool, bIncludePlayer);
 
 UCLASS(BlueprintType, Config = InworldAI)
 class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor
@@ -142,19 +143,28 @@ public:
 	void UpdateCharacterComponentRegistrationOnClient(Inworld::ICharacterComponent* Component, const FString& NewAgentId, const FString& OldAgentId);
 
 public:
+	/**
+	 * Start/Update conversation
+	 * @param ConversationId : pass empty string to start new conversation
+	 * @param bIncludePlayer : include player in conversation
+	 * @param AgentIds : list of agent ids to include in conversation
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Messages")
+	FString UpdateConversation(const FString& ConversationId, bool bIncludePlayer, const TArray<FString>& AgentIds);
+	
     /** Send text to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages")
     void SendTextMessage(const FString& AgentId, const FString& Text);
-    /** Deprecated */
-	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
-    void SendTextMessageMultiAgent(const TArray<FString>& AgentIds, const FString& Text);
+	/** Send text to conversation */
+	UFUNCTION(BlueprintCallable, Category = "Messages")
+	void SendTextMessageToConversation(const FString& ConversationId, const FString& Text);
 
     /** Send trigger to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
 	void SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params);
-    /** Deprecated */
-	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
-	void SendTriggerMultiAgent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
+	/** Send trigger to conversation */
+	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
+	void SendTriggerToConversation(const FString& ConversationId, const FString& Name, const TMap<FString, FString>& Params);
     [[deprecated("UInworldApiSubsystem::SendCustomEvent is deprecated, please use UInworldApiSubsystem::SendTrigger")]]
     void SendCustomEvent(const FString& AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
 
@@ -170,15 +180,18 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Messages")
 	void SendAudioMessage(const FString& AgentId, USoundWave* SoundWave);
-    void SendAudioMessage(const TArray<FString>& AgentIds, USoundWave* SoundWave);
+	/** Send audio to conversation */
+	UFUNCTION(BlueprintCallable, Category = "Messages")
+	void SendAudioMessageToConversation(const FString& ConversationId, USoundWave* SoundWave);
     void SendAudioDataMessage(const FString& AgentId, const TArray<uint8>& Data);
-    void SendAudioDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data);
-
+    void SendAudioDataMessageToConversation(const FString& ConversationId, const TArray<uint8>& Data);
 
     UFUNCTION(BlueprintCallable, Category = "Messages")
 	void SendAudioMessageWithAEC(const FString& AgentId, USoundWave* InputWave, USoundWave* OutputWave);
+	UFUNCTION(BlueprintCallable, Category = "Messages")
+	void SendAudioMessageWithAECToConversation(const FString& ConversationId, USoundWave* InputWave, USoundWave* OutputWave);
 	void SendAudioDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
-    void SendAudioDataMessageWithAEC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+	void SendAudioDataMessageWithAECToConversation(const FString& ConversationId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
     
     /**
      * Start audio session with agent
@@ -187,9 +200,9 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
     bool StartAudioSession(const FString& AgentId, const AActor* Owner);
-	/** Deprecated */
-    UFUNCTION(BlueprintCallable, Category = "Audio", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
-    bool StartAudioSessionMultiAgent(const TArray<FString>& AgentIds, const AActor* Owner);
+	/** Start audio session in conversation */
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	bool StartAudioSessionInConversation(const FString& ConversationId, const AActor* Owner);
     
     UFUNCTION(BlueprintCallable, Category = "Audio")
     const AActor* GetAudioSessionOwner() const { return AudioSessionOwner; }
@@ -200,11 +213,11 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
     void StopAudioSession(const FString& AgentId);
-	/** Deprecated */
-    UFUNCTION(BlueprintCallable, Category = "Audio", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
-    void StopAudioSessionMultiAgent(const TArray<FString>& AgentIds);
+	/** Stop audio session in conversation */
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	bool StopAudioSessionInConversation(const FString& ConversationId, const AActor* Owner);
 
-    /** Change scene */
+	/** Change scene */
     UFUNCTION(BlueprintCallable, Category = "Messages")
     void ChangeScene(const FString& SceneId);
 
@@ -221,6 +234,10 @@ public:
 
     /** Get registered character component by agent id */
     Inworld::ICharacterComponent* GetCharacterComponentByAgentId(const FString& AgentId) const;
+
+	/** Get conversation agents */
+	UFUNCTION(BlueprintCallable, Category = "Inworld")
+	TArray<FString> GetConversationAgents(const FString& ConversationId) const;
 
     /** Cancel agents response in case agent has been interrupted by player */
     UFUNCTION(BlueprintCallable, Category = "Messages")
@@ -257,13 +274,17 @@ public:
     FOnCharactersInitialized OnCharactersInitialized;
 
     UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
-    FCustomTrigger OnCustomTrigger;
+	FCustomTrigger OnCustomTrigger;
+
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
+	FOnConversationUpdate OnConversationUpdate;
 
 private:
 	void DispatchPacket(TSharedPtr<FInworldPacket> InworldPacket);
 
     virtual void Visit(const FInworldChangeSceneEvent& Event) override;
     virtual void Visit(const FInworldLoadCharactersEvent& Event) override;
+	virtual void Visit(const FInworldControlEventConversationUpdate& Event) override;
 
     UPROPERTY(EditAnywhere, config, Category = "Connection")
     FString SentryDSN;
@@ -294,6 +315,7 @@ private:
     TMap<FString, Inworld::ICharacterComponent*> CharacterComponentByAgentId;
     TArray<Inworld::ICharacterComponent*> CharacterComponentRegistry;
     TMap<FString, FInworldAgentInfo> AgentInfoByBrain;
+	TMap<FString, TArray<FString>> ConversationAgentIds;
 
     TSharedPtr<FInworldClient> Client;
 

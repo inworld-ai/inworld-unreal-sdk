@@ -51,18 +51,26 @@ public:
 
 	FString GetSessionId() const;
 
-	TSharedPtr<FInworldPacket> SendTextMessage(const TArray<FString>& AgentIds, const FString& Text);
+	TSharedPtr<FInworldPacket> SendTextMessage(const FString& AgentId, const FString& Text);
+	TSharedPtr<FInworldPacket> SendTextMessageToConversation(const FString& ConversationId, const FString& Text);
 
-	void SendSoundMessage(const TArray<FString>& AgentIds, class USoundWave* Sound);
-	void SendSoundDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data);
+	void SendSoundMessage(const FString& AgentId, class USoundWave* Sound);
+	void SendSoundMessageToConversation(const FString& ConversationId, class USoundWave* Sound);
+	void SendSoundDataMessage(const FString& AgentId, const TArray<uint8>& Data);
+	void SendSoundDataMessageToConversation(const FString& ConversationId, const TArray<uint8>& Data);
 
-	void SendSoundMessageWithEAC(const TArray<FString>& AgentIds, class USoundWave* Input, class USoundWave* Output);
-	void SendSoundDataMessageWithEAC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+	void SendSoundMessageWithEAC(const FString& AgentId, class USoundWave* Input, class USoundWave* Output);
+	void SendSoundMessageWithEACToConversation(const FString& ConversationId, class USoundWave* Input, class USoundWave* Output);
+	void SendSoundDataMessageWithEAC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+	void SendSoundDataMessageWithEACToConversation(const FString& ConversationId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
-	void StartAudioSession(const TArray<FString>& AgentIds);
-	void StopAudioSession(const TArray<FString>& AgentIds);
+	void StartAudioSession(const FString& AgentId);
+	void StartAudioSessionInConversation(const FString& ConversationId);
+	void StopAudioSession(const FString& AgentId);
+	void StopAudioSessionInConversation(const FString& ConversationId);
 
-	void SendCustomEvent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
+	void SendCustomEvent(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params);
+	void SendCustomEventToConversation(const FString& ConversationId, const FString& Name, const TMap<FString, FString>& Params);
 	void SendChangeSceneEvent(const FString& SceneName);
 
 	void SendNarrationEvent(const FString& AgentId, const FString& Content);

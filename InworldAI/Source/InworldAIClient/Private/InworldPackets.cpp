@@ -241,6 +241,17 @@ void FInworldCustomEvent::AppendDebugString(FString& Str) const
 	}
 }
 
+void FInworldControlEventConversationUpdate::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("ConversationUpdate"));
+	AppendToDebugString(Str, EventType == EInworldConversationUpdateType::STARTED ? TEXT("STARTED") : EInworldConversationUpdateType::EVICTED ? TEXT("EVICTED") : TEXT("UPDATED"));
+	AppendToDebugString(Str, bIncludePlayer ? TEXT("IncludePlayer") : TEXT("ExcludePlayer"));
+	for (const auto& AgentId : Agents)
+	{
+		AppendToDebugString(Str, AgentId);
+	}
+}
+
 void FInworldLoadCharactersEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("ChangeScene"));
@@ -248,6 +259,11 @@ void FInworldLoadCharactersEvent::AppendDebugString(FString& Str) const
 	{
 		AppendToDebugString(Str, Agent.GivenName);
 	}
+}
+
+void FInworldChangeSceneEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("ChangeScene"));
 }
 
 void FInworldRelationEvent::AppendDebugString(FString& Str) const
