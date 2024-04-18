@@ -19,10 +19,15 @@ void UInworldPlayerComponent::BeginPlay()
 	SetIsReplicated(true);
 
     InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
+    InworldSubsystem->OnConversationUpdate.AddDynamic(this, &UInworldPlayerComponent::HandleUpdateConversation);
 }
 
 void UInworldPlayerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+    if (InworldSubsystem.IsValid())
+    {
+        InworldSubsystem->OnConversationUpdate.RemoveDynamic(this, &UInworldPlayerComponent::HandleUpdateConversation);
+    }
     Super::EndPlay(EndPlayReason);
 }
 
@@ -208,6 +213,18 @@ void UInworldPlayerComponent::OnRep_Targets(const TArray<FInworldPlayerTargetCha
         {
             auto* Component = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(Target.AgentId));
             OnTargetSet.Broadcast(Component);
+        }
+    }
+}
+
+void UInworldPlayerComponent::HandleUpdateConversation(const FString& Id, EInworldConversationUpdateType Type, const TArray<FString>& AgentIds, bool bIncludePlayer)
+{
+    if (Type == EInworldConversationUpdateType::EVICTED && ConversationId == Id)
+    {
+        ConversationId = "";
+        if (Targets.Num() != 0)
+        {
+            ConversationId = InworldSubsystem->UpdateConversation("", bIncludePlayer, GetTargetAgentIds());
         }
     }
 }

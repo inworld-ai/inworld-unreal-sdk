@@ -92,9 +92,11 @@ public:
 	const FString& GetConversationId() const { return ConversationId; }
 
 private:
-
 	UFUNCTION()
 	void OnRep_Targets(const TArray<FInworldPlayerTargetCharacter>& OldTrgets);
+
+	UFUNCTION()
+	void HandleUpdateConversation(const FString& Id, EInworldConversationUpdateType Type, const TArray<FString>& AgentIds, bool bIncludePlayer);
 
     UPROPERTY(EditAnywhere, Category = "UI")
     FString UiName = "Player";

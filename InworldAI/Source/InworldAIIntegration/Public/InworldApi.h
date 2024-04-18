@@ -34,7 +34,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSaveReady, FInworldSave, Save, bool, bSuccess);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FResponseLatencyTrackerDelegate, FString, InteractionId, int32, LatencyMs);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnConversationUpdate, FString, Id, EInworldConversationUpdateType, Type, const TArray<FString>&, AgentIds, bool, bIncludePlayer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnConversationUpdate, const FString&, Id, EInworldConversationUpdateType, Type, const TArray<FString>&, AgentIds, bool, bIncludePlayer);
 
 UCLASS(BlueprintType, Config = InworldAI)
 class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor
