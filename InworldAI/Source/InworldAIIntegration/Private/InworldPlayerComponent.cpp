@@ -103,8 +103,8 @@ void UInworldPlayerComponent::SetTargetInworldCharacter(UInworldCharacterCompone
     Target.UnpossessedHandle = Character->OnUnpossessed.AddLambda([this, Character]() { ClearTargetInworldCharacter(Character); });
     Target.AgentId = Character->GetAgentId();
     Targets.Add(Target);
-    OnTargetSet.Broadcast(Character);
     ConversationId = InworldSubsystem->UpdateConversation(ConversationId, false, GetTargetAgentIds());
+    OnTargetSet.Broadcast(Character);
 }
 
 void UInworldPlayerComponent::ClearTargetInworldCharacter(UInworldCharacterComponent* Character)
@@ -127,7 +127,10 @@ void UInworldPlayerComponent::ClearTargetInworldCharacter(UInworldCharacterCompo
     }
 
     Targets.RemoveAt(Target - &Targets[0]);
-    ConversationId = InworldSubsystem->UpdateConversation(ConversationId, false, GetTargetAgentIds());
+    if (Targets.Num() != 0)
+    {
+        ConversationId = InworldSubsystem->UpdateConversation(ConversationId, false, GetTargetAgentIds());
+    }
 }
 
 void UInworldPlayerComponent::ClearAllTargetInworldCharacters()

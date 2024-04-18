@@ -88,6 +88,9 @@ public:
     void SendAudioDataMessageToTarget(const TArray<uint8>& Data);
     void SendAudioDataMessageWithAECToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	const FString& GetConversationId() const { return ConversationId; }
+
 private:
 
 	UFUNCTION()

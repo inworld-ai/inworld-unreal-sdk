@@ -244,7 +244,7 @@ void FInworldCustomEvent::AppendDebugString(FString& Str) const
 void FInworldControlEventConversationUpdate::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("ConversationUpdate"));
-	AppendToDebugString(Str, EventType == EInworldConversationUpdateType::STARTED ? TEXT("STARTED") : EInworldConversationUpdateType::EVICTED ? TEXT("EVICTED") : TEXT("UPDATED"));
+	AppendToDebugString(Str, EventType == EInworldConversationUpdateType::STARTED ? TEXT("STARTED") : EventType == EInworldConversationUpdateType::EVICTED ? TEXT("EVICTED") : TEXT("UPDATED"));
 	AppendToDebugString(Str, bIncludePlayer ? TEXT("IncludePlayer") : TEXT("ExcludePlayer"));
 	for (const auto& AgentId : Agents)
 	{

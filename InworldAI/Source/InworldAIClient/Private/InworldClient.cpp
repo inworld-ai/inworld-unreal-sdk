@@ -15,8 +15,6 @@
 
 #include "InworldUtils.h"
 #include "InworldPacketTranslator.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 THIRD_PARTY_INCLUDES_START
 #include "Packets.h"

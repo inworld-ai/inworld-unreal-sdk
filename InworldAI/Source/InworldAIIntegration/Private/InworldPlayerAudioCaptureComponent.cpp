@@ -290,22 +290,21 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
 
         const bool bShouldCaptureVoice = bIsMicHot && bIsWorldPlaying && bHasTargetCharacter && bHasActiveInworldSession;
 
+        const FString& ConversationId = PlayerComponent->GetConversationId();
         if (bShouldCaptureVoice && bServerCapturingVoice && (PlayerAudioTarget.DesiredAgentIds != PlayerAudioTarget.ActiveAgentIds))
         {
-            InworldSubsystem->StopAudioSessionMultiAgent(PlayerAudioTarget.ActiveAgentIds);
-            InworldSubsystem->StartAudioSessionMultiAgent(PlayerAudioTarget.DesiredAgentIds, GetOwner());
             PlayerAudioTarget.ActiveAgentIds = PlayerAudioTarget.DesiredAgentIds;
         }
-        else if (bShouldCaptureVoice != bServerCapturingVoice)
+        else if (!ConversationId.IsEmpty() && bShouldCaptureVoice != bServerCapturingVoice)
         {
             if (bShouldCaptureVoice)
             {
-                InworldSubsystem->StartAudioSessionMultiAgent(PlayerAudioTarget.DesiredAgentIds, GetOwner());
+                InworldSubsystem->StartAudioSessionInConversation(ConversationId, GetOwner());
                 PlayerAudioTarget.ActiveAgentIds = PlayerAudioTarget.DesiredAgentIds;
             }
             else
             {
-                InworldSubsystem->StopAudioSessionMultiAgent(PlayerAudioTarget.ActiveAgentIds);
+                InworldSubsystem->StopAudioSessionInConversation(ConversationId);
                 PlayerAudioTarget.ActiveAgentIds.Empty();
             }
 
@@ -422,15 +421,16 @@ void UInworldPlayerAudioCaptureComponent::StopCapture()
 
 void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implementation(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo)
 {
-    if (PlayerAudioTarget.ActiveAgentIds.Num() != 0)
+    const FString& ConversationId = PlayerComponent->GetConversationId();
+    if (!ConversationId.IsEmpty() && PlayerAudioTarget.ActiveAgentIds.Num() != 0)
     {
         if (bEnableAEC)
         {
-            InworldSubsystem->SendAudioDataMessageWithAEC(PlayerAudioTarget.ActiveAgentIds, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
+            InworldSubsystem->SendAudioDataMessageWithAECToConversation(ConversationId, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
         }
         else
         {
-            InworldSubsystem->SendAudioDataMessage(PlayerAudioTarget.ActiveAgentIds, PlayerVoiceCaptureInfo.MicSoundData);
+            InworldSubsystem->SendAudioDataMessageToConversation(ConversationId, PlayerVoiceCaptureInfo.MicSoundData);
         }
     }
 }

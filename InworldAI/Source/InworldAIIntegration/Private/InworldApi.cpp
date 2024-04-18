@@ -21,9 +21,10 @@ TEXT("Inworld.Debug.LogAllPackets"), false,
 TEXT("Enable/Disable logging all packets going from server")
 );
 
-#define STR_EMPTY_RETURN(Arg, Ret) if (Arg.IsEmpty()) { UE_LOG(LogInworldAIIntegration, Warning, TEXT("Arg is empty.")); return Ret; }
-#define ARR_EMPTY_RETURN(Arg, Ret) if (Arg.Num() == 0) { UE_LOG(LogInworldAIIntegration, Warning, TEXT("Arg is empty.")); return Ret; }
-#define PTR_EMPTY_RETURN(Arg, Ret) if (Arg == nullptr) { UE_LOG(LogInworldAIIntegration, Warning, TEXT("Arg is empty.")); return Ret; }
+#define ARG_EMPTY_RETURN(Cond, Func, Arg, Ret) if (Cond) { UE_LOG(LogInworldAIIntegration, Warning, TEXT("UInworldApiSubsystem call %s skipped: %s is empty."), TEXT(#Func), TEXT(#Arg)); return Ret; }
+#define STR_EMPTY_RETURN(Func, Arg, Ret) ARG_EMPTY_RETURN(Arg.IsEmpty(), Func, Arg, Ret)
+#define ARR_EMPTY_RETURN(Func, Arg, Ret) ARG_EMPTY_RETURN(Arg.Num() == 0, Func, Arg, Ret)
+#define PTR_EMPTY_RETURN(Func, Arg, Ret) ARG_EMPTY_RETURN(Arg == nullptr, Func, Arg, Ret)
 
 UInworldApiSubsystem::UInworldApiSubsystem()
     : UWorldSubsystem()
@@ -135,13 +136,13 @@ void UInworldApiSubsystem::ClearResponseLatencyTrackerDelegate()
 
 void UInworldApiSubsystem::LoadCharacters(const TArray<FString>& Names)
 {
-    ARR_EMPTY_RETURN(Names,)
+    ARR_EMPTY_RETURN(LoadCharacters, Names,)
     Client->LoadCharacters(Names);
 }
 
 void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
 {
-    ARR_EMPTY_RETURN(Names,)
+    ARR_EMPTY_RETURN(UnloadCharacters, Names,)
 	Client->UnloadCharacters(Names);
 }
 
@@ -284,15 +285,14 @@ void UInworldApiSubsystem::UpdateCharacterComponentRegistrationOnClient(Inworld:
 
 FString UInworldApiSubsystem::UpdateConversation(const FString& ConversationId, bool bIncludePlayer, const TArray<FString>& AgentIds)
 {
-    STR_EMPTY_RETURN(ConversationId, {});
-    ARR_EMPTY_RETURN(AgentIds, {})
+    ARR_EMPTY_RETURN(UpdateConversation, AgentIds, {});
     return Client->UpdateConversation(ConversationId, bIncludePlayer, AgentIds);
 }
 
 void UInworldApiSubsystem::SendTextMessageToConversation(const FString& ConversationId, const FString& Text)
 {
-    STR_EMPTY_RETURN(ConversationId,);
-    STR_EMPTY_RETURN(Text,);
+    STR_EMPTY_RETURN(SendTextMessageToConversation, ConversationId,);
+    STR_EMPTY_RETURN(SendTextMessageToConversation, Text,);
     TSharedPtr<FInworldPacket> Packet = Client->SendTextMessageToConversation(ConversationId, Text);
     if (!Packet.IsValid())
     {
@@ -318,32 +318,32 @@ void UInworldApiSubsystem::SendTextMessageToConversation(const FString& Conversa
 void UInworldApiSubsystem::SendTriggerToConversation(const FString& ConversationId, const FString& Name,
     const TMap<FString, FString>& Params)
 {
-    STR_EMPTY_RETURN(ConversationId,);
-    STR_EMPTY_RETURN(Name,);
-    ARR_EMPTY_RETURN(Params,);
+    STR_EMPTY_RETURN(SendTriggerToConversation, ConversationId,);
+    STR_EMPTY_RETURN(SendTriggerToConversation, Name,);
+    ARR_EMPTY_RETURN(SendTriggerToConversation, Params,);
     Client->SendCustomEventToConversation(ConversationId, Name, Params);
 }
 
 void UInworldApiSubsystem::SendAudioMessageToConversation(const FString& ConversationId, USoundWave* SoundWave)
 {
-    STR_EMPTY_RETURN(ConversationId,);
-    PTR_EMPTY_RETURN(SoundWave,);
+    STR_EMPTY_RETURN(SendAudioMessageToConversation, ConversationId,);
+    PTR_EMPTY_RETURN(SendAudioMessageToConversation, SoundWave,);
     Client->SendSoundMessageToConversation(ConversationId, SoundWave);
 }
 
 void UInworldApiSubsystem::SendAudioMessageWithAECToConversation(const FString& ConversationId, USoundWave* InputWave,
     USoundWave* OutputWave)
 {
-    STR_EMPTY_RETURN(ConversationId,);
-    PTR_EMPTY_RETURN(InputWave,);
-    PTR_EMPTY_RETURN(OutputWave,);
+    STR_EMPTY_RETURN(SendAudioMessageWithAECToConversation, ConversationId,);
+    PTR_EMPTY_RETURN(SendAudioMessageWithAECToConversation, InputWave,);
+    PTR_EMPTY_RETURN(SendAudioMessageWithAECToConversation, OutputWave,);
     Client->SendSoundMessageWithAECToConversation(ConversationId, InputWave, OutputWave);
 }
 
 bool UInworldApiSubsystem::StartAudioSessionInConversation(const FString& ConversationId, const AActor* Owner)
 {
-    STR_EMPTY_RETURN(ConversationId, false);
-    PTR_EMPTY_RETURN(Owner, false);
+    STR_EMPTY_RETURN(StartAudioSessionInConversation, ConversationId, false);
+    PTR_EMPTY_RETURN(StartAudioSessionInConversation, Owner, false);
     if (AudioSessionOwner)
     {
         return false;
@@ -357,15 +357,15 @@ bool UInworldApiSubsystem::StartAudioSessionInConversation(const FString& Conver
 
 void UInworldApiSubsystem::StopAudioSessionInConversation(const FString& ConversationId)
 {
-    STR_EMPTY_RETURN(ConversationId,);
+    STR_EMPTY_RETURN(StopAudioSessionInConversation, ConversationId,);
     AudioSessionOwner = nullptr;
     Client->StopAudioSessionInConversation(ConversationId);
 }
 
 void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)
 {
-    STR_EMPTY_RETURN(AgentId,);
-    STR_EMPTY_RETURN(Text,);
+    STR_EMPTY_RETURN(SendTextMessage, AgentId,);
+    STR_EMPTY_RETURN(SendTextMessage, Text,);
     TSharedPtr<FInworldPacket> Packet = Client->SendTextMessage(AgentId, Text);
     if (Packet.IsValid())
     {
@@ -379,69 +379,69 @@ void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString
 
 void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
 {
-    STR_EMPTY_RETURN(AgentId,);
-    STR_EMPTY_RETURN(Name,);
-    ARR_EMPTY_RETURN(Params,);
+    STR_EMPTY_RETURN(SendTrigger, AgentId,);
+    STR_EMPTY_RETURN(SendTrigger, Name,);
+    ARR_EMPTY_RETURN(SendTrigger, Params,);
     Client->SendCustomEvent(AgentId, Name, Params);
 }
 
 void UInworldApiSubsystem::SendNarrationEvent(const FString& AgentId, const FString& Content)
 {
-    STR_EMPTY_RETURN(AgentId,);
-    STR_EMPTY_RETURN(Content,);
+    STR_EMPTY_RETURN(SendNarrationEvent, AgentId,);
+    STR_EMPTY_RETURN(SendNarrationEvent, Content,);
     Client->SendNarrationEvent(AgentId, Content);
 }
 
 void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, USoundWave* SoundWave)
 {
-    STR_EMPTY_RETURN(AgentId,);
-    PTR_EMPTY_RETURN(SoundWave,);
+    STR_EMPTY_RETURN(SendAudioMessage, AgentId,);
+    PTR_EMPTY_RETURN(SendAudioMessage, SoundWave,);
     Client->SendSoundMessage(AgentId, SoundWave);
 }
 
 void UInworldApiSubsystem::SendAudioDataMessage(const FString& AgentId, const TArray<uint8>& Data)
 {
-    STR_EMPTY_RETURN(AgentId,);
-    ARR_EMPTY_RETURN(Data,);
+    STR_EMPTY_RETURN(SendAudioDataMessage, AgentId,);
+    ARR_EMPTY_RETURN(SendAudioDataMessage, Data,);
     Client->SendSoundDataMessage(AgentId, Data);
 }
 
 void UInworldApiSubsystem::SendAudioDataMessageToConversation(const FString& ConversationId, const TArray<uint8>& Data)
 {
-    STR_EMPTY_RETURN(ConversationId,);
-    ARR_EMPTY_RETURN(Data,);
+    STR_EMPTY_RETURN(SendAudioDataMessageToConversation, ConversationId,);
+    ARR_EMPTY_RETURN(SendAudioDataMessageToConversation, Data,);
     Client->SendSoundDataMessageToConversation(ConversationId, Data);
 }
 
 void UInworldApiSubsystem::SendAudioDataMessageWithAECToConversation(const FString& ConversationId,
     const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    STR_EMPTY_RETURN(ConversationId,);
-    ARR_EMPTY_RETURN(InputData,);
-    ARR_EMPTY_RETURN(OutputData,);
+    STR_EMPTY_RETURN(SendAudioDataMessageWithAECToConversation, ConversationId,);
+    ARR_EMPTY_RETURN(SendAudioDataMessageWithAECToConversation, InputData,);
+    ARR_EMPTY_RETURN(SendAudioDataMessageWithAECToConversation, OutputData,);
     Client->SendSoundDataMessageWithAECToConversation(ConversationId, InputData, OutputData);
 }
 
 void UInworldApiSubsystem::SendAudioMessageWithAEC(const FString& AgentId, USoundWave* InputWave, USoundWave* OutputWave)
 {
-    STR_EMPTY_RETURN(AgentId,);
-    PTR_EMPTY_RETURN(InputWave,);
-    PTR_EMPTY_RETURN(OutputWave,);
+    STR_EMPTY_RETURN(SendAudioMessageWithAEC, AgentId,);
+    PTR_EMPTY_RETURN(SendAudioMessageWithAEC, InputWave,);
+    PTR_EMPTY_RETURN(SendAudioMessageWithAEC, OutputWave,);
     Client->SendSoundMessageWithAEC(AgentId, InputWave, OutputWave);
 }
 
 void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    STR_EMPTY_RETURN(AgentId,);
-    ARR_EMPTY_RETURN(InputData,);
-    ARR_EMPTY_RETURN(OutputData,);
+    STR_EMPTY_RETURN(SendAudioDataMessageWithAEC, AgentId,);
+    ARR_EMPTY_RETURN(SendAudioDataMessageWithAEC, InputData,);
+    ARR_EMPTY_RETURN(SendAudioDataMessageWithAEC, OutputData,);
     Client->SendSoundDataMessageWithAEC(AgentId, InputData, OutputData);
 }
 
 bool UInworldApiSubsystem::StartAudioSession(const FString& AgentId, const AActor* Owner)
 {
-    STR_EMPTY_RETURN(AgentId, false);
-    PTR_EMPTY_RETURN(Owner, false);
+    STR_EMPTY_RETURN(StartAudioSession, AgentId, false);
+    PTR_EMPTY_RETURN(StartAudioSession, Owner, false);
     if (AudioSessionOwner)
     {
         return false;
@@ -455,14 +455,14 @@ bool UInworldApiSubsystem::StartAudioSession(const FString& AgentId, const AActo
 
 void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
 {
-    STR_EMPTY_RETURN(AgentId,);
+    STR_EMPTY_RETURN(StopAudioSession, AgentId,);
     AudioSessionOwner = nullptr;
     Client->StopAudioSession(AgentId);
 }
 
 void UInworldApiSubsystem::ChangeScene(const FString& SceneId)
 {
-    STR_EMPTY_RETURN(SceneId,);
+    STR_EMPTY_RETURN(ChangeScene, SceneId,);
     UnpossessAgents();
     Client->SendChangeSceneEvent(SceneId);
 }
@@ -474,7 +474,7 @@ void UInworldApiSubsystem::GetConnectionError(FString& Message, int32& Code)
 
 Inworld::ICharacterComponent* UInworldApiSubsystem::GetCharacterComponentByAgentId(const FString& AgentId) const
 {
-    STR_EMPTY_RETURN(AgentId, nullptr);
+    STR_EMPTY_RETURN(GetCharacterComponentByAgentId, AgentId, nullptr);
     if (CharacterComponentByAgentId.Contains(AgentId))
     {
         return CharacterComponentByAgentId[AgentId];
@@ -484,16 +484,16 @@ Inworld::ICharacterComponent* UInworldApiSubsystem::GetCharacterComponentByAgent
 
 TArray<FString> UInworldApiSubsystem::GetConversationAgents(const FString& ConversationId) const
 {
-    STR_EMPTY_RETURN(ConversationId, {});
+    STR_EMPTY_RETURN(GetConversationAgents, ConversationId, {});
     auto* Agents = ConversationAgentIds.Find(ConversationId);
     return Agents ? *Agents : TArray<FString>();
 }
 
 void UInworldApiSubsystem::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
-    STR_EMPTY_RETURN(AgentId,);
-    STR_EMPTY_RETURN(InteractionId,);
-    ARR_EMPTY_RETURN(UtteranceIds,)
+    STR_EMPTY_RETURN(CancelResponse, AgentId,);
+    STR_EMPTY_RETURN(CancelResponse, InteractionId,);
+    ARR_EMPTY_RETURN(CancelResponse, UtteranceIds,)
     Client->CancelResponse(AgentId, InteractionId, UtteranceIds);
 }
 
@@ -635,6 +635,10 @@ void UInworldApiSubsystem::Visit(const FInworldControlEventConversationUpdate& E
     {
         ConversationAgentIds.FindOrAdd(Event.Routing.ConversationId) = Event.Agents;
     }
+    UE_LOG(LogInworldAIIntegration, Log, TEXT("Conversation %s: %s, %d characters."),
+        Event.EventType == EInworldConversationUpdateType::STARTED ? TEXT("STARTED") : Event.EventType == EInworldConversationUpdateType::EVICTED ? TEXT("EVICTED") : TEXT("UPDATED"),
+        *Event.Routing.ConversationId,
+        Event.Agents.Num())
     OnConversationUpdate.Broadcast(Event.Routing.ConversationId, Event.EventType, Event.Agents, Event.bIncludePlayer);
 }
 
