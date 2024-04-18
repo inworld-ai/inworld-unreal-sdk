@@ -21,6 +21,10 @@ TEXT("Inworld.Debug.LogAllPackets"), false,
 TEXT("Enable/Disable logging all packets going from server")
 );
 
+#define STR_EMPTY_RETURN(Arg, Ret) if (Arg.IsEmpty()) { UE_LOG(LogInworldAIIntegration, Warning, TEXT("Arg is empty.")); return Ret; }
+#define ARR_EMPTY_RETURN(Arg, Ret) if (Arg.Num() == 0) { UE_LOG(LogInworldAIIntegration, Warning, TEXT("Arg is empty.")); return Ret; }
+#define PTR_EMPTY_RETURN(Arg, Ret) if (Arg == nullptr) { UE_LOG(LogInworldAIIntegration, Warning, TEXT("Arg is empty.")); return Ret; }
+
 UInworldApiSubsystem::UInworldApiSubsystem()
     : UWorldSubsystem()
 {
@@ -131,11 +135,13 @@ void UInworldApiSubsystem::ClearResponseLatencyTrackerDelegate()
 
 void UInworldApiSubsystem::LoadCharacters(const TArray<FString>& Names)
 {
+    ARR_EMPTY_RETURN(Names,)
     Client->LoadCharacters(Names);
 }
 
 void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
 {
+    ARR_EMPTY_RETURN(Names,)
 	Client->UnloadCharacters(Names);
 }
 
@@ -278,16 +284,15 @@ void UInworldApiSubsystem::UpdateCharacterComponentRegistrationOnClient(Inworld:
 
 FString UInworldApiSubsystem::UpdateConversation(const FString& ConversationId, bool bIncludePlayer, const TArray<FString>& AgentIds)
 {
+    STR_EMPTY_RETURN(ConversationId, {});
+    ARR_EMPTY_RETURN(AgentIds, {})
     return Client->UpdateConversation(ConversationId, bIncludePlayer, AgentIds);
 }
 
 void UInworldApiSubsystem::SendTextMessageToConversation(const FString& ConversationId, const FString& Text)
 {
-    if (!ensureMsgf(ConversationId.IsEmpty(), TEXT("ConversationId must be valid!")))
-    {
-        return;
-    }
-
+    STR_EMPTY_RETURN(ConversationId,);
+    STR_EMPTY_RETURN(Text,);
     TSharedPtr<FInworldPacket> Packet = Client->SendTextMessageToConversation(ConversationId, Text);
     if (!Packet.IsValid())
     {
@@ -313,33 +318,54 @@ void UInworldApiSubsystem::SendTextMessageToConversation(const FString& Conversa
 void UInworldApiSubsystem::SendTriggerToConversation(const FString& ConversationId, const FString& Name,
     const TMap<FString, FString>& Params)
 {
+    STR_EMPTY_RETURN(ConversationId,);
+    STR_EMPTY_RETURN(Name,);
+    ARR_EMPTY_RETURN(Params,);
     Client->SendCustomEventToConversation(ConversationId, Name, Params);
 }
 
 void UInworldApiSubsystem::SendAudioMessageToConversation(const FString& ConversationId, USoundWave* SoundWave)
 {
+    STR_EMPTY_RETURN(ConversationId,);
+    PTR_EMPTY_RETURN(SoundWave,);
+    Client->SendSoundMessageToConversation(ConversationId, SoundWave);
 }
 
 void UInworldApiSubsystem::SendAudioMessageWithAECToConversation(const FString& ConversationId, USoundWave* InputWave,
     USoundWave* OutputWave)
 {
+    STR_EMPTY_RETURN(ConversationId,);
+    PTR_EMPTY_RETURN(InputWave,);
+    PTR_EMPTY_RETURN(OutputWave,);
+    Client->SendSoundMessageWithAECToConversation(ConversationId, InputWave, OutputWave);
 }
 
 bool UInworldApiSubsystem::StartAudioSessionInConversation(const FString& ConversationId, const AActor* Owner)
 {
+    STR_EMPTY_RETURN(ConversationId, false);
+    PTR_EMPTY_RETURN(Owner, false);
+    if (AudioSessionOwner)
+    {
+        return false;
+    }
+
+    AudioSessionOwner = Owner;
+
+    Client->StartAudioSessionInConversation(ConversationId);
+    return true;
 }
 
-bool UInworldApiSubsystem::StopAudioSessionInConversation(const FString& ConversationId, const AActor* Owner)
+void UInworldApiSubsystem::StopAudioSessionInConversation(const FString& ConversationId)
 {
+    STR_EMPTY_RETURN(ConversationId,);
+    AudioSessionOwner = nullptr;
+    Client->StopAudioSessionInConversation(ConversationId);
 }
 
 void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)
 {
-    if (!ensureMsgf(AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-    {
-        return;
-    }
-
+    STR_EMPTY_RETURN(AgentId,);
+    STR_EMPTY_RETURN(Text,);
     TSharedPtr<FInworldPacket> Packet = Client->SendTextMessage(AgentId, Text);
     if (Packet.IsValid())
     {
@@ -353,46 +379,69 @@ void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString
 
 void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
 {
+    STR_EMPTY_RETURN(AgentId,);
+    STR_EMPTY_RETURN(Name,);
+    ARR_EMPTY_RETURN(Params,);
     Client->SendCustomEvent(AgentId, Name, Params);
 }
 
 void UInworldApiSubsystem::SendNarrationEvent(const FString& AgentId, const FString& Content)
 {
-    if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-    {
-        return;
-    }
-
+    STR_EMPTY_RETURN(AgentId,);
+    STR_EMPTY_RETURN(Content,);
     Client->SendNarrationEvent(AgentId, Content);
 }
 
 void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, USoundWave* SoundWave)
 {
+    STR_EMPTY_RETURN(AgentId,);
+    PTR_EMPTY_RETURN(SoundWave,);
     Client->SendSoundMessage(AgentId, SoundWave);
 }
 
 void UInworldApiSubsystem::SendAudioDataMessage(const FString& AgentId, const TArray<uint8>& Data)
 {
+    STR_EMPTY_RETURN(AgentId,);
+    ARR_EMPTY_RETURN(Data,);
     Client->SendSoundDataMessage(AgentId, Data);
+}
+
+void UInworldApiSubsystem::SendAudioDataMessageToConversation(const FString& ConversationId, const TArray<uint8>& Data)
+{
+    STR_EMPTY_RETURN(ConversationId,);
+    ARR_EMPTY_RETURN(Data,);
+    Client->SendSoundDataMessageToConversation(ConversationId, Data);
+}
+
+void UInworldApiSubsystem::SendAudioDataMessageWithAECToConversation(const FString& ConversationId,
+    const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
+{
+    STR_EMPTY_RETURN(ConversationId,);
+    ARR_EMPTY_RETURN(InputData,);
+    ARR_EMPTY_RETURN(OutputData,);
+    Client->SendSoundDataMessageWithAECToConversation(ConversationId, InputData, OutputData);
 }
 
 void UInworldApiSubsystem::SendAudioMessageWithAEC(const FString& AgentId, USoundWave* InputWave, USoundWave* OutputWave)
 {
-	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-	{
-		return;
-	}
-
-    Client->SendSoundMessageWithEAC({ AgentId }, InputWave, OutputWave);
+    STR_EMPTY_RETURN(AgentId,);
+    PTR_EMPTY_RETURN(InputWave,);
+    PTR_EMPTY_RETURN(OutputWave,);
+    Client->SendSoundMessageWithAEC(AgentId, InputWave, OutputWave);
 }
 
 void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    Client->SendSoundDataMessageWithEAC(AgentId, InputData, OutputData);
+    STR_EMPTY_RETURN(AgentId,);
+    ARR_EMPTY_RETURN(InputData,);
+    ARR_EMPTY_RETURN(OutputData,);
+    Client->SendSoundDataMessageWithAEC(AgentId, InputData, OutputData);
 }
 
 bool UInworldApiSubsystem::StartAudioSession(const FString& AgentId, const AActor* Owner)
 {
+    STR_EMPTY_RETURN(AgentId, false);
+    PTR_EMPTY_RETURN(Owner, false);
     if (AudioSessionOwner)
     {
         return false;
@@ -406,12 +455,14 @@ bool UInworldApiSubsystem::StartAudioSession(const FString& AgentId, const AActo
 
 void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
 {
+    STR_EMPTY_RETURN(AgentId,);
     AudioSessionOwner = nullptr;
     Client->StopAudioSession(AgentId);
 }
 
 void UInworldApiSubsystem::ChangeScene(const FString& SceneId)
 {
+    STR_EMPTY_RETURN(SceneId,);
     UnpossessAgents();
     Client->SendChangeSceneEvent(SceneId);
 }
@@ -423,6 +474,7 @@ void UInworldApiSubsystem::GetConnectionError(FString& Message, int32& Code)
 
 Inworld::ICharacterComponent* UInworldApiSubsystem::GetCharacterComponentByAgentId(const FString& AgentId) const
 {
+    STR_EMPTY_RETURN(AgentId, nullptr);
     if (CharacterComponentByAgentId.Contains(AgentId))
     {
         return CharacterComponentByAgentId[AgentId];
@@ -432,17 +484,16 @@ Inworld::ICharacterComponent* UInworldApiSubsystem::GetCharacterComponentByAgent
 
 TArray<FString> UInworldApiSubsystem::GetConversationAgents(const FString& ConversationId) const
 {
+    STR_EMPTY_RETURN(ConversationId, {});
     auto* Agents = ConversationAgentIds.Find(ConversationId);
     return Agents ? *Agents : TArray<FString>();
 }
 
 void UInworldApiSubsystem::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
-	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-	{
-		return;
-	}
-
+    STR_EMPTY_RETURN(AgentId,);
+    STR_EMPTY_RETURN(InteractionId,);
+    ARR_EMPTY_RETURN(UtteranceIds,)
     Client->CancelResponse(AgentId, InteractionId, UtteranceIds);
 }
 
@@ -528,8 +579,7 @@ void UInworldApiSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPacket)
 {
-	auto* SourceComponentPtr = CharacterComponentByAgentId.Find(InworldPacket->Routing.Source.Name);
-	if (SourceComponentPtr)
+	if (const auto* SourceComponentPtr = CharacterComponentByAgentId.Find(InworldPacket->Routing.Source.Name))
 	{
 		(*SourceComponentPtr)->HandlePacket(InworldPacket);
 	}
@@ -538,8 +588,7 @@ void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPack
     {
         auto ProcessTarget = [this, InworldPacket](const FInworldActor& TargetActor)
             {
-                auto* TargetComponentPtr = CharacterComponentByAgentId.Find(TargetActor.Name);
-                if (TargetComponentPtr)
+                if (const auto* TargetComponentPtr = CharacterComponentByAgentId.Find(TargetActor.Name))
                 {
                     (*TargetComponentPtr)->HandlePacket(InworldPacket);
                 }
@@ -547,11 +596,14 @@ void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPack
 
         ProcessTarget(InworldPacket->Routing.Target);
 
-        for (const auto& Target : InworldPacket->Routing.Targets)
+        if (auto* Agents = ConversationAgentIds.Find(InworldPacket->Routing.ConversationId))
         {
-            if (Target.Name != InworldPacket->Routing.Target.Name)
+            for (const auto& Agent : *Agents)
             {
-                ProcessTarget(Target);
+                if (Agent != InworldPacket->Routing.Target.Name)
+                {
+                    ProcessTarget({ EInworldActorType::AGENT, Agent });
+                }
             }
         }
     }

@@ -388,7 +388,7 @@ void FInworldClient::SendSoundDataMessageToConversation(const FString& Conversat
 	Inworld::GetClient()->SendSoundMessageToConversation(TCHAR_TO_UTF8(*ConversationId), data);
 }
 
-void FInworldClient::SendSoundMessageWithEAC(const FString& AgentId, class USoundWave* Input, class USoundWave* Output)
+void FInworldClient::SendSoundMessageWithAEC(const FString& AgentId, class USoundWave* Input, class USoundWave* Output)
 {
 	std::vector<int16_t> inputdata, outputdata;
 	if (Inworld::Utils::SoundWaveToVec(Input, inputdata) && Inworld::Utils::SoundWaveToVec(Output, outputdata))
@@ -397,7 +397,7 @@ void FInworldClient::SendSoundMessageWithEAC(const FString& AgentId, class USoun
 	}
 }
 
-void FInworldClient::SendSoundMessageWithEACToConversation(const FString& ConversationId, USoundWave* Input,
+void FInworldClient::SendSoundMessageWithAECToConversation(const FString& ConversationId, USoundWave* Input,
 	USoundWave* Output)
 {
 	std::vector<int16_t> inputdata, outputdata;
@@ -407,14 +407,14 @@ void FInworldClient::SendSoundMessageWithEACToConversation(const FString& Conver
 	}
 }
 
-void FInworldClient::SendSoundDataMessageWithEAC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
+void FInworldClient::SendSoundDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
 	std::vector<int16> inputdata((int16*)InputData.GetData(), ((int16*)InputData.GetData()) + (InputData.Num() / 2));
 	std::vector<int16> outputdata((int16*)OutputData.GetData(), ((int16*)OutputData.GetData()) + (OutputData.Num() / 2));
 	Inworld::GetClient()->SendSoundMessageWithAEC(TCHAR_TO_UTF8(*AgentId), inputdata, outputdata);
 }
 
-void FInworldClient::SendSoundDataMessageWithEACToConversation(const FString& ConversationId,
+void FInworldClient::SendSoundDataMessageWithAECToConversation(const FString& ConversationId,
 	const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
 	std::vector<int16> inputdata((int16*)InputData.GetData(), ((int16*)InputData.GetData()) + (InputData.Num() / 2));

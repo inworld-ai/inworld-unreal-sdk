@@ -64,10 +64,7 @@ TArray<FString> UInworldPlayerComponent::GetTargetAgentIds()
 
 void UInworldPlayerComponent::ContinueMultiAgentConversation()
 {
-    if (Targets.Num() > 1)
-    {
-        InworldSubsystem->SendTriggerMultiAgent(GetTargetAgentIds(), "inworld.conversation.next_turn", {});
-    }
+    InworldSubsystem->SendTriggerToConversation(ConversationId, "inworld.conversation.next_turn", {});
 }
 
 Inworld::ICharacterComponent* UInworldPlayerComponent::GetTargetCharacter()
@@ -107,6 +104,7 @@ void UInworldPlayerComponent::SetTargetInworldCharacter(UInworldCharacterCompone
     Target.AgentId = Character->GetAgentId();
     Targets.Add(Target);
     OnTargetSet.Broadcast(Character);
+    ConversationId = InworldSubsystem->UpdateConversation(ConversationId, false, GetTargetAgentIds());
 }
 
 void UInworldPlayerComponent::ClearTargetInworldCharacter(UInworldCharacterComponent* Character)
@@ -129,6 +127,7 @@ void UInworldPlayerComponent::ClearTargetInworldCharacter(UInworldCharacterCompo
     }
 
     Targets.RemoveAt(Target - &Targets[0]);
+    ConversationId = InworldSubsystem->UpdateConversation(ConversationId, false, GetTargetAgentIds());
 }
 
 void UInworldPlayerComponent::ClearAllTargetInworldCharacters()
@@ -143,28 +142,22 @@ void UInworldPlayerComponent::ClearAllTargetInworldCharacters()
 
 void UInworldPlayerComponent::SendTextMessageToTarget_Implementation(const FString& Message)
 {
-    if (!Message.IsEmpty())
-    {
-        InworldSubsystem->SendTextMessageMultiAgent(GetTargetAgentIds(), Message);
-    }
+    InworldSubsystem->SendTextMessageToConversation(ConversationId, Message);
 }
 
 void UInworldPlayerComponent::SendTextMessage_Implementation(const FString& Message, const FString& AgentId)
 {
-	if (!Message.IsEmpty() && !AgentId.IsEmpty())
-	{
-		InworldSubsystem->SendTextMessage(AgentId, Message);
-	}
+    InworldSubsystem->SendTextMessage(AgentId, Message);
 }
 
 void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params)
 {
-    InworldSubsystem->SendTriggerMultiAgent(GetTargetAgentIds(), Name, Params);
+    InworldSubsystem->SendTriggerToConversation(ConversationId, Name, Params);
 }
 
 void UInworldPlayerComponent::StartAudioSessionWithTarget()
 {
-    InworldSubsystem->StartAudioSessionMultiAgent(GetTargetAgentIds(), GetOwner());
+    InworldSubsystem->StartAudioSessionInConversation(ConversationId, GetOwner());
 }
 
 void UInworldPlayerComponent::StopAudioSessionWithTarget()
@@ -177,17 +170,17 @@ void UInworldPlayerComponent::StopAudioSessionWithTarget()
 
 void UInworldPlayerComponent::SendAudioMessageToTarget(USoundWave* SoundWave)
 {
-    InworldSubsystem->SendAudioMessage(GetTargetAgentIds(), SoundWave);
+    InworldSubsystem->SendAudioMessageToConversation(ConversationId, SoundWave);
 }
 
 void UInworldPlayerComponent::SendAudioDataMessageToTarget(const TArray<uint8>& Data)
 {
-    InworldSubsystem->SendAudioDataMessage(GetTargetAgentIds(), Data);
+    InworldSubsystem->SendAudioDataMessageToConversation(ConversationId, Data);
 }
 
 void UInworldPlayerComponent::SendAudioDataMessageWithAECToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    InworldSubsystem->SendAudioDataMessageWithAEC(GetTargetAgentIds(), InputData, OutputData);
+    InworldSubsystem->SendAudioDataMessageWithAECToConversation(ConversationId, InputData, OutputData);
 }
 
 void UInworldPlayerComponent::OnRep_Targets(const TArray<FInworldPlayerTargetCharacter>& OldTargets)

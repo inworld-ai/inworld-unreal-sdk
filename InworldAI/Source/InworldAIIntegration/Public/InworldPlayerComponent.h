@@ -49,7 +49,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     TArray<FString> GetTargetAgentIds();
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
     void ContinueMultiAgentConversation();
 
     virtual Inworld::ICharacterComponent* GetTargetCharacter() override;
@@ -100,6 +100,8 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_Targets)
 	TArray<FInworldPlayerTargetCharacter> Targets;
+
+	FString ConversationId;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
     friend class FInworldGameplayDebuggerCategory;

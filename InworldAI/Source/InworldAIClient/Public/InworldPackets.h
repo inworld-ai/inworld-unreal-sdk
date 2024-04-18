@@ -203,7 +203,7 @@ struct INWORLDAICLIENT_API FInworldTextEvent : public FInworldPacket
 	bool Final = false;
 
 protected:
-	virtual void AppendDebugString(FString& Str) const override override;
+	virtual void AppendDebugString(FString& Str) const override;
 };
 
 USTRUCT()

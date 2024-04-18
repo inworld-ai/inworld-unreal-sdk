@@ -403,11 +403,11 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 
 	ProcessTarget(Event.Routing.Target);
 
-	for (const auto& ToActor : Event.Routing.Targets)
+	for (const auto& Agent : InworldSubsystem->GetConversationAgents(Event.Routing.ConversationId))
 	{
-		if (ToActor.Name != Event.Routing.Target.Name)
+		if (Agent != Event.Routing.Target.Name)
 		{
-			ProcessTarget(ToActor);
+			ProcessTarget({ EInworldActorType::AGENT, Agent });
 		}
 	}
 

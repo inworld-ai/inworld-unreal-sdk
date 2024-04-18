@@ -215,7 +215,7 @@ public:
     void StopAudioSession(const FString& AgentId);
 	/** Stop audio session in conversation */
 	UFUNCTION(BlueprintCallable, Category = "Audio")
-	bool StopAudioSessionInConversation(const FString& ConversationId, const AActor* Owner);
+	void StopAudioSessionInConversation(const FString& ConversationId);
 
 	/** Change scene */
     UFUNCTION(BlueprintCallable, Category = "Messages")

@@ -61,10 +61,10 @@ public:
 	void SendSoundDataMessage(const FString& AgentId, const TArray<uint8>& Data);
 	void SendSoundDataMessageToConversation(const FString& ConversationId, const TArray<uint8>& Data);
 
-	void SendSoundMessageWithEAC(const FString& AgentId, class USoundWave* Input, class USoundWave* Output);
-	void SendSoundMessageWithEACToConversation(const FString& ConversationId, class USoundWave* Input, class USoundWave* Output);
-	void SendSoundDataMessageWithEAC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
-	void SendSoundDataMessageWithEACToConversation(const FString& ConversationId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+	void SendSoundMessageWithAEC(const FString& AgentId, class USoundWave* Input, class USoundWave* Output);
+	void SendSoundMessageWithAECToConversation(const FString& ConversationId, class USoundWave* Input, class USoundWave* Output);
+	void SendSoundDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+	void SendSoundDataMessageWithAECToConversation(const FString& ConversationId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 	void StartAudioSession(const FString& AgentId);
 	void StartAudioSessionInConversation(const FString& ConversationId);
