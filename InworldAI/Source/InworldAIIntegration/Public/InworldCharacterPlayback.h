@@ -123,7 +123,7 @@ protected:
 	}
 
 	TWeakObjectPtr<AActor> OwnerActor;
-	TWeakObjectPtr<class UInworldCharacterComponent> CharacterComponent;
+	TWeakObjectPtr<UInworldCharacterComponent> CharacterComponent;
 
 	FInworldCharacterMessageQueueLockHandle CharacterMessageQueueLockHandle;
 };
