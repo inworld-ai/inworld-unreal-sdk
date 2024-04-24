@@ -23,8 +23,7 @@ void UInworldCharacterPlaybackTrigger::OnCharacterInteractionEnd_Implementation(
 	{
 		for (auto& Trigger : PendingTriggers[Message.InteractionId])
 		{
-			//TODO: FIX
-			//OwnerActor->GetWorld()->GetSubsystem<UInworldApiSubsystem>()->NotifyCustomTrigger(Trigger.Name);
+			OwnerActor->GetWorld()->GetSubsystem<UInworldApiSubsystem>()->NotifyCustomTrigger(Trigger.Name);
 		}
 	}
 }

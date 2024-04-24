@@ -51,8 +51,8 @@ void FInworldGameplayDebuggerCategory::CollectData(APlayerController* OwnerPC, A
 		//TODO: FIX
 		//Data.OverheadLocation = Actor->GetActorLocation() + FVector(0, 0, Actor->GetSimpleCollisionHalfHeight());
 		//Data.bIsInteracting = Comp->IsInteractingWithPlayer();
-		Data.GivenName = Character->GetGivenName();
-		Data.AgentId = Character->GetAgentId();
+		Data.GivenName = Character->GetAgentInfo().GivenName;
+		Data.AgentId = Character->GetAgentInfo().AgentId;
 		//Data.CurrentMessage = Comp->GetCurrentMessage() ? Comp->GetCurrentMessage()->ToDebugString() : TEXT("");
 		//Data.MessageQueueEntries = Comp->MessageQueue->PendingMessageEntries.Num();
 		//Data.EmotionalBehavior = static_cast<uint8>(Comp->GetEmotionalBehavior());

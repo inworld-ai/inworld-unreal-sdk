@@ -12,12 +12,12 @@
 
 UInworldSession::UInworldSession()
 	: InworldClient(NewObject<UInworldClient>(this, TEXT("InworldClient")))
+	, PacketVisitor(MakeShared<FInworldSessionPacketVisitor>(this))
 {
 	OnClientPacketReceivedHandle = InworldClient->OnPacketReceived().AddLambda(
 		[this](const FInworldWrappedPacket& WrappedPacket) -> void
 		{
-			OnPacketReceivedDelegateNative.Broadcast(WrappedPacket);
-			OnPacketReceivedDelegate.Broadcast(WrappedPacket);
+			WrappedPacket.Packet->Accept(*PacketVisitor);
 		}
 	);
 	OnClientConnectionStateChangedHandle = InworldClient->OnConnectionStateChanged().AddLambda(
@@ -46,7 +46,7 @@ UInworldSession::~UInworldSession()
 
 void UInworldSession::RegisterCharacter(UInworldCharacter* Character)
 {
-	const FString& BrainName = Character->GetBrainName();
+	const FString& BrainName = Character->GetAgentInfo().BrainName;
 	if (!ensureMsgf(!BrainNameToCharacter.Contains(BrainName), TEXT("UInworldSession::RegisterInworldCharacter: Character already registered for Brain: %s!"), *BrainName))
 	{
 		return;
@@ -72,13 +72,13 @@ void UInworldSession::RegisterCharacter(UInworldCharacter* Character)
 
 void UInworldSession::UnregisterCharacter(UInworldCharacter* Character)
 {
-	const FString& BrainName = Character->GetBrainName();
+	const FString& BrainName = Character->GetAgentInfo().BrainName;
 	if (!ensureMsgf(BrainNameToCharacter.Contains(BrainName) && BrainNameToCharacter[BrainName] == Character, TEXT("UInworldSession::UnregisterInworldCharacter: Component mismatch for Brain: %s!"), *BrainName))
 	{
 		return;
 	}
 
-	AgentIdToCharacter.Remove(Character->GetAgentId());
+	AgentIdToCharacter.Remove(Character->GetAgentInfo().AgentId);
 	BrainNameToCharacter.Remove(BrainName);
 	RegisteredCharacters.Remove(Character);
 	InworldClient->UnloadCharacter(BrainName);
@@ -102,7 +102,7 @@ TArray<FString> CharactersToAgentIds(const TArray<UInworldCharacter*>& InworldCh
 	AgentIds.Reserve(InworldCharacters.Num());
 	for (const UInworldCharacter* Character : InworldCharacters)
 	{
-		AgentIds.Add(Character->GetAgentId());
+		AgentIds.Add(Character->GetAgentInfo().AgentId);
 	}
 	return AgentIds;
 }
@@ -139,7 +139,7 @@ void UInworldSession::BroadcastAudioSessionStop(const TArray<UInworldCharacter*>
 
 void UInworldSession::SendNarrationEvent(UInworldCharacter* Character, const FString& Content)
 {
-	InworldClient->SendNarrationEvent(Character->GetAgentId(), Content);
+	InworldClient->SendNarrationEvent(Character->GetAgentInfo().AgentId, Content);
 }
 
 void UInworldSession::BroadcastTrigger(const TArray<UInworldCharacter*>& Characters, const FString& Name, const TMap<FString, FString>& Params)
@@ -155,7 +155,7 @@ void UInworldSession::SendChangeSceneEvent(const FString& SceneName)
 
 void UInworldSession::CancelResponse(UInworldCharacter* Character, const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
-	InworldClient->CancelResponse(Character->GetAgentId(), InteractionId, UtteranceIds);
+	InworldClient->CancelResponse(Character->GetAgentInfo().AgentId, InteractionId, UtteranceIds);
 }
 
 void UInworldSession::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
@@ -167,7 +167,7 @@ void UInworldSession::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
 		if (BrainNameToCharacter.Contains(BrainName))
 		{
 			UInworldCharacter* Character = BrainNameToCharacter[BrainName];
-			if (!Character->GetAgentId().IsEmpty())
+			if (Character->GetAgentInfo().AgentId.IsEmpty())
 			{
 				AgentIdToCharacter.Add(AgentInfo.AgentId, Character);
 				Character->Possess(AgentInfo);
@@ -182,7 +182,7 @@ void UInworldSession::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
 	TArray<FString> BrainNames;
 	for (UInworldCharacter* Character : RegisteredCharacters)
 	{
-		const FString& BrainName = Character->GetBrainName();
+		const FString& BrainName = Character->GetAgentInfo().BrainName;
 		if (!BrainNameToAgentInfo.Contains(BrainName))
 		{
 			BrainNames.Add(BrainName);
@@ -216,4 +216,51 @@ void UInworldSession::UnpossessAgents()
 	bCharactersInitialized = false;
 	OnCharactersInitializedDelegateNative.Broadcast(bCharactersInitialized);
 	OnCharactersInitializedDelegate.Broadcast(bCharactersInitialized);
+}
+
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldTextEvent& Event)
+{
+	Session->OnInworldTextEventDelegateNative.Broadcast(Event);
+	Session->OnInworldTextEventDelegate.Broadcast(Event);
+}
+
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldAudioDataEvent& Event)
+{
+	Session->OnInworldAudioEventDelegateNative.Broadcast(Event);
+	Session->OnInworldAudioEventDelegate.Broadcast(Event);
+}
+
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldSilenceEvent& Event)
+{
+	Session->OnInworldSilenceEventDelegateNative.Broadcast(Event);
+	Session->OnInworldSilenceEventDelegate.Broadcast(Event);
+}
+
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldControlEvent& Event)
+{
+	Session->OnInworldControlEventDelegateNative.Broadcast(Event);
+	Session->OnInworldControlEventDelegate.Broadcast(Event);
+}
+
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldEmotionEvent& Event)
+{
+	Session->OnInworldEmotionEventDelegateNative.Broadcast(Event);
+	Session->OnInworldEmotionEventDelegate.Broadcast(Event);
+}
+
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldCustomEvent& Event)
+{
+	Session->OnInworldCustomEventDelegateNative.Broadcast(Event);
+	Session->OnInworldCustomEventDelegate.Broadcast(Event);
+}
+
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldLoadCharactersEvent& Event)
+{
+	Session->UnpossessAgents();
+	Session->PossessAgents(Event.AgentInfos);
+}
+
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldChangeSceneEvent& Event)
+{
+	Session->PossessAgents(Event.AgentInfos);
 }

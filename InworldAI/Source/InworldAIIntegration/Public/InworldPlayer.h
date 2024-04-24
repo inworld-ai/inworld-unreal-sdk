@@ -25,23 +25,20 @@ public:
 	TScriptInterface<IInworldPlayerOwnerInterface> GetInworldPlayerOwner();
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Player|Target")
-	const TArray<UInworldCharacter*>& GetTargetInworldCharacters() const { return TargetInworldCharacters; }
+	const TArray<UInworldCharacter*>& GetTargetCharacters() const { return TargetCharacters; }
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Player|Target")
-	void AddTargetInworldCharacter(UInworldCharacter* TargetCharacter) { TargetInworldCharacters.AddUnique(TargetCharacter); }
+	void AddTargetCharacter(UInworldCharacter* TargetCharacter) { TargetCharacters.AddUnique(TargetCharacter); }
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Player|Target")
-	void RemoveTargetInworldCharacter(UInworldCharacter* TargetCharacter) { TargetInworldCharacters.Remove(TargetCharacter); }
+	void RemoveTargetCharacter(UInworldCharacter* TargetCharacter) { TargetCharacters.Remove(TargetCharacter); }
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Player|Target")
-	void ClearAllTargetInworldCharacters() { TargetInworldCharacters.Empty(); }
-
-	//UFUNCTION(BlueprintCallable, Category = "Message")
-	//void SendTextMessageToTargets(const FString& Message);
+	void ClearAllTargetCharacters() { TargetCharacters.Empty(); }
 
 private:
 	UPROPERTY()
-	TArray<UInworldCharacter*> TargetInworldCharacters;
+	TArray<UInworldCharacter*> TargetCharacters;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)

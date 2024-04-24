@@ -27,7 +27,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharactersInitialized, bool, bCha
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
 UCLASS(BlueprintType, Config = InworldAI)
-class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor, public IInworldSessionOwnerInterface
+class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public IInworldSessionOwnerInterface
 {
 	GENERATED_BODY()
 
@@ -189,6 +189,11 @@ public:
     /** Cancel agents response in case agent has been interrupted by player */
     UFUNCTION(BlueprintCallable, Category = "Messages")
     void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
+    /**
+    * Call on Inworld::FCustomEvent coming to agent
+    * custom events meant to be triggered on interaction end (see InworldCharacterComponent)
+    */
+    void NotifyCustomTrigger(const FString& Name) { OnCustomTrigger.Broadcast(Name); }
 
 	/** 
     * Call this in multiplayer on BeginPlay both on server and client
@@ -213,6 +218,9 @@ public:
 
     UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers", meta = (DeprecatedProperty, DeprecationMessage = "Use InworldSession->OnCharactersInitialized."))
     FOnCharactersInitialized OnCharactersInitialized;
+
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers", meta = (DeprecatedProperty, DeprecationMessage = "Use InworldCharacter->OnTrigger."))
+    FCustomTrigger OnCustomTrigger;
 
 private:
     UPROPERTY(EditAnywhere, config, Category = "Connection")

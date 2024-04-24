@@ -183,7 +183,7 @@ public:
 
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldPacket
 {
 	GENERATED_BODY()
@@ -206,7 +206,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const PURE_VIRTUAL(FInworldPacket::AppendDebugString);
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldTextEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -225,7 +225,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const override;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldDataEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -243,7 +243,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldVisemeInfo
 {
 	GENERATED_BODY()
@@ -256,7 +256,7 @@ struct INWORLDAICLIENT_API FInworldVisemeInfo
 	float Timestamp = 0.f;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldAudioDataEvent : public FInworldDataEvent
 {
 	GENERATED_BODY()
@@ -277,7 +277,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldSilenceEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -294,7 +294,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldControlEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -311,7 +311,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldEmotionEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -330,7 +330,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldCustomEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -350,7 +350,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldLoadCharactersEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -366,7 +366,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldChangeSceneEvent : public FInworldLoadCharactersEvent
 {
 	GENERATED_BODY()

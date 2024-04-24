@@ -40,10 +40,52 @@ void UInworldCharacter::SetBrainName(const FString& BrainName)
 
 void UInworldCharacter::Possess(const FInworldAgentInfo& InAgentInfo)
 {
-	AgentInfo = InAgentInfo;
+	if (InAgentInfo.AgentId.IsEmpty())
+	{
+		Unpossess();
+		return;
+	}
+	if (AgentInfo.AgentId != InAgentInfo.AgentId)
+	{
+		Unpossess();
+		AgentInfo = InAgentInfo;
+		OnPossessedDelegateNative.Broadcast(true);
+		OnPossessedDelegate.Broadcast(true);
+	}
 }
 
 void UInworldCharacter::Unpossess()
 {
-	AgentInfo = {};
+	if (IsPossessed())
+	{
+		AgentInfo = {};
+		OnPossessedDelegateNative.Broadcast(false);
+		OnPossessedDelegate.Broadcast(false);
+	}
+}
+
+void UInworldCharacter::SetEngagedPlayer(UInworldPlayer* Player)
+{
+	if (Player == nullptr)
+	{
+		ClearEngagedPlayer();
+		return;
+	}
+	if (Player != EngagedPlayer)
+	{
+		ClearEngagedPlayer();
+		EngagedPlayer = Player;
+		OnEngagedDelegateNative.Broadcast(true);
+		OnEngagedDelegate.Broadcast(true);
+	}
+}
+
+void UInworldCharacter::ClearEngagedPlayer()
+{
+	if (IsEngagedWithPlayer())
+	{
+		EngagedPlayer = nullptr;
+		OnEngagedDelegateNative.Broadcast(false);
+		OnEngagedDelegate.Broadcast(false);
+	}
 }
