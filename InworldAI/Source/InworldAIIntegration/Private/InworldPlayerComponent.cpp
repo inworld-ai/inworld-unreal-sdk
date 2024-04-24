@@ -68,7 +68,7 @@ UInworldCharacterComponent* UInworldPlayerComponent::GetTargetInworldCharacter()
 TArray<UInworldCharacterComponent*> UInworldPlayerComponent::GetTargetInworldCharacters()
 {
     TArray<UInworldCharacterComponent*> InworldCharacterComponents;
-    for (UInworldCharacter* Character : InworldPlayer->GetTargetInworldCharacters())
+    for (UInworldCharacter* Character : InworldPlayer->GetTargetCharacters())
     {
         UInworldCharacterComponent* InworldCharacterComponent = Cast<UInworldCharacterComponent>(Character->GetInworldCharacterOwner().GetObject());
         if (InworldCharacterComponent)
@@ -81,51 +81,51 @@ TArray<UInworldCharacterComponent*> UInworldPlayerComponent::GetTargetInworldCha
 
 void UInworldPlayerComponent::ContinueMultiAgentConversation()
 {
-    if (InworldPlayer->GetTargetInworldCharacters().Num() > 1)
+    if (InworldPlayer->GetTargetCharacters().Num() > 1)
     {
-        InworldSession->BroadcastTrigger(InworldPlayer->GetTargetInworldCharacters(), "inworld.conversation.next_turn", {});
+        InworldSession->BroadcastTrigger(InworldPlayer->GetTargetCharacters(), "inworld.conversation.next_turn", {});
     }
 }
 
 void UInworldPlayerComponent::SetTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
-    InworldPlayer->AddTargetInworldCharacter(Character->GetInworldCharacter());
+    InworldPlayer->AddTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
 }
 
 void UInworldPlayerComponent::ClearTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
-    InworldPlayer->RemoveTargetInworldCharacter(Character->GetInworldCharacter());
+    InworldPlayer->RemoveTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
 }
 
 void UInworldPlayerComponent::ClearAllTargetInworldCharacters()
 {
-    InworldPlayer->ClearAllTargetInworldCharacters();
+    InworldPlayer->ClearAllTargetCharacters();
 }
 
 void UInworldPlayerComponent::SendTextMessageToTarget_Implementation(const FString& Message)
 {
     if (!Message.IsEmpty())
     {
-        InworldSession->BroadcastTextMessage(InworldPlayer->GetTargetInworldCharacters(), Message);
+        InworldSession->BroadcastTextMessage(InworldPlayer->GetTargetCharacters(), Message);
     }
 }
 
 void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params)
 {
-    InworldSession->BroadcastTrigger(InworldPlayer->GetTargetInworldCharacters(), Name, Params);
+    InworldSession->BroadcastTrigger(InworldPlayer->GetTargetCharacters(), Name, Params);
 }
 
 void UInworldPlayerComponent::StartAudioSessionWithTarget()
 {
-    InworldSession->BroadcastAudioSessionStart(InworldPlayer->GetTargetInworldCharacters());
+    InworldSession->BroadcastAudioSessionStart(InworldPlayer->GetTargetCharacters());
 }
 
 void UInworldPlayerComponent::StopAudioSessionWithTarget()
 {
-    InworldSession->BroadcastAudioSessionStop(InworldPlayer->GetTargetInworldCharacters());
+    InworldSession->BroadcastAudioSessionStop(InworldPlayer->GetTargetCharacters());
 }
 
 void UInworldPlayerComponent::SendAudioMessageToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    InworldSession->BroadcastSoundMessage(InworldPlayer->GetTargetInworldCharacters(), InputData, OutputData);
+    InworldSession->BroadcastSoundMessage(InworldPlayer->GetTargetCharacters(), InputData, OutputData);
 }

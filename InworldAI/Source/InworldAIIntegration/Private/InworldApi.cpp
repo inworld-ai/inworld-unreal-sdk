@@ -118,7 +118,7 @@ void UInworldApiSubsystem::LoadCharacters(const TArray<FString>& Names)
     TArray<UInworldCharacter*> Characters;
     for (UInworldCharacter* Character : InworldSession->GetRegisteredCharacters())
     {
-        if (Names.Contains(Character->GetBrainName()))
+        if (Names.Contains(Character->GetAgentInfo().BrainName))
         {
             Characters.Add(Character);
         }
@@ -131,7 +131,7 @@ void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
     TArray<UInworldCharacter*> Characters;
     for (UInworldCharacter* Character : InworldSession->GetRegisteredCharacters())
     {
-        if (Names.Contains(Character->GetBrainName()))
+        if (Names.Contains(Character->GetAgentInfo().BrainName))
         {
             Characters.Add(Character);
         }
@@ -313,55 +313,6 @@ void UInworldApiSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 }
 #endif
 
-/*
-void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPacket)
-{
-	auto* SourceComponentPtr = CharacterComponentByAgentId.Find(InworldPacket->Routing.Source.Name);
-	if (SourceComponentPtr)
-	{
-		(*SourceComponentPtr)->HandlePacket(InworldPacket);
-	}
-
-    if (InworldPacket->Routing.Source.Type == EInworldActorType::PLAYER)
-    {
-        auto ProcessTarget = [this, InworldPacket](const FInworldActor& TargetActor)
-            {
-                auto* TargetComponentPtr = CharacterComponentByAgentId.Find(TargetActor.Name);
-                if (TargetComponentPtr)
-                {
-                    (*TargetComponentPtr)->HandlePacket(InworldPacket);
-                }
-            };
-
-        ProcessTarget(InworldPacket->Routing.Target);
-
-        for (const auto& Target : InworldPacket->Routing.Targets)
-        {
-            if (Target.Name != InworldPacket->Routing.Target.Name)
-            {
-                ProcessTarget(Target);
-            }
-        }
-    }
-
-    if (ensure(InworldPacket))
-    {
-        InworldPacket->Accept(*this);
-    }
-}
-
-void UInworldApiSubsystem::Visit(const FInworldChangeSceneEvent& Event)
-{
-    UnpossessAgents();
-    PossessAgents(Event.AgentInfos);
-}
-
-void UInworldApiSubsystem::Visit(const FInworldLoadCharactersEvent& Event)
-{
-    PossessAgents(Event.AgentInfos);
-}
-*/
-
 void UInworldApiSubsystem::ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet)
 {
     if (AudioRepl)
@@ -372,6 +323,5 @@ void UInworldApiSubsystem::ReplicateAudioEventFromServer(FInworldAudioDataEvent&
 
 void UInworldApiSubsystem::HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet)
 {
-    //TODO: FIX
-    //DispatchPacket(Packet);
+    Packet->Accept(*InworldSession->PacketVisitor);
 }

@@ -18,6 +18,19 @@ class UInworldPlayer;
 class UInworldCharacter;
 class UInworldClient;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldTextEvent, const FInworldTextEvent&, TextEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldTextEventNative, const FInworldTextEvent& /*TextEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldAudioEvent, const FInworldAudioDataEvent&, AudioEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldAudioEventNative, const FInworldAudioDataEvent& /*AudioEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSilenceEvent, const FInworldSilenceEvent&, SilenceEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSilenceEventNative, const FInworldSilenceEvent& /*SilenceEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldControlEvent, const FInworldControlEvent&, ControlEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldControlEventNative, const FInworldControlEvent& /*ControlEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEvent, const FInworldEmotionEvent&, EmotionEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEventNative, const FInworldEmotionEvent& /*EmotionEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEvent, const FInworldCustomEvent&, CustomEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEventNative, const FInworldCustomEvent& /*CustomEvent*/);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharactersInitialized, bool, bCharactersInitialized);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnInworldCharactersInitializedCallback, bool, bCharactersInitialized);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldCharactersInitializedNative, bool /*bCharactersInitialized*/);
@@ -102,9 +115,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void CancelResponse(UInworldCharacter* Character, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
-	UPROPERTY(BlueprintAssignable, Category = "Packet")
-	FOnInworldPacketReceived OnPacketReceivedDelegate;
-	FOnInworldPacketReceivedNative& OnPacketReceived() { return OnPacketReceivedDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldTextEvent OnInworldTextEventDelegate;
+	FOnInworldTextEventNative& OnInworldTextEvent() { return OnInworldTextEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldAudioEvent OnInworldAudioEventDelegate;
+	FOnInworldAudioEventNative& OnInworldAudioEvent() { return OnInworldAudioEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldSilenceEvent OnInworldSilenceEventDelegate;
+	FOnInworldSilenceEventNative& OnInworldSilenceEvent() { return OnInworldSilenceEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldControlEvent OnInworldControlEventDelegate;
+	FOnInworldControlEventNative& OnInworldControlEvent() { return OnInworldControlEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldEmotionEvent OnInworldEmotionEventDelegate;
+	FOnInworldEmotionEventNative& OnInworldEmotionEvent() { return OnInworldEmotionEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldCustomEvent OnInworldCustomEventDelegate;
+	FOnInworldCustomEventNative& OnInworldCustomEvent() { return OnInworldCustomEventDelegateNative; }
 
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	EInworldConnectionState GetConnectionState() const { return InworldClient->GetConnectionState(); }
@@ -142,10 +170,42 @@ private:
 	FDelegateHandle OnClientConnectionStateChangedHandle;
 	FDelegateHandle OnClientPerceivedLatencyHandle;
 
-	FOnInworldPacketReceivedNative OnPacketReceivedDelegateNative;
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldCharactersInitializedNative OnCharactersInitializedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
+
+	class FInworldSessionPacketVisitor : public TSharedFromThis<FInworldSessionPacketVisitor>, public InworldPacketVisitor
+	{
+	public:
+		FInworldSessionPacketVisitor()
+			: FInworldSessionPacketVisitor(nullptr)
+		{}
+		FInworldSessionPacketVisitor(class UInworldSession* InSession)
+			: Session(InSession)
+		{}
+		virtual ~FInworldSessionPacketVisitor() = default;
+
+		virtual void Visit(const FInworldTextEvent& Event) override;
+		virtual void Visit(const FInworldAudioDataEvent& Event) override;
+		virtual void Visit(const FInworldSilenceEvent& Event) override;
+		virtual void Visit(const FInworldControlEvent& Event) override;
+		virtual void Visit(const FInworldEmotionEvent& Event) override;
+		virtual void Visit(const FInworldCustomEvent& Event) override;
+		virtual void Visit(const FInworldLoadCharactersEvent& Event) override;
+		virtual void Visit(const FInworldChangeSceneEvent& Event) override;
+
+	private:
+		UInworldSession* Session;
+	};
+
+	TSharedRef<FInworldSessionPacketVisitor> PacketVisitor;
+
+	FOnInworldTextEventNative OnInworldTextEventDelegateNative;
+	FOnInworldAudioEventNative OnInworldAudioEventDelegateNative;
+	FOnInworldSilenceEventNative OnInworldSilenceEventDelegateNative;
+	FOnInworldControlEventNative OnInworldControlEventDelegateNative;
+	FOnInworldEmotionEventNative OnInworldEmotionEventDelegateNative;
+	FOnInworldCustomEventNative OnInworldCustomEventDelegateNative;
 
 	// Temp: Hack until deprecated functions are removed
 	friend class UInworldApiSubsystem;

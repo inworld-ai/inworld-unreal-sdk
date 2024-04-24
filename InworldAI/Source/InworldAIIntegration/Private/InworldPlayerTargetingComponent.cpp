@@ -52,7 +52,7 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
     // clear all targets if just switched from multiple targeting
     if (!bMultipleTargets && TargetCharacters.Num() > 1)
     {
-        InworldPlayer->ClearAllTargetInworldCharacters();
+        InworldPlayer->ClearAllTargetCharacters();
         TargetCharacters.Empty();
     }
 
@@ -66,7 +66,7 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
         const float DistSq = FVector::DistSquared(Location, CharacterLocation);
         if (DistSq > MinDistSq)
         {
-            InworldPlayer->RemoveTargetInworldCharacter(Character);
+            InworldPlayer->RemoveTargetCharacter(Character);
             TargetCharacters.RemoveAt(i);
             i--;
         }
@@ -101,7 +101,7 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
             }
 
             TargetCharacters.Add(Character);
-            InworldPlayer->AddTargetInworldCharacter(Character);
+            InworldPlayer->AddTargetCharacter(Character);
             continue;
         }
 
@@ -137,14 +137,14 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
     {
         if (CurrentTarget)
         {
-			InworldPlayer->RemoveTargetInworldCharacter(CurrentTarget);
+			InworldPlayer->RemoveTargetCharacter(CurrentTarget);
 			TargetCharacters.Empty();
         }
 
         if (BestTarget)
         {
 			TargetCharacters.Add(BestTarget);
-            InworldPlayer->AddTargetInworldCharacter(BestTarget);
+            InworldPlayer->AddTargetCharacter(BestTarget);
         }
     }
 }

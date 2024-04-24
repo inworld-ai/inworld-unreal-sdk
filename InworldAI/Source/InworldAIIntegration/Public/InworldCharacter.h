@@ -12,6 +12,11 @@
 #include "InworldTypes.h"
 #include "InworldCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerPossessed, bool, bPossessed);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerPossessedNative, bool /*bPossessed*/);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerEngaged, bool, bEngaged);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerEngagedNative, bool /*bEngaged*/);
 
 UCLASS(BlueprintType)
 class INWORLDAIINTEGRATION_API UInworldCharacter : public UObject
@@ -22,20 +27,44 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Player")
 	TScriptInterface<IInworldCharacterOwnerInterface> GetInworldCharacterOwner();
 
+	UFUNCTION(BlueprintCallable, Category = "Inworld|Player")
 	void SetBrainName(const FString& BrainName);
 
+	UFUNCTION(BlueprintPure, Category = "Inworld|Player")
+	bool IsPossessed() const { return !AgentInfo.AgentId.IsEmpty(); }
+	UFUNCTION(BlueprintCallable, Category = "Inworld|Player")
 	void Possess(const FInworldAgentInfo& InAgentInfo);
+	UFUNCTION(BlueprintCallable, Category = "Inworld|Player")
 	void Unpossess();
 
 	UFUNCTION(BlueprintPure, Category = "Inworld|Agent")
-	const FString& GetBrainName() const { return AgentInfo.BrainName; }
-	UFUNCTION(BlueprintPure, Category = "Inworld|Agent")
-	const FString& GetAgentId() const { return AgentInfo.AgentId; }
-	UFUNCTION(BlueprintPure, Category = "Inworld|Agent")
-	const FString& GetGivenName() const { return AgentInfo.GivenName; }
+	const FInworldAgentInfo& GetAgentInfo() const { return AgentInfo; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Possession")
+	FOnInworldPlayerPossessed OnPossessedDelegate;
+	FOnInworldPlayerPossessedNative& OnPossessed() { return OnPossessedDelegateNative; }
+
+	UFUNCTION(BlueprintPure, Category = "Engagement")
+	bool IsEngagedWithPlayer() const { return EngagedPlayer != nullptr; }
+	UFUNCTION(BlueprintCallable, Category = "Engagement")
+	void SetEngagedPlayer(UInworldPlayer* Player);
+	UFUNCTION(BlueprintCallable, Category = "Engagement")
+	void ClearEngagedPlayer();
+
+	UFUNCTION(BlueprintPure, Category="Engagement")
+	UInworldPlayer* GetEngagedPlayer() const { return EngagedPlayer; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Engagement")
+	FOnInworldPlayerEngaged OnEngagedDelegate;
+	FOnInworldPlayerEngagedNative& OnEngaged() { return OnEngagedDelegateNative; }
 
 private:
 	FInworldAgentInfo AgentInfo;
+	FOnInworldPlayerPossessedNative OnPossessedDelegateNative;
+
+	UPROPERTY()
+	UInworldPlayer* EngagedPlayer;
+	FOnInworldPlayerEngagedNative OnEngagedDelegateNative;
 };
 
 

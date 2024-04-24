@@ -41,10 +41,6 @@ public:
     FTransform GetInworldPlayerTransform() const { return GetOwner()->GetTransform(); }
     // IInworldPlayerInterface
 
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerTargetChange, UInworldCharacterComponent*);
-    FOnInworldPlayerTargetChange OnTargetSet;
-    FOnInworldPlayerTargetChange OnTargetClear;
-
     virtual void InitializeComponent() override;
     virtual void UninitializeComponent() override;
 
@@ -71,7 +67,7 @@ public:
     void ClearAllTargetInworldCharacters();
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-    bool IsInteracting() { return InworldPlayer->GetTargetInworldCharacters().Num() > 0; }
+    bool IsInteracting() { return InworldPlayer->GetTargetCharacters().Num() > 0; }
 
     UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Interaction")
     void SendTextMessageToTarget(const FString& Message);

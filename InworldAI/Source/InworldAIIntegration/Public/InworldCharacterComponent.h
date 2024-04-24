@@ -28,7 +28,7 @@ class UInworldPlayerComponent;
 class FInternetAddr;
 
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
-class INWORLDAIINTEGRATION_API UInworldCharacterComponent : public UActorComponent, public InworldPacketVisitor, public ICharacterMessageVisitor, public IInworldCharacterOwnerInterface
+class INWORLDAIINTEGRATION_API UInworldCharacterComponent : public UActorComponent, public IInworldCharacterOwnerInterface, public ICharacterMessageVisitor
 {
 	GENERATED_BODY()
 
@@ -44,9 +44,11 @@ public:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
 
-	DECLARE_MULTICAST_DELEGATE(FOnInworldCharacterPossessed);
-	FOnInworldCharacterPossessed OnPossessed;
-	FOnInworldCharacterPossessed OnUnpossessed;
+	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type Reason);
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInworldCharacterPlayerInteractionStateChanged, bool, bInteracting);
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Interaction")
@@ -80,23 +82,17 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|InteractionEnd")
 	FOnInworldCharacterInteractionEnd OnInteractionEnd;
 
-    virtual void BeginPlay() override;
-	virtual void EndPlay(EEndPlayReason::Type Reason);
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
-	
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	void SetBrainName(const FString& Name);
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
-	const FString& GetBrainName() const { return InworldCharacter->GetBrainName(); }
+	const FString& GetBrainName() const { return InworldCharacter->GetAgentInfo().BrainName; }
 
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-	const FString& GetAgentId() const { return InworldCharacter->GetAgentId(); }
+	const FString& GetAgentId() const { return InworldCharacter->GetAgentInfo().AgentId; }
 
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    const FString& GetGivenName() const { return InworldCharacter->GetGivenName(); }
+    const FString& GetGivenName() const { return InworldCharacter->GetAgentInfo().GivenName; }
 
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     const FString& GetUiName() const { return UiName; }
@@ -106,13 +102,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DeterminesOutputType = "Class"))
 	UInworldCharacterPlayback* GetPlayback(TSubclassOf<UInworldCharacterPlayback> Class) const;
 
-	void HandlePacket(TSharedPtr<FInworldPacket> Packet);
-	
-	bool StartPlayerInteraction(UInworldPlayerComponent* Player);
-	bool StopPlayerInteraction(UInworldPlayerComponent* Player);
-
 	UFUNCTION(BlueprintCallable, Category = "Interactions")
-	bool IsInteractingWithPlayer() const;
+	bool IsInteractingWithPlayer() const { return InworldCharacter->IsEngagedWithPlayer(); }
 
 	UFUNCTION(BlueprintCallable, Category = "Emotions")
 	EInworldCharacterEmotionalBehavior GetEmotionalBehavior() const { return EmotionalBehavior; }
@@ -182,14 +173,20 @@ protected:
 	FString UiName = "Character";
 
 private:
-
-	virtual void Visit(const FInworldTextEvent& Event) override;
-	virtual void Visit(const FInworldAudioDataEvent& Event) override;
-	virtual void Visit(const FInworldSilenceEvent& Event) override;
-	virtual void Visit(const FInworldControlEvent& Event) override;
-	virtual void Visit(const FInworldEmotionEvent& Event) override;
-	virtual void Visit(const FInworldCustomEvent& Event) override;
-	virtual void Visit(const FInworldRelationEvent& Event) override;
+	UFUNCTION()
+	void OnInworldTextEvent(const FInworldTextEvent& Event);
+	UFUNCTION()
+	void OnInworldAudioEvent(const FInworldAudioDataEvent& Event);
+	UFUNCTION()
+	void OnInworldSilenceEvent(const FInworldSilenceEvent& Event);
+	UFUNCTION()
+	void OnInworldControlEvent(const FInworldControlEvent& Event);
+	UFUNCTION()
+	void OnInworldEmotionEvent(const FInworldEmotionEvent& Event);
+	UFUNCTION()
+	void OnInworldCustomEvent(const FInworldCustomEvent& Event);
+	UFUNCTION()
+	void OnInworldRelationEvent(const FInworldRelationEvent& Event);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitText(const FInworldTextEvent& Event);
@@ -212,7 +209,7 @@ private:
 	void OnRep_TargetPlayer(UInworldPlayerComponent* OldPlayer);
 
 	UFUNCTION()
-	void OnRep_AgentId(FString OldAgentId);
+	void OnRep_AgentInfo(FInworldAgentInfo AgentInfo);
 
 	TQueue<FInworldAudioDataEvent> PendingRepAudioEvents;
 
@@ -243,10 +240,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inworld")
 	FString BrainName;
 
-	UPROPERTY(ReplicatedUsing = OnRep_AgentId)
-	FString AgentId;
-	
-	FString GivenName;
+	// Replicated from server to client to update possession.
+	UPROPERTY(ReplicatedUsing = OnRep_AgentInfo)
+	FInworldAgentInfo AgentInfo;
 
 private:
 	UPROPERTY()
