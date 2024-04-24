@@ -1,5 +1,5 @@
-python marketplace-util.py -p Win64 -u 5.1
-python marketplace-util.py -p Win64 -u 5.2
-python marketplace-util.py -p Win64 -u 5.3
+python marketplace-util.py -p Win64 -u 5.1 -b False
+python marketplace-util.py -p Win64 -u 5.2 -b False
+python marketplace-util.py -p Win64 -u 5.3 -b False
 
 pause
