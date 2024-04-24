@@ -12,18 +12,13 @@
 #include "Runtime/Launch/Resources/Version.h"
 
 #include "InworldClient.h"
+#include "InworldSession.h"
 #include "InworldEnums.h"
 #include "InworldTypes.h"
 #include "InworldPackets.h"
-#include "InworldComponentInterface.h"
 
 #include "InworldApi.generated.h"
 
-namespace Inworld
-{
-	class ICharacterComponent;
-	class IPlayerComponent;
-}
 class USoundWave;
 class UInworldAudioRepl;
 
@@ -31,17 +26,17 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnectionStateChanged, EInworldC
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharactersInitialized, bool, bCharactersInitialized);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSaveReady, FInworldSave, Save, bool, bSuccess);
-
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FResponseLatencyTrackerDelegate, FString, InteractionId, int32, LatencyMs);
-
 UCLASS(BlueprintType, Config = InworldAI)
-class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor
+class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor, public IInworldSessionOwnerInterface
 {
 	GENERATED_BODY()
 
 public:
     UInworldApiSubsystem();
+
+    // IInworldSessionOwnerInterface
+    UInworldSession* GetInworldSession_Implementation() const { return InworldSession; }
+    // IInworldSessionOwnerInterface
 
     /**
      * Start InworldAI session
@@ -81,24 +76,24 @@ public:
      * Save InworldAI session data
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    void SaveSession(FOnSaveReady Delegate);
+    void SaveSession(FOnInworldSessionSavedCallback Delegate);
 
     /**
      * Set delegate for response latency tracker
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    void SetResponseLatencyTrackerDelegate(FResponseLatencyTrackerDelegate Delegate);
+    void SetResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate);
 
     /**
      * Clear delegate for response latency tracker
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    void ClearResponseLatencyTrackerDelegate();
+    void ClearResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate);
 
     /**
 	 * Load new characters
 	 */
-    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DeprecatedFunction, DeprecationMessage = "Please use GetInworldSession::LoadCharacters node"))
     void LoadCharacters(const TArray<FString>& Names);
 
     /**
@@ -111,7 +106,7 @@ public:
      * Load saved state
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    void LoadSavedState(const TArray<uint8>& SavedState);
+    void LoadSavedState(const FInworldSave& SavedState);
 
 	/**
 	 * Load capabilities
@@ -124,22 +119,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
-
-private:
-    void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
-    void UnpossessAgents();
-
-public:
-    /**
-     * Register Character component
-     * call before StartSession
-     */
-    void RegisterCharacterComponent(Inworld::ICharacterComponent* Component);
-    void UnregisterCharacterComponent(Inworld::ICharacterComponent* Component);
-
-    bool IsCharacterComponentRegistered(Inworld::ICharacterComponent* Component);
-
-	void UpdateCharacterComponentRegistrationOnClient(Inworld::ICharacterComponent* Component, const FString& NewAgentId, const FString& OldAgentId);
 
 public:
     /** Send text to agent */
@@ -169,16 +148,7 @@ public:
      * chunks should be ~100ms
      */
     UFUNCTION(BlueprintCallable, Category = "Messages")
-	void SendAudioMessage(const FString& AgentId, USoundWave* SoundWave);
-    void SendAudioMessage(const TArray<FString>& AgentIds, USoundWave* SoundWave);
-    void SendAudioDataMessage(const FString& AgentId, const TArray<uint8>& Data);
-    void SendAudioDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data);
-
-
-    UFUNCTION(BlueprintCallable, Category = "Messages")
-	void SendAudioMessageWithAEC(const FString& AgentId, USoundWave* InputWave, USoundWave* OutputWave);
-	void SendAudioDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
-    void SendAudioDataMessageWithAEC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+    void SendAudioMessage(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
     
     /**
      * Start audio session with agent
@@ -210,27 +180,15 @@ public:
 
     /** Get current connection state */
     UFUNCTION(BlueprintCallable, Category = "Connection")
-	EInworldConnectionState GetConnectionState() const { return Client->GetConnectionState(); }
+	EInworldConnectionState GetConnectionState() const { return InworldSession->GetConnectionState(); }
 
     /** Get connection error message and code from previous Disconnect */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void GetConnectionError(FString& Message, int32& Code);
-    
-    /** Get all registered character components */
-	const TArray<Inworld::ICharacterComponent*>& GetCharacterComponents() const { return CharacterComponentRegistry; }
-
-    /** Get registered character component by agent id */
-    Inworld::ICharacterComponent* GetCharacterComponentByAgentId(const FString& AgentId) const;
 
     /** Cancel agents response in case agent has been interrupted by player */
     UFUNCTION(BlueprintCallable, Category = "Messages")
     void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
-
-    /** 
-    * Call on Inworld::FCustomEvent coming to agent
-    * custom events meant to be triggered on interaction end (see InworldCharacterComponent)
-    */
-    void NotifyCustomTrigger(const FString& Name) { OnCustomTrigger.Broadcast(Name); }
 
 	/** 
     * Call this in multiplayer on BeginPlay both on server and client
@@ -250,30 +208,13 @@ public:
 	void ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet);
     void HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet);
 
-    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers", meta = (DeprecatedProperty, DeprecationMessage = "Use InworldSession->OnConnectionStateChanged."))
     FOnConnectionStateChanged OnConnectionStateChanged;
 
-    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers", meta = (DeprecatedProperty, DeprecationMessage = "Use InworldSession->OnCharactersInitialized."))
     FOnCharactersInitialized OnCharactersInitialized;
 
-    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
-    FCustomTrigger OnCustomTrigger;
-
 private:
-	void DispatchPacket(TSharedPtr<FInworldPacket> InworldPacket);
-
-    virtual void Visit(const FInworldChangeSceneEvent& Event) override;
-    virtual void Visit(const FInworldLoadCharactersEvent& Event) override;
-
-    UPROPERTY(EditAnywhere, config, Category = "Connection")
-    FString SentryDSN;
-
-	UPROPERTY(EditAnywhere, config, Category = "Connection")
-	FString SentryTransactionName;
-
-	UPROPERTY(EditAnywhere, config, Category = "Connection")
-	FString SentryTransactionOperation;
-
     UPROPERTY(EditAnywhere, config, Category = "Connection")
     float RetryConnectionIntervalTime = 0.25f;
 
@@ -290,14 +231,8 @@ private:
 
     FTimerHandle RetryConnectionTimerHandle;
 
-    TMap<FString, Inworld::ICharacterComponent*> CharacterComponentByBrainName;
-    TMap<FString, Inworld::ICharacterComponent*> CharacterComponentByAgentId;
-    TArray<Inworld::ICharacterComponent*> CharacterComponentRegistry;
-    TMap<FString, FInworldAgentInfo> AgentInfoByBrain;
-
-    TSharedPtr<FInworldClient> Client;
-
-	bool bCharactersInitialized = false;
+    UPROPERTY()
+    UInworldSession* InworldSession;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
 	friend class FInworldGameplayDebuggerCategory;

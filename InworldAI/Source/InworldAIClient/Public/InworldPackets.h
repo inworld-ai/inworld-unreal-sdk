@@ -164,6 +164,25 @@ public:
 	virtual void Visit(const FInworldRelationEvent& Event) {  }
 };
 
+struct FInworldPacket;
+
+USTRUCT(BlueprintType)
+struct INWORLDAICLIENT_API FInworldWrappedPacket
+{
+	GENERATED_BODY()
+public:
+	FInworldWrappedPacket()
+		: Packet(nullptr)
+	{}
+
+	FInworldWrappedPacket(TSharedPtr<FInworldPacket> InPacket)
+		: Packet(InPacket)
+	{}
+
+	TSharedPtr<FInworldPacket> Packet = {};
+
+};
+
 USTRUCT()
 struct INWORLDAICLIENT_API FInworldPacket
 {

@@ -14,8 +14,8 @@
 #include "InworldPlayerTargetingComponent.generated.h"
 
 class UInworldApiSubsystem;
-class UInworldPlayerComponent;
-class UInworldCharacterComponent;
+class UInworldPlayer;
+class UInworldCharacter;
 
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
 class INWORLDAIINTEGRATION_API UInworldPlayerTargetingComponent : public UActorComponent
@@ -41,8 +41,7 @@ public:
 	bool bMultipleTargets = false;
 
 private:
-	TArray<UInworldCharacterComponent*> TargetCharacters;
+	TArray<UInworldCharacter*> TargetCharacters;
 
-	TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
-	TWeakObjectPtr<UInworldPlayerComponent> PlayerComponent;
+	UInworldPlayer* InworldPlayer;
 };

@@ -13,6 +13,7 @@
 #include "SocketSubsystem.h"
 #include "IPAddress.h"
 
+#include "InworldAINDKModule.h"
 #include "InworldUtils.h"
 #include "InworldPacketTranslator.h"
 
@@ -50,13 +51,17 @@ static TAutoConsoleVariable<FString> CVarSoundDumpPath(
 	TEXT("Specifiy path for audio input dump file")
 );
 
-FInworldClient::FOnAudioDumperCVarChanged FInworldClient::OnAudioDumperCVarChanged;
+UInworldClient::FOnAudioDumperCVarChanged UInworldClient::OnAudioDumperCVarChanged;
 
-FAutoConsoleVariableSink FInworldClient::CVarSink(FConsoleCommandDelegate::CreateStatic(&FInworldClient::OnCVarsChanged));
+FAutoConsoleVariableSink UInworldClient::CVarSink(FConsoleCommandDelegate::CreateStatic(&UInworldClient::OnCVarsChanged));
 #endif
 
-void FInworldClient::Init()
+UInworldClient::UInworldClient()
+	: Super()
 {
+	// Ensure dependencies are loaded
+	FInworldAINDKModule::Get();
+
 	FString ClientVer;
 	TSharedPtr<IPlugin> InworldAIPlugin = IPluginManager::Get().FindPlugin("InworldAI");
 	if (ensure(InworldAIPlugin.IsValid()))
@@ -68,7 +73,7 @@ void FInworldClient::Init()
 	Inworld::SdkInfo Sdk;
 	Sdk.Type = TCHAR_TO_UTF8(*ClientId);
 	Sdk.Version = TCHAR_TO_UTF8(*ClientVer);
-	
+
 	FString OSVersion, OSSubversion;
 	FPlatformMisc::GetOSVersions(OSVersion, OSSubversion);
 	FString OSFullVersion = FString::Printf(TEXT("%s %s"), *OSVersion, *OSSubversion);
@@ -83,57 +88,60 @@ void FInworldClient::Init()
 				return;
 			}
 
-			AsyncTask(ENamedThreads::GameThread, [this, ConnectionState]() 
-			{
-				OnConnectionStateChanged.ExecuteIfBound(static_cast<EInworldConnectionState>(ConnectionState));
-			});
+			AsyncTask(ENamedThreads::GameThread, [this, ConnectionState]()
+				{
+					OnConnectionStateChangedDelegateNative.Broadcast(static_cast<EInworldConnectionState>(ConnectionState));
+					OnConnectionStateChangedDelegate.Broadcast(static_cast<EInworldConnectionState>(ConnectionState));
+				});
 		},
 		[this](std::shared_ptr<Inworld::Packet> Packet)
 		{
 			AsyncTask(ENamedThreads::GameThread, [this, Packet]()
-			{
-				InworldPacketTranslator PacketTranslator;
-				Packet->Accept(PacketTranslator);
-				TSharedPtr<FInworldPacket> ReceivedPacket = PacketTranslator.GetPacket();
-				if (ReceivedPacket.IsValid())
 				{
-					OnInworldPacketReceived.ExecuteIfBound(ReceivedPacket);
-				}
-			});
+					InworldPacketTranslator PacketTranslator;
+					Packet->Accept(PacketTranslator);
+					TSharedPtr<FInworldPacket> ReceivedPacket = PacketTranslator.GetPacket();
+					if (ReceivedPacket.IsValid())
+					{
+						OnPacketReceivedDelegateNative.Broadcast(ReceivedPacket);
+						OnPacketReceivedDelegate.Broadcast(ReceivedPacket);
+					}
+				});
 		}
 	);
 
-	Inworld::GetClient()->SetPerceivedLatencyTrackerCallback([this](const std::string& InteractionId, uint32_t LatancyMs)
+	Inworld::GetClient()->SetPerceivedLatencyTrackerCallback([this](const std::string& InteractionId, uint32_t LatencyMs)
 		{
-			OnPerceivedLatency.ExecuteIfBound(UTF8_TO_TCHAR(InteractionId.c_str()), LatancyMs);
+			OnPerceivedLatencyDelegateNative.Broadcast(UTF8_TO_TCHAR(InteractionId.c_str()), LatencyMs);
+			OnPerceivedLatencyDelegate.Broadcast(UTF8_TO_TCHAR(InteractionId.c_str()), LatencyMs);
 		}
 	);
 
 #if !UE_BUILD_SHIPPING
 	auto OnAudioDumperCVarChangedCallback = [this](bool bEnable, FString Path)
-	{
-		const auto DumpPath = CVarSoundDumpPath.GetValueOnGameThread();
-		if (!FPaths::DirectoryExists(FPaths::GetPath(DumpPath)))
 		{
-			UE_LOG(LogInworldAIClient, Error, TEXT("Audio dump path is invalid: %s."), *DumpPath);
-			Inworld::GetClient()->SetAudioDumpEnabled(false, "");
-			return;
-		}
-		const std::string StdPath = TCHAR_TO_UTF8(*DumpPath);
-		Inworld::GetClient()->SetAudioDumpEnabled(false, StdPath);
+			const auto DumpPath = CVarSoundDumpPath.GetValueOnGameThread();
+			if (!FPaths::DirectoryExists(FPaths::GetPath(DumpPath)))
+			{
+				UE_LOG(LogInworldAIClient, Error, TEXT("Audio dump path is invalid: %s."), *DumpPath);
+				Inworld::GetClient()->SetAudioDumpEnabled(false, "");
+				return;
+			}
+			const std::string StdPath = TCHAR_TO_UTF8(*DumpPath);
+			Inworld::GetClient()->SetAudioDumpEnabled(false, StdPath);
 
-		if (bEnable)
-		{
-			UE_LOG(LogInworldAIClient, Log, TEXT("Audio dump path: %s."), *DumpPath);
-			Inworld::GetClient()->SetAudioDumpEnabled(true, StdPath);
-		}
-	};
+			if (bEnable)
+			{
+				UE_LOG(LogInworldAIClient, Log, TEXT("Audio dump path: %s."), *DumpPath);
+				Inworld::GetClient()->SetAudioDumpEnabled(true, StdPath);
+			}
+		};
 	OnAudioDumperCVarChangedHandle = OnAudioDumperCVarChanged.AddLambda(OnAudioDumperCVarChangedCallback);
 	OnAudioDumperCVarChangedCallback(CVarEnableSoundDump.GetValueOnGameThread(), CVarSoundDumpPath.GetValueOnGameThread());
 #endif
 }
 
-void FInworldClient::Destroy()
+UInworldClient::~UInworldClient()
 {
 	bIsBeingDestroyed = true;
 #if !UE_BUILD_SHIPPING
@@ -199,27 +207,27 @@ static void ConvertPlayerProfile(const FInworldPlayerProfile& PlayerProfile, Inw
 	}
 }
 
-void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldSave& Save, const FInworldEnvironment& Environment)
+void UInworldClient::StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save, const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet)
 {
 	Inworld::ClientOptions Options;
 	Options.ServerUrl = TCHAR_TO_UTF8(*(!Environment.TargetUrl.IsEmpty() ? Environment.TargetUrl : DefaultTargetUrl));
 	// Use first segment of scene for resource
 	// 'workspaces/sample-workspace'
 	TArray<FString> Split;
-	SceneName.ParseIntoArray(Split, TEXT("/"));
+	SceneId.ParseIntoArray(Split, TEXT("/"));
 	if (Split.Num() >= 2)
 	{
 		Options.Resource = TCHAR_TO_UTF8(*FString(Split[0] + "/" + Split[1]));
 	}
 
-	Options.SceneName = TCHAR_TO_UTF8(*SceneName);
+	Options.SceneName = TCHAR_TO_UTF8(*SceneId);
 	Options.Base64 = TCHAR_TO_UTF8(*Auth.Base64Signature);
 	Options.ApiKey = TCHAR_TO_UTF8(*Auth.ApiKey);
 	Options.ApiSecret = TCHAR_TO_UTF8(*Auth.ApiSecret);
-	Options.ProjectName = TCHAR_TO_UTF8(*PlayerProfile.ProjectName);
+	Options.ProjectName = TCHAR_TO_UTF8(FApp::GetProjectName());
 
 	ConvertPlayerProfile(PlayerProfile, Options.UserConfig);
-	ConvertCapabilities(Capabilities, Options.Capabilities);
+	ConvertCapabilities(CapabilitySet, Options.Capabilities);
 
 	Inworld::SessionInfo Info;
 	Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);
@@ -227,47 +235,48 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 	Info.SessionId = TCHAR_TO_UTF8(*SessionToken.SessionId);
 
 	if (Save.Data.Num() != 0)
-    {
-        Info.SessionSavedState.resize(Save.Data.Num());
-        FMemory::Memcpy((uint8*)Info.SessionSavedState.data(), (uint8*)Save.Data.GetData(), Info.SessionSavedState.size());
-    }
+	{
+		Info.SessionSavedState.resize(Save.Data.Num());
+		FMemory::Memcpy((uint8*)Info.SessionSavedState.data(), (uint8*)Save.Data.GetData(), Info.SessionSavedState.size());
+	}
 
 	Inworld::GetClient()->StartClient(Options, Info);
 }
 
-void FInworldClient::Stop()
+void UInworldClient::StopSession()
 {
 	Inworld::GetClient()->StopClient();
 }
 
-void FInworldClient::Pause()
+void UInworldClient::PauseSession()
 {
 	Inworld::GetClient()->PauseClient();
 }
 
-void FInworldClient::Resume()
+void UInworldClient::ResumeSession()
 {
 	Inworld::GetClient()->ResumeClient();
 }
 
-void FInworldClient::SaveSession()
+void UInworldClient::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
-	Inworld::GetClient()->SaveSessionStateAsync([this](std::string Data, bool bSuccess)
+	Inworld::GetClient()->SaveSessionStateAsync([Callback](std::string Data, bool bSuccess)
 		{
-			AsyncTask(ENamedThreads::GameThread, [this, Data, bSuccess]() {
-				FInworldSave Save;
-				if (!bSuccess)
-				{
-					UE_LOG(LogInworldAIClient, Error, TEXT("Couldn't generate user id."));
-					OnSessionSaved.ExecuteIfBound(Save, false);
-					return;
-				}
-
+			FInworldSave Save;
+			if (bSuccess)
+			{
 				Save.Data.SetNumUninitialized(Data.size());
-				FMemory::Memcpy((uint8*)Save.Data.GetData(), (uint8*)Data.data(), Save.Data.Num());
-
-				OnSessionSaved.ExecuteIfBound(Save, true);
-			});
+				FMemory::Memcpy(Save.Data.GetData(), (uint8*)Data.data(), Save.Data.Num());
+			}
+			AsyncTask(ENamedThreads::GameThread, [Callback, Save, bSuccess]()
+				{
+					if (!bSuccess)
+					{
+						UE_LOG(LogInworldAIClient, Error, TEXT("Failed to save."));
+					}
+					Callback.ExecuteIfBound(Save, bSuccess);
+				}
+			);
 		});
 }
 
@@ -281,54 +290,54 @@ std::vector<std::string> ToStd(const TArray<FString>& Array)
 	return Vec;
 }
 
-void FInworldClient::LoadCharacters(const TArray<FString>& Names)
+void UInworldClient::LoadCharacters(const TArray<FString>& Ids)
 {
-	Inworld::GetClient()->LoadCharacters(ToStd(Names));
+	Inworld::GetClient()->LoadCharacters(ToStd(Ids));
 }
 
-void FInworldClient::UnloadCharacters(const TArray<FString>& Names)
+void UInworldClient::UnloadCharacters(const TArray<FString>& Ids)
 {
-	Inworld::GetClient()->UnloadCharacters(ToStd(Names));
+	Inworld::GetClient()->UnloadCharacters(ToStd(Ids));
 }
 
-void FInworldClient::LoadSavedState(const TArray<uint8>& SavedState)
+void UInworldClient::LoadSavedState(const FInworldSave& Save)
 {
-	std::string Data((char*)SavedState.GetData(), SavedState.Num());
+	std::string Data((char*)Save.Data.GetData(), Save.Data.Num());
 	Inworld::GetClient()->LoadSavedState(Data);
 }
 
-void FInworldClient::LoadCapabilities(const FInworldCapabilitySet& Capabilities)
+void UInworldClient::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet)
 {
-	Inworld::Capabilities Cpb;
-	ConvertCapabilities(Capabilities, Cpb);
-	Inworld::GetClient()->LoadCapabilities(Cpb);
+	Inworld::Capabilities Capabilities;
+	ConvertCapabilities(CapabilitySet, Capabilities);
+	Inworld::GetClient()->LoadCapabilities(Capabilities);
 }
 
-void FInworldClient::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
+void UInworldClient::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
 {
 	Inworld::UserConfiguration UserConfig;
 	ConvertPlayerProfile(PlayerProfile, UserConfig);
 	Inworld::GetClient()->LoadUserConfiguration(UserConfig);
 }
 
-EInworldConnectionState FInworldClient::GetConnectionState() const
+EInworldConnectionState UInworldClient::GetConnectionState() const
 {
 	return Inworld::GetClient() ? static_cast<EInworldConnectionState>(Inworld::GetClient()->GetConnectionState()) : EInworldConnectionState::Disconnected;
 }
 
-void FInworldClient::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const
+void UInworldClient::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const
 {
 	std::string OutError;
 	Inworld::GetClient()->GetConnectionError(OutError, OutErrorCode);
 	OutErrorMessage = UTF8_TO_TCHAR(OutError.c_str());
 }
 
-FString FInworldClient::GetSessionId() const
+FString UInworldClient::GetSessionId() const
 {
-	return UTF8_TO_TCHAR(Inworld::GetSessionId().c_str());
+	return UTF8_TO_TCHAR(Inworld::GetClient()->GetSessionInfo().SessionId.c_str());
 }
 
-TSharedPtr<FInworldPacket> FInworldClient::SendTextMessage(const TArray<FString>& AgentIds, const FString& Text)
+FInworldWrappedPacket UInworldClient::SendTextMessage(const TArray<FString>& AgentIds, const FString& Text)
 {
 	auto Packet = Inworld::GetClient()->SendTextMessage(ToStd(AgentIds), TCHAR_TO_UTF8(*Text));
 	InworldPacketTranslator PacketTranslator;
@@ -336,43 +345,27 @@ TSharedPtr<FInworldPacket> FInworldClient::SendTextMessage(const TArray<FString>
 	return PacketTranslator.GetPacket();
 }
 
-void FInworldClient::SendSoundMessage(const TArray<FString>& AgentIds, class USoundWave* Sound)
+void UInworldClient::BroadcastSoundMessage(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-	std::string data;
-	if (Inworld::Utils::SoundWaveToString(Sound, data))
+	if (OutputData.Num() > 0)
 	{
-		Inworld::GetClient()->SendSoundMessage(ToStd(AgentIds), data);
+		std::string inputdata((char*)InputData.GetData(), InputData.Num());
+		Inworld::GetClient()->SendSoundMessage(ToStd(AgentIds), inputdata);
 	}
-}
-
-void FInworldClient::SendSoundDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data)
-{
-	std::string data((char*)Data.GetData(), Data.Num());
-	Inworld::GetClient()->SendSoundMessage(ToStd(AgentIds), data);
-}
-
-void FInworldClient::SendSoundMessageWithEAC(const TArray<FString>& AgentIds, class USoundWave* Input, class USoundWave* Output)
-{
-	std::vector<int16_t> inputdata, outputdata;
-	if (Inworld::Utils::SoundWaveToVec(Input, inputdata) && Inworld::Utils::SoundWaveToVec(Output, outputdata))
+	else
 	{
+		std::vector<int16> inputdata((int16*)InputData.GetData(), ((int16*)InputData.GetData()) + (InputData.Num() / 2));
+		std::vector<int16> outputdata((int16*)OutputData.GetData(), ((int16*)OutputData.GetData()) + (OutputData.Num() / 2));
 		Inworld::GetClient()->SendSoundMessageWithAEC(ToStd(AgentIds), inputdata, outputdata);
 	}
 }
 
-void FInworldClient::SendSoundDataMessageWithEAC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
-{
-	std::vector<int16> inputdata((int16*)InputData.GetData(), ((int16*)InputData.GetData()) + (InputData.Num() / 2));
-	std::vector<int16> outputdata((int16*)OutputData.GetData(), ((int16*)OutputData.GetData()) + (OutputData.Num() / 2));
-	Inworld::GetClient()->SendSoundMessageWithAEC(ToStd(AgentIds), inputdata, outputdata);
-}
-
-void FInworldClient::StartAudioSession(const TArray<FString>& AgentIds)
+void UInworldClient::BroadcastAudioSessionStart(const TArray<FString>& AgentIds)
 {
 	Inworld::GetClient()->StartAudioSession(ToStd(AgentIds));
 }
 
-void FInworldClient::StopAudioSession(const TArray<FString>& AgentIds)
+void UInworldClient::BroadcastAudioSessionStop(const TArray<FString>& AgentIds)
 {
 	Inworld::GetClient()->StopAudioSession(ToStd(AgentIds));
 }
@@ -387,22 +380,22 @@ std::unordered_map<std::string, std::string> ToStd(const TMap<FString, FString>&
 	return StdMap;
 }
 
-void FInworldClient::SendCustomEvent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params)
+void UInworldClient::BroadcastTrigger(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params)
 {
 	Inworld::GetClient()->SendCustomEvent(ToStd(AgentIds), TCHAR_TO_UTF8(*Name), ToStd(Params));
 }
 
-void FInworldClient::SendChangeSceneEvent(const FString& SceneName)
+void UInworldClient::SendChangeSceneEvent(const FString& SceneName)
 {
 	Inworld::GetClient()->LoadScene(TCHAR_TO_UTF8(*SceneName));
 }
 
-void FInworldClient::SendNarrationEvent(const FString& AgentId, const FString& Content)
+void UInworldClient::SendNarrationEvent(const FString& AgentId, const FString& Content)
 {
 	Inworld::GetClient()->SendNarrationEvent(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*Content));
 }
 
-void FInworldClient::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)
+void UInworldClient::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
 	std::vector<std::string> utteranceIds;
 	utteranceIds.reserve(UtteranceIds.Num());
@@ -415,7 +408,7 @@ void FInworldClient::CancelResponse(const FString& AgentId, const FString& Inter
 }
 
 #if !UE_BUILD_SHIPPING
-void FInworldClient::OnCVarsChanged()
+void UInworldClient::OnCVarsChanged()
 {
 	static bool GEnableSoundDump = CVarEnableSoundDump.GetValueOnGameThread();
 	static FString GSoundDumpPath = CVarSoundDumpPath.GetValueOnGameThread();
