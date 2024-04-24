@@ -103,7 +103,7 @@ public:
 	UInworldCharacterPlayback* GetPlayback(TSubclassOf<UInworldCharacterPlayback> Class) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Interactions")
-	bool IsInteractingWithPlayer() const { return InworldCharacter->IsEngagedWithPlayer(); }
+	bool IsInteractingWithPlayer() const { return InworldCharacter->GetTargetPlayer() != nullptr; }
 
 	UFUNCTION(BlueprintCallable, Category = "Emotions")
 	EInworldCharacterEmotionalBehavior GetEmotionalBehavior() const { return EmotionalBehavior; }

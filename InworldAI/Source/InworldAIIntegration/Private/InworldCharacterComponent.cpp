@@ -35,8 +35,8 @@ void UInworldCharacterComponent::InitializeComponent()
 			AgentInfo = InworldCharacter->GetAgentInfo();
 		}
 	);
-	InworldCharacter->OnEngaged().AddLambda(
-		[this](bool bEngaged) -> void
+	InworldCharacter->OnTargetPlayerChanged().AddLambda(
+		[this]() -> void
 		{
 			//TODO: FIX
 			// set player id and whatnot
