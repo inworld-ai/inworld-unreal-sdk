@@ -7,6 +7,7 @@
 
 #include "InworldCharacterPlayback.h"
 #include "InworldCharacterComponent.h"
+#include <GameFramework/Actor.h>
 
 void UInworldCharacterPlayback::BeginPlay_Implementation() {}
 void UInworldCharacterPlayback::EndPlay_Implementation() {}

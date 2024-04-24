@@ -12,6 +12,9 @@
 #include "Sound/SoundWave.h"
 #include "TimerManager.h"
 
+#include <GameFramework/Actor.h>
+#include <Engine/World.h>
+
 void UInworldCharacterAudioComponent::BeginPlay()
 {
 	Super::BeginPlay();
