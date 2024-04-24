@@ -123,15 +123,13 @@ private:
     FAudioBuffer InputBuffer;
     FAudioBuffer OutputBuffer;
 
-    FDelegateHandle PlayerTargetSetHandle;
-    FDelegateHandle PlayerTargetClearHandle;
-
-    struct FPlayerAudioTarget
+    struct FPlayerAudioTargetState
     {
-        TArray<FString> ActiveAgentIds;
-        TArray<FString> DesiredAgentIds;
+        TArray<UInworldCharacter*> ActiveCharacters;
+        TArray<UInworldCharacter*> DesiredCharacters;
+        bool bDirty = false;
 
-    } PlayerAudioTarget;
+    } PlayerAudioTargetState;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
     friend class FInworldGameplayDebuggerCategory;

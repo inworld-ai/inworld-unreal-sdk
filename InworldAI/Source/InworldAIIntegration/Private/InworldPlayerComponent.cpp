@@ -36,8 +36,6 @@ void UInworldPlayerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-    InworldPlayer = NewObject<UInworldPlayer>(this);
-
     InworldSession = IInworldSessionOwnerInterface::Execute_GetInworldSession(GetWorld()->GetSubsystem<UInworldApiSubsystem>());
 
 	SetIsReplicated(true);

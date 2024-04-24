@@ -15,6 +15,13 @@
 class UInworldSession;
 class UInworldCharacter;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerTargetCharacterAdded, UInworldCharacter*, Character);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerTargetCharacterAddedNative, UInworldCharacter* /*Character*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerTargetCharacterRemoved, UInworldCharacter*, Character);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerTargetCharacterRemovedNative, UInworldCharacter* /*Character*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldPlayerTargetCharactersChanged);
+DECLARE_MULTICAST_DELEGATE(FOnInworldPlayerTargetCharactersChangedNative);
+
 UCLASS(BlueprintType)
 class INWORLDAIINTEGRATION_API UInworldPlayer : public UObject
 {
@@ -28,17 +35,33 @@ public:
 	const TArray<UInworldCharacter*>& GetTargetCharacters() const { return TargetCharacters; }
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Player|Target")
-	void AddTargetCharacter(UInworldCharacter* TargetCharacter) { TargetCharacters.AddUnique(TargetCharacter); }
+	void AddTargetCharacter(UInworldCharacter* TargetCharacter);
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Player|Target")
-	void RemoveTargetCharacter(UInworldCharacter* TargetCharacter) { TargetCharacters.Remove(TargetCharacter); }
+	void RemoveTargetCharacter(UInworldCharacter* TargetCharacter);
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Player|Target")
-	void ClearAllTargetCharacters() { TargetCharacters.Empty(); }
+	void ClearAllTargetCharacters();
+
+	UPROPERTY(BlueprintAssignable, Category = "Engagement")
+	FOnInworldPlayerTargetCharacterAdded OnTargetCharacterAddedDelegate;
+	FOnInworldPlayerTargetCharacterAddedNative& OnTargetCharacterAdded() { return OnTargetCharacterAddedDelegateNative; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Engagement")
+	FOnInworldPlayerTargetCharacterRemoved OnTargetCharacterRemovedDelegate;
+	FOnInworldPlayerTargetCharacterRemovedNative& OnTargetCharacterRemoved() { return OnTargetCharacterRemovedDelegateNative; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Engagement")
+	FOnInworldPlayerTargetCharactersChanged OnTargetCharactersChangedDelegate;
+	FOnInworldPlayerTargetCharactersChangedNative& OnTargetCharactersChanged() { return OnTargetCharactersChangedDelegateNative; }
 
 private:
 	UPROPERTY()
 	TArray<UInworldCharacter*> TargetCharacters;
+
+	FOnInworldPlayerTargetCharacterAddedNative OnTargetCharacterAddedDelegateNative;
+	FOnInworldPlayerTargetCharacterRemovedNative OnTargetCharacterRemovedDelegateNative;
+	FOnInworldPlayerTargetCharactersChangedNative OnTargetCharactersChangedDelegateNative;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)

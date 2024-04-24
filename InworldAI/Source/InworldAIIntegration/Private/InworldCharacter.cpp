@@ -64,28 +64,28 @@ void UInworldCharacter::Unpossess()
 	}
 }
 
-void UInworldCharacter::SetEngagedPlayer(UInworldPlayer* Player)
+void UInworldCharacter::SetTargetPlayer(UInworldPlayer* Player)
 {
 	if (Player == nullptr)
 	{
-		ClearEngagedPlayer();
+		ClearTargetPlayer();
 		return;
 	}
-	if (Player != EngagedPlayer)
+	if (Player != TargetPlayer)
 	{
-		ClearEngagedPlayer();
-		EngagedPlayer = Player;
-		OnEngagedDelegateNative.Broadcast(true);
-		OnEngagedDelegate.Broadcast(true);
+		ClearTargetPlayer();
+		TargetPlayer = Player;
+		OnTargetPlayerChangedDelegateNative.Broadcast();
+		OnTargetPlayerChangedDelegate.Broadcast();
 	}
 }
 
-void UInworldCharacter::ClearEngagedPlayer()
+void UInworldCharacter::ClearTargetPlayer()
 {
-	if (IsEngagedWithPlayer())
+	if (TargetPlayer != nullptr)
 	{
-		EngagedPlayer = nullptr;
-		OnEngagedDelegateNative.Broadcast(false);
-		OnEngagedDelegate.Broadcast(false);
+		TargetPlayer = nullptr;
+		OnTargetPlayerChangedDelegateNative.Broadcast();
+		OnTargetPlayerChangedDelegate.Broadcast();
 	}
 }

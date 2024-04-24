@@ -12,11 +12,11 @@
 #include "InworldTypes.h"
 #include "InworldCharacter.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerPossessed, bool, bPossessed);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerPossessedNative, bool /*bPossessed*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterPossessed, bool, bPossessed);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterPossessedNative, bool /*bPossessed*/);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerEngaged, bool, bEngaged);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerEngagedNative, bool /*bEngaged*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldCharacterTargetPlayerChanged);
+DECLARE_MULTICAST_DELEGATE(FOnInworldCharacterTargetPlayerChangedNative);
 
 UCLASS(BlueprintType)
 class INWORLDAIINTEGRATION_API UInworldCharacter : public UObject
@@ -41,30 +41,28 @@ public:
 	const FInworldAgentInfo& GetAgentInfo() const { return AgentInfo; }
 
 	UPROPERTY(BlueprintAssignable, Category = "Possession")
-	FOnInworldPlayerPossessed OnPossessedDelegate;
-	FOnInworldPlayerPossessedNative& OnPossessed() { return OnPossessedDelegateNative; }
+	FOnInworldCharacterPossessed OnPossessedDelegate;
+	FOnInworldCharacterPossessedNative& OnPossessed() { return OnPossessedDelegateNative; }
 
-	UFUNCTION(BlueprintPure, Category = "Engagement")
-	bool IsEngagedWithPlayer() const { return EngagedPlayer != nullptr; }
 	UFUNCTION(BlueprintCallable, Category = "Engagement")
-	void SetEngagedPlayer(UInworldPlayer* Player);
+	void SetTargetPlayer(UInworldPlayer* Player);
 	UFUNCTION(BlueprintCallable, Category = "Engagement")
-	void ClearEngagedPlayer();
+	void ClearTargetPlayer();
 
 	UFUNCTION(BlueprintPure, Category="Engagement")
-	UInworldPlayer* GetEngagedPlayer() const { return EngagedPlayer; }
+	UInworldPlayer* GetTargetPlayer() const { return TargetPlayer; }
 
 	UPROPERTY(BlueprintAssignable, Category = "Engagement")
-	FOnInworldPlayerEngaged OnEngagedDelegate;
-	FOnInworldPlayerEngagedNative& OnEngaged() { return OnEngagedDelegateNative; }
+	FOnInworldCharacterTargetPlayerChanged OnTargetPlayerChangedDelegate;
+	FOnInworldCharacterTargetPlayerChangedNative& OnTargetPlayerChanged() { return OnTargetPlayerChangedDelegateNative; }
 
 private:
 	FInworldAgentInfo AgentInfo;
-	FOnInworldPlayerPossessedNative OnPossessedDelegateNative;
+	FOnInworldCharacterPossessedNative OnPossessedDelegateNative;
 
 	UPROPERTY()
-	UInworldPlayer* EngagedPlayer;
-	FOnInworldPlayerEngagedNative OnEngagedDelegateNative;
+	UInworldPlayer* TargetPlayer;
+	FOnInworldCharacterTargetPlayerChangedNative OnTargetPlayerChangedDelegateNative;
 };
 
 

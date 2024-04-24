@@ -77,19 +77,18 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
     float BestTargetDot = -1.f;
     for (UInworldCharacter* Character : Characters)
     {
+        UInworldPlayer* Player = Character->GetTargetPlayer();
+        if (Player && Player != InworldPlayer)
+        {
+            continue;
+        }
+
         const FVector CharacterLocation = Character->GetInworldCharacterOwner()->GetInworldCharacterTransform().GetLocation();
         const float DistSq = FVector::DistSquared(Location, CharacterLocation);
         if (DistSq > MinDistSq)
         {
             continue;
         }
-        
-        //TODO: FIX
-        //const auto* CurrentTargetPlayer = Character->GetTargetPlayer();
-        //if (CurrentTargetPlayer && CurrentTargetPlayer != Player)
-        //{
-        //    continue;
-        //}
 
         // if multiple targets enabled add all characters in range
         if (bMultipleTargets)
