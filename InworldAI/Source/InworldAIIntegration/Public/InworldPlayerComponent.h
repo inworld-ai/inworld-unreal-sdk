@@ -9,6 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "InworldCharacterComponent.h"
+#include "InworldPlayer.h"
 
 #include "InworldPlayerComponent.generated.h"
 
@@ -27,14 +28,25 @@ struct FInworldPlayerTargetCharacter
 };
 
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
-class INWORLDAIINTEGRATION_API UInworldPlayerComponent : public UActorComponent, public Inworld::IPlayerComponent
+class INWORLDAIINTEGRATION_API UInworldPlayerComponent : public UActorComponent, public IInworldPlayerOwnerInterface
 {
 	GENERATED_BODY()
 
 public:
+    UInworldPlayerComponent();
+
+    // IInworldPlayerInterface
+    UInworldPlayer* GetInworldPlayer_Implementation() const { return InworldPlayer; }
+    UInworldSession* GetInworldSession_Implementation() const { return InworldSession; }
+    FTransform GetInworldPlayerTransform() const { return GetOwner()->GetTransform(); }
+    // IInworldPlayerInterface
+
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerTargetChange, UInworldCharacterComponent*);
     FOnInworldPlayerTargetChange OnTargetSet;
     FOnInworldPlayerTargetChange OnTargetClear;
+
+    virtual void InitializeComponent() override;
+    virtual void UninitializeComponent() override;
 
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -42,17 +54,12 @@ public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacter"))
-    UInworldCharacterComponent* GetTargetInworldCharacter() { return static_cast<UInworldCharacterComponent*>(GetTargetCharacter()); }
+    UInworldCharacterComponent* GetTargetInworldCharacter();
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacters"))
     TArray<UInworldCharacterComponent*> GetTargetInworldCharacters();
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction")
-    TArray<FString> GetTargetAgentIds();
-
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
     void ContinueMultiAgentConversation();
-
-    virtual Inworld::ICharacterComponent* GetTargetCharacter() override;
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "SetTargetCharacter"))
     void SetTargetInworldCharacter(UInworldCharacterComponent* Character);
@@ -64,13 +71,10 @@ public:
     void ClearAllTargetInworldCharacters();
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-    bool IsInteracting() { return Targets.Num() != 0; }
+    bool IsInteracting() { return InworldPlayer->GetTargetInworldCharacters().Num() > 0; }
 
     UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Interaction")
     void SendTextMessageToTarget(const FString& Message);
-
-    UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Interaction")
-    void SendTextMessage(const FString& Message, const FString& AgentId);
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (AutoCreateRefTerm = "Params"))
     void SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params);
@@ -84,22 +88,17 @@ public:
     void StopAudioSessionWithTarget();
 
     UFUNCTION(BlueprintCallable, Category = "Interaction")
-    void SendAudioMessageToTarget(USoundWave* SoundWave);
-    void SendAudioDataMessageToTarget(const TArray<uint8>& Data);
-    void SendAudioDataMessageWithAECToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+    void SendAudioMessageToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 private:
-
-	UFUNCTION()
-	void OnRep_Targets(const TArray<FInworldPlayerTargetCharacter>& OldTrgets);
-
     UPROPERTY(EditAnywhere, Category = "UI")
     FString UiName = "Player";
 
-    TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
+    UPROPERTY()
+    UInworldPlayer* InworldPlayer;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Targets)
-	TArray<FInworldPlayerTargetCharacter> Targets;
+    UPROPERTY()
+    UInworldSession* InworldSession;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
     friend class FInworldGameplayDebuggerCategory;

@@ -20,4 +20,15 @@ public:
 private:
 	void* ndkLibraryHandle;
 	void* webrtcLibraryHandle;
+
+public:
+	static inline FInworldAINDKModule& Get()
+	{
+		return FModuleManager::LoadModuleChecked<FInworldAINDKModule>("InworldAINDK");
+	}
+
+	static inline bool IsAvailable()
+	{
+		return FModuleManager::Get().IsModuleLoaded("InworldAINDK");
+	}
 };

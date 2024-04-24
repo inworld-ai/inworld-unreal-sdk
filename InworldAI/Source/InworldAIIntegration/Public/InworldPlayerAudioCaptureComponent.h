@@ -14,9 +14,7 @@
 
 #include "InworldPlayerAudioCaptureComponent.generated.h"
 
-class UInworldApiSubsystem;
-class UInworldPlayerComponent;
-class UInworldCharacterComponent;
+class UInworldPlayer;
 class USoundWave;
 class UAudioCaptureComponent;
 
@@ -72,9 +70,6 @@ public:
 private:
     void EvaluateVoiceCapture();
 
-    UFUNCTION()
-    void OnInworldConnectionStateChanged(EInworldConnectionState ConnectionState);
-
 public:
     UFUNCTION(BlueprintCallable, Category = "Volume", meta=(DeprecatedFunction, DeprecationMessage="SetVolumeMultiplier is deprecated, use SetMuted instead."))
     void SetVolumeMultiplier(float InVolumeMultiplier) { bMuted = InVolumeMultiplier == 0.f; }
@@ -114,8 +109,7 @@ private:
 
     TAtomic<bool> bCapturingVoice = false;
 
-	TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
-    TWeakObjectPtr<UInworldPlayerComponent> PlayerComponent;
+    TWeakObjectPtr<UInworldPlayer> InworldPlayer;
 
     TSharedPtr<FInworldAudioCapture> InputAudioCapture;
     TSharedPtr<FInworldAudioCapture> OutputAudioCapture;
@@ -128,9 +122,6 @@ private:
 
     FAudioBuffer InputBuffer;
     FAudioBuffer OutputBuffer;
-
-    void OnPlayerTargetSet(UInworldCharacterComponent* Target);
-    void OnPlayerTargetClear(UInworldCharacterComponent* Target);
 
     FDelegateHandle PlayerTargetSetHandle;
     FDelegateHandle PlayerTargetClearHandle;

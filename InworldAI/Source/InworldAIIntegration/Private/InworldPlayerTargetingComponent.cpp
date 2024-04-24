@@ -6,6 +6,7 @@
  */
 
 #include "InworldPlayerTargetingComponent.h"
+#include "InworldPlayer.h"
 #include "InworldPlayerComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/World.h"
@@ -27,9 +28,7 @@ void UInworldPlayerTargetingComponent::BeginPlay()
     else
 	{
 		PrimaryComponentTick.SetTickFunctionEnable(true);
-
-        InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
-        PlayerComponent = Cast<UInworldPlayerComponent>(GetOwner()->GetComponentByClass(UInworldPlayerComponent::StaticClass()));
+        InworldPlayer = Cast<UInworldPlayerComponent>(GetOwner()->GetComponentByClass(UInworldPlayerComponent::StaticClass()))->GetInworldPlayer();
     }
 }
 
@@ -42,22 +41,18 @@ void UInworldPlayerTargetingComponent::TickComponent(float DeltaTime, enum ELeve
 
 void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
 {
-    auto* Player = PlayerComponent.Get();
-
+    //TODO: FIX
     // prevent starting another audio session in multiplayer
-    const auto* CurrentAudioSessionOwner = InworldSubsystem->GetAudioSessionOwner();
-    if (CurrentAudioSessionOwner && CurrentAudioSessionOwner != Player->GetOwner())
-    {
-        return;
-    }
+    //const auto* CurrentAudioSessionOwner = InworldSubsystem->GetAudioSessionOwner();
+    //if (CurrentAudioSessionOwner && CurrentAudioSessionOwner != Player->GetOwner())
+    //{
+    //    return;
+    //}
     
     // clear all targets if just switched from multiple targeting
     if (!bMultipleTargets && TargetCharacters.Num() > 1)
     {
-        for (auto* Character : TargetCharacters)
-        {
-            Player->ClearTargetInworldCharacter(Character);
-        }
+        InworldPlayer->ClearAllTargetInworldCharacters();
         TargetCharacters.Empty();
     }
 
@@ -66,40 +61,35 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
     const FVector Location = GetOwner()->GetActorLocation();
     for (int32 i = 0; i < TargetCharacters.Num(); i++)
     {
-        auto* Character = TargetCharacters[i];
-        const FVector CharacterLocation = Character->GetComponentOwner()->GetActorLocation();
+        UInworldCharacter* Character = TargetCharacters[i];
+        const FVector CharacterLocation = Character->GetInworldCharacterOwner()->GetInworldCharacterTransform().GetLocation();
         const float DistSq = FVector::DistSquared(Location, CharacterLocation);
         if (DistSq > MinDistSq)
         {
-            Player->ClearTargetInworldCharacter(Character);
+            InworldPlayer->RemoveTargetInworldCharacter(Character);
             TargetCharacters.RemoveAt(i);
             i--;
         }
     }
 
-    const auto& CharacterComponents = InworldSubsystem->GetCharacterComponents();
-    UInworldCharacterComponent* BestTarget = nullptr;
+    const TArray<UInworldCharacter*>& Characters = InworldPlayer->GetInworldPlayerOwner()->GetInworldSession()->GetRegisteredCharacters();
+    UInworldCharacter* BestTarget = nullptr;
     float BestTargetDot = -1.f;
-    for (auto& Char : CharacterComponents)
+    for (UInworldCharacter* Character : Characters)
     {
-        auto* Character = static_cast<UInworldCharacterComponent*>(Char);
-        if (!Character || Character->GetAgentId().IsEmpty())
-        {
-            continue;
-        }
-        
-        const FVector CharacterLocation = Character->GetComponentOwner()->GetActorLocation();
+        const FVector CharacterLocation = Character->GetInworldCharacterOwner()->GetInworldCharacterTransform().GetLocation();
         const float DistSq = FVector::DistSquared(Location, CharacterLocation);
         if (DistSq > MinDistSq)
         {
             continue;
         }
         
-        const auto* CurrentTargetPlayer = Character->GetTargetPlayer();
-        if (CurrentTargetPlayer && CurrentTargetPlayer != Player)
-        {
-            continue;
-        }
+        //TODO: FIX
+        //const auto* CurrentTargetPlayer = Character->GetTargetPlayer();
+        //if (CurrentTargetPlayer && CurrentTargetPlayer != Player)
+        //{
+        //    continue;
+        //}
 
         // if multiple targets enabled add all characters in range
         if (bMultipleTargets)
@@ -111,7 +101,7 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
             }
 
             TargetCharacters.Add(Character);
-            PlayerComponent->SetTargetInworldCharacter(Character);
+            InworldPlayer->AddTargetInworldCharacter(Character);
             continue;
         }
 
@@ -142,19 +132,19 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
         return;
     }
 
-    auto* CurTarget = TargetCharacters.Num() != 0 ? TargetCharacters[0] : nullptr;
-    if (CurTarget != BestTarget)
+    UInworldCharacter* CurrentTarget = TargetCharacters.Num() != 0 ? TargetCharacters[0] : nullptr;
+    if (CurrentTarget != BestTarget)
     {
-        if (CurTarget)
+        if (CurrentTarget)
         {
-			PlayerComponent->ClearTargetInworldCharacter(CurTarget);
+			InworldPlayer->RemoveTargetInworldCharacter(CurrentTarget);
 			TargetCharacters.Empty();
         }
 
         if (BestTarget)
         {
 			TargetCharacters.Add(BestTarget);
-			PlayerComponent->SetTargetInworldCharacter(BestTarget);
+            InworldPlayer->AddTargetInworldCharacter(BestTarget);
         }
     }
 }

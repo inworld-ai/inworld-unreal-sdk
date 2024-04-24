@@ -17,7 +17,8 @@
 #include <GameFramework/PlayerState.h>
 
 UInworldCharacterComponent::UInworldCharacterComponent()
-	: MessageQueue(MakeShared<FCharacterMessageQueue>(this))
+	: Super()
+	, MessageQueue(MakeShared<FCharacterMessageQueue>(this))
 {
     PrimaryComponentTick.bCanEverTick = true;
     bWantsInitializeComponent = true;
@@ -26,6 +27,8 @@ UInworldCharacterComponent::UInworldCharacterComponent()
 void UInworldCharacterComponent::InitializeComponent()
 {
     Super::InitializeComponent();
+
+	InworldCharacter = NewObject<UInworldCharacter>(this, "InworldCharacter");
 
 #if WITH_EDITOR
 	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
@@ -52,6 +55,8 @@ void UInworldCharacterComponent::UninitializeComponent()
 {
 	Super::UninitializeComponent();
 
+	InworldCharacter = nullptr;
+
 #if WITH_EDITOR
 	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
 	{
@@ -71,7 +76,7 @@ void UInworldCharacterComponent::BeginPlay()
 
 	SetIsReplicated(true);
 
-	InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
+	InworldSession = IInworldSessionOwnerInterface::Execute_GetInworldSession(GetWorld()->GetSubsystem<UInworldApiSubsystem>());
 
 	if (GetNetMode() != NM_Client)
 	{
@@ -94,10 +99,11 @@ void UInworldCharacterComponent::EndPlay(EEndPlayReason::Type Reason)
 
 	if (GetNetMode() == NM_Client)
 	{
-		if (InworldSubsystem.IsValid())
+		//TODO: FIX
+		//if (InworldSubsystem.IsValid())
 		{
-			FString NewAgentId = FString();
-			InworldSubsystem->UpdateCharacterComponentRegistrationOnClient(this, NewAgentId, AgentId);
+			//FString NewAgentId = FString();
+			//InworldSubsystem->UpdateCharacterComponentRegistrationOnClient(this, NewAgentId, AgentId);
 		}
 	}
 	else
@@ -139,45 +145,9 @@ void UInworldCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProp
 	DOREPLIFETIME(UInworldCharacterComponent, AgentId);
 }
 
-void UInworldCharacterComponent::Possess(const FInworldAgentInfo& AgentInfo)
-{
-	AgentId = AgentInfo.AgentId;
-	GivenName = AgentInfo.GivenName;
-	OnPossessed.Broadcast();
-}
-
-void UInworldCharacterComponent::Unpossess()
-{
-	if (IsPossessing())
-	{
-		OnUnpossessed.Broadcast();
-		AgentId = FString();
-		GivenName = FString();
-	}
-}
-
 void UInworldCharacterComponent::SetBrainName(const FString& Name)
 {
-#if WITH_EDITOR
-	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
-	{
-		BrainName = Name;
-		return;
-	}
-#endif
-	if (GetNetMode() == NM_Client)
-	{
-		return;
-	}
-
-	if (!ensure(InworldSubsystem.IsValid()))
-	{
-		return;
-	}
-
-	Unregister();
-	BrainName = Name;
-	Register();
+	InworldCharacter->SetBrainName(BrainName);
 }
 
 UInworldCharacterPlayback* UInworldCharacterComponent::GetPlayback(TSubclassOf<UInworldCharacterPlayback> Class) const
@@ -198,11 +168,6 @@ void UInworldCharacterComponent::HandlePacket(TSharedPtr<FInworldPacket> Packet)
 	{
 		Packet->Accept(*this);
     }
-}
-
-Inworld::IPlayerComponent* UInworldCharacterComponent::GetTargetPlayer()
-{
-	return TargetPlayer;
 }
 
 bool UInworldCharacterComponent::StartPlayerInteraction(UInworldPlayerComponent* Player)
@@ -244,58 +209,35 @@ void UInworldCharacterComponent::CancelCurrentInteraction()
 
 	const FString CurrentInteractionId = CurrentMessage->InteractionId;
 	TArray<FString> CanceledUtterances = MessageQueue->CancelInteraction(CurrentInteractionId);
-	if (CanceledUtterances.Num() > 0 && !AgentId.IsEmpty())
+	if (CanceledUtterances.Num() > 0)
 	{
-		InworldSubsystem->CancelResponse(AgentId, CurrentInteractionId, CanceledUtterances);
+		InworldSession->CancelResponse(InworldCharacter, CurrentInteractionId, CanceledUtterances);
 	}
 }
 
 void UInworldCharacterComponent::SendTextMessage(const FString& Text) const
 {
-    if (ensure(!AgentId.IsEmpty()))
-    {
-        InworldSubsystem->SendTextMessage(AgentId, Text);
-    }
+	InworldSession->SendTextMessage(InworldCharacter, Text);
 }
 
 void UInworldCharacterComponent::SendTrigger(const FString& Name, const TMap<FString, FString>& Params) const
 {
-    if (ensure(!AgentId.IsEmpty()))
-    {
-        InworldSubsystem->SendTrigger(AgentId, Name, Params);
-    }
-}
-
-void UInworldCharacterComponent::SendAudioMessage(USoundWave* SoundWave) const
-{
-    if (ensure(!AgentId.IsEmpty()))
-    {
-        InworldSubsystem->SendAudioMessage(AgentId, SoundWave);
-    }
+	InworldSession->SendTrigger(InworldCharacter, Name, Params);
 }
 
 void UInworldCharacterComponent::SendNarrationEvent(const FString& Content)
 {
-	if (ensure(!AgentId.IsEmpty()))
-	{
-		InworldSubsystem->SendNarrationEvent(AgentId, Content);
-	}
+	InworldSession->SendNarrationEvent(InworldCharacter, Content);
 }
 
 void UInworldCharacterComponent::StartAudioSession(const AActor* Owner) const
 {
-    if (ensure(!AgentId.IsEmpty()))
-    {
-        InworldSubsystem->StartAudioSession(AgentId, Owner);
-    }
+	InworldSession->SendAudioSessionStart(InworldCharacter);
 }
 
 void UInworldCharacterComponent::StopAudioSession() const
 {
-    if (ensure(!AgentId.IsEmpty()))
-    {
-        InworldSubsystem->StopAudioSession(AgentId);
-    }
+	InworldSession->SendAudioSessionStop(InworldCharacter);
 }
 
 bool UInworldCharacterComponent::Register()
@@ -305,34 +247,19 @@ bool UInworldCharacterComponent::Register()
         return false;
     }
 
-	if (!ensure(InworldSubsystem.IsValid()))
-	{
-        return false;
-	}
-
-	if (InworldSubsystem->IsCharacterComponentRegistered(this))
-	{
-		return false;
-	}
-
-    InworldSubsystem->RegisterCharacterComponent(this);
+	InworldCharacter->SetBrainName(BrainName);
 
     return true;
 }
 
 bool UInworldCharacterComponent::Unregister()
 {
-	if (!ensure(InworldSubsystem.IsValid()))
+	if (BrainName.IsEmpty())
 	{
 		return false;
 	}
 
-	if (!InworldSubsystem->IsCharacterComponentRegistered(this))
-	{
-		return false;
-	}
-
-    InworldSubsystem->UnregisterCharacterComponent(this);
+	InworldCharacter->SetBrainName({});
 
     return true;
 }
@@ -480,7 +407,8 @@ void UInworldCharacterComponent::OnRep_AgentId(FString OldAgentId)
 		OnUnpossessed.Broadcast();
 	}
 
-	InworldApi->UpdateCharacterComponentRegistrationOnClient(this, AgentId, OldAgentId);
+	//TODO: FIX
+	//InworldApi->UpdateCharacterComponentRegistrationOnClient(this, AgentId, OldAgentId);
 }
 
 void UInworldCharacterComponent::Multicast_VisitSilence_Implementation(const FInworldSilenceEvent& Event)

@@ -9,9 +9,9 @@
 
 #include "CoreMinimal.h"
 #include "InworldApi.h"
+#include "InworldCharacter.h"
 #include "Components/ActorComponent.h"
 
-#include "InworldComponentInterface.h"
 #include "InworldCharacterPlayback.h"
 #include "InworldCharacterMessage.h"
 #include "InworldEnums.h"
@@ -28,12 +28,18 @@ class UInworldPlayerComponent;
 class FInternetAddr;
 
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
-class INWORLDAIINTEGRATION_API UInworldCharacterComponent : public UActorComponent, public InworldPacketVisitor, public Inworld::ICharacterComponent, public ICharacterMessageVisitor
+class INWORLDAIINTEGRATION_API UInworldCharacterComponent : public UActorComponent, public InworldPacketVisitor, public ICharacterMessageVisitor, public IInworldCharacterOwnerInterface
 {
 	GENERATED_BODY()
 
 public:
 	UInworldCharacterComponent();
+
+	// IInworldCharacterOwnerInterface
+	UInworldCharacter* GetInworldCharacter_Implementation() const { return InworldCharacter; }
+	UInworldSession* GetInworldSession_Implementation() const { return InworldSession; }
+	FTransform GetInworldPlayerTransform() const { return GetOwner()->GetTransform(); }
+	// IInworldCharacterOwnerInterface
 
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
@@ -80,23 +86,17 @@ public:
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void Possess(const FInworldAgentInfo& AgentInfo) override;
-	virtual void Unpossess() override;
-	virtual bool IsPossessing() override { return !AgentId.IsEmpty(); }
-
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	void SetBrainName(const FString& Name);
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
-	virtual const FString& GetBrainName() const override { return BrainName; }
+	const FString& GetBrainName() const { return InworldCharacter->GetBrainName(); }
 
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-	virtual const FString& GetAgentId() const override { return AgentId; }
+	const FString& GetAgentId() const { return InworldCharacter->GetAgentId(); }
 
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    virtual const FString& GetGivenName() const override { return GivenName; }
-
-    virtual AActor* GetComponentOwner() const override { return GetOwner(); }
+    const FString& GetGivenName() const { return InworldCharacter->GetGivenName(); }
 
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     const FString& GetUiName() const { return UiName; }
@@ -106,9 +106,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DeterminesOutputType = "Class"))
 	UInworldCharacterPlayback* GetPlayback(TSubclassOf<UInworldCharacterPlayback> Class) const;
 
-	virtual void HandlePacket(TSharedPtr<FInworldPacket> Packet) override;
-
-	virtual Inworld::IPlayerComponent* GetTargetPlayer() override;
+	void HandlePacket(TSharedPtr<FInworldPacket> Packet);
 	
 	bool StartPlayerInteraction(UInworldPlayerComponent* Player);
 	bool StopPlayerInteraction(UInworldPlayerComponent* Player);
@@ -129,9 +127,6 @@ public:
 	void SendTrigger(const FString& Name, const TMap<FString, FString>& Params) const;
 	[[deprecated("UInworldCharacterComponent::SendCustomEvent is deprecated, please use UInworldCharacterComponent::SendTrigger")]]
 	void SendCustomEvent(const FString& Name) const { SendTrigger(Name, {}); }
-
-	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void SendAudioMessage(USoundWave* SoundWave) const;
     
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void SendNarrationEvent(const FString& Content);
@@ -252,6 +247,13 @@ private:
 	FString AgentId;
 	
 	FString GivenName;
+
+private:
+	UPROPERTY()
+	UInworldCharacter* InworldCharacter;
+
+	UPROPERTY()
+	UInworldSession* InworldSession;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
 	friend class FInworldGameplayDebuggerCategory;
