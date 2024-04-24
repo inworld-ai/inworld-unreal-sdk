@@ -469,6 +469,11 @@ void UInworldApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
+    if (GetWorld()->GetNetMode() == NM_Client)
+    {
+        return;
+    }
+
     Client = MakeShared<FInworldClient>();
 
     Client->OnConnectionStateChanged.BindLambda([this](EInworldConnectionState ConnectionState)
