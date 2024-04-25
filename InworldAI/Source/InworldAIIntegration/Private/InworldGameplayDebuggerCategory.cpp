@@ -9,11 +9,13 @@
 
 #include "InworldGameplayDebuggerCategory.h"
 #include "InworldApi.h"
-#include "InworldCharacterComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
 #include "InworldPlayerAudioCaptureComponent.h"
+#include "InworldCharacterComponent.h"
 #include "InworldPlayerComponent.h"
+#include "InworldCharacter.h"
+#include "InworldPlayer.h"
 
 #include "UObject/UObjectIterator.h"
 
@@ -48,33 +50,35 @@ void FInworldGameplayDebuggerCategory::CollectData(APlayerController* OwnerPC, A
 	for (UInworldCharacter* Character : InworldApi->GetInworldSession()->GetRegisteredCharacters())
 	{
 		auto& Data = DataPack.CharData.Emplace_GetRef();
-		//TODO: FIX
-		//Data.OverheadLocation = Actor->GetActorLocation() + FVector(0, 0, Actor->GetSimpleCollisionHalfHeight());
-		//Data.bIsInteracting = Comp->IsInteractingWithPlayer();
+		auto* Actor = Character->GetTypedOuter<AActor>();
+		Data.OverheadLocation = Actor->GetActorLocation() + FVector(0, 0, Actor->GetSimpleCollisionHalfHeight());
+		Data.bIsInteracting = Character->GetTargetPlayer() != nullptr;
 		Data.GivenName = Character->GetAgentInfo().GivenName;
 		Data.AgentId = Character->GetAgentInfo().AgentId;
-		//Data.CurrentMessage = Comp->GetCurrentMessage() ? Comp->GetCurrentMessage()->ToDebugString() : TEXT("");
-		//Data.MessageQueueEntries = Comp->MessageQueue->PendingMessageEntries.Num();
-		//Data.EmotionalBehavior = static_cast<uint8>(Comp->GetEmotionalBehavior());
-		//Data.EmotionStrength = static_cast<uint8>(Comp->GetEmotionStrength());
-		//Data.bPendingRepAudioEvent = !Comp->PendingRepAudioEvents.IsEmpty();
+		if (UInworldCharacterComponent* CharacterComponent = Character->GetTypedOuter<UInworldCharacterComponent>())
+		{
+			Data.CurrentMessage = CharacterComponent->GetCurrentMessage() ? CharacterComponent->GetCurrentMessage()->ToDebugString() : TEXT("");
+			Data.MessageQueueEntries = CharacterComponent->MessageQueue->PendingMessageEntries.Num();
+			Data.EmotionalBehavior = static_cast<uint8>(CharacterComponent->GetEmotionalBehavior());
+			Data.EmotionStrength = static_cast<uint8>(CharacterComponent->GetEmotionStrength());
+			Data.bPendingRepAudioEvent = !CharacterComponent->PendingRepAudioEvents.IsEmpty();
+		}
 	}
 
 	for (TObjectIterator<UInworldPlayerAudioCaptureComponent> Itr; Itr; ++Itr)
 	{
-		//TODO: FIX
 		auto* AudioComp = *Itr;
-		//auto* PlayerComp = AudioComp->PlayerComponent.Get();
+		auto* Player = AudioComp->InworldPlayer.Get();
 
-		//if (!PlayerComp)
+		if (!Player)
 		{
-			//continue;
+			continue;
 		}
 
 		auto& Data = DataPack.PlayerData.Emplace_GetRef();
 		//TODO: support multi agent
-		//Data.TargetCharacterAgentId = (PlayerComp->Targets.Num() == 0) ? "" : PlayerComp->Targets[0].AgentId;
-		//Data.bServerCapturingVoice = AudioComp->bServerCapturingVoice;
+		Data.TargetCharacterAgentId = (Player->GetTargetCharacters().Num() == 0) ? "" : Player->GetTargetCharacters()[0]->GetAgentInfo().AgentId;
+		Data.bServerCapturingVoice = AudioComp->bServerCapturingVoice;
 	}
 }
 

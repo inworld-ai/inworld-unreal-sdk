@@ -36,7 +36,7 @@ void UInworldCharacterComponent::InitializeComponent()
 	if (GetOwnerRole() == ROLE_Authority)
 	{
 		InworldCharacter = NewObject<UInworldCharacter>(this);
-		OnRep_InworldCharacter();
+		InworldSession = GetWorld()->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession();
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
 		AddReplicatedSubObject(InworldCharacter);
 #endif
@@ -88,7 +88,6 @@ void UInworldCharacterComponent::BeginPlay()
 
 	if (GetNetMode() != NM_Client)
 	{
-		InworldSession = IInworldSessionOwnerInterface::Execute_GetInworldSession(GetWorld()->GetSubsystem<UInworldApiSubsystem>());
 		Register();
 	}
 	OnRep_InworldCharacter();
@@ -247,7 +246,7 @@ bool UInworldCharacterComponent::Unregister()
 
 FVector UInworldCharacterComponent::GetTargetPlayerCameraLocation()
 {
-	if (InworldCharacter->GetTargetPlayer() == nullptr)
+	if (InworldCharacter == nullptr || InworldCharacter->GetTargetPlayer() == nullptr)
 	{
 		return FVector::ZeroVector;
 	}
@@ -432,9 +431,24 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 	}
 }
 
+bool UInworldCharacterComponent::ShouldHandleEvent(const FInworldRouting& Routing)
+{
+	bool bShouldHandle = false;
+	bShouldHandle |= Routing.Source.Name == GetAgentId();
+	if (Routing.Source.Type == EInworldActorType::PLAYER)
+	{
+		bShouldHandle |= Routing.Target.Name == GetAgentId();
+		for (const auto& Target : Routing.Targets)
+		{
+			bShouldHandle |= Target.Name == GetAgentId();
+		}
+	}
+	return bShouldHandle;
+}
+
 void UInworldCharacterComponent::OnInworldTextEvent(const FInworldTextEvent& Event)
 {
-	if (Event.Routing.Source.Name != GetAgentId())
+	if (!ShouldHandleEvent(Event.Routing))
 	{
 		return;
 	}
@@ -443,7 +457,7 @@ void UInworldCharacterComponent::OnInworldTextEvent(const FInworldTextEvent& Eve
 
 void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEvent& Event)
 {
-	if (Event.Routing.Source.Name != GetAgentId())
+	if (!ShouldHandleEvent(Event.Routing))
 	{
 		return;
 	}
@@ -474,7 +488,7 @@ void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEven
 
 void UInworldCharacterComponent::OnInworldSilenceEvent(const FInworldSilenceEvent& Event)
 {
-	if (Event.Routing.Source.Name != GetAgentId())
+	if (!ShouldHandleEvent(Event.Routing))
 	{
 		return;
 	}
@@ -483,7 +497,7 @@ void UInworldCharacterComponent::OnInworldSilenceEvent(const FInworldSilenceEven
 
 void UInworldCharacterComponent::OnInworldControlEvent(const FInworldControlEvent& Event)
 {
-	if (Event.Routing.Source.Name != GetAgentId())
+	if (!ShouldHandleEvent(Event.Routing))
 	{
 		return;
 	}
@@ -492,7 +506,7 @@ void UInworldCharacterComponent::OnInworldControlEvent(const FInworldControlEven
 
 void UInworldCharacterComponent::OnInworldEmotionEvent(const FInworldEmotionEvent& Event)
 {
-	if (Event.Routing.Source.Name != GetAgentId())
+	if (!ShouldHandleEvent(Event.Routing))
 	{
 		return;
 	}
@@ -501,7 +515,7 @@ void UInworldCharacterComponent::OnInworldEmotionEvent(const FInworldEmotionEven
 
 void UInworldCharacterComponent::OnInworldCustomEvent(const FInworldCustomEvent& Event)
 {
-	if (Event.Routing.Source.Name != GetAgentId())
+	if (!ShouldHandleEvent(Event.Routing))
 	{
 		return;
 	}

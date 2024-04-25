@@ -174,6 +174,20 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
         );
         PlayerAudioTargetState.DesiredCharacters = InworldPlayer->GetTargetCharacters();
 
+        InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetInworldPlayerOwner().GetObject());
+        InworldSession->OnConnectionStateChanged().AddLambda(
+            [this](EInworldConnectionState ConnectionState) -> void
+            {
+                EvaluateVoiceCapture();
+            }
+        );
+        InworldSession->OnLoaded().AddLambda(
+            [this](bool bLoaded) -> void
+            {
+                EvaluateVoiceCapture();
+            }
+        );
+
         PrimaryComponentTick.SetTickFunctionEnable(false);
     }
     
@@ -271,18 +285,11 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
 {
     if (GetOwnerRole() == ROLE_Authority)
     {
-        const bool bHasPlayer = InworldPlayer != nullptr;
-        UInworldSession* InworldSession = bHasPlayer ? IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetInworldPlayerOwner().GetObject()) : nullptr;
-        if (InworldSession == nullptr)
-        {
-            return;
-        }
-
         const bool bIsMicHot = !bMuted;
         const bool bIsWorldPlaying = !GetWorld()->IsPaused();
         const bool bHasTargetCharacter = PlayerAudioTargetState.DesiredCharacters.Num() != 0;
         const EInworldConnectionState ConnectionState = InworldSession->GetConnectionState();
-        const bool bHasActiveInworldSession = ConnectionState == EInworldConnectionState::Connected || ConnectionState == EInworldConnectionState::Reconnecting;
+        const bool bHasActiveInworldSession = InworldSession->IsLoaded() && (ConnectionState == EInworldConnectionState::Connected || ConnectionState == EInworldConnectionState::Reconnecting);
 
         const bool bShouldCaptureVoice = bIsMicHot && bIsWorldPlaying && bHasTargetCharacter && bHasActiveInworldSession;
 
@@ -417,13 +424,6 @@ void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implem
 {
     if (PlayerAudioTargetState.ActiveCharacters.Num() != 0)
     {
-        const bool bHasPlayer = InworldPlayer != nullptr;
-        UInworldSession* InworldSession = bHasPlayer ? IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetInworldPlayerOwner().GetObject()) : nullptr;
-        if (InworldSession == nullptr)
-        {
-            return;
-        }
-
         InworldSession->BroadcastSoundMessage(PlayerAudioTargetState.ActiveCharacters, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
     }
 }

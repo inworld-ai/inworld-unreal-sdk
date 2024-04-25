@@ -29,6 +29,7 @@ void UInworldPlayerComponent::InitializeComponent()
     if (GetOwnerRole() == ROLE_Authority)
     {
         InworldPlayer = NewObject<UInworldPlayer>(this);
+        InworldSession = GetWorld()->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession();
     }
     /*InworldPlayer->OnTargetCharacterAdded().AddLambda(
         [this](UInworldCharacter* Character) -> void
@@ -48,10 +49,6 @@ void UInworldPlayerComponent::UninitializeComponent()
 void UInworldPlayerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-    if (GetNetMode() != NM_Client)
-    {
-        InworldSession = IInworldSessionOwnerInterface::Execute_GetInworldSession(GetWorld()->GetSubsystem<UInworldApiSubsystem>());
-    }
 }
 
 void UInworldPlayerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)

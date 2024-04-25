@@ -27,7 +27,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharactersInitialized, bool, bCha
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
 UCLASS(BlueprintType, Config = InworldAI)
-class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public IInworldSessionOwnerInterface
+class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
@@ -35,10 +35,8 @@ public:
     UInworldApiSubsystem();
 
     void SetInworldSession(UInworldSession* Session);
-
-    // IInworldSessionOwnerInterface
-    UInworldSession* GetInworldSession_Implementation() const { return InworldSession; }
-    // IInworldSessionOwnerInterface
+    UFUNCTION(BlueprintPure, Category = "Session")
+    UInworldSession* GetInworldSession() const { return InworldSession; }
 
     /**
      * Start InworldAI session
