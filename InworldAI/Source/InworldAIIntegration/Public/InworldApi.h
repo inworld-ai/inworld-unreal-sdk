@@ -223,21 +223,11 @@ public:
     FCustomTrigger OnCustomTrigger;
 
 private:
-    UPROPERTY(EditAnywhere, config, Category = "Connection")
-    float RetryConnectionIntervalTime = 0.25f;
-
-    UPROPERTY(EditAnywhere, config, Category = "Connection")
-    float MaxRetryConnectionTime = 5.0f;
-
-    float CurrentRetryConnectionTime = 1.0f;
-
     UPROPERTY()
     UInworldAudioRepl* AudioRepl;
 
     UPROPERTY()
     const AActor* AudioSessionOwner = nullptr;
-
-    FTimerHandle RetryConnectionTimerHandle;
 
     UPROPERTY()
     UInworldSession* InworldSession;

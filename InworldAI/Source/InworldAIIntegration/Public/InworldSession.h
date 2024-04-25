@@ -227,6 +227,13 @@ private:
 	FOnInworldEmotionEventNative OnInworldEmotionEventDelegateNative;
 	FOnInworldCustomEventNative OnInworldCustomEventDelegateNative;
 
+private:
+	float RetryConnectionIntervalTime = 0.25f;
+	float MaxRetryConnectionTime = 5.0f;
+	float CurrentRetryConnectionTime = 1.0f;
+
+	FTimerHandle RetryConnectionTimerHandle;
+
 	// Temp: Hack until deprecated functions are removed
 	friend class UInworldApiSubsystem;
 };
