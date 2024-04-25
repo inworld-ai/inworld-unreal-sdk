@@ -35,11 +35,15 @@ void UInworldCharacterComponent::InitializeComponent()
 
 	if (GetOwnerRole() == ROLE_Authority)
 	{
-		InworldCharacter = NewObject<UInworldCharacter>(this);
-		InworldSession = GetWorld()->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession();
+		UWorld* World = GetWorld();
+		if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
+		{
+			InworldCharacter = NewObject<UInworldCharacter>(this);
+			InworldSession = GetWorld()->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession();
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
-		AddReplicatedSubObject(InworldCharacter);
+			AddReplicatedSubObject(InworldCharacter);
 #endif
+		}
 	}
 
 #if WITH_EDITOR
