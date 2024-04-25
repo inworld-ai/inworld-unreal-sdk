@@ -39,7 +39,7 @@ public:
 	UInworldCharacter* GetInworldCharacter_Implementation() const { return InworldCharacter; }
 	UInworldSession* GetInworldSession_Implementation() const { return InworldSession; }
 	FTransform GetInworldPlayerTransform() const { return GetOwner()->GetTransform(); }
-	// IInworldCharacterOwnerInterface
+	// ~IInworldCharacterOwnerInterface
 
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
@@ -49,6 +49,7 @@ public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInworldCharacterPlayerInteractionStateChanged, bool, bInteracting);
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Interaction")
@@ -213,7 +214,7 @@ private:
 
 	TQueue<FInworldAudioDataEvent> PendingRepAudioEvents;
 
-	UPROPERTY(ReplicatedUsing = OnRep_TargetPlayer)
+	//UPROPERTY(ReplicatedUsing = OnRep_TargetPlayer)
 	UInworldPlayerComponent* TargetPlayer;
 	
 	TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
@@ -241,11 +242,11 @@ private:
 	FString BrainName;
 
 	// Replicated from server to client to update possession.
-	UPROPERTY(ReplicatedUsing = OnRep_AgentInfo)
+	//UPROPERTY(ReplicatedUsing = OnRep_AgentInfo)
 	FInworldAgentInfo AgentInfo;
 
 private:
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	UInworldCharacter* InworldCharacter;
 
 	UPROPERTY()

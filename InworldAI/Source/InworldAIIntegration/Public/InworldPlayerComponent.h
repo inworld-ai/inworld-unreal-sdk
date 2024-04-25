@@ -48,6 +48,7 @@ public:
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacter"))
     UInworldCharacterComponent* GetTargetInworldCharacter();
@@ -90,7 +91,7 @@ private:
     UPROPERTY(EditAnywhere, Category = "UI")
     FString UiName = "Player";
 
-    UPROPERTY()
+    UPROPERTY(Replicated)
     UInworldPlayer* InworldPlayer;
 
     UPROPERTY()

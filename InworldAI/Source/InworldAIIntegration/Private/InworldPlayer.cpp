@@ -10,6 +10,45 @@
 #include "InworldCharacter.h"
 #include "InworldSession.h"
 
+#include "Engine/BlueprintGeneratedClass.h"
+#include "Engine/NetDriver.h"
+#include "Engine/Engine.h"
+
+#include "Net/UnrealNetwork.h"
+
+void UInworldPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	if (UBlueprintGeneratedClass* BPCClass = Cast<UBlueprintGeneratedClass>(GetClass()))
+	{
+		BPCClass->GetLifetimeBlueprintReplicationList(OutLifetimeProps);
+	}
+
+	DOREPLIFETIME(UInworldPlayer, TargetCharacters);
+}
+
+int32 UInworldPlayer::GetFunctionCallspace(UFunction* Function, FFrame* Stack)
+{
+	if (HasAnyFlags(RF_ClassDefaultObject) || !IsSupportedForNetworking())
+	{
+		return GEngine->GetGlobalFunctionCallspace(Function, this, Stack);
+	}
+
+	return GetOuter()->GetFunctionCallspace(Function, Stack);
+}
+
+bool UInworldPlayer::CallRemoteFunction(UFunction* Function, void* Parms, FOutParmRec* OutParms, FFrame* Stack)
+{
+	AActor* Owner = GetTypedOuter<AActor>();
+	if (UNetDriver* NetDriver = Owner->GetNetDriver())
+	{
+		NetDriver->ProcessRemoteFunction(Owner, Function, Parms, OutParms, Stack, this);
+		return true;
+	}
+	return false;
+}
+
 TScriptInterface<IInworldPlayerOwnerInterface> UInworldPlayer::GetInworldPlayerOwner()
 {
 	if (!ensureMsgf(GetOuter()->Implements<UInworldPlayerOwnerInterface>(), TEXT("UInworldPlayer outer must implement IInworldPlayerOwnerInterface!")))

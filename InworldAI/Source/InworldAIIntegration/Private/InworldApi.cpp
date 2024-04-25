@@ -283,11 +283,12 @@ void UInworldApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
+    InworldSession = NewObject<UInworldSession>(this, TEXT("InworldSession"));
+
     if (GetWorld()->GetNetMode() == NM_Client)
     {
         return;
     }
-    InworldSession = NewObject<UInworldSession>(this, TEXT("InworldSession"));
     InworldSession->OnCharactersInitialized().AddLambda(
         [this](bool bCharactersInitialized) -> void
         {
