@@ -36,10 +36,9 @@ public:
     UInworldPlayerComponent();
 
     // IInworldPlayerInterface
-    UInworldPlayer* GetInworldPlayer_Implementation() const { return InworldPlayer; }
-    UInworldSession* GetInworldSession_Implementation() const { return InworldSession; }
-    FTransform GetInworldPlayerTransform() const { return GetOwner()->GetTransform(); }
-    // IInworldPlayerInterface
+    virtual UInworldPlayer* GetInworldPlayer_Implementation() const override { return InworldPlayer; }
+    virtual UInworldSession* GetInworldSession_Implementation() const override { return InworldSession.Get(); }
+    // ~IInworldPlayerInterface
 
     virtual void InitializeComponent() override;
     virtual void UninitializeComponent() override;
@@ -95,7 +94,7 @@ private:
     UInworldPlayer* InworldPlayer;
 
     UPROPERTY(Replicated)
-    UInworldSession* InworldSession;
+    TWeakObjectPtr<UInworldSession> InworldSession;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
     friend class FInworldGameplayDebuggerCategory;

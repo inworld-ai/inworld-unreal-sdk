@@ -41,7 +41,6 @@ public:
 	bool bMultipleTargets = false;
 
 private:
-	TArray<UInworldCharacter*> TargetCharacters;
-
-	UInworldPlayer* InworldPlayer;
+	TWeakObjectPtr<UInworldPlayer> InworldPlayer;
+	TArray<TWeakObjectPtr<UInworldCharacter>> TargetCharacters;
 };

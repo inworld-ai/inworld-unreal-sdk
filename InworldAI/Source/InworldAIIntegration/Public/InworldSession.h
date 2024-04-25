@@ -52,9 +52,9 @@ public:
 	virtual ~UInworldSession();
 
 	UFUNCTION(BlueprintCallable, Category = "Client")
-	void InitClient();
+	void Init();
 	UFUNCTION(BlueprintCallable, Category = "Client")
-	void DestroyClient();
+	void Destroy();
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Register")
 	void RegisterCharacter(UInworldCharacter* Character);

@@ -61,7 +61,7 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
     const FVector Location = GetOwner()->GetActorLocation();
     for (int32 i = 0; i < TargetCharacters.Num(); i++)
     {
-        UInworldCharacter* Character = TargetCharacters[i];
+        UInworldCharacter* Character = TargetCharacters[i].Get();
         AActor* OuterActor = Character->GetTypedOuter<AActor>();
         const FVector CharacterLocation = OuterActor != nullptr ? OuterActor->GetActorLocation() : FVector::ZeroVector;
         const float DistSq = FVector::DistSquared(Location, CharacterLocation);
@@ -143,7 +143,7 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
         return;
     }
 
-    UInworldCharacter* CurrentTarget = TargetCharacters.Num() != 0 ? TargetCharacters[0] : nullptr;
+    UInworldCharacter* CurrentTarget = TargetCharacters.Num() != 0 ? TargetCharacters[0].Get() : nullptr;
     if (CurrentTarget != BestTarget)
     {
         if (CurrentTarget)

@@ -165,7 +165,7 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
     if (GetOwnerRole() == ROLE_Authority)
     {
         InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(Cast<UInworldPlayerComponent>(GetOwner()->GetComponentByClass(UInworldPlayerComponent::StaticClass())));
-        InworldPlayer->OnTargetCharactersChanged().AddLambda(
+        OnPlayerTargetCharactersChanged = InworldPlayer->OnTargetCharactersChanged().AddLambda(
             [this]() -> void
             {
                 PlayerAudioTargetState.DesiredCharacters = InworldPlayer->GetTargetCharacters();
@@ -176,13 +176,13 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
         PlayerAudioTargetState.DesiredCharacters = InworldPlayer->GetTargetCharacters();
 
         InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetInworldPlayerOwner().GetObject());
-        InworldSession->OnConnectionStateChanged().AddLambda(
+        OnSessionConnectionStateChanged = InworldSession->OnConnectionStateChanged().AddLambda(
             [this](EInworldConnectionState ConnectionState) -> void
             {
                 EvaluateVoiceCapture();
             }
         );
-        InworldSession->OnLoaded().AddLambda(
+        OnSessionLoaded = InworldSession->OnLoaded().AddLambda(
             [this](bool bLoaded) -> void
             {
                 EvaluateVoiceCapture();
@@ -242,6 +242,20 @@ void UInworldPlayerAudioCaptureComponent::EndPlay(const EEndPlayReason::Type End
     if (bCapturingVoice)
     {
         StopCapture();
+    }
+
+    if (GetOwnerRole() == ROLE_Authority)
+    {
+        if (InworldPlayer.IsValid())
+        {
+            InworldPlayer->OnTargetCharactersChanged().Remove(OnPlayerTargetCharactersChanged);
+        }
+
+        if (InworldSession.IsValid())
+        {
+            InworldSession->OnConnectionStateChanged().Remove(OnSessionConnectionStateChanged);
+            InworldSession->OnLoaded().Remove(OnSessionLoaded);
+        }
     }
 
     Super::EndPlay(EndPlayReason);
