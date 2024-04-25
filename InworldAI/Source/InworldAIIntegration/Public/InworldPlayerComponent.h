@@ -69,7 +69,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
     bool IsInteracting() { return InworldPlayer->GetTargetCharacters().Num() > 0; }
 
-    UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Interaction")
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
     void SendTextMessageToTarget(const FString& Message);
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (AutoCreateRefTerm = "Params"))
