@@ -38,6 +38,7 @@ void AInworldSessionActor::PreInitializeComponents()
 void AInworldSessionActor::BeginPlay()
 {
 	Super::BeginPlay();
+	OnRep_InworldSession();
 }
 
 void AInworldSessionActor::EndPlay(const EEndPlayReason::Type EndPlayReason)

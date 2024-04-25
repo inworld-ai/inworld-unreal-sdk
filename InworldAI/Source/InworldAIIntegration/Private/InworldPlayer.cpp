@@ -49,33 +49,33 @@ bool UInworldPlayer::CallRemoteFunction(UFunction* Function, void* Parms, FOutPa
 	return false;
 }
 
-void UInworldPlayer::BroadcastTextMessage(const FString& Text)
+void UInworldPlayer::BroadcastTextMessage_Implementation(const FString& Text)
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldPlayerOwner().GetObject());
+	UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->BroadcastTextMessage(GetTargetCharacters(), Text);
 }
 
 void UInworldPlayer::BroadcastTrigger(const FString& Name, const TMap<FString, FString>& Params)
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldPlayerOwner().GetObject());
+	UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->BroadcastTrigger(GetTargetCharacters(), Name, Params);
 }
 
 void UInworldPlayer::BroadcastAudioSessionStart()
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldPlayerOwner().GetObject());
+	UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->BroadcastAudioSessionStart(GetTargetCharacters());
 }
 
 void UInworldPlayer::BroadcastAudioSessionStop()
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldPlayerOwner().GetObject());
+	UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->BroadcastAudioSessionStop(GetTargetCharacters());
 }
 
 void UInworldPlayer::BroadcastSoundMessage(const TArray<uint8>& Input, const TArray<uint8>& Output)
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldPlayerOwner().GetObject());
+	UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->BroadcastSoundMessage(GetTargetCharacters(), Input, Output);
 }
 

@@ -174,7 +174,7 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
         );
         PlayerAudioTargetState.DesiredCharacters = InworldPlayer->GetTargetCharacters();
 
-        InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetInworldPlayerOwner().GetObject());
+        InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetOuter());
         OnSessionConnectionStateChanged = InworldSession->OnConnectionStateChanged().AddLambda(
             [this](EInworldConnectionState ConnectionState) -> void
             {

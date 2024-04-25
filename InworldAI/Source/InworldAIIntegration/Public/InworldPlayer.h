@@ -36,7 +36,7 @@ public:
 	// ~UObject
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Message")
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Message")
 	void BroadcastTextMessage(const FString& Text);
 	UFUNCTION(BlueprintCallable, Category = "Trigger")
 	void BroadcastTrigger(const FString& Name, const TMap<FString, FString>& Params);

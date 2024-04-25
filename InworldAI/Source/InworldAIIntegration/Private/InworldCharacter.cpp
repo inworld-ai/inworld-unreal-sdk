@@ -53,43 +53,43 @@ bool UInworldCharacter::CallRemoteFunction(UFunction* Function, void* Parms, FOu
 
 void UInworldCharacter::SendTextMessage(const FString& Text)
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->SendTextMessage(this, Text);
 }
 
 void UInworldCharacter::SendTrigger(const FString& Name, const TMap<FString, FString>& Params)
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->SendTrigger(this, Name, Params);
 }
 
 void UInworldCharacter::SendNarrationEvent(const FString& Content)
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->SendNarrationEvent(this, Content);
 }
 
 void UInworldCharacter::SendAudioSessionStart()
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->SendAudioSessionStart(this);
 }
 
 void UInworldCharacter::SendAudioSessionStop()
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->SendAudioSessionStop(this);
 }
 
 void UInworldCharacter::SendSoundMessage(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->SendSoundMessage(this, InputData, OutputData);
 }
 
 void UInworldCharacter::CancelResponse(const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
-	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetOuter());
 	InworldSession->CancelResponse(this, InteractionId, UtteranceIds);
 }
 
@@ -104,7 +104,7 @@ TScriptInterface<IInworldCharacterOwnerInterface> UInworldCharacter::GetInworldC
 
 void UInworldCharacter::SetBrainName(const FString& BrainName)
 {
-	UInworldSession* Session = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	UInworldSession* Session = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetOuter());
 	if (!AgentInfo.BrainName.IsEmpty())
 	{
 		if (Session != nullptr)
