@@ -39,7 +39,15 @@ UCLASS(BlueprintType)
 class INWORLDAIINTEGRATION_API UInworldSession : public UObject
 {
 	GENERATED_BODY()
-	
+public:
+	//UObject
+	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual bool IsSupportedForNetworking() const override { return true; }
+	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override;
+	virtual bool CallRemoteFunction(UFunction* Function, void* Parms, struct FOutParmRec* OutParms, FFrame* Stack) override;
+	//~UObject
+
 public:
 	UInworldSession();
 	virtual ~UInworldSession();
@@ -147,6 +155,9 @@ public:
 	FOnInworldCharactersInitialized OnCharactersInitializedDelegate;
 	FOnInworldCharactersInitializedNative& OnCharactersInitialized() { return OnCharactersInitializedDelegateNative; }
 
+	UFUNCTION(BlueprintPure, Category = "Connection")
+	bool IsCharactersInitialized() const { return bCharactersInitialized; }
+
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldPerceivedLatency OnPerceivedLatencyDelegate;
 	FOnInworldPerceivedLatencyNative& OnPerceivedLatency() { return OnPerceivedLatencyDelegateNative; }
@@ -156,11 +167,13 @@ private:
 	void UnpossessAgents();
 
 private:
+	UPROPERTY(Replicated)
 	TArray<UInworldCharacter*> RegisteredCharacters;
 	TMap<FString, UInworldCharacter*> BrainNameToCharacter;
 	TMap<FString, UInworldCharacter*> AgentIdToCharacter;
 	TMap<FString, FInworldAgentInfo> BrainNameToAgentInfo;
 
+	UPROPERTY(Replicated)
 	bool bCharactersInitialized;
 
 	UPROPERTY()

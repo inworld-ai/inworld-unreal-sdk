@@ -34,6 +34,8 @@ class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, pu
 public:
     UInworldApiSubsystem();
 
+    void SetInworldSession(UInworldSession* Session);
+
     // IInworldSessionOwnerInterface
     UInworldSession* GetInworldSession_Implementation() const { return InworldSession; }
     // IInworldSessionOwnerInterface

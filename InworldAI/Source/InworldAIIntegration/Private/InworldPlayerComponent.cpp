@@ -48,7 +48,10 @@ void UInworldPlayerComponent::UninitializeComponent()
 void UInworldPlayerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-    InworldSession = IInworldSessionOwnerInterface::Execute_GetInworldSession(GetWorld()->GetSubsystem<UInworldApiSubsystem>());
+    if (GetNetMode() != NM_Client)
+    {
+        InworldSession = IInworldSessionOwnerInterface::Execute_GetInworldSession(GetWorld()->GetSubsystem<UInworldApiSubsystem>());
+    }
 }
 
 void UInworldPlayerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)

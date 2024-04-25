@@ -10,6 +10,12 @@
 #include "InworldCharacter.h"
 #include "InworldClient.h"
 
+#include "Engine/BlueprintGeneratedClass.h"
+#include "Engine/NetDriver.h"
+#include "Engine/Engine.h"
+
+#include "Net/UnrealNetwork.h"
+
 UInworldSession::UInworldSession()
 	: InworldClient(NewObject<UInworldClient>(this, TEXT("InworldClient")))
 	, PacketVisitor(MakeShared<FInworldSessionPacketVisitor>(this))
@@ -42,6 +48,40 @@ UInworldSession::~UInworldSession()
 	InworldClient->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
 	InworldClient->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
 	InworldClient = nullptr;
+}
+
+void UInworldSession::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	if (UBlueprintGeneratedClass* BPCClass = Cast<UBlueprintGeneratedClass>(GetClass()))
+	{
+		BPCClass->GetLifetimeBlueprintReplicationList(OutLifetimeProps);
+	}
+
+	DOREPLIFETIME(UInworldSession, RegisteredCharacters);
+	DOREPLIFETIME(UInworldSession, bCharactersInitialized);
+}
+
+int32 UInworldSession::GetFunctionCallspace(UFunction* Function, FFrame* Stack)
+{
+	if (HasAnyFlags(RF_ClassDefaultObject) || !IsSupportedForNetworking())
+	{
+		return GEngine->GetGlobalFunctionCallspace(Function, this, Stack);
+	}
+
+	return GetOuter()->GetFunctionCallspace(Function, Stack);
+}
+
+bool UInworldSession::CallRemoteFunction(UFunction* Function, void* Parms, FOutParmRec* OutParms, FFrame* Stack)
+{
+	AActor* Owner = GetTypedOuter<AActor>();
+	if (UNetDriver* NetDriver = Owner->GetNetDriver())
+	{
+		NetDriver->ProcessRemoteFunction(Owner, Function, Parms, OutParms, Stack, this);
+		return true;
+	}
+	return false;
 }
 
 void UInworldSession::RegisterCharacter(UInworldCharacter* Character)
