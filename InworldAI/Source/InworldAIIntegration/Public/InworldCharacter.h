@@ -69,7 +69,10 @@ private:
 	FInworldAgentInfo AgentInfo;
 	FOnInworldCharacterPossessedNative OnPossessedDelegateNative;
 
-	UPROPERTY(Replicated)
+	UFUNCTION()
+	void OnRep_TargetPlayer();
+
+	UPROPERTY(ReplicatedUsing=OnRep_TargetPlayer)
 	UInworldPlayer* TargetPlayer;
 	FOnInworldCharacterTargetPlayerChangedNative OnTargetPlayerChangedDelegateNative;
 };
@@ -91,9 +94,5 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
 	UInworldCharacter* GetInworldCharacter() const;
-
-public:
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
-	FTransform GetInworldCharacterTransform() const;
 };
 

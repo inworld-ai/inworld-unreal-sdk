@@ -206,18 +206,7 @@ private:
 
 	void VisitAudioOnClient(const FInworldAudioDataEvent& Event);
 
-	UFUNCTION()
-	void OnRep_TargetPlayer(UInworldPlayerComponent* OldPlayer);
-
-	UFUNCTION()
-	void OnRep_AgentInfo(FInworldAgentInfo AgentInfo);
-
 	TQueue<FInworldAudioDataEvent> PendingRepAudioEvents;
-
-	//UPROPERTY(ReplicatedUsing = OnRep_TargetPlayer)
-	UInworldPlayerComponent* TargetPlayer;
-	
-	TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
 
 	UPROPERTY()
 	TArray<UInworldCharacterPlayback*> Playbacks;
@@ -241,15 +230,17 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inworld")
 	FString BrainName;
 
-	// Replicated from server to client to update possession.
-	//UPROPERTY(ReplicatedUsing = OnRep_AgentInfo)
-	FInworldAgentInfo AgentInfo;
-
 private:
-	UPROPERTY(Replicated)
+	UFUNCTION()
+	void OnRep_InworldCharacter();
+
+	UPROPERTY(ReplicatedUsing=OnRep_InworldCharacter)
 	UInworldCharacter* InworldCharacter;
 
-	UPROPERTY()
+	UFUNCTION()
+	void OnRep_InworldSession();
+
+	UPROPERTY(ReplicatedUsing=OnRep_InworldSession)
 	UInworldSession* InworldSession;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER

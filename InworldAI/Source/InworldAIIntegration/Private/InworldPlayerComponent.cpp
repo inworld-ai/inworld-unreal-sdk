@@ -65,9 +65,8 @@ void UInworldPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    //DOREPLIFETIME(UInworldPlayerComponent, TargetCharacters);
     DOREPLIFETIME(UInworldPlayerComponent, InworldPlayer);
-    //DOREPLIFETIME(UInworldPlayerComponent, InworldSession);
+    DOREPLIFETIME(UInworldPlayerComponent, InworldSession);
 }
 
 bool UInworldPlayerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)

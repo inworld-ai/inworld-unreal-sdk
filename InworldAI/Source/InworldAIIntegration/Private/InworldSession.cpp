@@ -17,9 +17,17 @@
 #include "Net/UnrealNetwork.h"
 
 UInworldSession::UInworldSession()
-	: InworldClient(NewObject<UInworldClient>(this, TEXT("InworldClient")))
-	, PacketVisitor(MakeShared<FInworldSessionPacketVisitor>(this))
+	: PacketVisitor(MakeShared<FInworldSessionPacketVisitor>(this))
+{}
+
+UInworldSession::~UInworldSession()
 {
+	DestroyClient();
+}
+
+void UInworldSession::InitClient()
+{
+	InworldClient = NewObject<UInworldClient>(this);
 	OnClientPacketReceivedHandle = InworldClient->OnPacketReceived().AddLambda(
 		[this](const FInworldWrappedPacket& WrappedPacket) -> void
 		{
@@ -42,12 +50,15 @@ UInworldSession::UInworldSession()
 	);
 }
 
-UInworldSession::~UInworldSession()
+void UInworldSession::DestroyClient()
 {
-	InworldClient->OnPacketReceived().Remove(OnClientPacketReceivedHandle);
-	InworldClient->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
-	InworldClient->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
-	InworldClient = nullptr;
+	if (InworldClient)
+	{
+		InworldClient->OnPacketReceived().Remove(OnClientPacketReceivedHandle);
+		InworldClient->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
+		InworldClient->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
+		InworldClient = nullptr;
+	}
 }
 
 void UInworldSession::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -59,8 +70,8 @@ void UInworldSession::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 		BPCClass->GetLifetimeBlueprintReplicationList(OutLifetimeProps);
 	}
 
+	DOREPLIFETIME(UInworldSession, bIsLoaded);
 	DOREPLIFETIME(UInworldSession, RegisteredCharacters);
-	DOREPLIFETIME(UInworldSession, bCharactersInitialized);
 }
 
 int32 UInworldSession::GetFunctionCallspace(UFunction* Function, FFrame* Stack)
@@ -95,7 +106,7 @@ void UInworldSession::RegisterCharacter(UInworldCharacter* Character)
 	RegisteredCharacters.Add(Character);
 	BrainNameToCharacter.Add(BrainName, Character);
 
-	if (bCharactersInitialized)
+	if (bIsLoaded)
 	{
 		if (BrainNameToAgentInfo.Contains(BrainName))
 		{
@@ -234,14 +245,13 @@ void UInworldSession::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
 		InworldClient->LoadCharacters(BrainNames);
 	}
 
-	bCharactersInitialized = true;
-	OnCharactersInitializedDelegateNative.Broadcast(bCharactersInitialized);
-	OnCharactersInitializedDelegate.Broadcast(bCharactersInitialized);
+	bIsLoaded = true;
+	OnRep_IsLoaded();
 }
 
 void UInworldSession::UnpossessAgents()
 {
-	if (!bCharactersInitialized)
+	if (!bIsLoaded)
 	{
 		return;
 	}
@@ -253,9 +263,14 @@ void UInworldSession::UnpossessAgents()
 
 	AgentIdToCharacter.Empty();
 	BrainNameToAgentInfo.Empty();
-	bCharactersInitialized = false;
-	OnCharactersInitializedDelegateNative.Broadcast(bCharactersInitialized);
-	OnCharactersInitializedDelegate.Broadcast(bCharactersInitialized);
+	bIsLoaded = false;
+	OnRep_IsLoaded();
+}
+
+void UInworldSession::OnRep_IsLoaded()
+{
+	OnLoadedDelegateNative.Broadcast(bIsLoaded);
+	OnLoadedDelegate.Broadcast(bIsLoaded);
 }
 
 void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldTextEvent& Event)

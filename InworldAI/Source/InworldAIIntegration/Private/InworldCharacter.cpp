@@ -125,8 +125,7 @@ void UInworldCharacter::SetTargetPlayer(UInworldPlayer* Player)
 	{
 		ClearTargetPlayer();
 		TargetPlayer = Player;
-		OnTargetPlayerChangedDelegateNative.Broadcast();
-		OnTargetPlayerChangedDelegate.Broadcast();
+		OnRep_TargetPlayer();
 	}
 }
 
@@ -135,7 +134,12 @@ void UInworldCharacter::ClearTargetPlayer()
 	if (TargetPlayer != nullptr)
 	{
 		TargetPlayer = nullptr;
-		OnTargetPlayerChangedDelegateNative.Broadcast();
-		OnTargetPlayerChangedDelegate.Broadcast();
+		OnRep_TargetPlayer();
 	}
+}
+
+void UInworldCharacter::OnRep_TargetPlayer()
+{
+	OnTargetPlayerChangedDelegateNative.Broadcast();
+	OnTargetPlayerChangedDelegate.Broadcast();
 }
