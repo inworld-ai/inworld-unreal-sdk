@@ -23,8 +23,14 @@ public class InworldAIClient : ModuleRules
             new string[]
             {
                 "Core",
+                "NNERuntimeORTCpu",
+                "NNEUtils",
+                "NNEOnnxruntime",
+                "ORTHelper",
             });
-
+        
+        PublicIncludePaths.Add("C:/Programs/UE_5.3/Engine/Plugins/Experimental/NNERuntimeORTCpu/Source/ThirdParty/onnxruntime/Onnxruntime/Internal/core/session");
+        
         PrivateDependencyModuleNames.AddRange(
             new string[]
             {

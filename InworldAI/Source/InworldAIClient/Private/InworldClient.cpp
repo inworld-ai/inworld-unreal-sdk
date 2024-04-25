@@ -29,6 +29,8 @@ THIRD_PARTY_INCLUDES_END
 
 #include "Misc/Paths.h"
 
+#include "InworldVAD.h"
+
 const FString DefaultTargetUrl = "api-engine.inworld.ai:443";
 
 #include <string>
@@ -360,20 +362,38 @@ void FInworldClient::SendSoundMessageWithEAC(const TArray<FString>& AgentIds, cl
 	}
 }
 
+std::unique_ptr<Inworld::VAD> g_Vad;
+
 void FInworldClient::SendSoundDataMessageWithEAC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
 	std::vector<int16> inputdata((int16*)InputData.GetData(), ((int16*)InputData.GetData()) + (InputData.Num() / 2));
 	std::vector<int16> outputdata((int16*)OutputData.GetData(), ((int16*)OutputData.GetData()) + (OutputData.Num() / 2));
+
+	std::vector<float> FloatData(inputdata.size());
+	for (size_t i = 0; i < inputdata.size(); ++i)
+	{
+		FloatData[i] = static_cast<float>(inputdata[i]) / 32767.0f;
+	}
+
+	if (g_Vad)
+	{
+		const float SpeechProbability = g_Vad->ProcessAudioChunk(FloatData);
+		const auto Color = SpeechProbability > 0.5f ? FColor::Green : FColor::Red;
+		GEngine->AddOnScreenDebugMessage(111, 0.12f, Color, FString::Printf(TEXT("Speech probability: %f"), SpeechProbability));
+	}
+	
 	Inworld::GetClient()->SendSoundMessageWithAEC(ToStd(AgentIds), inputdata, outputdata);
 }
 
 void FInworldClient::StartAudioSession(const TArray<FString>& AgentIds)
 {
+	g_Vad = std::make_unique<Inworld::VAD>("");
 	Inworld::GetClient()->StartAudioSession(ToStd(AgentIds));
 }
 
 void FInworldClient::StopAudioSession(const TArray<FString>& AgentIds)
 {
+	g_Vad.reset();
 	Inworld::GetClient()->StopAudioSession(ToStd(AgentIds));
 }
 
