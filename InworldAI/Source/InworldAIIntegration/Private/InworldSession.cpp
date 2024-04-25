@@ -171,9 +171,13 @@ void UInworldSession::UnloadCharacters(const TArray<UInworldCharacter*>& Charact
 	InworldClient->UnloadCharacters(CharactersToAgentIds(Characters));
 }
 
-FInworldWrappedPacket UInworldSession::BroadcastTextMessage(const TArray<UInworldCharacter*>& Characters, const FString& Message)
+void UInworldSession::BroadcastTextMessage(const TArray<UInworldCharacter*>& Characters, const FString& Message)
 {
-	return InworldClient->SendTextMessage(CharactersToAgentIds(Characters), Message);
+	auto Packet = InworldClient->SendTextMessage(CharactersToAgentIds(Characters), Message).Packet;
+	if (Packet.IsValid())
+	{
+		Packet->Accept(*PacketVisitor);
+	}
 }
 
 void UInworldSession::BroadcastSoundMessage(const TArray<UInworldCharacter*>& Characters, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)

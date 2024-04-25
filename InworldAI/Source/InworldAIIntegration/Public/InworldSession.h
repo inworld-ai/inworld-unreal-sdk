@@ -96,9 +96,9 @@ public:
 	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile) { InworldClient->LoadPlayerProfile(PlayerProfile); }
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
-	FInworldWrappedPacket SendTextMessage(UInworldCharacter* Character, const FString& Message) { return BroadcastTextMessage({Character}, Message); }
+	void SendTextMessage(UInworldCharacter* Character, const FString& Message) { BroadcastTextMessage({Character}, Message); }
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
-	FInworldWrappedPacket BroadcastTextMessage(const TArray<UInworldCharacter*>& Characters, const FString& Message);
+	void BroadcastTextMessage(const TArray<UInworldCharacter*>& Characters, const FString& Message);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendSoundMessage(UInworldCharacter* Character, const TArray<uint8>& InputData, const TArray<uint8>& OutputData) { BroadcastSoundMessage({ Character }, InputData, OutputData); }
