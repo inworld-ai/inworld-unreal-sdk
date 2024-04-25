@@ -41,14 +41,6 @@ void UInworldPlayerTargetingComponent::TickComponent(float DeltaTime, enum ELeve
 
 void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
 {
-    //TODO: FIX
-    // prevent starting another audio session in multiplayer
-    //const auto* CurrentAudioSessionOwner = InworldSubsystem->GetAudioSessionOwner();
-    //if (CurrentAudioSessionOwner && CurrentAudioSessionOwner != Player->GetOwner())
-    //{
-    //    return;
-    //}
-    
     // clear all targets if just switched from multiple targeting
     if (!bMultipleTargets && TargetCharacters.Num() > 1)
     {
@@ -73,7 +65,7 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
         }
     }
 
-    UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetInworldPlayerOwner().GetObject());
+    UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetOuter());
     if (!InworldSession)
     {
         return;

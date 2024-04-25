@@ -108,7 +108,7 @@ TArray<UInworldCharacterComponent*> UInworldPlayerComponent::GetTargetInworldCha
     TArray<UInworldCharacterComponent*> InworldCharacterComponents;
     for (UInworldCharacter* Character : InworldPlayer->GetTargetCharacters())
     {
-        UInworldCharacterComponent* InworldCharacterComponent = Cast<UInworldCharacterComponent>(Character->GetInworldCharacterOwner().GetObject());
+        UInworldCharacterComponent* InworldCharacterComponent = Cast<UInworldCharacterComponent>(Character->GetOuter());
         if (InworldCharacterComponent)
         {
             InworldCharacterComponents.Add(InworldCharacterComponent);

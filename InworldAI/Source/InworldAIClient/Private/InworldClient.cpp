@@ -90,14 +90,26 @@ UInworldClient::UInworldClient()
 
 			AsyncTask(ENamedThreads::GameThread, [this, ConnectionState]()
 				{
+					if (bIsBeingDestroyed)
+					{
+						return;
+					}
 					OnConnectionStateChangedDelegateNative.Broadcast(static_cast<EInworldConnectionState>(ConnectionState));
 					OnConnectionStateChangedDelegate.Broadcast(static_cast<EInworldConnectionState>(ConnectionState));
 				});
 		},
 		[this](std::shared_ptr<Inworld::Packet> Packet)
 		{
+			if (bIsBeingDestroyed)
+			{
+				return;
+			}
 			AsyncTask(ENamedThreads::GameThread, [this, Packet]()
 				{
+					if (bIsBeingDestroyed)
+					{
+						return;
+					}
 					InworldPacketTranslator PacketTranslator;
 					Packet->Accept(PacketTranslator);
 					TSharedPtr<FInworldPacket> ReceivedPacket = PacketTranslator.GetPacket();

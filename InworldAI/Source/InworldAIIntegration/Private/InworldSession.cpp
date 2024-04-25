@@ -55,13 +55,20 @@ void UInworldSession::Destroy()
 	{
 		UnregisterCharacter(RegisteredCharacter);
 	}
-	if (InworldClient)
+	if (IsValid(InworldClient))
 	{
+#if ENGINE_MAJOR_VERSION == 5
+		InworldClient->MarkAsGarbage();
+#endif
+
+#if ENGINE_MAJOR_VERSION == 4
+		InworldClient->MarkPendingKill();
+#endif
 		InworldClient->OnPacketReceived().Remove(OnClientPacketReceivedHandle);
 		InworldClient->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
 		InworldClient->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
-		InworldClient = nullptr;
 	}
+	InworldClient = nullptr;
 }
 
 void UInworldSession::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
