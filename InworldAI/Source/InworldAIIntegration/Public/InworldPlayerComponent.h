@@ -94,7 +94,7 @@ private:
     UPROPERTY(Replicated)
     UInworldPlayer* InworldPlayer;
 
-    UPROPERTY()
+    UPROPERTY(Replicated)
     UInworldSession* InworldSession;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER

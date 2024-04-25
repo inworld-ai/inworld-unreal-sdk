@@ -168,6 +168,7 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
             [this]() -> void
             {
                 PlayerAudioTargetState.DesiredCharacters = InworldPlayer->GetTargetCharacters();
+                PlayerAudioTargetState.bDirty = true;
                 EvaluateVoiceCapture();
             }
         );
@@ -217,6 +218,7 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
         }
 
         PrimaryComponentTick.SetTickFunctionEnable(true);
+        Rep_ServerCapturingVoice();
     }
 }
 
@@ -233,8 +235,6 @@ void UInworldPlayerAudioCaptureComponent::EndPlay(const EEndPlayReason::Type End
 void UInworldPlayerAudioCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-    EvaluateVoiceCapture();
 
     {   
         FScopeLock InputScopedLock(&InputBuffer.CriticalSection);

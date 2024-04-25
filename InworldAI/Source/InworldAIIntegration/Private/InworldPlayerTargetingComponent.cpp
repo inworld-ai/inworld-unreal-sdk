@@ -62,7 +62,8 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
     for (int32 i = 0; i < TargetCharacters.Num(); i++)
     {
         UInworldCharacter* Character = TargetCharacters[i];
-        const FVector CharacterLocation = Character->GetInworldCharacterOwner()->GetInworldCharacterTransform().GetLocation();
+        AActor* OuterActor = Character->GetTypedOuter<AActor>();
+        const FVector CharacterLocation = OuterActor != nullptr ? OuterActor->GetActorLocation() : FVector::ZeroVector;
         const float DistSq = FVector::DistSquared(Location, CharacterLocation);
         if (DistSq > MinDistSq)
         {
@@ -83,7 +84,13 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
             continue;
         }
 
-        const FVector CharacterLocation = Character->GetInworldCharacterOwner()->GetInworldCharacterTransform().GetLocation();
+        AActor* OuterActor = Character->GetTypedOuter<AActor>();
+        if (!OuterActor)
+        {
+            continue;
+        }
+
+        const FVector CharacterLocation = OuterActor->GetActorLocation();
         const float DistSq = FVector::DistSquared(Location, CharacterLocation);
         if (DistSq > MinDistSq)
         {

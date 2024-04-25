@@ -31,9 +31,8 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEventNative, const FInworld
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEvent, const FInworldCustomEvent&, CustomEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEventNative, const FInworldCustomEvent& /*CustomEvent*/);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharactersInitialized, bool, bCharactersInitialized);
-DECLARE_DYNAMIC_DELEGATE_OneParam(FOnInworldCharactersInitializedCallback, bool, bCharactersInitialized);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldCharactersInitializedNative, bool /*bCharactersInitialized*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoaded, bool, bLoaded);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoadedNative, bool /*bLoaded*/);
 
 UCLASS(BlueprintType)
 class INWORLDAIINTEGRATION_API UInworldSession : public UObject
@@ -51,6 +50,11 @@ public:
 public:
 	UInworldSession();
 	virtual ~UInworldSession();
+
+	UFUNCTION(BlueprintCallable, Category = "Client")
+	void InitClient();
+	UFUNCTION(BlueprintCallable, Category = "Client")
+	void DestroyClient();
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Register")
 	void RegisterCharacter(UInworldCharacter* Character);
@@ -152,11 +156,11 @@ public:
 	FOnInworldConnectionStateChangedNative& OnConnectionStateChanged() { return OnConnectionStateChangedDelegateNative; }
 
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
-	FOnInworldCharactersInitialized OnCharactersInitializedDelegate;
-	FOnInworldCharactersInitializedNative& OnCharactersInitialized() { return OnCharactersInitializedDelegateNative; }
+	FOnInworldSessionLoaded OnLoadedDelegate;
+	FOnInworldSessionLoadedNative& OnLoaded() { return OnLoadedDelegateNative; }
 
 	UFUNCTION(BlueprintPure, Category = "Connection")
-	bool IsCharactersInitialized() const { return bCharactersInitialized; }
+	bool IsLoaded() const { return bIsLoaded; }
 
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldPerceivedLatency OnPerceivedLatencyDelegate;
@@ -167,24 +171,27 @@ private:
 	void UnpossessAgents();
 
 private:
+	UPROPERTY()
+	UInworldClient* InworldClient;
+
+	UFUNCTION()
+	void OnRep_IsLoaded();
+
+	UPROPERTY(ReplicatedUsing = OnRep_IsLoaded)
+	bool bIsLoaded;
+
+	FDelegateHandle OnClientPacketReceivedHandle;
+	FDelegateHandle OnClientConnectionStateChangedHandle;
+	FDelegateHandle OnClientPerceivedLatencyHandle;
+
 	UPROPERTY(Replicated)
 	TArray<UInworldCharacter*> RegisteredCharacters;
 	TMap<FString, UInworldCharacter*> BrainNameToCharacter;
 	TMap<FString, UInworldCharacter*> AgentIdToCharacter;
 	TMap<FString, FInworldAgentInfo> BrainNameToAgentInfo;
 
-	UPROPERTY(Replicated)
-	bool bCharactersInitialized;
-
-	UPROPERTY()
-	UInworldClient* InworldClient;
-
-	FDelegateHandle OnClientPacketReceivedHandle;
-	FDelegateHandle OnClientConnectionStateChangedHandle;
-	FDelegateHandle OnClientPerceivedLatencyHandle;
-
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
-	FOnInworldCharactersInitializedNative OnCharactersInitializedDelegateNative;
+	FOnInworldSessionLoadedNative OnLoadedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
 
 	class FInworldSessionPacketVisitor : public TSharedFromThis<FInworldSessionPacketVisitor>, public InworldPacketVisitor

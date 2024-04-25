@@ -36,23 +36,11 @@ void UInworldCharacterComponent::InitializeComponent()
 	if (GetOwnerRole() == ROLE_Authority)
 	{
 		InworldCharacter = NewObject<UInworldCharacter>(this);
+		OnRep_InworldCharacter();
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
 		AddReplicatedSubObject(InworldCharacter);
 #endif
 	}
-	/*
-	InworldCharacter->OnPossessed().AddLambda(
-		[this](bool bPossessed) -> void
-		{
-			AgentInfo = InworldCharacter->GetAgentInfo();
-		}
-	);
-	InworldCharacter->OnTargetPlayerChanged().AddLambda(
-		[this]() -> void
-		{
-			UInworldPlayer* TargetPlayer = InworldCharacter->GetTargetPlayer();
-		}
-	);*/
 
 #if WITH_EDITOR
 	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
@@ -101,14 +89,10 @@ void UInworldCharacterComponent::BeginPlay()
 	if (GetNetMode() != NM_Client)
 	{
 		InworldSession = IInworldSessionOwnerInterface::Execute_GetInworldSession(GetWorld()->GetSubsystem<UInworldApiSubsystem>());
-		InworldSession->OnInworldTextEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldTextEvent);
-		InworldSession->OnInworldAudioEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldAudioEvent);
-		InworldSession->OnInworldSilenceEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldSilenceEvent);
-		InworldSession->OnInworldControlEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldControlEvent);
-		InworldSession->OnInworldEmotionEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldEmotionEvent);
-		InworldSession->OnInworldCustomEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldCustomEvent);
 		Register();
 	}
+	OnRep_InworldCharacter();
+	OnRep_InworldSession();
 
     for (auto* Pb : Playbacks)
     {
@@ -124,16 +108,7 @@ void UInworldCharacterComponent::EndPlay(EEndPlayReason::Type Reason)
 		Pb->ClearCharacterComponent();
     }
 
-	if (GetNetMode() == NM_Client)
-	{
-		//TODO: FIX
-		//if (InworldSubsystem.IsValid())
-		{
-			//FString NewAgentId = FString();
-			//InworldSubsystem->UpdateCharacterComponentRegistrationOnClient(this, NewAgentId, AgentId);
-		}
-	}
-	else
+	if (GetNetMode() != NM_Client)
 	{
 		Unregister();
 	}
@@ -168,10 +143,8 @@ void UInworldCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProp
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	//DOREPLIFETIME(UInworldCharacterComponent, TargetPlayer);
-	//DOREPLIFETIME(UInworldCharacterComponent, AgentInfo);
 	DOREPLIFETIME(UInworldCharacterComponent, InworldCharacter);
-	//DOREPLIFETIME(UInworldCharacterComponent, InworldSession);
+	DOREPLIFETIME(UInworldCharacterComponent, InworldSession);
 }
 
 bool UInworldCharacterComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
@@ -274,12 +247,13 @@ bool UInworldCharacterComponent::Unregister()
 
 FVector UInworldCharacterComponent::GetTargetPlayerCameraLocation()
 {
-	if (TargetPlayer == nullptr)
+	if (InworldCharacter->GetTargetPlayer() == nullptr)
 	{
 		return FVector::ZeroVector;
 	}
 
-	UCameraComponent* CameraComponent = Cast<UCameraComponent>(TargetPlayer->GetOwner()->GetComponentByClass(UCameraComponent::StaticClass()));
+	AActor* TargetPlayerActor = InworldCharacter->GetTargetPlayer()->GetTypedOuter<AActor>();
+	UCameraComponent* CameraComponent = Cast<UCameraComponent>(TargetPlayerActor->GetComponentByClass(UCameraComponent::StaticClass()));
 	if (!CameraComponent)
 	{
 		return GetOwner()->GetActorLocation();
@@ -385,16 +359,6 @@ void UInworldCharacterComponent::VisitAudioOnClient(const FInworldAudioDataEvent
 	});
 }
 
-void UInworldCharacterComponent::OnRep_TargetPlayer(UInworldPlayerComponent* OldTargetPlayer)
-{
-	OnPlayerInteractionStateChanged.Broadcast(TargetPlayer != nullptr);
-}
-
-void UInworldCharacterComponent::OnRep_AgentInfo(FInworldAgentInfo OldAgentId)
-{
-	InworldCharacter->Possess(AgentInfo);
-}
-
 void UInworldCharacterComponent::Multicast_VisitSilence_Implementation(const FInworldSilenceEvent& Event)
 {
 	if (GetNetMode() == NM_DedicatedServer)
@@ -495,7 +459,8 @@ void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEven
 		VisitAudioOnClient(Event);
 	}
 
-	if (ensure(InworldSubsystem.IsValid()))
+	UInworldApiSubsystem* InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
+	if (ensure(InworldSubsystem))
 	{
 		TArray<FInworldAudioDataEvent> RepEvents;
 		FInworldAudioDataEvent::ConvertToReplicatableEvents(Event, RepEvents);
@@ -576,4 +541,31 @@ void UInworldCharacterComponent::Handle(const FCharacterMessageTrigger& Message)
 void UInworldCharacterComponent::Handle(const FCharacterMessageInteractionEnd& Message)
 {
 	OnInteractionEnd.Broadcast(Message);
+}
+
+void UInworldCharacterComponent::OnRep_InworldCharacter()
+{
+	if (InworldCharacter != nullptr)
+	{
+		InworldCharacter->OnTargetPlayerChanged().AddLambda(
+			[this]() -> void
+			{
+				OnPlayerInteractionStateChanged.Broadcast(InworldCharacter->GetTargetPlayer() != nullptr);
+			}
+		);
+		OnPlayerInteractionStateChanged.Broadcast(InworldCharacter->GetTargetPlayer() != nullptr);
+	}
+}
+
+void UInworldCharacterComponent::OnRep_InworldSession()
+{
+	if (InworldSession != nullptr)
+	{
+		InworldSession->OnInworldTextEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldTextEvent);
+		InworldSession->OnInworldAudioEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldAudioEvent);
+		InworldSession->OnInworldSilenceEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldSilenceEvent);
+		InworldSession->OnInworldControlEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldControlEvent);
+		InworldSession->OnInworldEmotionEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldEmotionEvent);
+		InworldSession->OnInworldCustomEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldCustomEvent);
+	}
 }

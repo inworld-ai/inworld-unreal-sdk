@@ -30,13 +30,13 @@ UInworldApiSubsystem::UInworldApiSubsystem()
 void UInworldApiSubsystem::SetInworldSession(UInworldSession* Session)
 {
     InworldSession = Session;
-    InworldSession->OnCharactersInitialized().AddLambda(
-        [this](bool bCharactersInitialized) -> void
+    InworldSession->OnLoaded().AddLambda(
+        [this](bool bLoaded) -> void
         {
-            OnCharactersInitialized.Broadcast(bCharactersInitialized);
+            OnCharactersInitialized.Broadcast(bLoaded);
         }
     );
-    OnCharactersInitialized.Broadcast(InworldSession->IsCharactersInitialized());
+    OnCharactersInitialized.Broadcast(InworldSession->IsLoaded());
 }
 
 void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride, const FString& TargetUrlOverride, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)
