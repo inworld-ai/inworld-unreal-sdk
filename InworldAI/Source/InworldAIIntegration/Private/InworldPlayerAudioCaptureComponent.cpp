@@ -155,13 +155,12 @@ UInworldPlayerAudioCaptureComponent::UInworldPlayerAudioCaptureComponent(const F
 {
     PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.bTickEvenWhenPaused = true;
+    SetIsReplicatedByDefault(true);
 }
 
 void UInworldPlayerAudioCaptureComponent::BeginPlay()
 {
     Super::BeginPlay();
-
-    SetIsReplicated(true);
 
     if (GetOwnerRole() == ROLE_Authority)
     {

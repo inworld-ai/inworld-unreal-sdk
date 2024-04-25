@@ -8,6 +8,47 @@
 
 #include "InworldCharacter.h"
 #include "InworldSession.h"
+#include "InworldPlayer.h"
+
+#include "Engine/BlueprintGeneratedClass.h"
+#include "Engine/NetDriver.h"
+#include "Engine/Engine.h"
+
+#include "Net/UnrealNetwork.h"
+
+void UInworldCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	if (UBlueprintGeneratedClass* BPCClass = Cast<UBlueprintGeneratedClass>(GetClass()))
+	{
+		BPCClass->GetLifetimeBlueprintReplicationList(OutLifetimeProps);
+	}
+
+	DOREPLIFETIME(UInworldCharacter, AgentInfo);
+	DOREPLIFETIME(UInworldCharacter, TargetPlayer);
+}
+
+int32 UInworldCharacter::GetFunctionCallspace(UFunction* Function, FFrame* Stack)
+{
+	if (HasAnyFlags(RF_ClassDefaultObject) || !IsSupportedForNetworking())
+	{
+		return GEngine->GetGlobalFunctionCallspace(Function, this, Stack);
+	}
+
+	return GetOuter()->GetFunctionCallspace(Function, Stack);
+}
+
+bool UInworldCharacter::CallRemoteFunction(UFunction* Function, void* Parms, FOutParmRec* OutParms, FFrame* Stack)
+{
+	AActor* Owner = GetTypedOuter<AActor>();
+	if (UNetDriver* NetDriver = Owner->GetNetDriver())
+	{
+		NetDriver->ProcessRemoteFunction(Owner, Function, Parms, OutParms, Stack, this);
+		return true;
+	}
+	return false;
+}
 
 TScriptInterface<IInworldCharacterOwnerInterface> UInworldCharacter::GetInworldCharacterOwner()
 {
@@ -47,10 +88,15 @@ void UInworldCharacter::Possess(const FInworldAgentInfo& InAgentInfo)
 	}
 	if (AgentInfo.AgentId != InAgentInfo.AgentId)
 	{
+		UInworldPlayer* CachedTargetPlayer = TargetPlayer;
 		Unpossess();
 		AgentInfo = InAgentInfo;
 		OnPossessedDelegateNative.Broadcast(true);
 		OnPossessedDelegate.Broadcast(true);
+		if(CachedTargetPlayer != nullptr)
+		{
+			CachedTargetPlayer->AddTargetCharacter(this);
+		}
 	}
 }
 
@@ -58,9 +104,13 @@ void UInworldCharacter::Unpossess()
 {
 	if (IsPossessed())
 	{
-		AgentInfo = {};
+		if (TargetPlayer != nullptr)
+		{
+			TargetPlayer->RemoveTargetCharacter(this);
+		}
 		OnPossessedDelegateNative.Broadcast(false);
 		OnPossessedDelegate.Broadcast(false);
+		AgentInfo = {};
 	}
 }
 

@@ -16,13 +16,26 @@ UInworldPlayerComponent::UInworldPlayerComponent()
     : Super()
 {
     bWantsInitializeComponent = true;
+    SetIsReplicatedByDefault(true);
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+    bReplicateUsingRegisteredSubObjectList = true;
+#endif
 }
 
 void UInworldPlayerComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 
-    InworldPlayer = NewObject<UInworldPlayer>(this, "InworldPlayer");
+    if (GetOwnerRole() == ROLE_Authority)
+    {
+        InworldPlayer = NewObject<UInworldPlayer>(this);
+    }
+    /*InworldPlayer->OnTargetCharacterAdded().AddLambda(
+        [this](UInworldCharacter* Character) -> void
+        {
+            //TargetCharacters.Add(Character->GetAgentInfo().AgentId);
+        }
+    );*/
 }
 
 void UInworldPlayerComponent::UninitializeComponent()
@@ -35,10 +48,7 @@ void UInworldPlayerComponent::UninitializeComponent()
 void UInworldPlayerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
     InworldSession = IInworldSessionOwnerInterface::Execute_GetInworldSession(GetWorld()->GetSubsystem<UInworldApiSubsystem>());
-
-	SetIsReplicated(true);
 }
 
 void UInworldPlayerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -51,6 +61,26 @@ void UInworldPlayerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void UInworldPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    //DOREPLIFETIME(UInworldPlayerComponent, TargetCharacters);
+    DOREPLIFETIME(UInworldPlayerComponent, InworldPlayer);
+    //DOREPLIFETIME(UInworldPlayerComponent, InworldSession);
+}
+
+bool UInworldPlayerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+{
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+    return Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+#else
+    bool WroteSomething = true;
+
+    if (IsValid(InworldPlayer))
+    {
+        WroteSomething |= Channel->ReplicateSubobject(InworldPlayer, *Bunch, *RepFlags);
+    }
+
+    return WroteSomething;
+#endif
 }
 
 UInworldCharacterComponent* UInworldPlayerComponent::GetTargetInworldCharacter()

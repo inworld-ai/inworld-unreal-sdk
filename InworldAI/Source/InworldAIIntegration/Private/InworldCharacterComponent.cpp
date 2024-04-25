@@ -13,6 +13,7 @@
 #include <Camera/CameraComponent.h>
 #include <Net/UnrealNetwork.h>
 #include <Engine/World.h>
+#include <Engine/ActorChannel.h>
 #include <GameFramework/GameStateBase.h>
 #include <GameFramework/PlayerState.h>
 
@@ -22,13 +23,24 @@ UInworldCharacterComponent::UInworldCharacterComponent()
 {
     PrimaryComponentTick.bCanEverTick = true;
     bWantsInitializeComponent = true;
+	SetIsReplicatedByDefault(true);
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+	bReplicateUsingRegisteredSubObjectList = true;
+#endif
 }
 
 void UInworldCharacterComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 
-	InworldCharacter = NewObject<UInworldCharacter>(this, "InworldCharacter");
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		InworldCharacter = NewObject<UInworldCharacter>(this);
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+		AddReplicatedSubObject(InworldCharacter);
+#endif
+	}
+	/*
 	InworldCharacter->OnPossessed().AddLambda(
 		[this](bool bPossessed) -> void
 		{
@@ -38,10 +50,9 @@ void UInworldCharacterComponent::InitializeComponent()
 	InworldCharacter->OnTargetPlayerChanged().AddLambda(
 		[this]() -> void
 		{
-			//TODO: FIX
-			// set player id and whatnot
+			UInworldPlayer* TargetPlayer = InworldCharacter->GetTargetPlayer();
 		}
-	);
+	);*/
 
 #if WITH_EDITOR
 	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
@@ -86,8 +97,6 @@ void UInworldCharacterComponent::UninitializeComponent()
 void UInworldCharacterComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	SetIsReplicated(true);
 
 	InworldSession = IInworldSessionOwnerInterface::Execute_GetInworldSession(GetWorld()->GetSubsystem<UInworldApiSubsystem>());
 	InworldSession->OnInworldTextEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldTextEvent);
@@ -160,8 +169,26 @@ void UInworldCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProp
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UInworldCharacterComponent, TargetPlayer);
-	DOREPLIFETIME(UInworldCharacterComponent, AgentInfo);
+	//DOREPLIFETIME(UInworldCharacterComponent, TargetPlayer);
+	//DOREPLIFETIME(UInworldCharacterComponent, AgentInfo);
+	DOREPLIFETIME(UInworldCharacterComponent, InworldCharacter);
+	//DOREPLIFETIME(UInworldCharacterComponent, InworldSession);
+}
+
+bool UInworldCharacterComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+{
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+	return Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+#else
+	bool WroteSomething = true;
+
+	if (IsValid(InworldCharacter))
+	{
+		WroteSomething |= Channel->ReplicateSubobject(InworldCharacter, *Bunch, *RepFlags);
+	}
+
+	return WroteSomething;
+#endif
 }
 
 void UInworldCharacterComponent::SetBrainName(const FString& Name)
