@@ -110,7 +110,11 @@ private:
     TAtomic<bool> bCapturingVoice = false;
 
     TWeakObjectPtr<UInworldPlayer> InworldPlayer;
+    FDelegateHandle OnPlayerTargetCharactersChanged;
+
     TWeakObjectPtr<UInworldSession> InworldSession;
+    FDelegateHandle OnSessionConnectionStateChanged;
+    FDelegateHandle OnSessionLoaded;
 
     TSharedPtr<FInworldAudioCapture> InputAudioCapture;
     TSharedPtr<FInworldAudioCapture> OutputAudioCapture;

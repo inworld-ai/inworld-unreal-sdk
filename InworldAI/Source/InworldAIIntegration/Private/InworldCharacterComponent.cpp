@@ -71,6 +71,21 @@ void UInworldCharacterComponent::UninitializeComponent()
 {
 	Super::UninitializeComponent();
 
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		Unregister();
+	}
+
+	if (IsValid(InworldCharacter))
+	{
+		#if ENGINE_MAJOR_VERSION == 5
+		InworldCharacter->MarkAsGarbage();
+		#endif
+
+		#if ENGINE_MAJOR_VERSION == 4
+		InworldCharacter->MarkPendingKill();
+		#endif
+	}
 	InworldCharacter = nullptr;
 
 #if WITH_EDITOR
@@ -90,7 +105,7 @@ void UInworldCharacterComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (GetNetMode() != NM_Client)
+	if (GetOwnerRole() == ROLE_Authority)
 	{
 		Register();
 	}
@@ -110,11 +125,6 @@ void UInworldCharacterComponent::EndPlay(EEndPlayReason::Type Reason)
         Pb->EndPlay();
 		Pb->ClearCharacterComponent();
     }
-
-	if (GetNetMode() != NM_Client)
-	{
-		Unregister();
-	}
 	
 	MessageQueue->Clear();
 
@@ -577,7 +587,7 @@ void UInworldCharacterComponent::OnRep_InworldCharacter()
 
 void UInworldCharacterComponent::OnRep_InworldSession()
 {
-	if (InworldSession != nullptr)
+	if (InworldSession.IsValid())
 	{
 		InworldSession->OnInworldTextEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldTextEvent);
 		InworldSession->OnInworldAudioEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldAudioEvent);

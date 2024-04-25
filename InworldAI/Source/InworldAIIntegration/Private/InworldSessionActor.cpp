@@ -23,11 +23,33 @@ void AInworldSessionActor::PreInitializeComponents()
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		InworldSession = NewObject<UInworldSession>(this);
-		InworldSession->InitClient();
+		InworldSession->Init();
+
 		OnRep_InworldSession();
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
 		AddReplicatedSubObject(InworldSession);
 #endif
+	}
+}
+
+void AInworldSessionActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		InworldSession->Destroy();
+		if (IsValid(InworldSession))
+		{
+#if ENGINE_MAJOR_VERSION == 5
+			InworldSession->MarkAsGarbage();
+#endif
+
+#if ENGINE_MAJOR_VERSION == 4
+			InworldSession->MarkPendingKill();
+#endif
+		}
+		InworldSession = nullptr;
 	}
 }
 

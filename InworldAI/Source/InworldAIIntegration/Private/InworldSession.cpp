@@ -21,11 +21,9 @@ UInworldSession::UInworldSession()
 {}
 
 UInworldSession::~UInworldSession()
-{
-	DestroyClient();
-}
+{}
 
-void UInworldSession::InitClient()
+void UInworldSession::Init()
 {
 	InworldClient = NewObject<UInworldClient>(this);
 	OnClientPacketReceivedHandle = InworldClient->OnPacketReceived().AddLambda(
@@ -50,8 +48,13 @@ void UInworldSession::InitClient()
 	);
 }
 
-void UInworldSession::DestroyClient()
+void UInworldSession::Destroy()
 {
+	TArray<UInworldCharacter*> RegisteredCharactersCopy = RegisteredCharacters;
+	for (UInworldCharacter* RegisteredCharacter : RegisteredCharactersCopy)
+	{
+		UnregisterCharacter(RegisteredCharacter);
+	}
 	if (InworldClient)
 	{
 		InworldClient->OnPacketReceived().Remove(OnClientPacketReceivedHandle);

@@ -38,18 +38,22 @@ void UInworldPlayerComponent::InitializeComponent()
 #endif
         }
     }
-    /*InworldPlayer->OnTargetCharacterAdded().AddLambda(
-        [this](UInworldCharacter* Character) -> void
-        {
-            //TargetCharacters.Add(Character->GetAgentInfo().AgentId);
-        }
-    );*/
 }
 
 void UInworldPlayerComponent::UninitializeComponent()
 {
     Super::UninitializeComponent();
 
+    if (IsValid(InworldPlayer))
+    {
+#if ENGINE_MAJOR_VERSION == 5
+        InworldPlayer->MarkAsGarbage();
+#endif
+
+#if ENGINE_MAJOR_VERSION == 4
+        InworldPlayer->MarkPendingKill();
+#endif
+    }
     InworldPlayer = nullptr;
 }
 
