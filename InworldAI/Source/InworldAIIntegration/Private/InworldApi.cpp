@@ -11,10 +11,12 @@
 #include "InworldAIIntegrationModule.h"
 #include "InworldPackets.h"
 #include "InworldCharacter.h"
+#include "InworldSessionActor.h"
 #include <Engine/Engine.h>
 #include <UObject/UObjectGlobals.h>
 #include "TimerManager.h"
 #include "InworldAudioRepl.h"
+#include "UObject/UObjectIterator.h"
 
 static TAutoConsoleVariable<bool> CVarLogAllPackets(
 TEXT("Inworld.Debug.LogAllPackets"), false,
@@ -24,6 +26,18 @@ TEXT("Enable/Disable logging all packets going from server")
 UInworldApiSubsystem::UInworldApiSubsystem()
     : Super()
 {}
+
+void UInworldApiSubsystem::SetInworldSession(UInworldSession* Session)
+{
+    InworldSession = Session;
+    InworldSession->OnCharactersInitialized().AddLambda(
+        [this](bool bCharactersInitialized) -> void
+        {
+            OnCharactersInitialized.Broadcast(bCharactersInitialized);
+        }
+    );
+    OnCharactersInitialized.Broadcast(InworldSession->IsCharactersInitialized());
+}
 
 void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride, const FString& TargetUrlOverride, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)
 {
@@ -282,19 +296,6 @@ bool UInworldApiSubsystem::DoesSupportWorldType(EWorldType::Type WorldType) cons
 void UInworldApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-
-    InworldSession = NewObject<UInworldSession>(this, TEXT("InworldSession"));
-
-    if (GetWorld()->GetNetMode() == NM_Client)
-    {
-        return;
-    }
-    InworldSession->OnCharactersInitialized().AddLambda(
-        [this](bool bCharactersInitialized) -> void
-        {
-            OnCharactersInitialized.Broadcast(bCharactersInitialized);
-        }
-    );
 }
 
 void UInworldApiSubsystem::Deinitialize()

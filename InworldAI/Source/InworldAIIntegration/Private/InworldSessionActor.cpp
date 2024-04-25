@@ -1,0 +1,60 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "InworldSessionActor.h"
+#include "InworldSession.h"
+#include "InworldApi.h"
+#include <Net/UnrealNetwork.h>
+
+AInworldSessionActor::AInworldSessionActor()
+{
+ 	PrimaryActorTick.bCanEverTick = true;
+	SetReplicates(true);
+	bAlwaysRelevant = true;
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+	bReplicateUsingRegisteredSubObjectList = true;
+#endif
+}
+
+void AInworldSessionActor::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		InworldSession = NewObject<UInworldSession>(this);
+		OnRep_InworldSession();
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+		AddReplicatedSubObject(InworldCharacter);
+#endif
+	}
+}
+
+void AInworldSessionActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AInworldSessionActor, InworldSession);
+}
+
+bool AInworldSessionActor::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+{
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+	return Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+#else
+	bool WroteSomething = true;
+
+	if (IsValid(InworldSession))
+	{
+		WroteSomething |= Channel->ReplicateSubobject(InworldSession, *Bunch, *RepFlags);
+	}
+
+	return WroteSomething;
+#endif
+}
+
+void AInworldSessionActor::OnRep_InworldSession()
+{
+	GetWorld()->GetSubsystem<UInworldApiSubsystem>()->SetInworldSession(InworldSession);
+}
+
