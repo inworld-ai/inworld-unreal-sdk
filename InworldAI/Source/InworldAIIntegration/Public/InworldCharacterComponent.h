@@ -104,7 +104,7 @@ public:
 	UInworldCharacterPlayback* GetPlayback(TSubclassOf<UInworldCharacterPlayback> Class) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Interactions")
-	bool IsInteractingWithPlayer() const { return InworldCharacter->GetTargetPlayer() != nullptr; }
+	bool IsInteractingWithPlayer() const { return InworldCharacter != nullptr && InworldCharacter->GetTargetPlayer() != nullptr; }
 
 	UFUNCTION(BlueprintCallable, Category = "Emotions")
 	EInworldCharacterEmotionalBehavior GetEmotionalBehavior() const { return EmotionalBehavior; }
@@ -174,6 +174,7 @@ protected:
 	FString UiName = "Character";
 
 private:
+	bool ShouldHandleEvent(const FInworldRouting& Routing);
 	UFUNCTION()
 	void OnInworldTextEvent(const FInworldTextEvent& Event);
 	UFUNCTION()

@@ -28,7 +28,7 @@ void UInworldPlayerTargetingComponent::BeginPlay()
     else
 	{
 		PrimaryComponentTick.SetTickFunctionEnable(true);
-        InworldPlayer = Cast<UInworldPlayerComponent>(GetOwner()->GetComponentByClass(UInworldPlayerComponent::StaticClass()))->GetInworldPlayer();
+        InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(Cast<UInworldPlayerComponent>(GetOwner()->GetComponentByClass(UInworldPlayerComponent::StaticClass())));
     }
 }
 
@@ -73,7 +73,12 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
         }
     }
 
-    const TArray<UInworldCharacter*>& Characters = InworldPlayer->GetInworldPlayerOwner()->GetInworldSession()->GetRegisteredCharacters();
+    UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetInworldPlayerOwner().GetObject());
+    if (!InworldSession)
+    {
+        return;
+    }
+    const TArray<UInworldCharacter*>& Characters = InworldSession->GetRegisteredCharacters();
     UInworldCharacter* BestTarget = nullptr;
     float BestTargetDot = -1.f;
     for (UInworldCharacter* Character : Characters)
