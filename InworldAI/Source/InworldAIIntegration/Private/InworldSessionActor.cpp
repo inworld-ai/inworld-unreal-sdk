@@ -22,14 +22,22 @@ void AInworldSessionActor::PreInitializeComponents()
 
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		InworldSession = NewObject<UInworldSession>(this);
-		InworldSession->Init();
-
-		OnRep_InworldSession();
+		UWorld* World = GetWorld();
+		if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
+		{
+			InworldSession = NewObject<UInworldSession>(this);
+			InworldSession->Init();
+			OnRep_InworldSession();
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
-		AddReplicatedSubObject(InworldSession);
+			AddReplicatedSubObject(InworldSession);
 #endif
+		}
 	}
+}
+
+void AInworldSessionActor::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void AInworldSessionActor::EndPlay(const EEndPlayReason::Type EndPlayReason)

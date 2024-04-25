@@ -39,13 +39,13 @@ class INWORLDAIINTEGRATION_API UInworldSession : public UObject
 {
 	GENERATED_BODY()
 public:
-	//UObject
+	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override;
 	virtual bool CallRemoteFunction(UFunction* Function, void* Parms, struct FOutParmRec* OutParms, FFrame* Stack) override;
-	//~UObject
+	// ~UObject
 
 public:
 	UInworldSession();

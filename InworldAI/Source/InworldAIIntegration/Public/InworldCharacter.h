@@ -23,13 +23,29 @@ class INWORLDAIINTEGRATION_API UInworldCharacter : public UObject
 {
 	GENERATED_BODY()
 public:
-	//UObject
+	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override;
 	virtual bool CallRemoteFunction(UFunction* Function, void* Parms, struct FOutParmRec* OutParms, FFrame* Stack) override;
-	//~UObject
+	// ~UObject
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Message")
+	void SendTextMessage(const FString& Text);
+	UFUNCTION(BlueprintCallable, Category = "Trigger")
+	void SendTrigger(const FString& Name, const TMap<FString, FString>& Params);
+	UFUNCTION(BlueprintCallable, Category = "Narration")
+	void SendNarrationEvent(const FString& Content);
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	void SendAudioSessionStart();
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	void SendAudioSessionStop();
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	void SendSoundMessage(const TArray<uint8>& Input, const TArray<uint8>& Output);
+	UFUNCTION(BlueprintCallable, Category = "Mutation")
+	void CancelResponse(const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Player")
@@ -57,7 +73,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Engagement")
 	void ClearTargetPlayer();
 
-	UFUNCTION(BlueprintPure, Category="Engagement")
+	UFUNCTION(BlueprintPure, Category = "Engagement")
 	UInworldPlayer* GetTargetPlayer() const { return TargetPlayer; }
 
 	UPROPERTY(BlueprintAssignable, Category = "Engagement")

@@ -27,13 +27,25 @@ class INWORLDAIINTEGRATION_API UInworldPlayer : public UObject
 {
 	GENERATED_BODY()
 public:
-	//UObject
+	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override;
 	virtual bool CallRemoteFunction(UFunction* Function, void* Parms, struct FOutParmRec* OutParms, FFrame* Stack) override;
-	//~UObject
+	// ~UObject
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Message")
+	void BroadcastTextMessage(const FString& Text);
+	UFUNCTION(BlueprintCallable, Category = "Trigger")
+	void BroadcastTrigger(const FString& Name, const TMap<FString, FString>& Params);
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	void BroadcastAudioSessionStart();
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	void BroadcastAudioSessionStop();
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	void BroadcastSoundMessage(const TArray<uint8>& Input, const TArray<uint8>& Output);
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Player")

@@ -173,6 +173,10 @@ void UInworldSession::UnloadCharacters(const TArray<UInworldCharacter*>& Charact
 
 void UInworldSession::BroadcastTextMessage(const TArray<UInworldCharacter*>& Characters, const FString& Message)
 {
+	if (!ensureMsgf(InworldClient, TEXT("InworldSession: InworldClient is null! Ensure to call Init() on Session.")))
+	{
+		return;
+	}
 	auto Packet = InworldClient->SendTextMessage(CharactersToAgentIds(Characters), Message).Packet;
 	if (Packet.IsValid())
 	{

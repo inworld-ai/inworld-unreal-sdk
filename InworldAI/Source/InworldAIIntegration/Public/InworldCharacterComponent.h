@@ -123,10 +123,10 @@ public:
 	void SendNarrationEvent(const FString& Content);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void StartAudioSession(const AActor* Owner) const;
+	void StartAudioSession();
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void StopAudioSession() const;
+	void StopAudioSession();
 
     UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void CancelCurrentInteraction();

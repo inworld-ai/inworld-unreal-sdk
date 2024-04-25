@@ -50,6 +50,49 @@ bool UInworldCharacter::CallRemoteFunction(UFunction* Function, void* Parms, FOu
 	return false;
 }
 
+
+void UInworldCharacter::SendTextMessage(const FString& Text)
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	InworldSession->SendTextMessage(this, Text);
+}
+
+void UInworldCharacter::SendTrigger(const FString& Name, const TMap<FString, FString>& Params)
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	InworldSession->SendTrigger(this, Name, Params);
+}
+
+void UInworldCharacter::SendNarrationEvent(const FString& Content)
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	InworldSession->SendNarrationEvent(this, Content);
+}
+
+void UInworldCharacter::SendAudioSessionStart()
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	InworldSession->SendAudioSessionStart(this);
+}
+
+void UInworldCharacter::SendAudioSessionStop()
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	InworldSession->SendAudioSessionStop(this);
+}
+
+void UInworldCharacter::SendSoundMessage(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	InworldSession->SendSoundMessage(this, InputData, OutputData);
+}
+
+void UInworldCharacter::CancelResponse(const FString& InteractionId, const TArray<FString>& UtteranceIds)
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldCharacterOwner().GetObject());
+	InworldSession->CancelResponse(this, InteractionId, UtteranceIds);
+}
+
 TScriptInterface<IInworldCharacterOwnerInterface> UInworldCharacter::GetInworldCharacterOwner()
 {
 	if (!ensureMsgf(GetOuter()->Implements<UInworldCharacterOwnerInterface>(), TEXT("UInworldCharacter outer must implement IInworldCharacterOwnerInterface!")))

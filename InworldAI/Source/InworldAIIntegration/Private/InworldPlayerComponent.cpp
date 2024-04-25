@@ -121,7 +121,7 @@ void UInworldPlayerComponent::ContinueMultiAgentConversation()
 {
     if (InworldPlayer->GetTargetCharacters().Num() > 1)
     {
-        InworldSession->BroadcastTrigger(InworldPlayer->GetTargetCharacters(), "inworld.conversation.next_turn", {});
+        InworldPlayer->BroadcastTrigger("inworld.conversation.next_turn", {});
     }
 }
 
@@ -140,30 +140,30 @@ void UInworldPlayerComponent::ClearAllTargetInworldCharacters()
     InworldPlayer->ClearAllTargetCharacters();
 }
 
-void UInworldPlayerComponent::SendTextMessageToTarget_Implementation(const FString& Message)
+void UInworldPlayerComponent::SendTextMessageToTarget(const FString& Message)
 {
     if (!Message.IsEmpty())
     {
-        InworldSession->BroadcastTextMessage(InworldPlayer->GetTargetCharacters(), Message);
+        InworldPlayer->BroadcastTextMessage(Message);
     }
 }
 
 void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params)
 {
-    InworldSession->BroadcastTrigger(InworldPlayer->GetTargetCharacters(), Name, Params);
+    InworldPlayer->BroadcastTrigger(Name, Params);
 }
 
 void UInworldPlayerComponent::StartAudioSessionWithTarget()
 {
-    InworldSession->BroadcastAudioSessionStart(InworldPlayer->GetTargetCharacters());
+    InworldPlayer->BroadcastAudioSessionStart();
 }
 
 void UInworldPlayerComponent::StopAudioSessionWithTarget()
 {
-    InworldSession->BroadcastAudioSessionStop(InworldPlayer->GetTargetCharacters());
+    InworldPlayer->BroadcastAudioSessionStop();
 }
 
 void UInworldPlayerComponent::SendAudioMessageToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    InworldSession->BroadcastSoundMessage(InworldPlayer->GetTargetCharacters(), InputData, OutputData);
+    InworldPlayer->BroadcastSoundMessage(InputData, OutputData);
 }

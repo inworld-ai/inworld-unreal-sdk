@@ -37,6 +37,12 @@ void UInworldApiSubsystem::SetInworldSession(UInworldSession* Session)
         }
     );
     OnCharactersInitialized.Broadcast(InworldSession->IsLoaded());
+    InworldSession->OnConnectionStateChanged().AddLambda(
+        [this](EInworldConnectionState ConnectionState) -> void
+        {
+            OnConnectionStateChanged.Broadcast(ConnectionState);
+        }
+    );
 }
 
 void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride, const FString& TargetUrlOverride, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)

@@ -49,6 +49,36 @@ bool UInworldPlayer::CallRemoteFunction(UFunction* Function, void* Parms, FOutPa
 	return false;
 }
 
+void UInworldPlayer::BroadcastTextMessage(const FString& Text)
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldPlayerOwner().GetObject());
+	InworldSession->BroadcastTextMessage(GetTargetCharacters(), Text);
+}
+
+void UInworldPlayer::BroadcastTrigger(const FString& Name, const TMap<FString, FString>& Params)
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldPlayerOwner().GetObject());
+	InworldSession->BroadcastTrigger(GetTargetCharacters(), Name, Params);
+}
+
+void UInworldPlayer::BroadcastAudioSessionStart()
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldPlayerOwner().GetObject());
+	InworldSession->BroadcastAudioSessionStart(GetTargetCharacters());
+}
+
+void UInworldPlayer::BroadcastAudioSessionStop()
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldPlayerOwner().GetObject());
+	InworldSession->BroadcastAudioSessionStop(GetTargetCharacters());
+}
+
+void UInworldPlayer::BroadcastSoundMessage(const TArray<uint8>& Input, const TArray<uint8>& Output)
+{
+	UInworldSession* InworldSession = IInworldCharacterOwnerInterface::Execute_GetInworldSession(GetInworldPlayerOwner().GetObject());
+	InworldSession->BroadcastSoundMessage(GetTargetCharacters(), Input, Output);
+}
+
 TScriptInterface<IInworldPlayerOwnerInterface> UInworldPlayer::GetInworldPlayerOwner()
 {
 	if (!ensureMsgf(GetOuter()->Implements<UInworldPlayerOwnerInterface>(), TEXT("UInworldPlayer outer must implement IInworldPlayerOwnerInterface!")))

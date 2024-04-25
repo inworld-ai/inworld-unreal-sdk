@@ -201,37 +201,37 @@ void UInworldCharacterComponent::CancelCurrentInteraction()
         return;
     }
 
-	const FString CurrentInteractionId = CurrentMessage->InteractionId;
-	TArray<FString> CanceledUtterances = MessageQueue->CancelInteraction(CurrentInteractionId);
+	const FString CanceledInteractionId = CurrentMessage->InteractionId;
+	TArray<FString> CanceledUtterances = MessageQueue->CancelInteraction(CanceledInteractionId);
 	if (CanceledUtterances.Num() > 0)
 	{
-		InworldSession->CancelResponse(InworldCharacter, CurrentInteractionId, CanceledUtterances);
+		InworldCharacter->CancelResponse(CanceledInteractionId, CanceledUtterances);
 	}
 }
 
 void UInworldCharacterComponent::SendTextMessage(const FString& Text) const
 {
-	InworldSession->SendTextMessage(InworldCharacter, Text);
+	InworldCharacter->SendTextMessage(Text);
 }
 
 void UInworldCharacterComponent::SendTrigger(const FString& Name, const TMap<FString, FString>& Params) const
 {
-	InworldSession->SendTrigger(InworldCharacter, Name, Params);
+	InworldCharacter->SendTrigger(Name, Params);
 }
 
 void UInworldCharacterComponent::SendNarrationEvent(const FString& Content)
 {
-	InworldSession->SendNarrationEvent(InworldCharacter, Content);
+	InworldCharacter->SendNarrationEvent(Content);
 }
 
-void UInworldCharacterComponent::StartAudioSession(const AActor* Owner) const
+void UInworldCharacterComponent::StartAudioSession()
 {
-	InworldSession->SendAudioSessionStart(InworldCharacter);
+	InworldCharacter->SendAudioSessionStart();
 }
 
-void UInworldCharacterComponent::StopAudioSession() const
+void UInworldCharacterComponent::StopAudioSession()
 {
-	InworldSession->SendAudioSessionStop(InworldCharacter);
+	InworldCharacter->SendAudioSessionStop();
 }
 
 bool UInworldCharacterComponent::Register()
