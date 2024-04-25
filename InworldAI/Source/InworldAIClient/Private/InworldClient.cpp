@@ -50,6 +50,34 @@ static TAutoConsoleVariable<FString> CVarSoundDumpPath(
 	TEXT("Specifiy path for audio input dump file")
 );
 
+#include "Windows/AllowWindowsPlatformTypes.h"
+#include <windows.h>
+#include <psapi.h>
+#include "Windows/HideWindowsPlatformTypes.h"
+
+void ListLoadedDLLs()
+{
+	HANDLE hProcess = GetCurrentProcess();
+	HMODULE hMods[1024];
+	DWORD cbNeeded;
+
+	if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
+	{
+		for (unsigned int i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
+		{
+			TCHAR szModName[MAX_PATH];
+			// Get the full path to the module's file.
+			if (GetModuleFileNameEx(hProcess, hMods[i], szModName, sizeof(szModName) / sizeof(TCHAR)))
+			{
+				// Print the module name and handle.
+				UE_LOG(LogTemp, Log, TEXT("%s (0x%08X)"), szModName, hMods[i]);
+			}
+		}
+	}
+}
+
+
+
 FInworldClient::FOnAudioDumperCVarChanged FInworldClient::OnAudioDumperCVarChanged;
 
 FAutoConsoleVariableSink FInworldClient::CVarSink(FConsoleCommandDelegate::CreateStatic(&FInworldClient::OnCVarsChanged));
@@ -330,7 +358,7 @@ FString FInworldClient::GetSessionId() const
 
 TSharedPtr<FInworldPacket> FInworldClient::SendTextMessage(const TArray<FString>& AgentIds, const FString& Text)
 {
-	auto Packet = Inworld::GetClient()->SendTextMessage(ToStd(AgentIds), TCHAR_TO_UTF8(*Text));
+	auto Packet = Inworld::GetClient()->SendTextMessage(TCHAR_TO_UTF8(*AgentIds[0]), TCHAR_TO_UTF8(*Text));
 	InworldPacketTranslator PacketTranslator;
 	Packet->Accept(PacketTranslator);
 	return PacketTranslator.GetPacket();
@@ -341,14 +369,14 @@ void FInworldClient::SendSoundMessage(const TArray<FString>& AgentIds, class USo
 	std::string data;
 	if (Inworld::Utils::SoundWaveToString(Sound, data))
 	{
-		Inworld::GetClient()->SendSoundMessage(ToStd(AgentIds), data);
+		Inworld::GetClient()->SendSoundMessage(TCHAR_TO_UTF8(*AgentIds[0]), data);
 	}
 }
 
 void FInworldClient::SendSoundDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data)
 {
 	std::string data((char*)Data.GetData(), Data.Num());
-	Inworld::GetClient()->SendSoundMessage(ToStd(AgentIds), data);
+	Inworld::GetClient()->SendSoundMessage(TCHAR_TO_UTF8(*AgentIds[0]), data);
 }
 
 void FInworldClient::SendSoundMessageWithEAC(const TArray<FString>& AgentIds, class USoundWave* Input, class USoundWave* Output)
@@ -356,25 +384,27 @@ void FInworldClient::SendSoundMessageWithEAC(const TArray<FString>& AgentIds, cl
 	std::vector<int16_t> inputdata, outputdata;
 	if (Inworld::Utils::SoundWaveToVec(Input, inputdata) && Inworld::Utils::SoundWaveToVec(Output, outputdata))
 	{
-		Inworld::GetClient()->SendSoundMessageWithAEC(ToStd(AgentIds), inputdata, outputdata);
+		float Tmp;
+		Inworld::GetClient()->SendSoundMessageWithAEC(TCHAR_TO_UTF8(*AgentIds[0]), inputdata, outputdata, Tmp);
 	}
 }
 
-void FInworldClient::SendSoundDataMessageWithEAC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
+void FInworldClient::SendSoundDataMessageWithEAC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData, float& SpeechProb)
 {
 	std::vector<int16> inputdata((int16*)InputData.GetData(), ((int16*)InputData.GetData()) + (InputData.Num() / 2));
 	std::vector<int16> outputdata((int16*)OutputData.GetData(), ((int16*)OutputData.GetData()) + (OutputData.Num() / 2));
-	Inworld::GetClient()->SendSoundMessageWithAEC(ToStd(AgentIds), inputdata, outputdata);
+	Inworld::GetClient()->SendSoundMessageWithAEC(TCHAR_TO_UTF8(*AgentIds[0]), inputdata, outputdata, SpeechProb);
 }
 
 void FInworldClient::StartAudioSession(const TArray<FString>& AgentIds)
 {
-	Inworld::GetClient()->StartAudioSession(ToStd(AgentIds));
+	ListLoadedDLLs();
+	//Inworld::GetClient()->StartAudioSession(TCHAR_TO_UTF8(*AgentIds[0]));
 }
 
 void FInworldClient::StopAudioSession(const TArray<FString>& AgentIds)
 {
-	Inworld::GetClient()->StopAudioSession(ToStd(AgentIds));
+	Inworld::GetClient()->StopAudioSession(TCHAR_TO_UTF8(*AgentIds[0]));
 }
 
 std::unordered_map<std::string, std::string> ToStd(const TMap<FString, FString>& Map)
@@ -389,7 +419,7 @@ std::unordered_map<std::string, std::string> ToStd(const TMap<FString, FString>&
 
 void FInworldClient::SendCustomEvent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params)
 {
-	Inworld::GetClient()->SendCustomEvent(ToStd(AgentIds), TCHAR_TO_UTF8(*Name), ToStd(Params));
+	Inworld::GetClient()->SendCustomEvent(TCHAR_TO_UTF8(*AgentIds[0]), TCHAR_TO_UTF8(*Name), ToStd(Params));
 }
 
 void FInworldClient::SendChangeSceneEvent(const FString& SceneName)

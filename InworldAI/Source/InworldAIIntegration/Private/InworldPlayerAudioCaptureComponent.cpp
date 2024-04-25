@@ -426,7 +426,9 @@ void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implem
     {
         if (bEnableAEC)
         {
-            InworldSubsystem->SendAudioDataMessageWithAEC(PlayerAudioTarget.ActiveAgentIds, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
+        	float SpeechProbability = 0.f;
+            InworldSubsystem->SendAudioDataMessageWithAEC(PlayerAudioTarget.ActiveAgentIds, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData, SpeechProbability);
+        	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString("Speech probability: ") + FString::SanitizeFloat(SpeechProbability));
         }
         else
         {

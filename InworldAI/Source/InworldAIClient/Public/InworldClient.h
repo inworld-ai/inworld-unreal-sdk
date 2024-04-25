@@ -57,7 +57,7 @@ public:
 	void SendSoundDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data);
 
 	void SendSoundMessageWithEAC(const TArray<FString>& AgentIds, class USoundWave* Input, class USoundWave* Output);
-	void SendSoundDataMessageWithEAC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+	void SendSoundDataMessageWithEAC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData, float&);
 
 	void StartAudioSession(const TArray<FString>& AgentIds);
 	void StopAudioSession(const TArray<FString>& AgentIds);

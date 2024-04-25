@@ -38,6 +38,23 @@ void FInworldAINDKModule::StartupModule()
 	}
 #endif //WITH_EDITOR
 #endif //INWORLD_AEC
+
+	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("Win64/inworld_onnxruntime.dll"));
+	onnxLibraryHandle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
+	if (onnxLibraryHandle == nullptr)
+	{
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("InworldAINDKModuleError", "Failed to load onnx library"));
+	}
+
+	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("Win64/inworld_onnxruntime_providers_shared.dll"));
+	onnxProvidersLibraryHandle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
+	if (onnxProvidersLibraryHandle == nullptr)
+	{
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("InworldAINDKModuleError", "Failed to load onnx providers library"));
+	}
+
+	int a = 0;
+	a = 2;
 	
 #ifdef INWORLD_NDK_SHARED
 #if PLATFORM_WINDOWS
@@ -65,6 +82,11 @@ void FInworldAINDKModule::ShutdownModule()
 	FPlatformProcess::FreeDllHandle(webrtcLibraryHandle);
 #endif //INWORLD_AEC
 	webrtcLibraryHandle = nullptr;
+
+	FPlatformProcess::FreeDllHandle(onnxLibraryHandle);
+	onnxLibraryHandle = nullptr;
+	FPlatformProcess::FreeDllHandle(onnxProvidersLibraryHandle);
+	onnxProvidersLibraryHandle = nullptr;
 
 #ifdef INWORLD_NDK_SHARED
 	FPlatformProcess::FreeDllHandle(ndkLibraryHandle);

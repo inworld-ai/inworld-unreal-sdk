@@ -20,4 +20,6 @@ public:
 private:
 	void* ndkLibraryHandle;
 	void* webrtcLibraryHandle;
+	void* onnxLibraryHandle;
+	void* onnxProvidersLibraryHandle;
 };

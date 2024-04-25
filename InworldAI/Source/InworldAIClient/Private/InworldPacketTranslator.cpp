@@ -21,11 +21,11 @@ void InworldPacketTranslator::TranslateInworldRouting(const Inworld::Routing& Or
 	TranslateInworldActor(Original._Source, New.Source);
 	TranslateInworldActor(Original._Target, New.Target);
 
-	for (auto& Actor : Original._Targets)
+	/*for (auto& Actor : Original._Targets)
 	{
 		auto& NewActor = New.Targets.Emplace_GetRef();
 		TranslateInworldActor(Actor, NewActor);
-	}
+	}*/
 }
 
 void InworldPacketTranslator::TranslateInworldPacketId(const Inworld::PacketId& Original, FInworldPacketId& New)

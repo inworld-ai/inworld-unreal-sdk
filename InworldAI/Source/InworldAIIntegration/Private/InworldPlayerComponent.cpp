@@ -187,7 +187,8 @@ void UInworldPlayerComponent::SendAudioDataMessageToTarget(const TArray<uint8>& 
 
 void UInworldPlayerComponent::SendAudioDataMessageWithAECToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    InworldSubsystem->SendAudioDataMessageWithAEC(GetTargetAgentIds(), InputData, OutputData);
+	float Tmp;
+    InworldSubsystem->SendAudioDataMessageWithAEC(GetTargetAgentIds(), InputData, OutputData, Tmp);
 }
 
 void UInworldPlayerComponent::OnRep_Targets(const TArray<FInworldPlayerTargetCharacter>& OldTargets)

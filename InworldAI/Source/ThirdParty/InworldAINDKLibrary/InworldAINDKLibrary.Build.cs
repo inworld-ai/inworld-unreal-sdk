@@ -69,7 +69,7 @@ public class InworldAINDKLibrary : ModuleRules
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_LOG_CALLBACK=1");
 
-        bool bUseSharedInworldNDK = Target.Platform != UnrealTargetPlatform.IOS;
+        bool bUseSharedInworldNDK = false;// Target.Platform != UnrealTargetPlatform.IOS;
         if (bUseSharedInworldNDK)
         {
             PublicDefinitions.Add("INWORLD_NDK_SHARED=1");
@@ -85,6 +85,7 @@ public class InworldAINDKLibrary : ModuleRules
                 {
                 "inworld-ndk",
                 "inworld-ndk-proto",
+                "inworld-ndk-vad",
                 "absl_base",
                 "absl_malloc_internal",
                 "absl_raw_logging_internal",
@@ -137,6 +138,14 @@ public class InworldAINDKLibrary : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.lib"));
             PublicDelayLoadDLLs.Add("webrtc_aec_plugin.dll");
             RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.dll"));
+            
+            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld_onnxruntime.lib"));
+            PublicDelayLoadDLLs.Add("inworld_onnxruntime.dll");
+            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld_onnxruntime.dll"));
+            
+			PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld_onnxruntime_providers_shared.lib"));
+            PublicDelayLoadDLLs.Add("inworld_onnxruntime_providers_shared.dll");
+            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld_onnxruntime_providers_shared.dll"));
 
             if (bUseSharedInworldNDK)
             {

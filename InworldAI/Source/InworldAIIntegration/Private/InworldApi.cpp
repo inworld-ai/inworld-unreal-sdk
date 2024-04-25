@@ -367,19 +367,19 @@ void UInworldApiSubsystem::SendAudioMessageWithAEC(const FString& AgentId, USoun
     Client->SendSoundMessageWithEAC({ AgentId }, InputWave, OutputWave);
 }
 
-void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
+void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData, float& SpeechProbability)
 {
-    SendAudioDataMessageWithAEC(TArray<FString>{ AgentId }, InputData, OutputData);
+    SendAudioDataMessageWithAEC(TArray<FString>{ AgentId }, InputData, OutputData, SpeechProbability);
 }
 
-void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
+void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData, float& SpeechProb)
 {
     if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
     {
         return;
     }
 
-    Client->SendSoundDataMessageWithEAC(AgentIds, InputData, OutputData);
+    Client->SendSoundDataMessageWithEAC(AgentIds, InputData, OutputData, SpeechProb);
 }
 
 bool UInworldApiSubsystem::StartAudioSession(const FString& AgentId, const AActor* Owner)
