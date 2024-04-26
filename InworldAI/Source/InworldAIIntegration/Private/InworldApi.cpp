@@ -189,7 +189,7 @@ void UInworldApiSubsystem::SendTextMessageMultiAgent(const TArray<FString>& Agen
         return;
     }
 
-    InworldSession->InworldClient->SendTextMessage(AgentIds, Text).Packet;
+    InworldSession->InworldClient->SendTextMessage(AgentIds, Text);
 }
 
 void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
