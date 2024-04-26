@@ -9,11 +9,13 @@
 #include "InworldAIIntegrationModule.h"
 #include "InworldPackets.h"
 #include "InworldCharacter.h"
+#include "InworldSessionComponent.h"
 #include <Engine/Engine.h>
 #include <UObject/UObjectGlobals.h>
 #include "TimerManager.h"
 #include "InworldAudioRepl.h"
 #include "UObject/UObjectIterator.h"
+#include "GameFramework/GameStateBase.h"
 
 static TAutoConsoleVariable<bool> CVarLogAllPackets(
 TEXT("Inworld.Debug.LogAllPackets"), false,
@@ -321,7 +323,15 @@ void UInworldApiSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
     Super::OnWorldBeginPlay(InWorld);
 
-    if (GetWorld()->GetNetMode() != NM_Standalone)
+    UWorld* World = GetWorld();
+    if (InworldSession == nullptr && World && World->GetNetMode() != NM_Client)
+    {
+        // Backward compatibility for calls directly to InworldApi without some sort of session actor
+        UInworldSessionComponent* SessionComponent = Cast<UInworldSessionComponent>(World->GetGameState()->AddComponentByClass(UInworldSessionComponent::StaticClass(), false, FTransform::Identity, false));
+        SetInworldSession(IInworldSessionOwnerInterface::Execute_GetInworldSession(SessionComponent));
+    }
+
+    if (World && World->GetNetMode() != NM_Standalone)
     {
         StartAudioReplication();
     }
