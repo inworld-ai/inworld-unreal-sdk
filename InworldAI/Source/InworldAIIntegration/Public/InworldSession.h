@@ -8,7 +8,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Interface.h"
 #include "UObject/NoExportTypes.h"
+#include "GameFramework/Actor.h"
 #include "InworldClient.h"
 #include "InworldTypes.h"
 #include "InworldPackets.h"
