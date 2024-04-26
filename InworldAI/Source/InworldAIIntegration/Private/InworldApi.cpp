@@ -83,7 +83,7 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     Environment.AuthUrl = AuthUrlOverride;
     Environment.TargetUrl = TargetUrlOverride;
 
-    InworldSession->InworldClient->StartSession(SceneName, PlayerProfile, Auth, FInworldSave(), SessionToken);
+    InworldSession->InworldClient->StartSession(SceneName, PlayerProfile, Auth, FInworldSave(), SessionToken, {});
 }
 
 void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride, FInworldSave SavedSessionState)

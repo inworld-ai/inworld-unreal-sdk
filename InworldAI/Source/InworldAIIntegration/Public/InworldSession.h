@@ -67,7 +67,7 @@ public:
 	const TArray<UInworldCharacter*>& GetRegisteredCharacters() const { return RegisteredCharacters; }
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
-	void StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save = FInworldSave(), const FInworldSessionToken& SessionToken = FInworldSessionToken(), const FInworldCapabilitySet& CapabilitySet = FInworldCapabilitySet());
+	void StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save, const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet);
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Session")
 	void StopSession();
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Session")
