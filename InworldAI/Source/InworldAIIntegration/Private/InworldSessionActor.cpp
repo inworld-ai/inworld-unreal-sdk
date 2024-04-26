@@ -92,6 +92,11 @@ bool AInworldSessionActor::ReplicateSubobjects(UActorChannel* Channel, FOutBunch
 
 void AInworldSessionActor::OnRep_InworldSession()
 {
-	GetWorld()->GetSubsystem<UInworldApiSubsystem>()->SetInworldSession(InworldSession);
+	if (InworldSession)
+	{
+		GetWorld()->GetSubsystem<UInworldApiSubsystem>()->SetInworldSession(InworldSession);
+		OnSessionCreatedDelegateNative.Broadcast();
+		OnSessionCreatedDelegate.Broadcast();
+	}
 }
 
