@@ -164,7 +164,7 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
 
     if (GetOwnerRole() == ROLE_Authority)
     {
-        InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(Cast<UInworldPlayerComponent>(GetOwner()->GetComponentByClass(UInworldPlayerComponent::StaticClass())));
+        InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(GetOwner()->GetComponentsByInterface(UInworldPlayerOwnerInterface::StaticClass())[0]);
         OnPlayerTargetCharactersChanged = InworldPlayer->OnTargetCharactersChanged().AddLambda(
             [this]() -> void
             {

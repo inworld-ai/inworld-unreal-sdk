@@ -29,21 +29,45 @@ UInworldCharacterComponent::UInworldCharacterComponent()
 #endif
 }
 
+void UInworldCharacterComponent::OnRegister()
+{
+	Super::OnRegister();
+
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	{
+		InworldCharacter = NewObject<UInworldCharacter>(this);
+		OnRep_InworldCharacter();
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+		AddReplicatedSubObject(InworldCharacter);
+#endif
+	}
+}
+
+void UInworldCharacterComponent::OnUnregister()
+{
+	Super::OnUnregister();
+
+	if (IsValid(InworldCharacter))
+	{
+#if ENGINE_MAJOR_VERSION == 5
+		InworldCharacter->MarkAsGarbage();
+#endif
+
+#if ENGINE_MAJOR_VERSION == 4
+		InworldCharacter->MarkPendingKill();
+#endif
+	}
+	InworldCharacter = nullptr;
+}
+
 void UInworldCharacterComponent::InitializeComponent()
 {
     Super::InitializeComponent();
-
 	if (GetOwnerRole() == ROLE_Authority)
 	{
-		UWorld* World = GetWorld();
-		if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
-		{
-			InworldCharacter = NewObject<UInworldCharacter>(this);
-			InworldSession = GetWorld()->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession();
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
-			AddReplicatedSubObject(InworldCharacter);
-#endif
-		}
+		InworldSession = GetWorld()->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession();
+		OnRep_InworldSession();
 	}
 
 #if WITH_EDITOR
@@ -76,18 +100,6 @@ void UInworldCharacterComponent::UninitializeComponent()
 		Unregister();
 	}
 
-	if (IsValid(InworldCharacter))
-	{
-		#if ENGINE_MAJOR_VERSION == 5
-		InworldCharacter->MarkAsGarbage();
-		#endif
-
-		#if ENGINE_MAJOR_VERSION == 4
-		InworldCharacter->MarkPendingKill();
-		#endif
-	}
-	InworldCharacter = nullptr;
-
 #if WITH_EDITOR
 	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
 	{
@@ -109,8 +121,6 @@ void UInworldCharacterComponent::BeginPlay()
 	{
 		Register();
 	}
-	OnRep_InworldCharacter();
-	OnRep_InworldSession();
 
     for (auto* Pb : Playbacks)
     {
@@ -573,7 +583,7 @@ void UInworldCharacterComponent::Handle(const FCharacterMessageInteractionEnd& M
 
 void UInworldCharacterComponent::OnRep_InworldCharacter()
 {
-	if (InworldCharacter != nullptr)
+	if (InworldCharacter)
 	{
 		InworldCharacter->OnTargetPlayerChanged().AddLambda(
 			[this]() -> void

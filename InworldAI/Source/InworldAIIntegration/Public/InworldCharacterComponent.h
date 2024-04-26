@@ -40,6 +40,8 @@ public:
 	virtual UInworldSession* GetInworldSession_Implementation() const override { return InworldSession.Get(); }
 	// ~IInworldCharacterOwnerInterface
 
+	virtual void OnRegister() override;
+	virtual void OnUnregister() override;
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
 
