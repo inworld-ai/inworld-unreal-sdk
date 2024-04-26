@@ -272,6 +272,11 @@ void UInworldApiSubsystem::ChangeScene(const FString& SceneId)
     InworldSession->InworldClient->SendChangeSceneEvent(SceneId);
 }
 
+EInworldConnectionState UInworldApiSubsystem::GetConnectionState() const
+{
+    return InworldSession->GetConnectionState();
+}
+
 void UInworldApiSubsystem::GetConnectionError(FString& Message, int32& Code)
 {
     InworldSession->InworldClient->GetConnectionError(Message, Code);
