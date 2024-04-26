@@ -180,7 +180,7 @@ public:
 
     /** Get current connection state */
     UFUNCTION(BlueprintCallable, Category = "Connection")
-	EInworldConnectionState GetConnectionState() const { return InworldSession->GetConnectionState(); }
+    EInworldConnectionState GetConnectionState() const;
 
     /** Get connection error message and code from previous Disconnect */
     UFUNCTION(BlueprintCallable, Category = "Inworld")

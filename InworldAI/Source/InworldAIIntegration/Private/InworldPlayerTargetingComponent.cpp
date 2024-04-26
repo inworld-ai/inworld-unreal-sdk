@@ -75,6 +75,11 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
     float BestTargetDot = -1.f;
     for (UInworldCharacter* Character : Characters)
     {
+        if (!Character->IsPossessed())
+        {
+            continue;
+        }
+
         UInworldPlayer* Player = Character->GetTargetPlayer();
         if (Player && Player != InworldPlayer)
         {
