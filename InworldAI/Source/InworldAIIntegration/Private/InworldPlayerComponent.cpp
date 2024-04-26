@@ -22,27 +22,23 @@ UInworldPlayerComponent::UInworldPlayerComponent()
 #endif
 }
 
-void UInworldPlayerComponent::InitializeComponent()
+void UInworldPlayerComponent::OnRegister()
 {
-    Super::InitializeComponent();
+    Super::OnRegister();
 
-    if (GetOwnerRole() == ROLE_Authority)
+    UWorld* World = GetWorld();
+    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
     {
-        UWorld* World = GetWorld();
-        if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
-        {
-            InworldPlayer = NewObject<UInworldPlayer>(this);
-            InworldSession = GetWorld()->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession();
+        InworldPlayer = NewObject<UInworldPlayer>(this);
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
-            AddReplicatedSubObject(InworldPlayer);
+        AddReplicatedSubObject(InworldPlayer);
 #endif
-        }
     }
 }
 
-void UInworldPlayerComponent::UninitializeComponent()
+void UInworldPlayerComponent::OnUnregister()
 {
-    Super::UninitializeComponent();
+    Super::OnUnregister();
 
     if (IsValid(InworldPlayer))
     {
@@ -57,9 +53,13 @@ void UInworldPlayerComponent::UninitializeComponent()
     InworldPlayer = nullptr;
 }
 
-void UInworldPlayerComponent::BeginPlay()
+void UInworldPlayerComponent::InitializeComponent()
 {
-	Super::BeginPlay();
+    Super::InitializeComponent();
+    if (GetOwnerRole() == ROLE_Authority)
+    {
+        InworldSession = GetWorld()->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession();
+    }
 }
 
 void UInworldPlayerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)

@@ -40,10 +40,11 @@ public:
     virtual UInworldSession* GetInworldSession_Implementation() const override { return InworldSession.Get(); }
     // ~IInworldPlayerInterface
 
+    virtual void OnRegister() override;
+    virtual void OnUnregister() override;
     virtual void InitializeComponent() override;
-    virtual void UninitializeComponent() override;
 
-    virtual void BeginPlay() override;
+    //virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

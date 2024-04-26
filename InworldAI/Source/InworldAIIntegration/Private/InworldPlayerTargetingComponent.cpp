@@ -28,7 +28,7 @@ void UInworldPlayerTargetingComponent::BeginPlay()
     else
 	{
 		PrimaryComponentTick.SetTickFunctionEnable(true);
-        InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(Cast<UInworldPlayerComponent>(GetOwner()->GetComponentByClass(UInworldPlayerComponent::StaticClass())));
+        InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(GetOwner()->GetComponentsByInterface(UInworldPlayerOwnerInterface::StaticClass())[0]);
     }
 }
 
