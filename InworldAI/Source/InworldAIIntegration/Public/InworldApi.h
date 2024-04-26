@@ -93,7 +93,7 @@ public:
     /**
 	 * Load new characters
 	 */
-    UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DeprecatedFunction, DeprecationMessage = "Please use GetInworldSession::LoadCharacters node"))
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
     void LoadCharacters(const TArray<FString>& Names);
 
     /**
