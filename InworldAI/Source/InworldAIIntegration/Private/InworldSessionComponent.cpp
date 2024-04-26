@@ -1,4 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ *
+ * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
+ * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
+ */
 
 
 #include "InworldSessionComponent.h"
@@ -76,4 +81,6 @@ bool UInworldSessionComponent::ReplicateSubobjects(UActorChannel* Channel, FOutB
 void UInworldSessionComponent::OnRep_InworldSession()
 {
 	GetWorld()->GetSubsystem<UInworldApiSubsystem>()->SetInworldSession(InworldSession);
+	OnSessionCreatedDelegateNative.Broadcast();
+	OnSessionCreatedDelegate.Broadcast();
 }

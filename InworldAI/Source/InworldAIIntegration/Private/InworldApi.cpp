@@ -9,7 +9,6 @@
 #include "InworldAIIntegrationModule.h"
 #include "InworldPackets.h"
 #include "InworldCharacter.h"
-#include "InworldSessionActor.h"
 #include <Engine/Engine.h>
 #include <UObject/UObjectGlobals.h>
 #include "TimerManager.h"

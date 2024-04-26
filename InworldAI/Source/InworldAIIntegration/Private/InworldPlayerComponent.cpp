@@ -56,7 +56,8 @@ void UInworldPlayerComponent::OnUnregister()
 void UInworldPlayerComponent::InitializeComponent()
 {
     Super::InitializeComponent();
-    if (GetOwnerRole() == ROLE_Authority)
+    UWorld* World = GetWorld();
+    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
     {
         InworldSession = GetWorld()->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession();
     }
