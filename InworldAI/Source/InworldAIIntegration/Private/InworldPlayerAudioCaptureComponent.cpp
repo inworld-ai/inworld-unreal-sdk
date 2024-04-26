@@ -34,6 +34,7 @@
 #include <Algo/Accumulate.h>
 #include <Net/UnrealNetwork.h>
 #include <GameFramework/PlayerController.h>
+#include <Engine/World.h>
 
 constexpr uint32 gSamplesPerSec = 16000;
 constexpr uint32 gNumChannels = 1;

@@ -37,14 +37,18 @@ commands = {
     'Mac': r'"/Users/Shared/Epic Games/UE_{unreal_version}/Engine/Build/BatchFiles/RunUAT.sh" BuildPlugin -plugin="{temp_path}/Copy/InworldAI.uplugin" -TargetPlatforms=Mac -package="{output_dir}"'
 }
 
+unreal_versions = ['5.0', '5.1', '5.2', '5.3', '5.4']
+
 platform = ''
 unreal_version = ''
+with_binaries = 'True'
 def usage():
-    print('[-p=, --platform=] [Win64, Mac]')
-    print('[-v=, --version=] [5.1, 5.2, 5.3]')
+    print('[-p, --platform=] {platforms}'.format(platforms=list(commands.keys())))
+    print('[-u, --unreal=] {unreal}'.format(unreal=unreal_versions))
+    print('[-b, --binaries=] [True, False]')
 
 try:
-    opts, values = getopt.getopt(sys.argv[1:], "hp:u:", ['help', 'platform=', 'unreal='])
+    opts, values = getopt.getopt(sys.argv[1:], "hp:u:b:", ['help', 'platform=', 'unreal=', 'binaries='])
 except getopt.GetoptError as err:
     print(err)
     usage()
@@ -57,10 +61,16 @@ for opt, val in opts:
         platform = val
     elif opt in ('-u', '--unreal'):
         unreal_version = val
+    elif opt in ('-b', '--binaries'):
+        with_binaries = val
 
 if not platform in commands.keys():
     usage()
     raise SystemExit('Error (config): Missing platform.')
+
+if not unreal_version in unreal_versions:
+    usage()
+    raise SystemExit('Error (config): Missing unreal version.')
 
 output_dir = os.path.join(temp_path, 'InworldAI')
 if not os.path.exists(output_dir):
@@ -81,8 +91,9 @@ def del_dir(path):
                 os.rmdir(os.path.join(root, name))
         os.rmdir(path) 
 
-del_dir(os.path.join(output_dir, 'Binaries'))
-del_dir(os.path.join(output_dir, 'Intermediate'))
+if with_binaries == 'False':
+    del_dir(os.path.join(output_dir, 'Binaries'))
+    del_dir(os.path.join(output_dir, 'Intermediate'))
 
 inworld_version = ''
 with open(os.path.join(output_dir, 'InworldAI.uplugin'), 'r') as file:

@@ -188,7 +188,7 @@ bool UInworldCharacterComponent::ReplicateSubobjects(UActorChannel* Channel, FOu
 
 void UInworldCharacterComponent::SetBrainName(const FString& Name)
 {
-	InworldCharacter->SetBrainName(BrainName);
+	InworldCharacter->SetBrainName(Name);
 }
 
 UInworldCharacterPlayback* UInworldCharacterComponent::GetPlayback(TSubclassOf<UInworldCharacterPlayback> Class) const

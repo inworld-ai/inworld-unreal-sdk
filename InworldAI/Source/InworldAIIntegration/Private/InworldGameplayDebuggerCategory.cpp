@@ -17,6 +17,7 @@
 #include "InworldCharacter.h"
 #include "InworldPlayer.h"
 
+#include <GameFramework/PlayerController.h>
 #include "UObject/UObjectIterator.h"
 
 FInworldGameplayDebuggerCategory::FInworldGameplayDebuggerCategory()

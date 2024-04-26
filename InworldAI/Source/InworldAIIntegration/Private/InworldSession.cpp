@@ -10,6 +10,8 @@
 #include "InworldCharacter.h"
 #include "InworldClient.h"
 
+#include "InworldAIIntegrationModule.h"
+
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Engine/NetDriver.h"
 #include "Engine/Engine.h"

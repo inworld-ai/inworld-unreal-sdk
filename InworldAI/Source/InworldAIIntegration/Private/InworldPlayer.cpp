@@ -90,7 +90,7 @@ TScriptInterface<IInworldPlayerOwnerInterface> UInworldPlayer::GetInworldPlayerO
 
 void UInworldPlayer::AddTargetCharacter(UInworldCharacter* TargetCharacter)
 {
-	if (TargetCharacter->GetTargetPlayer() == nullptr)
+	if (TargetCharacter && TargetCharacter->IsPossessed() && TargetCharacter->GetTargetPlayer() == nullptr)
 	{
 		TargetCharacter->SetTargetPlayer(this);
 		TargetCharacters.AddUnique(TargetCharacter);
@@ -104,7 +104,7 @@ void UInworldPlayer::AddTargetCharacter(UInworldCharacter* TargetCharacter)
 
 void UInworldPlayer::RemoveTargetCharacter(UInworldCharacter* TargetCharacter)
 {
-	if (TargetCharacter->GetTargetPlayer() == this)
+	if (TargetCharacter && TargetCharacter->GetTargetPlayer() == this)
 	{
 		TargetCharacter->ClearTargetPlayer();
 		TargetCharacters.RemoveSingle(TargetCharacter);
