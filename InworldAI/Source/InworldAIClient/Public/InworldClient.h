@@ -8,6 +8,7 @@
 #pragma once
 
 #include "InworldEnums.h"
+#include "InworldTypes.h"
 #include "InworldPackets.h"
 
 #if !UE_BUILD_SHIPPING
