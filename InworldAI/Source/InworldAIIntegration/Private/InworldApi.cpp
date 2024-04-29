@@ -286,6 +286,7 @@ void UInworldApiSubsystem::UpdateCharacterComponentRegistrationOnClient(Inworld:
 FString UInworldApiSubsystem::UpdateConversation(const FString& ConversationId, bool bIncludePlayer, const TArray<FString>& AgentIds)
 {
     ARR_EMPTY_RETURN(UpdateConversation, AgentIds, {});
+	UE_LOG(LogInworldAIIntegration, Log, TEXT("Update conversation %s: with %d character(s):"), *ConversationId, AgentIds.Num());
     return Client->UpdateConversation(ConversationId, bIncludePlayer, AgentIds);
 }
 
@@ -635,10 +636,14 @@ void UInworldApiSubsystem::Visit(const FInworldControlEventConversationUpdate& E
     {
         ConversationAgentIds.FindOrAdd(Event.Routing.ConversationId) = Event.Agents;
     }
-    UE_LOG(LogInworldAIIntegration, Log, TEXT("Conversation %s: %s, %d characters."),
+    UE_LOG(LogInworldAIIntegration, Log, TEXT("Conversation %s: %s, %d character(s):"),
         Event.EventType == EInworldConversationUpdateType::STARTED ? TEXT("STARTED") : Event.EventType == EInworldConversationUpdateType::EVICTED ? TEXT("EVICTED") : TEXT("UPDATED"),
         *Event.Routing.ConversationId,
         Event.Agents.Num())
+	for (const auto& Agent : Event.Agents)
+	{
+		UE_LOG(LogInworldAIIntegration, Log, TEXT("   Agent Id: %s."), *Agent);
+	}
     OnConversationUpdate.Broadcast(Event.Routing.ConversationId, Event.EventType, Event.Agents, Event.bIncludePlayer);
 }
 
