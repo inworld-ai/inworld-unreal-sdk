@@ -293,6 +293,8 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
         const FString& ConversationId = PlayerComponent->GetConversationId();
         if (bShouldCaptureVoice && bServerCapturingVoice && (PlayerAudioTarget.DesiredAgentIds != PlayerAudioTarget.ActiveAgentIds))
         {
+        	InworldSubsystem->StopAudioSessionInConversation(ConversationId);
+        	InworldSubsystem->StartAudioSessionInConversation(ConversationId, GetOwner());
             PlayerAudioTarget.ActiveAgentIds = PlayerAudioTarget.DesiredAgentIds;
         }
         else if (!ConversationId.IsEmpty() && bShouldCaptureVoice != bServerCapturingVoice)

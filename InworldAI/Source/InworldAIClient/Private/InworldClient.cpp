@@ -281,6 +281,16 @@ std::vector<std::string> ToStd(const TArray<FString>& Array)
 	return Vec;
 }
 
+std::unordered_map<std::string, std::string> ToStd(const TMap<FString, FString>& Map)
+{
+	std::unordered_map<std::string, std::string> StdMap;
+	for (const TPair<FString, FString>& Entry : Map)
+	{
+		StdMap.insert(std::make_pair<std::string, std::string>(TCHAR_TO_UTF8(*Entry.Key), TCHAR_TO_UTF8(*Entry.Value)));
+	}
+	return StdMap;
+}
+
 void FInworldClient::LoadCharacters(const TArray<FString>& Names)
 {
 	Inworld::GetClient()->LoadCharacters(ToStd(Names));
@@ -354,6 +364,7 @@ TSharedPtr<FInworldPacket> FInworldClient::SendTextMessageToConversation(const F
 void FInworldClient::SendCustomEventToConversation(const FString& ConversationId, const FString& Name,
 	const TMap<FString, FString>& Params)
 {
+	Inworld::GetClient()->SendCustomEventToConversation(TCHAR_TO_UTF8(*ConversationId), TCHAR_TO_UTF8(*Name), ToStd(Params));
 }
 
 void FInworldClient::SendSoundMessage(const FString& AgentId, class USoundWave* Sound)
@@ -438,16 +449,6 @@ void FInworldClient::StopAudioSession(const FString& AgentId)
 void FInworldClient::StopAudioSessionInConversation(const FString& ConversationId)
 {
 	Inworld::GetClient()->StopAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId));
-}
-
-std::unordered_map<std::string, std::string> ToStd(const TMap<FString, FString>& Map)
-{
-	std::unordered_map<std::string, std::string> StdMap;
-	for (const TPair<FString, FString>& Entry : Map)
-	{
-		StdMap.insert(std::make_pair<std::string, std::string>(TCHAR_TO_UTF8(*Entry.Key), TCHAR_TO_UTF8(*Entry.Value)));
-	}
-	return StdMap;
 }
 
 void FInworldClient::SendCustomEvent(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
