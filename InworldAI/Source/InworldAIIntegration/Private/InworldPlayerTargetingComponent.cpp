@@ -29,7 +29,7 @@ void UInworldPlayerTargetingComponent::BeginPlay()
 	{
 		PrimaryComponentTick.SetTickFunctionEnable(true);
         TArray<UActorComponent*> PlayerOwnerComponents = GetOwner()->GetComponentsByInterface(UInworldPlayerOwnerInterface::StaticClass());
-        if (ensureMsgf(!PlayerOwnerComponents.IsEmpty(), TEXT("The owner of the AudioCapture must contain an InworldPlayerOwner!")))
+        if (ensureMsgf(PlayerOwnerComponents.Num() > 0, TEXT("The owner of the AudioCapture must contain an InworldPlayerOwner!")))
         {
             InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(PlayerOwnerComponents[0]);
         }
