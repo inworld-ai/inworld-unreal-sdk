@@ -58,43 +58,43 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Client")
 	void Destroy();
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Register")
+	UFUNCTION(BlueprintCallable, Category = "Register")
 	void RegisterCharacter(UInworldCharacter* Character);
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Register")
+	UFUNCTION(BlueprintCallable, Category = "Register")
 	void UnregisterCharacter(UInworldCharacter* Character);
 
-	UFUNCTION(BlueprintPure, Category = "Inworld|Register")
+	UFUNCTION(BlueprintPure, Category = "Register")
 	const TArray<UInworldCharacter*>& GetRegisteredCharacters() const { return RegisteredCharacters; }
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
+	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
 	void StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save, const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet);
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Session")
+	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Session")
+	UFUNCTION(BlueprintCallable, Category = "Session")
 	void PauseSession() { InworldClient->PauseSession(); }
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Session")
+	UFUNCTION(BlueprintCallable, Category = "Session")
 	void ResumeSession() { InworldClient->ResumeSession(); }
 
-	UFUNCTION(BlueprintPure, Category = "Inworld|Session")
+	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const { return InworldClient->GetSessionId(); }
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Session")
+	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback) { InworldClient->SaveSession(Callback); }
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load|Character")
+	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void LoadCharacter(UInworldCharacter* Character) { LoadCharacters({ Character }); }
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load|Character")
+	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void LoadCharacters(const TArray<UInworldCharacter*>& Characters);
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load|Character")
+	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void UnloadCharacter(UInworldCharacter* Character) { UnloadCharacters({ Character }); }
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load|Character")
+	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void UnloadCharacters(const TArray<UInworldCharacter*>& Characters);
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load")
+	UFUNCTION(BlueprintCallable, Category = "Load")
 	void LoadSavedState(const FInworldSave& Save) { InworldClient->LoadSavedState(Save); }
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load")
+	UFUNCTION(BlueprintCallable, Category = "Load")
 	void LoadCapabilities(const FInworldCapabilitySet& CapabilitySet) { InworldClient->LoadCapabilities(CapabilitySet); }
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load")
+	UFUNCTION(BlueprintCallable, Category = "Load")
 	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile) { InworldClient->LoadPlayerProfile(PlayerProfile); }
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")

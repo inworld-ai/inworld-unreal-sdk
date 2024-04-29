@@ -40,35 +40,35 @@ public:
 	UInworldClient();
 	~UInworldClient();
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
+	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
 	void StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save, const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet);
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Session")
+	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Session")
+	UFUNCTION(BlueprintCallable, Category = "Session")
 	void PauseSession();
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Session")
+	UFUNCTION(BlueprintCallable, Category = "Session")
 	void ResumeSession();
 
-	UFUNCTION(BlueprintPure, Category = "Inworld|Session")
+	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Session")
+	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load|Character")
+	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void LoadCharacter(const FString& Id) { LoadCharacters({ Id }); }
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load|Character")
+	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void LoadCharacters(const TArray<FString>& Ids);
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load|Character")
+	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void UnloadCharacter(const FString& Id) { UnloadCharacters({ Id }); }
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load|Character")
+	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void UnloadCharacters(const TArray<FString>& Ids);
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load")
+	UFUNCTION(BlueprintCallable, Category = "Load")
 	void LoadSavedState(const FInworldSave& Save);
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load")
+	UFUNCTION(BlueprintCallable, Category = "Load")
 	void LoadCapabilities(const FInworldCapabilitySet& CapabilitySet);
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Load")
+	UFUNCTION(BlueprintCallable, Category = "Load")
 	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")

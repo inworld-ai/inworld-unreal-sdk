@@ -37,42 +37,42 @@ public:
 	// ~UObject
 
 public:
-	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Message")
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Message|Text")
 	void BroadcastTextMessage(const FString& Text);
-	UFUNCTION(BlueprintCallable, Category = "Trigger")
+	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
 	void BroadcastTrigger(const FString& Name, const TMap<FString, FString>& Params);
-	UFUNCTION(BlueprintCallable, Category = "Audio")
+	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void BroadcastAudioSessionStart();
-	UFUNCTION(BlueprintCallable, Category = "Audio")
+	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void BroadcastAudioSessionStop();
-	UFUNCTION(BlueprintCallable, Category = "Audio")
+	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void BroadcastSoundMessage(const TArray<uint8>& Input, const TArray<uint8>& Output);
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Player")
+	UFUNCTION(BlueprintCallable, Category = "Player")
 	TScriptInterface<IInworldPlayerOwnerInterface> GetInworldPlayerOwner();
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Player|Target")
+	UFUNCTION(BlueprintCallable, Category = "Target")
 	const TArray<UInworldCharacter*>& GetTargetCharacters() const { return TargetCharacters; }
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Player|Target")
+	UFUNCTION(BlueprintCallable, Category = "Target")
 	void AddTargetCharacter(UInworldCharacter* TargetCharacter);
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Player|Target")
+	UFUNCTION(BlueprintCallable, Category = "Target")
 	void RemoveTargetCharacter(UInworldCharacter* TargetCharacter);
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Player|Target")
+	UFUNCTION(BlueprintCallable, Category = "Target")
 	void ClearAllTargetCharacters();
 
-	UPROPERTY(BlueprintAssignable, Category = "Engagement")
+	UPROPERTY(BlueprintAssignable, Category = "Target")
 	FOnInworldPlayerTargetCharacterAdded OnTargetCharacterAddedDelegate;
 	FOnInworldPlayerTargetCharacterAddedNative& OnTargetCharacterAdded() { return OnTargetCharacterAddedDelegateNative; }
 
-	UPROPERTY(BlueprintAssignable, Category = "Engagement")
+	UPROPERTY(BlueprintAssignable, Category = "Target")
 	FOnInworldPlayerTargetCharacterRemoved OnTargetCharacterRemovedDelegate;
 	FOnInworldPlayerTargetCharacterRemovedNative& OnTargetCharacterRemoved() { return OnTargetCharacterRemovedDelegateNative; }
 
-	UPROPERTY(BlueprintAssignable, Category = "Engagement")
+	UPROPERTY(BlueprintAssignable, Category = "Target")
 	FOnInworldPlayerTargetCharactersChanged OnTargetCharactersChangedDelegate;
 	FOnInworldPlayerTargetCharactersChangedNative& OnTargetCharactersChanged() { return OnTargetCharactersChangedDelegateNative; }
 
@@ -101,8 +101,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
 	UInworldPlayer* GetInworldPlayer() const;
-
-public:
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
-	FTransform GetInworldPlayerTransform() const;
 };
