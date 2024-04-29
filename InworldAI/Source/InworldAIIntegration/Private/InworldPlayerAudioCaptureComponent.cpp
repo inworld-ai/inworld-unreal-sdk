@@ -164,30 +164,34 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
 
     if (GetOwnerRole() == ROLE_Authority)
     {
-        InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(GetOwner()->GetComponentsByInterface(UInworldPlayerOwnerInterface::StaticClass())[0]);
-        OnPlayerTargetCharactersChanged = InworldPlayer->OnTargetCharactersChanged().AddLambda(
-            [this]() -> void
-            {
-                PlayerAudioTargetState.DesiredCharacters = InworldPlayer->GetTargetCharacters();
-                PlayerAudioTargetState.bDirty = true;
-                EvaluateVoiceCapture();
-            }
-        );
-        PlayerAudioTargetState.DesiredCharacters = InworldPlayer->GetTargetCharacters();
+        TArray<UActorComponent*> PlayerOwnerComponents = GetOwner()->GetComponentsByInterface(UInworldPlayerOwnerInterface::StaticClass());
+        if (ensureMsgf(!PlayerOwnerComponents.IsEmpty(), TEXT("The owner of the AudioCapture must contain an InworldPlayerOwner!")))
+        {
+            InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(PlayerOwnerComponents[0]);
+            OnPlayerTargetCharactersChanged = InworldPlayer->OnTargetCharactersChanged().AddLambda(
+                [this]() -> void
+                {
+                    PlayerAudioTargetState.DesiredCharacters = InworldPlayer->GetTargetCharacters();
+                    PlayerAudioTargetState.bDirty = true;
+                    EvaluateVoiceCapture();
+                }
+            );
+            PlayerAudioTargetState.DesiredCharacters = InworldPlayer->GetTargetCharacters();
 
-        InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetOuter());
-        OnSessionConnectionStateChanged = InworldSession->OnConnectionStateChanged().AddLambda(
-            [this](EInworldConnectionState ConnectionState) -> void
-            {
-                EvaluateVoiceCapture();
-            }
-        );
-        OnSessionLoaded = InworldSession->OnLoaded().AddLambda(
-            [this](bool bLoaded) -> void
-            {
-                EvaluateVoiceCapture();
-            }
-        );
+            InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetOuter());
+            OnSessionConnectionStateChanged = InworldSession->OnConnectionStateChanged().AddLambda(
+                [this](EInworldConnectionState ConnectionState) -> void
+                {
+                    EvaluateVoiceCapture();
+                }
+            );
+            OnSessionLoaded = InworldSession->OnLoaded().AddLambda(
+                [this](bool bLoaded) -> void
+                {
+                    EvaluateVoiceCapture();
+                }
+            );
+        }
 
         PrimaryComponentTick.SetTickFunctionEnable(false);
     }
@@ -303,8 +307,8 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
         const bool bIsMicHot = !bMuted;
         const bool bIsWorldPlaying = !GetWorld()->IsPaused();
         const bool bHasTargetCharacter = PlayerAudioTargetState.DesiredCharacters.Num() != 0;
-        const EInworldConnectionState ConnectionState = InworldSession->GetConnectionState();
-        const bool bHasActiveInworldSession = InworldSession->IsLoaded() && (ConnectionState == EInworldConnectionState::Connected || ConnectionState == EInworldConnectionState::Reconnecting);
+        const EInworldConnectionState ConnectionState = InworldSession.IsValid() ? InworldSession->GetConnectionState() : EInworldConnectionState::Idle;
+        const bool bHasActiveInworldSession = InworldSession.IsValid() && InworldSession->IsLoaded() && (ConnectionState == EInworldConnectionState::Connected || ConnectionState == EInworldConnectionState::Reconnecting);
 
         const bool bShouldCaptureVoice = bIsMicHot && bIsWorldPlaying && bHasTargetCharacter && bHasActiveInworldSession;
 
@@ -437,7 +441,7 @@ void UInworldPlayerAudioCaptureComponent::StopCapture()
 
 void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implementation(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo)
 {
-    if (PlayerAudioTargetState.ActiveCharacters.Num() != 0)
+    if (PlayerAudioTargetState.ActiveCharacters.Num() != 0 && InworldSession.IsValid())
     {
         InworldSession->BroadcastSoundMessage(PlayerAudioTargetState.ActiveCharacters, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
     }

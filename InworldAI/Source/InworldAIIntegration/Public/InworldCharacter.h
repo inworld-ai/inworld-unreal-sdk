@@ -34,51 +34,51 @@ public:
 	// ~UObject
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Message")
+	UFUNCTION(BlueprintCallable, Category = "Message|Text")
 	void SendTextMessage(const FString& Text);
-	UFUNCTION(BlueprintCallable, Category = "Trigger")
+	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
 	void SendTrigger(const FString& Name, const TMap<FString, FString>& Params);
-	UFUNCTION(BlueprintCallable, Category = "Narration")
+	UFUNCTION(BlueprintCallable, Category = "Message|Narration")
 	void SendNarrationEvent(const FString& Content);
-	UFUNCTION(BlueprintCallable, Category = "Audio")
+	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStart();
-	UFUNCTION(BlueprintCallable, Category = "Audio")
+	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStop();
-	UFUNCTION(BlueprintCallable, Category = "Audio")
+	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendSoundMessage(const TArray<uint8>& Input, const TArray<uint8>& Output);
-	UFUNCTION(BlueprintCallable, Category = "Mutation")
+	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void CancelResponse(const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Player")
+	UFUNCTION(BlueprintCallable, Category = "Character")
 	TScriptInterface<IInworldCharacterOwnerInterface> GetInworldCharacterOwner();
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Player")
+	UFUNCTION(BlueprintCallable, Category = "Possession")
 	void SetBrainName(const FString& BrainName);
 
-	UFUNCTION(BlueprintPure, Category = "Inworld|Player")
+	UFUNCTION(BlueprintPure, Category = "Possession")
 	bool IsPossessed() const { return !AgentInfo.AgentId.IsEmpty(); }
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Player")
+	UFUNCTION(BlueprintCallable, Category = "Possession")
 	void Possess(const FInworldAgentInfo& InAgentInfo);
-	UFUNCTION(BlueprintCallable, Category = "Inworld|Player")
+	UFUNCTION(BlueprintCallable, Category = "Possession")
 	void Unpossess();
 
-	UFUNCTION(BlueprintPure, Category = "Inworld|Agent")
+	UFUNCTION(BlueprintPure, Category = "Possession")
 	const FInworldAgentInfo& GetAgentInfo() const { return AgentInfo; }
 
 	UPROPERTY(BlueprintAssignable, Category = "Possession")
 	FOnInworldCharacterPossessed OnPossessedDelegate;
 	FOnInworldCharacterPossessedNative& OnPossessed() { return OnPossessedDelegateNative; }
 
-	UFUNCTION(BlueprintCallable, Category = "Engagement")
+	UFUNCTION(BlueprintCallable, Category = "Target")
 	void SetTargetPlayer(UInworldPlayer* Player);
-	UFUNCTION(BlueprintCallable, Category = "Engagement")
+	UFUNCTION(BlueprintCallable, Category = "Target")
 	void ClearTargetPlayer();
 
-	UFUNCTION(BlueprintPure, Category = "Engagement")
+	UFUNCTION(BlueprintPure, Category = "Target")
 	UInworldPlayer* GetTargetPlayer() const { return TargetPlayer; }
 
-	UPROPERTY(BlueprintAssignable, Category = "Engagement")
+	UPROPERTY(BlueprintAssignable, Category = "Target")
 	FOnInworldCharacterTargetPlayerChanged OnTargetPlayerChangedDelegate;
 	FOnInworldCharacterTargetPlayerChangedNative& OnTargetPlayerChanged() { return OnTargetPlayerChangedDelegateNative; }
 

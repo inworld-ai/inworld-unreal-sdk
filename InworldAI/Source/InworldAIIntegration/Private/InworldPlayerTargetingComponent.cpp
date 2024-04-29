@@ -28,7 +28,11 @@ void UInworldPlayerTargetingComponent::BeginPlay()
     else
 	{
 		PrimaryComponentTick.SetTickFunctionEnable(true);
-        InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(GetOwner()->GetComponentsByInterface(UInworldPlayerOwnerInterface::StaticClass())[0]);
+        TArray<UActorComponent*> PlayerOwnerComponents = GetOwner()->GetComponentsByInterface(UInworldPlayerOwnerInterface::StaticClass());
+        if (ensureMsgf(!PlayerOwnerComponents.IsEmpty(), TEXT("The owner of the AudioCapture must contain an InworldPlayerOwner!")))
+        {
+            InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(PlayerOwnerComponents[0]);
+        }
     }
 }
 
@@ -36,7 +40,10 @@ void UInworldPlayerTargetingComponent::TickComponent(float DeltaTime, enum ELeve
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    UpdateTargetCharacters();
+    if (InworldPlayer.IsValid())
+    {
+        UpdateTargetCharacters();
+    }
 }
 
 void UInworldPlayerTargetingComponent::UpdateTargetCharacters()

@@ -47,6 +47,11 @@ void UInworldApiSubsystem::SetInworldSession(UInworldSession* Session)
 
 void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride, const FString& TargetUrlOverride, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     if (!ensure(GetWorld()->GetNetMode() < NM_Client))
     {
         UE_LOG(LogInworldAIIntegration, Error, TEXT("UInworldApiSubsystem::StartSession shouldn't be called on client"));
@@ -85,6 +90,11 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
 
 void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride, FInworldSave SavedSessionState)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     if (!ensure(GetWorld()->GetNetMode() < NM_Client))
     {
         UE_LOG(LogInworldAIIntegration, Error, TEXT("UInworldApiSubsystem::StartSession shouldn't be called on client"));
@@ -107,36 +117,71 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
 
 void UInworldApiSubsystem::PauseSession()
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     InworldSession->InworldClient->PauseSession();
 }
 
 void UInworldApiSubsystem::ResumeSession()
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     InworldSession->InworldClient->PauseSession();
 }
 
 void UInworldApiSubsystem::StopSession()
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     InworldSession->InworldClient->StopSession();
 }
 
 void UInworldApiSubsystem::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     InworldSession->InworldClient->SaveSession(Callback);
 }
 
 void UInworldApiSubsystem::SetResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     InworldSession->InworldClient->OnPerceivedLatencyDelegate.Add(Delegate);
 }
 
 void UInworldApiSubsystem::ClearResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     InworldSession->InworldClient->OnPerceivedLatencyDelegate.Remove(Delegate);
 }
 
 void UInworldApiSubsystem::LoadCharacters(const TArray<FString>& Names)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     TArray<UInworldCharacter*> Characters;
     for (UInworldCharacter* Character : InworldSession->GetRegisteredCharacters())
     {
@@ -150,6 +195,11 @@ void UInworldApiSubsystem::LoadCharacters(const TArray<FString>& Names)
 
 void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     TArray<UInworldCharacter*> Characters;
     for (UInworldCharacter* Character : InworldSession->GetRegisteredCharacters())
     {
@@ -163,16 +213,31 @@ void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
 
 void UInworldApiSubsystem::LoadSavedState(const FInworldSave& SavedState)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     InworldSession->InworldClient->LoadSavedState(SavedState);
 }
 
 void UInworldApiSubsystem::LoadCapabilities(const FInworldCapabilitySet& Capabilities)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     InworldSession->InworldClient->LoadCapabilities(Capabilities);
 }
 
 void UInworldApiSubsystem::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     InworldSession->InworldClient->LoadPlayerProfile(PlayerProfile);
 }
 
@@ -183,6 +248,11 @@ void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString
 
 void UInworldApiSubsystem::SendTextMessageMultiAgent(const TArray<FString>& AgentIds, const FString& Text)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
     {
         return;
@@ -198,6 +268,11 @@ void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Na
 
 void UInworldApiSubsystem::SendTriggerMultiAgent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentId must be valid!")))
     {
         return;
@@ -208,6 +283,11 @@ void UInworldApiSubsystem::SendTriggerMultiAgent(const TArray<FString>& AgentIds
 
 void UInworldApiSubsystem::SendNarrationEvent(const FString& AgentId, const FString& Content)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
     {
         return;
@@ -218,6 +298,11 @@ void UInworldApiSubsystem::SendNarrationEvent(const FString& AgentId, const FStr
 
 void UInworldApiSubsystem::SendAudioMessage(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
     {
         return;
@@ -233,6 +318,11 @@ bool UInworldApiSubsystem::StartAudioSession(const FString& AgentId, const AActo
 
 bool UInworldApiSubsystem::StartAudioSessionMultiAgent(const TArray<FString>& AgentIds, const AActor* Owner)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return false;
+    }
+
     if (AudioSessionOwner)
     {
         return false;
@@ -256,6 +346,11 @@ void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
 
 void UInworldApiSubsystem::StopAudioSessionMultiAgent(const TArray<FString>& AgentIds)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
     {
         return;
@@ -268,21 +363,41 @@ void UInworldApiSubsystem::StopAudioSessionMultiAgent(const TArray<FString>& Age
 
 void UInworldApiSubsystem::ChangeScene(const FString& SceneId)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     InworldSession->InworldClient->SendChangeSceneEvent(SceneId);
 }
 
 EInworldConnectionState UInworldApiSubsystem::GetConnectionState() const
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return EInworldConnectionState::Idle;
+    }
+
     return InworldSession->GetConnectionState();
 }
 
 void UInworldApiSubsystem::GetConnectionError(FString& Message, int32& Code)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
     InworldSession->InworldClient->GetConnectionError(Message, Code);
 }
 
 void UInworldApiSubsystem::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
+    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
+    {
+        return;
+    }
+
 	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
 	{
 		return;
@@ -338,5 +453,10 @@ void UInworldApiSubsystem::ReplicateAudioEventFromServer(FInworldAudioDataEvent&
 
 void UInworldApiSubsystem::HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet)
 {
+    if (!ensureMsgf(InworldSession, TEXT("Inworld Session must be valid!")))
+    {
+        return;
+    }
+
     Packet->Accept(*InworldSession->PacketVisitor);
 }
