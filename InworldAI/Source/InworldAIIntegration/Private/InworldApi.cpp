@@ -321,7 +321,6 @@ void UInworldApiSubsystem::SendTriggerToConversation(const FString& Conversation
 {
     STR_EMPTY_RETURN(SendTriggerToConversation, ConversationId,);
     STR_EMPTY_RETURN(SendTriggerToConversation, Name,);
-    ARR_EMPTY_RETURN(SendTriggerToConversation, Params,);
     Client->SendCustomEventToConversation(ConversationId, Name, Params);
 }
 
@@ -382,7 +381,6 @@ void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Na
 {
     STR_EMPTY_RETURN(SendTrigger, AgentId,);
     STR_EMPTY_RETURN(SendTrigger, Name,);
-    ARR_EMPTY_RETURN(SendTrigger, Params,);
     Client->SendCustomEvent(AgentId, Name, Params);
 }
 
