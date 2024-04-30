@@ -7,6 +7,8 @@
 
 #include "InworldCharacterPlaybackTrigger.h"
 #include "InworldApi.h"
+#include <GameFramework/Actor.h>
+#include <Engine/World.h>
 
 void UInworldCharacterPlaybackTrigger::OnCharacterTrigger_Implementation(const FCharacterMessageTrigger& Message)
 {

@@ -87,3 +87,4 @@ InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/*
 InworldAI/Source/ThirdParty/InworldAINDKLibrary/src/*
 
 package-release/*
+build-scripts/*.zip

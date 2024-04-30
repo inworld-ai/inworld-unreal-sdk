@@ -14,6 +14,8 @@
 #include "Sound/SoundWave.h"
 #include "TimerManager.h"
 #include <Components/AudioComponent.h>
+#include <GameFramework/Actor.h>
+#include <Engine/World.h>
 
 void UInworldCharacterPlaybackAudio::BeginPlay_Implementation()
 {

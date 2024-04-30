@@ -15,6 +15,7 @@
 #include "InworldPlayerAudioCaptureComponent.h"
 #include "InworldPlayerComponent.h"
 
+#include <GameFramework/PlayerController.h>
 #include "UObject/UObjectIterator.h"
 
 FInworldGameplayDebuggerCategory::FInworldGameplayDebuggerCategory()

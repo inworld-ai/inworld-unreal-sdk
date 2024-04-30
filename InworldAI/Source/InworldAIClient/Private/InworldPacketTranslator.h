@@ -7,11 +7,11 @@
 
 #pragma once
 
+#include "InworldPackets.h"
+
 THIRD_PARTY_INCLUDES_START
 #include "Packets.h"
 THIRD_PARTY_INCLUDES_END
-
-#include "InworldPackets.h"
 
 class InworldPacketTranslator : public Inworld::PacketVisitor
 {
