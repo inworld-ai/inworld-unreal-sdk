@@ -271,6 +271,15 @@ void FInworldClient::SaveSession()
 		});
 }
 
+void FInworldClient::SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message)
+{
+	Inworld::InteractionFeedback InteractionFeedback;
+	InteractionFeedback.bIsLike = true;
+	InteractionFeedback.comment = TCHAR_TO_UTF8(*Message);
+	std::string interaction = TCHAR_TO_UTF8(*InteractionId);
+	Inworld::GetClient()->SendFeedbackAsync(interaction, InteractionFeedback);
+}
+
 std::vector<std::string> ToStd(const TArray<FString>& Array)
 {
 	std::vector<std::string> Vec;

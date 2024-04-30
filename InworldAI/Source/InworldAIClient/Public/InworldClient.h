@@ -40,6 +40,8 @@ public:
 
 	void SaveSession();
 
+	void SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message);
+
 	void LoadCharacters(const TArray<FString>& Names);
 	void UnloadCharacters(const TArray<FString>& Names);
 	void LoadSavedState(const TArray<uint8>& SavedState);

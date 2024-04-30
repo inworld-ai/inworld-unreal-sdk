@@ -114,6 +114,11 @@ void UInworldApiSubsystem::SaveSession(FOnSaveReady Delegate)
     Client->SaveSession();
 }
 
+void UInworldApiSubsystem::SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message)
+{
+    Client->SendInteractionFeedback(InteractionId, bIsLike, Message);
+}
+
 void UInworldApiSubsystem::SetResponseLatencyTrackerDelegate(FResponseLatencyTrackerDelegate Delegate)
 {
     Client->OnPerceivedLatency.BindLambda([this, Delegate](FString InteractionId, int32 LatancyMs)

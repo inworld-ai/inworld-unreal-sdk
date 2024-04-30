@@ -83,6 +83,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void SaveSession(FOnSaveReady Delegate);
 
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message);
+
     /**
      * Set delegate for response latency tracker
      */
