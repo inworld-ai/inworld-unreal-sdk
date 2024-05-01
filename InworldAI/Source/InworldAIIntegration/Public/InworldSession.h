@@ -28,6 +28,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSilenceEvent, const FInwor
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSilenceEventNative, const FInworldSilenceEvent& /*SilenceEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldControlEvent, const FInworldControlEvent&, ControlEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldControlEventNative, const FInworldControlEvent& /*ControlEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldConversationUpdateEvent, const FInworldConversationUpdateEvent&, ConversationUpdateEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldConversationUpdateEventNative, const FInworldConversationUpdateEvent& /*ConversationUpdateEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEvent, const FInworldEmotionEvent&, EmotionEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEventNative, const FInworldEmotionEvent& /*EmotionEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEvent, const FInworldCustomEvent&, CustomEvent);
@@ -41,6 +43,9 @@ class INWORLDAIINTEGRATION_API UInworldSession : public UObject
 {
 	GENERATED_BODY()
 public:
+	UInworldSession();
+	virtual ~UInworldSession();
+
 	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -50,13 +55,16 @@ public:
 	// ~UObject
 
 public:
-	UInworldSession();
-	virtual ~UInworldSession();
-
 	UFUNCTION(BlueprintCallable, Category = "Client")
 	void Init();
 	UFUNCTION(BlueprintCallable, Category = "Client")
 	void Destroy();
+
+	UFUNCTION(BlueprintPure, Category = "Client")
+	UInworldClient* GetClient() const { return InworldClient; }
+
+	UFUNCTION()
+	void HandlePacket(const FInworldWrappedPacket& WrappedPacket);
 
 	UFUNCTION(BlueprintCallable, Category = "Register")
 	void RegisterCharacter(UInworldCharacter* Character);
@@ -65,6 +73,14 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Register")
 	const TArray<UInworldCharacter*>& GetRegisteredCharacters() const { return RegisteredCharacters; }
+
+	UFUNCTION(BlueprintCallable, Category = "Register")
+	void RegisterPlayer(UInworldPlayer* Player);
+	UFUNCTION(BlueprintCallable, Category = "Register")
+	void UnregisterPlayer(UInworldPlayer* Player);
+
+	UFUNCTION(BlueprintPure, Category = "Register")
+	const TArray<UInworldPlayer*>& GetRegisteredPlayers() const { return RegisteredPlayers; }
 
 	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
 	void StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save, const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet);
@@ -98,55 +114,38 @@ public:
 	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile) { InworldClient->LoadPlayerProfile(PlayerProfile); }
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
-	void SendTextMessage(UInworldCharacter* Character, const FString& Message) { BroadcastTextMessage({Character}, Message); }
+	void SendTextMessage(UInworldCharacter* Character, const FString& Message);
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
-	void BroadcastTextMessage(const TArray<UInworldCharacter*>& Characters, const FString& Message);
+	void SendTextMessageToConversation(UInworldPlayer* Player, const FString& Message);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendSoundMessage(UInworldCharacter* Character, const TArray<uint8>& InputData, const TArray<uint8>& OutputData) { BroadcastSoundMessage({ Character }, InputData, OutputData); }
+	void SendSoundMessage(UInworldCharacter* Character, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void BroadcastSoundMessage(const TArray<UInworldCharacter*>& Characters, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+	void SendSoundMessageToConversation(UInworldPlayer* Player, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(UInworldCharacter* Character) { BroadcastAudioSessionStart({ Character }); }
+	void SendAudioSessionStart(UInworldCharacter* Character);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void BroadcastAudioSessionStart(const TArray<UInworldCharacter*>& Characters);
+	void SendAudioSessionStartToConversation(UInworldPlayer* Player);
+
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStop(UInworldCharacter* Character) { BroadcastAudioSessionStop({ Character }); }
+	void SendAudioSessionStop(UInworldCharacter* Character);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void BroadcastAudioSessionStop(const TArray<UInworldCharacter*>& Characters);
+	void SendAudioSessionStopToConversation(UInworldPlayer* Player);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Narration")
 	void SendNarrationEvent(UInworldCharacter* Character, const FString& Content);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
-	void SendTrigger(UInworldCharacter* Character, const FString& Name, const TMap<FString, FString>& Params) { BroadcastTrigger({ Character }, Name, Params); }
+	void SendTrigger(UInworldCharacter* Character, const FString& Name, const TMap<FString, FString>& Params);
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
-	void BroadcastTrigger(const TArray<UInworldCharacter*>& Characters, const FString& Name, const TMap<FString, FString>& Params);
+	void SendTriggerToConversation(UInworldPlayer* Player, const FString& Name, const TMap<FString, FString>& Params);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void SendChangeSceneEvent(const FString& SceneName);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void CancelResponse(UInworldCharacter* Character, const FString& InteractionId, const TArray<FString>& UtteranceIds);
-
-	UPROPERTY(BlueprintAssignable, Category = "Event")
-	FOnInworldTextEvent OnInworldTextEventDelegate;
-	FOnInworldTextEventNative& OnInworldTextEvent() { return OnInworldTextEventDelegateNative; }
-	UPROPERTY(BlueprintAssignable, Category = "Event")
-	FOnInworldAudioEvent OnInworldAudioEventDelegate;
-	FOnInworldAudioEventNative& OnInworldAudioEvent() { return OnInworldAudioEventDelegateNative; }
-	UPROPERTY(BlueprintAssignable, Category = "Event")
-	FOnInworldSilenceEvent OnInworldSilenceEventDelegate;
-	FOnInworldSilenceEventNative& OnInworldSilenceEvent() { return OnInworldSilenceEventDelegateNative; }
-	UPROPERTY(BlueprintAssignable, Category = "Event")
-	FOnInworldControlEvent OnInworldControlEventDelegate;
-	FOnInworldControlEventNative& OnInworldControlEvent() { return OnInworldControlEventDelegateNative; }
-	UPROPERTY(BlueprintAssignable, Category = "Event")
-	FOnInworldEmotionEvent OnInworldEmotionEventDelegate;
-	FOnInworldEmotionEventNative& OnInworldEmotionEvent() { return OnInworldEmotionEventDelegateNative; }
-	UPROPERTY(BlueprintAssignable, Category = "Event")
-	FOnInworldCustomEvent OnInworldCustomEventDelegate;
-	FOnInworldCustomEventNative& OnInworldCustomEvent() { return OnInworldCustomEventDelegateNative; }
 
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	EInworldConnectionState GetConnectionState() const { return InworldClient->GetConnectionState(); }
@@ -186,11 +185,18 @@ private:
 	FDelegateHandle OnClientConnectionStateChangedHandle;
 	FDelegateHandle OnClientPerceivedLatencyHandle;
 
-	UPROPERTY(Replicated)
+	UFUNCTION()
+	void OnRep_RegisteredCharacters();
+
+	UPROPERTY(ReplicatedUsing=OnRep_RegisteredCharacters)
 	TArray<UInworldCharacter*> RegisteredCharacters;
+	UPROPERTY(Replicated)
+	TArray<UInworldPlayer*> RegisteredPlayers;
+
 	TMap<FString, UInworldCharacter*> BrainNameToCharacter;
 	TMap<FString, UInworldCharacter*> AgentIdToCharacter;
 	TMap<FString, FInworldAgentInfo> BrainNameToAgentInfo;
+	TMap<FString, TArray<FString>> ConversationIdToAgentIds;
 
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldSessionLoadedNative OnLoadedDelegateNative;
@@ -207,12 +213,7 @@ private:
 		{}
 		virtual ~FInworldSessionPacketVisitor() = default;
 
-		virtual void Visit(const FInworldTextEvent& Event) override;
-		virtual void Visit(const FInworldAudioDataEvent& Event) override;
-		virtual void Visit(const FInworldSilenceEvent& Event) override;
-		virtual void Visit(const FInworldControlEvent& Event) override;
-		virtual void Visit(const FInworldEmotionEvent& Event) override;
-		virtual void Visit(const FInworldCustomEvent& Event) override;
+		virtual void Visit(const FInworldConversationUpdateEvent& Event) override;
 		virtual void Visit(const FInworldLoadCharactersEvent& Event) override;
 		virtual void Visit(const FInworldChangeSceneEvent& Event) override;
 
@@ -221,13 +222,6 @@ private:
 	};
 
 	TSharedRef<FInworldSessionPacketVisitor> PacketVisitor;
-
-	FOnInworldTextEventNative OnInworldTextEventDelegateNative;
-	FOnInworldAudioEventNative OnInworldAudioEventDelegateNative;
-	FOnInworldSilenceEventNative OnInworldSilenceEventDelegateNative;
-	FOnInworldControlEventNative OnInworldControlEventDelegateNative;
-	FOnInworldEmotionEventNative OnInworldEmotionEventDelegateNative;
-	FOnInworldCustomEventNative OnInworldCustomEventDelegateNative;
 
 private:
 	float RetryConnectionIntervalTime = 0.25f;

@@ -23,6 +23,9 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerTargetCharacterRemovedNative
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldPlayerTargetCharactersChanged);
 DECLARE_MULTICAST_DELEGATE(FOnInworldPlayerTargetCharactersChangedNative);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldPlayerConversationChanged);
+DECLARE_MULTICAST_DELEGATE(FOnInworldPlayerConversationChangedNative);
+
 UCLASS(BlueprintType)
 class INWORLDAIINTEGRATION_API UInworldPlayer : public UObject
 {
@@ -37,16 +40,21 @@ public:
 	// ~UObject
 
 public:
-	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Message|Text")
-	void BroadcastTextMessage(const FString& Text);
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void SetSession(UInworldSession* InSession);
+	UFUNCTION(BlueprintPure, Category = "Session")
+	UInworldSession* GetSession() const { return Session; }
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Text")
+	void SendTextMessageToConversation(const FString& Text);
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
-	void BroadcastTrigger(const FString& Name, const TMap<FString, FString>& Params);
+	void SendTriggerToConversation(const FString& Name, const TMap<FString, FString>& Params);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void BroadcastAudioSessionStart();
+	void SendAudioSessionStartToConversation();
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void BroadcastAudioSessionStop();
+	void SendAudioSessionStopToConversation();
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void BroadcastSoundMessage(const TArray<uint8>& Input, const TArray<uint8>& Output);
+	void SendSoundMessageToConversation(const TArray<uint8>& Input, const TArray<uint8>& Output);
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Player")
@@ -76,13 +84,31 @@ public:
 	FOnInworldPlayerTargetCharactersChanged OnTargetCharactersChangedDelegate;
 	FOnInworldPlayerTargetCharactersChangedNative& OnTargetCharactersChanged() { return OnTargetCharactersChangedDelegateNative; }
 
+	UFUNCTION(BlueprintPure, Category = "Conversation")
+	const FString& GetConversationId() const { return ConversationId; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Conversation")
+	FOnInworldPlayerConversationChanged OnConversationChangedDelegate;
+	FOnInworldPlayerConversationChangedNative& OnConversationChanged() { return OnConversationChangedDelegateNative; }
+
 private:
+	void UpdateConversation();
+
+private:
+	UPROPERTY(Replicated)
+	UInworldSession* Session;
+
 	UPROPERTY(Replicated)
 	TArray<UInworldCharacter*> TargetCharacters;
 
 	FOnInworldPlayerTargetCharacterAddedNative OnTargetCharacterAddedDelegateNative;
 	FOnInworldPlayerTargetCharacterRemovedNative OnTargetCharacterRemovedDelegateNative;
 	FOnInworldPlayerTargetCharactersChangedNative OnTargetCharactersChangedDelegateNative;
+
+	FString ConversationId;
+	FOnInworldPlayerConversationChangedNative OnConversationChangedDelegateNative;
+
+	bool bHasAudioSession = false;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)
@@ -96,9 +122,6 @@ class INWORLDAIINTEGRATION_API IInworldPlayerOwnerInterface
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
-	UInworldSession* GetInworldSession() const;
-
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
 	UInworldPlayer* GetInworldPlayer() const;
 };

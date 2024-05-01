@@ -9,8 +9,9 @@
 #undef PlaySound
 
 #include "InworldPlayerAudioCaptureComponent.h"
-#include "InworldPlayerComponent.h"
+#include "InworldPlayer.h"
 #include "InworldCharacter.h"
+#include "InworldSession.h"
 #include "AudioMixerDevice.h"
 #include "AudioMixerSubmix.h"
 #include "AudioResampler.h"
@@ -168,24 +169,20 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
         if (ensureMsgf(PlayerOwnerComponents.Num() > 0, TEXT("The owner of the AudioCapture must contain an InworldPlayerOwner!")))
         {
             InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(PlayerOwnerComponents[0]);
-            OnPlayerTargetCharactersChanged = InworldPlayer->OnTargetCharactersChanged().AddLambda(
+            OnPlayerConversationChanged = InworldPlayer->OnConversationChanged().AddLambda(
                 [this]() -> void
                 {
-                    PlayerAudioTargetState.DesiredCharacters = InworldPlayer->GetTargetCharacters();
-                    PlayerAudioTargetState.bDirty = true;
                     EvaluateVoiceCapture();
                 }
             );
-            PlayerAudioTargetState.DesiredCharacters = InworldPlayer->GetTargetCharacters();
 
-            InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetOuter());
-            OnSessionConnectionStateChanged = InworldSession->OnConnectionStateChanged().AddLambda(
+            OnSessionConnectionStateChanged = InworldPlayer->GetSession()->OnConnectionStateChanged().AddLambda(
                 [this](EInworldConnectionState ConnectionState) -> void
                 {
                     EvaluateVoiceCapture();
                 }
             );
-            OnSessionLoaded = InworldSession->OnLoaded().AddLambda(
+            OnSessionLoaded = InworldPlayer->GetSession()->OnLoaded().AddLambda(
                 [this](bool bLoaded) -> void
                 {
                     EvaluateVoiceCapture();
@@ -250,16 +247,10 @@ void UInworldPlayerAudioCaptureComponent::EndPlay(const EEndPlayReason::Type End
 
     if (GetOwnerRole() == ROLE_Authority)
     {
-        if (InworldPlayer.IsValid())
-        {
-            InworldPlayer->OnTargetCharactersChanged().Remove(OnPlayerTargetCharactersChanged);
-        }
+        InworldPlayer->OnConversationChanged().Remove(OnPlayerConversationChanged);
 
-        if (InworldSession.IsValid())
-        {
-            InworldSession->OnConnectionStateChanged().Remove(OnSessionConnectionStateChanged);
-            InworldSession->OnLoaded().Remove(OnSessionLoaded);
-        }
+        InworldPlayer->GetSession()->OnConnectionStateChanged().Remove(OnSessionConnectionStateChanged);
+        InworldPlayer->GetSession()->OnLoaded().Remove(OnSessionLoaded);
     }
 
     Super::EndPlay(EndPlayReason);
@@ -306,31 +297,22 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
     {
         const bool bIsMicHot = !bMuted;
         const bool bIsWorldPlaying = !GetWorld()->IsPaused();
-        const bool bHasTargetCharacter = PlayerAudioTargetState.DesiredCharacters.Num() != 0;
-        const EInworldConnectionState ConnectionState = InworldSession.IsValid() ? InworldSession->GetConnectionState() : EInworldConnectionState::Idle;
-        const bool bHasActiveInworldSession = InworldSession.IsValid() && InworldSession->IsLoaded() && (ConnectionState == EInworldConnectionState::Connected || ConnectionState == EInworldConnectionState::Reconnecting);
+        const bool bHasConversation = !InworldPlayer->GetConversationId().IsEmpty();
+        UInworldSession* InworldSession = InworldPlayer->GetSession();
+        const EInworldConnectionState ConnectionState = InworldSession ? InworldSession->GetConnectionState() : EInworldConnectionState::Idle;
+        const bool bHasActiveInworldSession = InworldSession && InworldSession->IsLoaded() && (ConnectionState == EInworldConnectionState::Connected || ConnectionState == EInworldConnectionState::Reconnecting);
 
-        const bool bShouldCaptureVoice = bIsMicHot && bIsWorldPlaying && bHasTargetCharacter && bHasActiveInworldSession;
+        const bool bShouldCaptureVoice = bIsMicHot && bIsWorldPlaying && bHasConversation && bHasActiveInworldSession;
 
-        if (bShouldCaptureVoice && bServerCapturingVoice && PlayerAudioTargetState.bDirty)
-        {
-            InworldSession->BroadcastAudioSessionStop(PlayerAudioTargetState.ActiveCharacters);
-            InworldSession->BroadcastAudioSessionStart(PlayerAudioTargetState.DesiredCharacters);
-            PlayerAudioTargetState.ActiveCharacters = PlayerAudioTargetState.DesiredCharacters;
-            PlayerAudioTargetState.bDirty = false;
-        }
-        else if (bShouldCaptureVoice != bServerCapturingVoice)
+        if (bShouldCaptureVoice != bServerCapturingVoice)
         {
             if (bShouldCaptureVoice)
             {
-                InworldSession->BroadcastAudioSessionStart(PlayerAudioTargetState.DesiredCharacters);
-                PlayerAudioTargetState.ActiveCharacters = PlayerAudioTargetState.DesiredCharacters;
-                PlayerAudioTargetState.bDirty = false;
+                InworldPlayer->SendAudioSessionStartToConversation();
             }
             else
             {
-                InworldSession->BroadcastAudioSessionStop(PlayerAudioTargetState.ActiveCharacters);
-                PlayerAudioTargetState.ActiveCharacters = {};
+                InworldPlayer->SendAudioSessionStopToConversation();
             }
 
             bServerCapturingVoice = bShouldCaptureVoice;
@@ -441,9 +423,9 @@ void UInworldPlayerAudioCaptureComponent::StopCapture()
 
 void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implementation(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo)
 {
-    if (PlayerAudioTargetState.ActiveCharacters.Num() != 0 && InworldSession.IsValid())
+    if (InworldPlayer.IsValid())
     {
-        InworldSession->BroadcastSoundMessage(PlayerAudioTargetState.ActiveCharacters, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
+        InworldPlayer->SendSoundMessageToConversation(PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
     }
 }
 

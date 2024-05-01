@@ -70,6 +70,7 @@ enum class EInworldActorType : uint8
 	UNKNOWN = 0,
 	PLAYER = 1,
 	AGENT = 2,
+	WORLD = 3,
 };
 
 UENUM(BlueprintType)
@@ -83,3 +84,11 @@ enum class EInworldControlEventAction : uint8
 	TTS_PLAYBACK_END = 5,
 };
 
+UENUM(BlueprintType)
+enum class EInworldConversationUpdateType : uint8
+{
+	UNKNOWN = 0,
+	STARTED = 1,
+	UPDATED = 2,
+	EVICTED = 3,
+};

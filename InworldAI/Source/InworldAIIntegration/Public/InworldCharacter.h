@@ -25,6 +25,9 @@ class INWORLDAIINTEGRATION_API UInworldCharacter : public UObject
 {
 	GENERATED_BODY()
 public:
+	UInworldCharacter();
+	virtual ~UInworldCharacter();
+
 	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -34,6 +37,14 @@ public:
 	// ~UObject
 
 public:
+	UFUNCTION()
+	void HandlePacket(const FInworldWrappedPacket& WrappedPacket);
+
+	UFUNCTION(BlueprintCallable, Category="Session")
+	void SetSession(UInworldSession* InSession);
+	UFUNCTION(BlueprintPure, Category = "Session")
+	UInworldSession* GetSession() const { return Session; }
+
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
 	void SendTextMessage(const FString& Text);
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
@@ -82,7 +93,29 @@ public:
 	FOnInworldCharacterTargetPlayerChanged OnTargetPlayerChangedDelegate;
 	FOnInworldCharacterTargetPlayerChangedNative& OnTargetPlayerChanged() { return OnTargetPlayerChangedDelegateNative; }
 
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldTextEvent OnInworldTextEventDelegate;
+	FOnInworldTextEventNative& OnInworldTextEvent() { return OnInworldTextEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldAudioEvent OnInworldAudioEventDelegate;
+	FOnInworldAudioEventNative& OnInworldAudioEvent() { return OnInworldAudioEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldSilenceEvent OnInworldSilenceEventDelegate;
+	FOnInworldSilenceEventNative& OnInworldSilenceEvent() { return OnInworldSilenceEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldControlEvent OnInworldControlEventDelegate;
+	FOnInworldControlEventNative& OnInworldControlEvent() { return OnInworldControlEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldEmotionEvent OnInworldEmotionEventDelegate;
+	FOnInworldEmotionEventNative& OnInworldEmotionEvent() { return OnInworldEmotionEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldCustomEvent OnInworldCustomEventDelegate;
+	FOnInworldCustomEventNative& OnInworldCustomEvent() { return OnInworldCustomEventDelegateNative; }
+
 private:
+	UPROPERTY(Replicated)
+	UInworldSession* Session;
+
 	UPROPERTY(Replicated)
 	FInworldAgentInfo AgentInfo;
 	FOnInworldCharacterPossessedNative OnPossessedDelegateNative;
@@ -93,8 +126,38 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_TargetPlayer)
 	UInworldPlayer* TargetPlayer;
 	FOnInworldCharacterTargetPlayerChangedNative OnTargetPlayerChangedDelegateNative;
-};
 
+	FOnInworldTextEventNative OnInworldTextEventDelegateNative;
+	FOnInworldAudioEventNative OnInworldAudioEventDelegateNative;
+	FOnInworldSilenceEventNative OnInworldSilenceEventDelegateNative;
+	FOnInworldControlEventNative OnInworldControlEventDelegateNative;
+	FOnInworldEmotionEventNative OnInworldEmotionEventDelegateNative;
+	FOnInworldCustomEventNative OnInworldCustomEventDelegateNative;
+
+	class FInworldCharacterPacketVisitor : public TSharedFromThis<FInworldCharacterPacketVisitor>, public InworldPacketVisitor
+	{
+	public:
+		FInworldCharacterPacketVisitor()
+			: FInworldCharacterPacketVisitor(nullptr)
+		{}
+		FInworldCharacterPacketVisitor(class UInworldCharacter* InCharacter)
+			: Character(InCharacter)
+		{}
+		virtual ~FInworldCharacterPacketVisitor() = default;
+
+		virtual void Visit(const FInworldTextEvent& Event) override;
+		virtual void Visit(const FInworldAudioDataEvent& Event) override;
+		virtual void Visit(const FInworldSilenceEvent& Event) override;
+		virtual void Visit(const FInworldControlEvent& Event) override;
+		virtual void Visit(const FInworldEmotionEvent& Event) override;
+		virtual void Visit(const FInworldCustomEvent& Event) override;
+
+	private:
+		UInworldCharacter* Character;
+	};
+	
+	TSharedRef<FInworldCharacterPacketVisitor> PacketVisitor;
+};
 
 UINTERFACE(MinimalAPI, BlueprintType)
 class UInworldCharacterOwnerInterface : public UInterface
@@ -108,9 +171,10 @@ class INWORLDAIINTEGRATION_API IInworldCharacterOwnerInterface
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
-	UInworldSession* GetInworldSession() const;
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
 	UInworldCharacter* GetInworldCharacter() const;
 };
 
+namespace Inworld
+{
+	TArray<FString> CharactersToAgentIds(const TArray<UInworldCharacter*>& InworldCharacters);
+}

@@ -115,6 +115,9 @@ void FInworldActor::AppendDebugString(FString& Str) const
 	case EInworldActorType::AGENT:
 		AppendToDebugString(Str, TEXT("AGENT"));
 		break;
+	case EInworldActorType::WORLD:
+		AppendToDebugString(Str, TEXT("WORLD"));
+		break;
 	default:
 		break;
 	}
@@ -220,6 +223,17 @@ void FInworldControlEvent::AppendDebugString(FString& Str) const
 	AppendToDebugString(Str, FString::FromInt(static_cast<int32>(Action)));
 }
 
+void FInworldConversationUpdateEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("ConversationUpdate"));
+	AppendToDebugString(Str, EventType == EInworldConversationUpdateType::STARTED ? TEXT("STARTED") : EventType == EInworldConversationUpdateType::EVICTED ? TEXT("EVICTED") : TEXT("UPDATED"));
+	AppendToDebugString(Str, bIncludePlayer ? TEXT("IncludePlayer") : TEXT("ExcludePlayer"));
+	for (const auto& AgentId : Agents)
+	{
+		AppendToDebugString(Str, AgentId);
+	}
+}
+
 void FInworldEmotionEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Emotion"));
@@ -243,11 +257,16 @@ void FInworldCustomEvent::AppendDebugString(FString& Str) const
 
 void FInworldLoadCharactersEvent::AppendDebugString(FString& Str) const
 {
-	AppendToDebugString(Str, TEXT("ChangeScene"));
+	AppendToDebugString(Str, TEXT("LoadCharacters"));
 	for (auto& Agent : AgentInfos)
 	{
 		AppendToDebugString(Str, Agent.GivenName);
 	}
+}
+
+void FInworldChangeSceneEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("ChangeScene"));
 }
 
 void FInworldRelationEvent::AppendDebugString(FString& Str) const

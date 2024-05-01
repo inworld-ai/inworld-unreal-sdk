@@ -37,7 +37,6 @@ public:
 
 	// IInworldCharacterOwnerInterface
 	virtual UInworldCharacter* GetInworldCharacter_Implementation() const override { return InworldCharacter; }
-	virtual UInworldSession* GetInworldSession_Implementation() const override { return InworldSession.Get(); }
 	// ~IInworldCharacterOwnerInterface
 
 	virtual void OnRegister() override;
@@ -133,12 +132,6 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void CancelCurrentInteraction();
 
-	UFUNCTION(BlueprintCallable, Category = "Events")
-	bool Register();
-
-	UFUNCTION(BlueprintCallable, Category = "Events")
-	bool Unregister();
-
 	UFUNCTION(BlueprintPure, Category = "Interaction")
 	FVector GetTargetPlayerCameraLocation();
 
@@ -175,7 +168,6 @@ protected:
 	FString UiName = "Character";
 
 private:
-	bool ShouldHandleEvent(const FInworldRouting& Routing);
 	UFUNCTION()
 	void OnInworldTextEvent(const FInworldTextEvent& Event);
 	UFUNCTION()
@@ -238,12 +230,6 @@ private:
 
 	UPROPERTY(ReplicatedUsing=OnRep_InworldCharacter)
 	UInworldCharacter* InworldCharacter;
-
-	UFUNCTION()
-	void OnRep_InworldSession();
-
-	UPROPERTY(ReplicatedUsing=OnRep_InworldSession)
-	TWeakObjectPtr<UInworldSession> InworldSession;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
 	friend class FInworldGameplayDebuggerCategory;

@@ -71,29 +71,36 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Load")
 	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
 
+	UFUNCTION(BlueprintCallable, Category = "Conversation")
+	FString UpdateConversation(const FString& ConversationId, const TArray<FString>& AgentIds, bool bIncludePlayer);
+
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
-	FInworldWrappedPacket SendTextMessage(const TArray<FString>& AgentIds, const FString& Text);
+	FInworldWrappedPacket SendTextMessage(const FString& AgentId, const FString& Text);
+	UFUNCTION(BlueprintCallable, Category = "Message|Text")
+	FInworldWrappedPacket SendTextMessageToConversation(const FString& ConversationId, const FString& Text);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendSoundMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData) { BroadcastSoundMessage({AgentId}, InputData, OutputData); }
+	void SendSoundMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void BroadcastSoundMessage(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+	void SendSoundMessageToConversation(const FString& ConversationId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(const FString& AgentId) { BroadcastAudioSessionStart({ AgentId }); }
+	void SendAudioSessionStart(const FString& AgentId);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void BroadcastAudioSessionStart(const TArray<FString>& AgentIds);
+	void SendAudioSessionStartToConversation(const FString& ConversationId);
+
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStop(const FString& AgentId) { BroadcastAudioSessionStop({ AgentId }); }
+	void SendAudioSessionStop(const FString& AgentId);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void BroadcastAudioSessionStop(const TArray<FString>& AgentIds);
+	void SendAudioSessionStopToConversation(const FString& ConversationId);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Narration")
 	void SendNarrationEvent(const FString& AgentId, const FString& Content);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
-	void SendTrigger(FString AgentId, const FString& Name, const TMap<FString, FString>& Params) { BroadcastTrigger({AgentId}, Name, Params); }
+	void SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params);
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
-	void BroadcastTrigger(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
+	void SendTriggerToConversation(const FString& ConversationId, const FString& Name, const TMap<FString, FString>& Params);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void SendChangeSceneEvent(const FString& SceneName);

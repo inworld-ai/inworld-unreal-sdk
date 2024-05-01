@@ -72,7 +72,7 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
         }
     }
 
-    UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(InworldPlayer->GetOuter());
+    UInworldSession* InworldSession = InworldPlayer->GetSession();
     if (!InworldSession)
     {
         return;

@@ -8,6 +8,7 @@
 
 #include "InworldSession.h"
 #include "InworldCharacter.h"
+#include "InworldPlayer.h"
 #include "InworldClient.h"
 
 #include "InworldAIIntegrationModule.h"
@@ -19,21 +20,52 @@
 #include "Net/UnrealNetwork.h"
 
 UInworldSession::UInworldSession()
-	: PacketVisitor(MakeShared<FInworldSessionPacketVisitor>(this))
+	: InworldClient(nullptr)
+	, bIsLoaded(false)
+	, PacketVisitor(MakeShared<FInworldSessionPacketVisitor>(this))
 {}
 
 UInworldSession::~UInworldSession()
 {}
 
+void UInworldSession::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	if (UBlueprintGeneratedClass* BPCClass = Cast<UBlueprintGeneratedClass>(GetClass()))
+	{
+		BPCClass->GetLifetimeBlueprintReplicationList(OutLifetimeProps);
+	}
+
+	DOREPLIFETIME(UInworldSession, bIsLoaded);
+	DOREPLIFETIME(UInworldSession, RegisteredCharacters);
+}
+
+int32 UInworldSession::GetFunctionCallspace(UFunction* Function, FFrame* Stack)
+{
+	if (HasAnyFlags(RF_ClassDefaultObject) || !IsSupportedForNetworking())
+	{
+		return GEngine->GetGlobalFunctionCallspace(Function, this, Stack);
+	}
+
+	return GetOuter()->GetFunctionCallspace(Function, Stack);
+}
+
+bool UInworldSession::CallRemoteFunction(UFunction* Function, void* Parms, FOutParmRec* OutParms, FFrame* Stack)
+{
+	AActor* Owner = GetTypedOuter<AActor>();
+	if (UNetDriver* NetDriver = Owner->GetNetDriver())
+	{
+		NetDriver->ProcessRemoteFunction(Owner, Function, Parms, OutParms, Stack, this);
+		return true;
+	}
+	return false;
+}
+
 void UInworldSession::Init()
 {
 	InworldClient = NewObject<UInworldClient>(this);
-	OnClientPacketReceivedHandle = InworldClient->OnPacketReceived().AddLambda(
-		[this](const FInworldWrappedPacket& WrappedPacket) -> void
-		{
-			WrappedPacket.Packet->Accept(*PacketVisitor);
-		}
-	);
+	OnClientPacketReceivedHandle = InworldClient->OnPacketReceived().AddUObject(this, &UInworldSession::HandlePacket);
 	OnClientConnectionStateChangedHandle = InworldClient->OnConnectionStateChanged().AddLambda(
 		[this](EInworldConnectionState ConnectionState) -> void
 		{
@@ -47,13 +79,18 @@ void UInworldSession::Init()
 
 			if (ConnectionState == EInworldConnectionState::Disconnected)
 			{
+				UWorld* World = GetWorld();
+				if (!World || World->bIsTearingDown)
+				{
+					return;
+				}
 				if (CurrentRetryConnectionTime == 0.f)
 				{
 					ResumeSession();
 				}
 				else
 				{
-					GetWorld()->GetTimerManager().SetTimer(RetryConnectionTimerHandle, this, &UInworldSession::ResumeSession, CurrentRetryConnectionTime);
+					World->GetTimerManager().SetTimer(RetryConnectionTimerHandle, this, &UInworldSession::ResumeSession, CurrentRetryConnectionTime);
 				}
 				CurrentRetryConnectionTime += FMath::Min(CurrentRetryConnectionTime + RetryConnectionIntervalTime, MaxRetryConnectionTime);
 			}
@@ -91,43 +128,58 @@ void UInworldSession::Destroy()
 	InworldClient = nullptr;
 }
 
-void UInworldSession::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UInworldSession::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	if (UBlueprintGeneratedClass* BPCClass = Cast<UBlueprintGeneratedClass>(GetClass()))
+	auto Packet = WrappedPacket.Packet;
+	if (Packet.IsValid())
 	{
-		BPCClass->GetLifetimeBlueprintReplicationList(OutLifetimeProps);
+		Packet->Accept(*PacketVisitor);
+
+		const auto& Source = Packet->Routing.Source;
+		const auto& Target = Packet->Routing.Target;
+		const auto& ConversationId = Packet->Routing.ConversationId;
+
+		if (Source.Type == EInworldActorType::AGENT)
+		{
+			if (UInworldCharacter** SourceCharacter = AgentIdToCharacter.Find(Source.Name))
+			{
+				(*SourceCharacter)->HandlePacket(WrappedPacket);
+			}
+		}
+		if (Target.Type == EInworldActorType::AGENT)
+		{
+			if (UInworldCharacter** TargetCharacter = AgentIdToCharacter.Find(Target.Name))
+			{
+				(*TargetCharacter)->HandlePacket(WrappedPacket);
+			}
+
+			if (TArray<FString>* AgentIds = ConversationIdToAgentIds.Find(ConversationId))
+			{
+				for (const FString& AgentId : *AgentIds)
+				{
+					if (AgentId == Target.Name)
+					{
+						continue;
+					}
+					if (UInworldCharacter** TargetCharacter = AgentIdToCharacter.Find(AgentId))
+					{
+						(*TargetCharacter)->HandlePacket(WrappedPacket);
+					}
+				}
+			}
+		}
 	}
-
-	DOREPLIFETIME(UInworldSession, bIsLoaded);
-	DOREPLIFETIME(UInworldSession, RegisteredCharacters);
-}
-
-int32 UInworldSession::GetFunctionCallspace(UFunction* Function, FFrame* Stack)
-{
-	if (HasAnyFlags(RF_ClassDefaultObject) || !IsSupportedForNetworking())
-	{
-		return GEngine->GetGlobalFunctionCallspace(Function, this, Stack);
-	}
-
-	return GetOuter()->GetFunctionCallspace(Function, Stack);
-}
-
-bool UInworldSession::CallRemoteFunction(UFunction* Function, void* Parms, FOutParmRec* OutParms, FFrame* Stack)
-{
-	AActor* Owner = GetTypedOuter<AActor>();
-	if (UNetDriver* NetDriver = Owner->GetNetDriver())
-	{
-		NetDriver->ProcessRemoteFunction(Owner, Function, Parms, OutParms, Stack, this);
-		return true;
-	}
-	return false;
 }
 
 void UInworldSession::RegisterCharacter(UInworldCharacter* Character)
 {
 	const FString& BrainName = Character->GetAgentInfo().BrainName;
+
+	if (BrainName.IsEmpty())
+	{
+		return;
+	}
+
 	if (!ensureMsgf(!BrainNameToCharacter.Contains(BrainName), TEXT("UInworldSession::RegisterInworldCharacter: Character already registered for Brain: %s!"), *BrainName))
 	{
 		return;
@@ -154,6 +206,12 @@ void UInworldSession::RegisterCharacter(UInworldCharacter* Character)
 void UInworldSession::UnregisterCharacter(UInworldCharacter* Character)
 {
 	const FString& BrainName = Character->GetAgentInfo().BrainName;
+
+	if (BrainName.IsEmpty())
+	{
+		return;
+	}
+
 	if (!ensureMsgf(BrainNameToCharacter.Contains(BrainName) && BrainNameToCharacter[BrainName] == Character, TEXT("UInworldSession::UnregisterInworldCharacter: Component mismatch for Brain: %s!"), *BrainName))
 	{
 		return;
@@ -164,6 +222,16 @@ void UInworldSession::UnregisterCharacter(UInworldCharacter* Character)
 	RegisteredCharacters.Remove(Character);
 	InworldClient->UnloadCharacter(BrainName);
 	Character->Unpossess();
+}
+
+void UInworldSession::RegisterPlayer(UInworldPlayer* Player)
+{
+	RegisteredPlayers.Add(Player);
+}
+
+void UInworldSession::UnregisterPlayer(UInworldPlayer* Player)
+{
+	RegisteredPlayers.Remove(Player);
 }
 
 void UInworldSession::StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save, const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet)
@@ -177,53 +245,62 @@ void UInworldSession::StopSession()
 	InworldClient->StopSession();
 }
 
-TArray<FString> CharactersToAgentIds(const TArray<UInworldCharacter*>& InworldCharacters)
-{
-	TArray<FString> AgentIds = {};
-	AgentIds.Reserve(InworldCharacters.Num());
-	for (const UInworldCharacter* Character : InworldCharacters)
-	{
-		AgentIds.Add(Character->GetAgentInfo().AgentId);
-	}
-	return AgentIds;
-}
-
 void UInworldSession::LoadCharacters(const TArray<UInworldCharacter*>& Characters)
 {
-	InworldClient->LoadCharacters(CharactersToAgentIds(Characters));
+	InworldClient->LoadCharacters(Inworld::CharactersToAgentIds(Characters));
 }
 
 void UInworldSession::UnloadCharacters(const TArray<UInworldCharacter*>& Characters)
 {
-	InworldClient->UnloadCharacters(CharactersToAgentIds(Characters));
+	InworldClient->UnloadCharacters(Inworld::CharactersToAgentIds(Characters));
 }
 
-void UInworldSession::BroadcastTextMessage(const TArray<UInworldCharacter*>& Characters, const FString& Message)
+void UInworldSession::SendTextMessage(UInworldCharacter* Character, const FString& Message)
 {
-	if (!ensureMsgf(InworldClient, TEXT("InworldSession: InworldClient is null! Ensure to call Init() on Session.")))
-	{
-		return;
-	}
-	auto Packet = InworldClient->SendTextMessage(CharactersToAgentIds(Characters), Message).Packet;
+	auto Packet = InworldClient->SendTextMessage(Character->GetAgentInfo().AgentId, Message).Packet;
 	if (Packet.IsValid())
 	{
 		Packet->Accept(*PacketVisitor);
 	}
 }
 
-void UInworldSession::BroadcastSoundMessage(const TArray<UInworldCharacter*>& Characters, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
+void UInworldSession::SendTextMessageToConversation(UInworldPlayer* Player, const FString& Message)
 {
-	InworldClient->BroadcastSoundMessage(CharactersToAgentIds(Characters), InputData, OutputData);
+	auto Packet = InworldClient->SendTextMessageToConversation(Player->GetConversationId(), Message).Packet;
+	if (Packet.IsValid())
+	{
+		Packet->Accept(*PacketVisitor);
+	}
 }
 
-void UInworldSession::BroadcastAudioSessionStart(const TArray<UInworldCharacter*>& Characters)
+void UInworldSession::SendSoundMessage(UInworldCharacter* Character, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-	InworldClient->BroadcastAudioSessionStart(CharactersToAgentIds(Characters));
+	InworldClient->SendSoundMessage(Character->GetAgentInfo().AgentId, InputData, OutputData);
 }
 
-void UInworldSession::BroadcastAudioSessionStop(const TArray<UInworldCharacter*>& Characters)
+void UInworldSession::SendSoundMessageToConversation(UInworldPlayer* Player, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-	InworldClient->BroadcastAudioSessionStop(CharactersToAgentIds(Characters));
+	InworldClient->SendSoundMessageToConversation(Player->GetConversationId(), InputData, OutputData);
+}
+
+void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character)
+{
+	InworldClient->SendAudioSessionStart(Character->GetAgentInfo().AgentId);
+}
+
+void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player)
+{
+	InworldClient->SendAudioSessionStartToConversation(Player->GetConversationId());
+}
+
+void UInworldSession::SendAudioSessionStop(UInworldCharacter* Character)
+{
+	InworldClient->SendAudioSessionStop(Character->GetAgentInfo().AgentId);
+}
+
+void UInworldSession::SendAudioSessionStopToConversation(UInworldPlayer* Player)
+{
+	InworldClient->SendAudioSessionStopToConversation(Player->GetConversationId());
 }
 
 void UInworldSession::SendNarrationEvent(UInworldCharacter* Character, const FString& Content)
@@ -231,9 +308,14 @@ void UInworldSession::SendNarrationEvent(UInworldCharacter* Character, const FSt
 	InworldClient->SendNarrationEvent(Character->GetAgentInfo().AgentId, Content);
 }
 
-void UInworldSession::BroadcastTrigger(const TArray<UInworldCharacter*>& Characters, const FString& Name, const TMap<FString, FString>& Params)
+void UInworldSession::SendTrigger(UInworldCharacter* Character, const FString& Name, const TMap<FString, FString>& Params)
 {
-	InworldClient->BroadcastTrigger(CharactersToAgentIds(Characters), Name, Params);
+	InworldClient->SendTrigger(Character->GetAgentInfo().AgentId, Name, Params);
+}
+
+void UInworldSession::SendTriggerToConversation(UInworldPlayer* Player, const FString& Name, const TMap<FString, FString>& Params)
+{
+	InworldClient->SendTrigger(Player->GetConversationId(), Name, Params);
 }
 
 void UInworldSession::SendChangeSceneEvent(const FString& SceneName)
@@ -311,40 +393,38 @@ void UInworldSession::OnRep_IsLoaded()
 	OnLoadedDelegate.Broadcast(bIsLoaded);
 }
 
-void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldTextEvent& Event)
+void UInworldSession::OnRep_RegisteredCharacters()
 {
-	Session->OnInworldTextEventDelegateNative.Broadcast(Event);
-	Session->OnInworldTextEventDelegate.Broadcast(Event);
+	BrainNameToCharacter = {};
+	AgentIdToCharacter = {};
+	BrainNameToAgentInfo = {};
+	for (UInworldCharacter* Character : RegisteredCharacters)
+	{
+		const FInworldAgentInfo& AgentInfo = Character->GetAgentInfo();
+		BrainNameToCharacter.Add(AgentInfo.BrainName, Character);
+		AgentIdToCharacter.Add(AgentInfo.AgentId, Character);
+		BrainNameToAgentInfo.Add(AgentInfo.BrainName, AgentInfo);
+	}
 }
 
-void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldAudioDataEvent& Event)
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldConversationUpdateEvent& Event)
 {
-	Session->OnInworldAudioEventDelegateNative.Broadcast(Event);
-	Session->OnInworldAudioEventDelegate.Broadcast(Event);
-}
-
-void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldSilenceEvent& Event)
-{
-	Session->OnInworldSilenceEventDelegateNative.Broadcast(Event);
-	Session->OnInworldSilenceEventDelegate.Broadcast(Event);
-}
-
-void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldControlEvent& Event)
-{
-	Session->OnInworldControlEventDelegateNative.Broadcast(Event);
-	Session->OnInworldControlEventDelegate.Broadcast(Event);
-}
-
-void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldEmotionEvent& Event)
-{
-	Session->OnInworldEmotionEventDelegateNative.Broadcast(Event);
-	Session->OnInworldEmotionEventDelegate.Broadcast(Event);
-}
-
-void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldCustomEvent& Event)
-{
-	Session->OnInworldCustomEventDelegateNative.Broadcast(Event);
-	Session->OnInworldCustomEventDelegate.Broadcast(Event);
+	if (Event.EventType == EInworldConversationUpdateType::EVICTED)
+	{
+		Session->ConversationIdToAgentIds.Remove(Event.Routing.ConversationId);
+	}
+	else
+	{
+		Session->ConversationIdToAgentIds.FindOrAdd(Event.Routing.ConversationId) = Event.Agents;
+	}
+	UE_LOG(LogInworldAIIntegration, Log, TEXT("Conversation %s: %s, %d character(s):"),
+		Event.EventType == EInworldConversationUpdateType::STARTED ? TEXT("STARTED") : Event.EventType == EInworldConversationUpdateType::EVICTED ? TEXT("EVICTED") : TEXT("UPDATED"),
+		*Event.Routing.ConversationId,
+		Event.Agents.Num())
+	for (const auto& Agent : Event.Agents)
+	{
+		UE_LOG(LogInworldAIIntegration, Log, TEXT("   Agent Id: %s."), *Agent);
+	}
 }
 
 void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldLoadCharactersEvent& Event)
