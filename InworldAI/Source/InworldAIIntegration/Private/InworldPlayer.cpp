@@ -25,6 +25,7 @@ void UInworldPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 		BPCClass->GetLifetimeBlueprintReplicationList(OutLifetimeProps);
 	}
 
+	DOREPLIFETIME(UInworldPlayer, Session);
 	DOREPLIFETIME(UInworldPlayer, TargetCharacters);
 }
 
@@ -49,34 +50,63 @@ bool UInworldPlayer::CallRemoteFunction(UFunction* Function, void* Parms, FOutPa
 	return false;
 }
 
-void UInworldPlayer::BroadcastTextMessage_Implementation(const FString& Text)
+void UInworldPlayer::SetSession(UInworldSession* InSession)
 {
-	UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(GetOuter());
-	InworldSession->BroadcastTextMessage(GetTargetCharacters(), Text);
+	if (Session == InSession)
+	{
+		return;
+	}
+
+	if (Session)
+	{
+		Session->UnregisterPlayer(this);
+	}
+
+	Session = InSession;
+
+	if (Session)
+	{
+		Session->RegisterPlayer(this);
+	}
 }
 
-void UInworldPlayer::BroadcastTrigger(const FString& Name, const TMap<FString, FString>& Params)
+void UInworldPlayer::SendTextMessageToConversation(const FString& Text)
 {
-	UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(GetOuter());
-	InworldSession->BroadcastTrigger(GetTargetCharacters(), Name, Params);
+	Session->SendTextMessageToConversation(this, Text);
 }
 
-void UInworldPlayer::BroadcastAudioSessionStart()
+void UInworldPlayer::SendTriggerToConversation(const FString& Name, const TMap<FString, FString>& Params)
 {
-	UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(GetOuter());
-	InworldSession->BroadcastAudioSessionStart(GetTargetCharacters());
+	Session->SendTriggerToConversation(this, Name, Params);
 }
 
-void UInworldPlayer::BroadcastAudioSessionStop()
+void UInworldPlayer::SendAudioSessionStartToConversation()
 {
-	UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(GetOuter());
-	InworldSession->BroadcastAudioSessionStop(GetTargetCharacters());
+	if (ConversationId.IsEmpty() || bHasAudioSession)
+	{
+		return;
+	}
+	bHasAudioSession = true;
+	Session->SendAudioSessionStartToConversation(this);
 }
 
-void UInworldPlayer::BroadcastSoundMessage(const TArray<uint8>& Input, const TArray<uint8>& Output)
+void UInworldPlayer::SendAudioSessionStopToConversation()
 {
-	UInworldSession* InworldSession = IInworldPlayerOwnerInterface::Execute_GetInworldSession(GetOuter());
-	InworldSession->BroadcastSoundMessage(GetTargetCharacters(), Input, Output);
+	if (ConversationId.IsEmpty() || !bHasAudioSession)
+	{
+		return;
+	}
+	bHasAudioSession = false;
+	Session->SendAudioSessionStopToConversation(this);
+}
+
+void UInworldPlayer::SendSoundMessageToConversation(const TArray<uint8>& Input, const TArray<uint8>& Output)
+{
+	if (!bHasAudioSession)
+	{
+		return;
+	}
+	Session->SendSoundMessageToConversation(this, Input, Output);
 }
 
 TScriptInterface<IInworldPlayerOwnerInterface> UInworldPlayer::GetInworldPlayerOwner()
@@ -94,6 +124,9 @@ void UInworldPlayer::AddTargetCharacter(UInworldCharacter* TargetCharacter)
 	{
 		TargetCharacter->SetTargetPlayer(this);
 		TargetCharacters.AddUnique(TargetCharacter);
+
+		UpdateConversation();
+
 		OnTargetCharacterAddedDelegateNative.Broadcast(TargetCharacter);
 		OnTargetCharacterAddedDelegate.Broadcast(TargetCharacter);
 
@@ -108,6 +141,9 @@ void UInworldPlayer::RemoveTargetCharacter(UInworldCharacter* TargetCharacter)
 	{
 		TargetCharacter->ClearTargetPlayer();
 		TargetCharacters.RemoveSingle(TargetCharacter);
+
+		UpdateConversation();
+
 		OnTargetCharacterRemovedDelegateNative.Broadcast(TargetCharacter);
 		OnTargetCharacterRemovedDelegate.Broadcast(TargetCharacter);
 
@@ -118,22 +154,53 @@ void UInworldPlayer::RemoveTargetCharacter(UInworldCharacter* TargetCharacter)
 
 void UInworldPlayer::ClearAllTargetCharacters()
 {
-	TArray<UInworldCharacter*> TargetCharactersCopy = TargetCharacters;
-	for (UInworldCharacter* TargetCharacter : TargetCharactersCopy)
+	TArray<UInworldCharacter*> CharactersToRemove = {};
+	for (UInworldCharacter* TargetCharacter : TargetCharacters)
 	{
-		bool bRemovedAny = false;
 		if (TargetCharacter->GetTargetPlayer() == this)
 		{
-			TargetCharacter->ClearTargetPlayer();
-			TargetCharacters.RemoveSingle(TargetCharacter);
-			OnTargetCharacterRemovedDelegateNative.Broadcast(TargetCharacter);
-			OnTargetCharacterRemovedDelegate.Broadcast(TargetCharacter);
-			bRemovedAny = true;
+			CharactersToRemove.Add(TargetCharacter);
 		}
-		if (bRemovedAny)
+	}
+	if (CharactersToRemove.Num() > 0)
+	{
+		for (UInworldCharacter* CharacterToRemove : CharactersToRemove)
 		{
-			OnTargetCharactersChangedDelegateNative.Broadcast();
-			OnTargetCharactersChangedDelegate.Broadcast();
+			CharacterToRemove->ClearTargetPlayer();
+			TargetCharacters.RemoveSingle(CharacterToRemove);
+		}
+
+		UpdateConversation();
+
+		for (UInworldCharacter* CharacterToRemove : CharactersToRemove)
+		{
+			OnTargetCharacterRemovedDelegateNative.Broadcast(CharacterToRemove);
+			OnTargetCharacterRemovedDelegate.Broadcast(CharacterToRemove);
+		}
+
+		OnTargetCharactersChangedDelegateNative.Broadcast();
+		OnTargetCharactersChangedDelegate.Broadcast();
+	}
+}
+
+void UInworldPlayer::UpdateConversation()
+{
+	FString NextConversationId = Session->GetClient()->UpdateConversation(ConversationId, Inworld::CharactersToAgentIds(TargetCharacters), false);
+	if (ConversationId != NextConversationId)
+	{
+		const bool bHadAudioSession = bHasAudioSession;
+		if (bHasAudioSession)
+		{
+			SendAudioSessionStopToConversation();
+		}
+
+		ConversationId = NextConversationId;
+		OnConversationChangedDelegateNative.Broadcast();
+		OnConversationChangedDelegate.Broadcast();
+
+		if (bHadAudioSession)
+		{
+			SendAudioSessionStartToConversation();
 		}
 	}
 }

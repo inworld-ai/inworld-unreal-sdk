@@ -59,15 +59,18 @@ void UInworldPlayerComponent::InitializeComponent()
     UWorld* World = GetWorld();
     if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
     {
-        InworldSession = GetWorld()->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession();
+        InworldPlayer->SetSession(World->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession());
     }
 }
 
-void UInworldPlayerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UInworldPlayerComponent::UninitializeComponent()
 {
-    InworldPlayer = nullptr;
-
-    Super::EndPlay(EndPlayReason);
+    Super::UninitializeComponent();
+    UWorld* World = GetWorld();
+    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+    {
+        InworldPlayer->SetSession(nullptr);
+    }
 }
 
 void UInworldPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -75,7 +78,6 @@ void UInworldPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(UInworldPlayerComponent, InworldPlayer);
-    DOREPLIFETIME(UInworldPlayerComponent, InworldSession);
 }
 
 bool UInworldPlayerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
@@ -120,10 +122,7 @@ TArray<UInworldCharacterComponent*> UInworldPlayerComponent::GetTargetInworldCha
 
 void UInworldPlayerComponent::ContinueMultiAgentConversation()
 {
-    if (InworldPlayer->GetTargetCharacters().Num() > 1)
-    {
-        InworldPlayer->BroadcastTrigger("inworld.conversation.next_turn", {});
-    }
+    InworldPlayer->SendTriggerToConversation(TEXT("inworld.conversation.next_turn"), {});
 }
 
 void UInworldPlayerComponent::SetTargetInworldCharacter(UInworldCharacterComponent* Character)
@@ -145,26 +144,26 @@ void UInworldPlayerComponent::SendTextMessageToTarget(const FString& Message)
 {
     if (!Message.IsEmpty())
     {
-        InworldPlayer->BroadcastTextMessage(Message);
+        InworldPlayer->SendTextMessageToConversation(Message);
     }
 }
 
 void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params)
 {
-    InworldPlayer->BroadcastTrigger(Name, Params);
+    InworldPlayer->SendTriggerToConversation(Name, Params);
 }
 
 void UInworldPlayerComponent::StartAudioSessionWithTarget()
 {
-    InworldPlayer->BroadcastAudioSessionStart();
+    InworldPlayer->SendAudioSessionStartToConversation();
 }
 
 void UInworldPlayerComponent::StopAudioSessionWithTarget()
 {
-    InworldPlayer->BroadcastAudioSessionStop();
+    InworldPlayer->SendAudioSessionStopToConversation();
 }
 
 void UInworldPlayerComponent::SendAudioMessageToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    InworldPlayer->BroadcastSoundMessage(InputData, OutputData);
+    InworldPlayer->SendSoundMessageToConversation(InputData, OutputData);
 }

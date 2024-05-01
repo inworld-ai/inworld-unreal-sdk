@@ -110,9 +110,8 @@ private:
     TAtomic<bool> bCapturingVoice = false;
 
     TWeakObjectPtr<UInworldPlayer> InworldPlayer;
-    FDelegateHandle OnPlayerTargetCharactersChanged;
+    FDelegateHandle OnPlayerConversationChanged;
 
-    TWeakObjectPtr<UInworldSession> InworldSession;
     FDelegateHandle OnSessionConnectionStateChanged;
     FDelegateHandle OnSessionLoaded;
 
@@ -127,14 +126,6 @@ private:
 
     FAudioBuffer InputBuffer;
     FAudioBuffer OutputBuffer;
-
-    struct FPlayerAudioTargetState
-    {
-        TArray<UInworldCharacter*> ActiveCharacters;
-        TArray<UInworldCharacter*> DesiredCharacters;
-        bool bDirty = false;
-
-    } PlayerAudioTargetState;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
     friend class FInworldGameplayDebuggerCategory;

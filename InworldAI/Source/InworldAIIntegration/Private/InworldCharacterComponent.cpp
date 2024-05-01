@@ -58,6 +58,7 @@ void UInworldCharacterComponent::OnUnregister()
 		InworldCharacter->MarkPendingKill();
 #endif
 	}
+
 	InworldCharacter = nullptr;
 }
 
@@ -67,8 +68,7 @@ void UInworldCharacterComponent::InitializeComponent()
 	UWorld* World = GetWorld();
 	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
 	{
-		InworldSession = GetWorld()->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession();
-		OnRep_InworldSession();
+		InworldCharacter->SetSession(World->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession());
 	}
 
 #if WITH_EDITOR
@@ -96,9 +96,10 @@ void UInworldCharacterComponent::UninitializeComponent()
 {
 	Super::UninitializeComponent();
 
-	if (GetOwnerRole() == ROLE_Authority)
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
 	{
-		Unregister();
+		InworldCharacter->SetSession(nullptr);
 	}
 
 #if WITH_EDITOR
@@ -120,7 +121,7 @@ void UInworldCharacterComponent::BeginPlay()
 
 	if (GetOwnerRole() == ROLE_Authority)
 	{
-		Register();
+		InworldCharacter->SetBrainName(BrainName);
 	}
 
     for (auto* Pb : Playbacks)
@@ -131,6 +132,11 @@ void UInworldCharacterComponent::BeginPlay()
 
 void UInworldCharacterComponent::EndPlay(EEndPlayReason::Type Reason)
 {
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		InworldCharacter->SetBrainName({});
+	}
+
     for (auto* Pb : Playbacks)
     {
         Pb->EndPlay();
@@ -168,7 +174,6 @@ void UInworldCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProp
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInworldCharacterComponent, InworldCharacter);
-	DOREPLIFETIME(UInworldCharacterComponent, InworldSession);
 }
 
 bool UInworldCharacterComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
@@ -245,30 +250,6 @@ void UInworldCharacterComponent::StopAudioSession()
 	InworldCharacter->SendAudioSessionStop();
 }
 
-bool UInworldCharacterComponent::Register()
-{
-    if (BrainName.IsEmpty())
-    {
-        return false;
-    }
-
-	InworldCharacter->SetBrainName(BrainName);
-
-    return true;
-}
-
-bool UInworldCharacterComponent::Unregister()
-{
-	if (BrainName.IsEmpty())
-	{
-		return false;
-	}
-
-	InworldCharacter->SetBrainName({});
-
-    return true;
-}
-
 FVector UInworldCharacterComponent::GetTargetPlayerCameraLocation()
 {
 	if (InworldCharacter == nullptr || InworldCharacter->GetTargetPlayer() == nullptr)
@@ -308,42 +289,6 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
         return;
     }
 
-	auto ProcessTarget = [this, Event](const FInworldActor& ToActor)
-		{
-			if (Event.Routing.Source.Type == EInworldActorType::PLAYER && ToActor.Type == EInworldActorType::AGENT && ToActor.Name == GetAgentId())
-			{
-				if (Event.Final)
-				{
-					UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *ToActor.Name, *Event.Text);
-				}
-
-				// Don't add to queue, player talking is instant.
-				FCharacterMessagePlayerTalk PlayerTalk;
-				PlayerTalk.InteractionId = Event.PacketId.InteractionId;
-				PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
-				PlayerTalk.Text = Event.Text;
-				PlayerTalk.bTextFinal = Event.Final;
-
-				OnPlayerTalk.Broadcast(PlayerTalk);
-
-				TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
-				if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
-				{
-					CancelCurrentInteraction();
-				}
-			}
-		};
-
-	ProcessTarget(Event.Routing.Target);
-
-	for (const auto& ToActor : Event.Routing.Targets)
-	{
-		if (ToActor.Name != Event.Routing.Target.Name)
-		{
-			ProcessTarget(ToActor);
-		}
-	}
-
 	const auto& FromActor = Event.Routing.Source;
 	if (FromActor.Type == EInworldActorType::AGENT)
 	{
@@ -356,6 +301,28 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 			MessageToUpdate->Text = Event.Text;
 			MessageToUpdate->bTextFinal = Event.Final;
 		});
+	}
+	else if (FromActor.Type == EInworldActorType::PLAYER)
+	{
+		if (Event.Final)
+		{
+			UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *Event.Routing.Target.Name, *Event.Text);
+		}
+
+		// Don't add to queue, player talking is instant.
+		FCharacterMessagePlayerTalk PlayerTalk;
+		PlayerTalk.InteractionId = Event.PacketId.InteractionId;
+		PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
+		PlayerTalk.Text = Event.Text;
+		PlayerTalk.bTextFinal = Event.Final;
+
+		OnPlayerTalk.Broadcast(PlayerTalk);
+
+		TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
+		if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
+		{
+			CancelCurrentInteraction();
+		}
 	}
 }
 
@@ -456,37 +423,13 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 	}
 }
 
-bool UInworldCharacterComponent::ShouldHandleEvent(const FInworldRouting& Routing)
-{
-	bool bShouldHandle = false;
-	bShouldHandle |= Routing.Source.Name == GetAgentId();
-	if (Routing.Source.Type == EInworldActorType::PLAYER)
-	{
-		bShouldHandle |= Routing.Target.Name == GetAgentId();
-		for (const auto& Target : Routing.Targets)
-		{
-			bShouldHandle |= Target.Name == GetAgentId();
-		}
-	}
-	return bShouldHandle;
-}
-
 void UInworldCharacterComponent::OnInworldTextEvent(const FInworldTextEvent& Event)
 {
-	if (!ShouldHandleEvent(Event.Routing))
-	{
-		return;
-	}
     Multicast_VisitText(Event);
 }
 
 void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEvent& Event)
 {
-	if (!ShouldHandleEvent(Event.Routing))
-	{
-		return;
-	}
-
 	if (GetNetMode() == NM_Standalone || GetNetMode() == NM_Client)
 	{
 		VisitAudioOnClient(Event);
@@ -513,37 +456,21 @@ void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEven
 
 void UInworldCharacterComponent::OnInworldSilenceEvent(const FInworldSilenceEvent& Event)
 {
-	if (!ShouldHandleEvent(Event.Routing))
-	{
-		return;
-	}
     Multicast_VisitSilence(Event);
 }
 
 void UInworldCharacterComponent::OnInworldControlEvent(const FInworldControlEvent& Event)
 {
-	if (!ShouldHandleEvent(Event.Routing))
-	{
-		return;
-	}
     Multicast_VisitControl(Event);
 }
 
 void UInworldCharacterComponent::OnInworldEmotionEvent(const FInworldEmotionEvent& Event)
 {
-	if (!ShouldHandleEvent(Event.Routing))
-	{
-		return;
-	}
     Multicast_VisitEmotion(Event);
 }
 
 void UInworldCharacterComponent::OnInworldCustomEvent(const FInworldCustomEvent& Event)
 {
-	if (!ShouldHandleEvent(Event.Routing))
-	{
-		return;
-	}
 	Multicast_VisitCustom(Event);
 }
 
@@ -593,18 +520,12 @@ void UInworldCharacterComponent::OnRep_InworldCharacter()
 			}
 		);
 		OnPlayerInteractionStateChanged.Broadcast(InworldCharacter->GetTargetPlayer() != nullptr);
-	}
-}
 
-void UInworldCharacterComponent::OnRep_InworldSession()
-{
-	if (InworldSession.IsValid())
-	{
-		InworldSession->OnInworldTextEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldTextEvent);
-		InworldSession->OnInworldAudioEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldAudioEvent);
-		InworldSession->OnInworldSilenceEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldSilenceEvent);
-		InworldSession->OnInworldControlEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldControlEvent);
-		InworldSession->OnInworldEmotionEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldEmotionEvent);
-		InworldSession->OnInworldCustomEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldCustomEvent);
+		InworldCharacter->OnInworldTextEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldTextEvent);
+		InworldCharacter->OnInworldAudioEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldAudioEvent);
+		InworldCharacter->OnInworldSilenceEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldSilenceEvent);
+		InworldCharacter->OnInworldControlEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldControlEvent);
+		InworldCharacter->OnInworldEmotionEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldEmotionEvent);
+		InworldCharacter->OnInworldCustomEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldCustomEvent);
 	}
 }

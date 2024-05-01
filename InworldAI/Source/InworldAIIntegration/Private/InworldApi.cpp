@@ -245,42 +245,12 @@ void UInworldApiSubsystem::LoadPlayerProfile(const FInworldPlayerProfile& Player
 
 void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)
 {
-    SendTextMessageMultiAgent({ AgentId }, Text);
-}
-
-void UInworldApiSubsystem::SendTextMessageMultiAgent(const TArray<FString>& AgentIds, const FString& Text)
-{
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
-
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
-    {
-        return;
-    }
-
-    InworldSession->InworldClient->SendTextMessage(AgentIds, Text);
+    InworldSession->InworldClient->SendTextMessage(AgentId, Text);
 }
 
 void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
 {
-    SendTriggerMultiAgent({ AgentId }, Name, Params);
-}
-
-void UInworldApiSubsystem::SendTriggerMultiAgent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params)
-{
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
-
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentId must be valid!")))
-    {
-        return;
-    }
-
-    InworldSession->InworldClient->BroadcastTrigger(AgentIds, Name, Params);
+    InworldSession->InworldClient->SendTrigger(AgentId, Name, Params);
 }
 
 void UInworldApiSubsystem::SendNarrationEvent(const FString& AgentId, const FString& Content)
@@ -298,69 +268,24 @@ void UInworldApiSubsystem::SendNarrationEvent(const FString& AgentId, const FStr
     InworldSession->InworldClient->SendNarrationEvent(AgentId, Content);
 }
 
-void UInworldApiSubsystem::SendAudioMessage(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
+void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
     if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
     {
         return;
     }
 
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
-    {
-        return;
-    }
-
-    InworldSession->InworldClient->BroadcastSoundMessage(AgentIds, InputData, OutputData);
+    InworldSession->InworldClient->SendSoundMessage(AgentId, InputData, OutputData);
 }
 
-bool UInworldApiSubsystem::StartAudioSession(const FString& AgentId, const AActor* Owner)
+void UInworldApiSubsystem::StartAudioSession(const FString& AgentId)
 {
-    return StartAudioSessionMultiAgent({ AgentId }, Owner);
-}
-
-bool UInworldApiSubsystem::StartAudioSessionMultiAgent(const TArray<FString>& AgentIds, const AActor* Owner)
-{
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return false;
-    }
-
-    if (AudioSessionOwner)
-    {
-        return false;
-    }
-
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
-    {
-        return false;
-    }
-
-    AudioSessionOwner = Owner;
-
-    InworldSession->InworldClient->BroadcastAudioSessionStart(AgentIds);
-    return true;
+    InworldSession->InworldClient->SendAudioSessionStart(AgentId);
 }
 
 void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
 {
-    StopAudioSessionMultiAgent({ AgentId });
-}
-
-void UInworldApiSubsystem::StopAudioSessionMultiAgent(const TArray<FString>& AgentIds)
-{
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
-
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
-    {
-        return;
-    }
-
-    AudioSessionOwner = nullptr;
-
-    InworldSession->InworldClient->BroadcastAudioSessionStop(AgentIds);
+    InworldSession->InworldClient->SendAudioSessionStop(AgentId);
 }
 
 void UInworldApiSubsystem::ChangeScene(const FString& SceneId)
@@ -430,7 +355,6 @@ void UInworldApiSubsystem::Deinitialize()
 {
     Super::Deinitialize();
     InworldSession = nullptr;
-    AudioSessionOwner = nullptr;
 }
 
 #if ENGINE_MAJOR_VERSION > 4
@@ -467,6 +391,5 @@ void UInworldApiSubsystem::HandleAudioEventOnClient(TSharedPtr<FInworldAudioData
     {
         return;
     }
-
-    Packet->Accept(*InworldSession->PacketVisitor);
+    InworldSession->HandlePacket(FInworldWrappedPacket(Packet));
 }

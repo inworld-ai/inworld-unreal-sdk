@@ -124,16 +124,10 @@ public:
     /** Send text to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages")
     void SendTextMessage(const FString& AgentId, const FString& Text);
-    /** Deprecated */
-	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
-    void SendTextMessageMultiAgent(const TArray<FString>& AgentIds, const FString& Text);
 
     /** Send trigger to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (AutoCreateRefTerm = "Params"))
 	void SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params);
-    /** Deprecated */
-	UFUNCTION(BlueprintCallable, Category = "Messages", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
-	void SendTriggerMultiAgent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
     [[deprecated("UInworldApiSubsystem::SendCustomEvent is deprecated, please use UInworldApiSubsystem::SendTrigger")]]
     void SendCustomEvent(const FString& AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
 
@@ -148,21 +142,14 @@ public:
      * chunks should be ~100ms
      */
     UFUNCTION(BlueprintCallable, Category = "Messages")
-    void SendAudioMessage(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+    void SendAudioMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
     
     /**
      * Start audio session with agent
      * call before sending audio messages
-     * provide Owner param to avoid multiple audio sessions
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
-    bool StartAudioSession(const FString& AgentId, const AActor* Owner);
-	/** Deprecated */
-    UFUNCTION(BlueprintCallable, Category = "Audio", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
-    bool StartAudioSessionMultiAgent(const TArray<FString>& AgentIds, const AActor* Owner);
-    
-    UFUNCTION(BlueprintCallable, Category = "Audio")
-    const AActor* GetAudioSessionOwner() const { return AudioSessionOwner; }
+    void StartAudioSession(const FString& AgentId);
 
     /**
      * Stop audio session with agent
@@ -170,9 +157,6 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
     void StopAudioSession(const FString& AgentId);
-	/** Deprecated */
-    UFUNCTION(BlueprintCallable, Category = "Audio", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
-    void StopAudioSessionMultiAgent(const TArray<FString>& AgentIds);
 
     /** Change scene */
     UFUNCTION(BlueprintCallable, Category = "Messages")
@@ -225,9 +209,6 @@ public:
 private:
     UPROPERTY()
     UInworldAudioRepl* AudioRepl;
-
-    UPROPERTY()
-    const AActor* AudioSessionOwner = nullptr;
 
     UPROPERTY()
     UInworldSession* InworldSession;

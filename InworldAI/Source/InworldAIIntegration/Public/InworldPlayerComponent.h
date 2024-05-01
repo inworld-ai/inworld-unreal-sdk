@@ -37,15 +37,12 @@ public:
 
     // IInworldPlayerInterface
     virtual UInworldPlayer* GetInworldPlayer_Implementation() const override { return InworldPlayer; }
-    virtual UInworldSession* GetInworldSession_Implementation() const override { return InworldSession.Get(); }
     // ~IInworldPlayerInterface
 
     virtual void OnRegister() override;
     virtual void OnUnregister() override;
     virtual void InitializeComponent() override;
-
-    //virtual void BeginPlay() override;
-    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+    virtual void UninitializeComponent() override;
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
@@ -93,9 +90,6 @@ private:
 
     UPROPERTY(Replicated)
     UInworldPlayer* InworldPlayer;
-
-    UPROPERTY(Replicated)
-    TWeakObjectPtr<UInworldSession> InworldSession;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
     friend class FInworldGameplayDebuggerCategory;

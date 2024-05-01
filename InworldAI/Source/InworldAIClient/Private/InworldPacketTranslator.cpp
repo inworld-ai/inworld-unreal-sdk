@@ -21,11 +21,7 @@ void InworldPacketTranslator::TranslateInworldRouting(const Inworld::Routing& Or
 	TranslateInworldActor(Original._Source, New.Source);
 	TranslateInworldActor(Original._Target, New.Target);
 
-	for (auto& Actor : Original._Targets)
-	{
-		auto& NewActor = New.Targets.Emplace_GetRef();
-		TranslateInworldActor(Actor, NewActor);
-	}
+	New.ConversationId = UTF8_TO_TCHAR(Original._ConversationId.c_str());
 }
 
 void InworldPacketTranslator::TranslateInworldPacketId(const Inworld::PacketId& Original, FInworldPacketId& New)
@@ -86,6 +82,18 @@ void InworldPacketTranslator::TranslateEvent<Inworld::ControlEvent, FInworldCont
 {
 	TranslateInworldPacket(Original, New);
 	New.Action = static_cast<EInworldControlEventAction>(Original.GetControlAction());
+}
+
+template <>
+void InworldPacketTranslator::TranslateEvent<>(const Inworld::ControlEventConversationUpdate& Original, FInworldConversationUpdateEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+	New.EventType = static_cast<EInworldConversationUpdateType>(Original.GetType());
+	New.bIncludePlayer = Original.GetIncludePlayer();
+	for (const auto& Agent : Original.GetAgents())
+	{
+		New.Agents.Add(UTF8_TO_TCHAR(Agent.c_str()));
+	}
 }
 
 template<>
