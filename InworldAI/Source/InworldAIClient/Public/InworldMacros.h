@@ -13,11 +13,11 @@
 namespace Inworld
 {
     template<class T>
-    bool CheckEmpty(const T& Value) { return !Value; }
+    inline bool CheckEmpty(const T& Value) { return !Value; }
     template<>
-    bool CheckEmpty<FString>(const FString& Value) { return Value.IsEmpty(); }
+    inline bool CheckEmpty<FString>(const FString& Value) { return Value.IsEmpty(); }
     template<class T>
-    bool CheckEmpty(const TArray<T>& Value) { return Value.Num() == 0; }
+    inline bool CheckEmpty(const TArray<T>& Value) { return Value.Num() == 0; }
 }
 
 #ifndef INWORLD_WARN_AND_RETURN_EMPTY
