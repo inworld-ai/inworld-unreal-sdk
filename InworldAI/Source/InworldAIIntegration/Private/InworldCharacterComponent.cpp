@@ -7,6 +7,7 @@
 
 #include "InworldCharacterComponent.h"
 #include "InworldApi.h"
+#include "InworldMacros.h"
 #include "InworldAIIntegrationModule.h"
 #include "Engine/EngineBaseTypes.h"
 #include "InworldPlayerComponent.h"
@@ -16,6 +17,9 @@
 #include <Engine/ActorChannel.h>
 #include <GameFramework/GameStateBase.h>
 #include <GameFramework/PlayerState.h>
+
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldCharacterComponent, Arg, Return)
+#define NO_CHARACTER_RETURN(Return) EMPTY_ARG_RETURN(InworldCharacter, Return)
 
 UInworldCharacterComponent::UInworldCharacterComponent()
 	: Super()
@@ -194,7 +198,30 @@ bool UInworldCharacterComponent::ReplicateSubobjects(UActorChannel* Channel, FOu
 
 void UInworldCharacterComponent::SetBrainName(const FString& Name)
 {
+	NO_CHARACTER_RETURN(void())
+
 	InworldCharacter->SetBrainName(Name);
+}
+
+FString UInworldCharacterComponent::GetBrainName() const
+{
+	NO_CHARACTER_RETURN({})
+
+	return InworldCharacter->GetAgentInfo().BrainName;
+}
+
+FString UInworldCharacterComponent::GetAgentId() const
+{
+	NO_CHARACTER_RETURN({})
+
+	return InworldCharacter->GetAgentInfo().AgentId;
+}
+
+FString UInworldCharacterComponent::GetGivenName() const
+{
+	NO_CHARACTER_RETURN({})
+
+	return InworldCharacter->GetAgentInfo().GivenName;
 }
 
 UInworldCharacterPlayback* UInworldCharacterComponent::GetPlayback(TSubclassOf<UInworldCharacterPlayback> Class) const
@@ -209,8 +236,15 @@ UInworldCharacterPlayback* UInworldCharacterComponent::GetPlayback(TSubclassOf<U
     return nullptr;
 }
 
+bool UInworldCharacterComponent::IsInteractingWithPlayer() const
+{
+	return InworldCharacter != nullptr && InworldCharacter->GetTargetPlayer() != nullptr;
+}
+
 void UInworldCharacterComponent::CancelCurrentInteraction()
 {
+	NO_CHARACTER_RETURN(void())
+
 	TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
     if (!ensure(CurrentMessage.IsValid()))
     {
@@ -227,26 +261,39 @@ void UInworldCharacterComponent::CancelCurrentInteraction()
 
 void UInworldCharacterComponent::SendTextMessage(const FString& Text) const
 {
+	NO_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(Text, void())
+
 	InworldCharacter->SendTextMessage(Text);
 }
 
 void UInworldCharacterComponent::SendTrigger(const FString& Name, const TMap<FString, FString>& Params) const
 {
+	NO_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(Name, void())
+
 	InworldCharacter->SendTrigger(Name, Params);
 }
 
 void UInworldCharacterComponent::SendNarrationEvent(const FString& Content)
 {
+	NO_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(Content, void())
+
 	InworldCharacter->SendNarrationEvent(Content);
 }
 
 void UInworldCharacterComponent::StartAudioSession()
 {
+	NO_CHARACTER_RETURN(void())
+
 	InworldCharacter->SendAudioSessionStart();
 }
 
 void UInworldCharacterComponent::StopAudioSession()
 {
+	NO_CHARACTER_RETURN(void())
+
 	InworldCharacter->SendAudioSessionStop();
 }
 
@@ -529,3 +576,6 @@ void UInworldCharacterComponent::OnRep_InworldCharacter()
 		InworldCharacter->OnInworldCustomEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldCustomEvent);
 	}
 }
+
+#undef EMPTY_ARG_RETURN
+#undef NO_CHARACTER_RETURN

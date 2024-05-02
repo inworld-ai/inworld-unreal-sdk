@@ -87,13 +87,13 @@ public:
 	void SetBrainName(const FString& Name);
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
-	const FString& GetBrainName() const { return InworldCharacter->GetAgentInfo().BrainName; }
+	FString GetBrainName() const;
 
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-	const FString& GetAgentId() const { return InworldCharacter->GetAgentInfo().AgentId; }
+	FString GetAgentId() const;
 
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    const FString& GetGivenName() const { return InworldCharacter->GetAgentInfo().GivenName; }
+	FString GetGivenName() const;
 
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     const FString& GetUiName() const { return UiName; }
@@ -104,7 +104,7 @@ public:
 	UInworldCharacterPlayback* GetPlayback(TSubclassOf<UInworldCharacterPlayback> Class) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Interactions")
-	bool IsInteractingWithPlayer() const { return InworldCharacter != nullptr && InworldCharacter->GetTargetPlayer() != nullptr; }
+	bool IsInteractingWithPlayer() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Emotions")
 	EInworldCharacterEmotionalBehavior GetEmotionalBehavior() const { return EmotionalBehavior; }

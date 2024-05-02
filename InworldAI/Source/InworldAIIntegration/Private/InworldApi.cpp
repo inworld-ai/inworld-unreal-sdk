@@ -10,6 +10,7 @@
 #include "InworldPackets.h"
 #include "InworldCharacter.h"
 #include "InworldSessionComponent.h"
+#include "InworldMacros.h"
 #include <Engine/Engine.h>
 #include <UObject/UObjectGlobals.h>
 #include "TimerManager.h"
@@ -22,8 +23,14 @@ TEXT("Inworld.Debug.LogAllPackets"), false,
 TEXT("Enable/Disable logging all packets going from server")
 );
 
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldApiSubsystem, Arg, Return)
+#define NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(InworldSession, Return)
+#define NO_CLIENT_RETURN(Return) NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(InworldSession->GetClient(), Return)
+
 UInworldApiSubsystem::UInworldApiSubsystem()
     : Super()
+    , AudioRepl(nullptr)
+    , InworldSession(nullptr)
 {}
 
 void UInworldApiSubsystem::SetInworldSession(UInworldSession* Session)
@@ -49,27 +56,9 @@ void UInworldApiSubsystem::SetInworldSession(UInworldSession* Session)
 
 void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride, const FString& TargetUrlOverride, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
-
-    if (!ensure(GetWorld()->GetNetMode() < NM_Client))
-    {
-        UE_LOG(LogInworldAIIntegration, Error, TEXT("UInworldApiSubsystem::StartSession shouldn't be called on client"));
-        return;
-    }
-
-    if (ApiKey.IsEmpty())
-    {
-        UE_LOG(LogInworldAIIntegration, Error, TEXT("Can't Start Session, ApiKey is empty"));
-        return;
-    }
-    if (ApiSecret.IsEmpty())
-    {
-        UE_LOG(LogInworldAIIntegration, Error, TEXT("Can't Start Session, ApiSecret is empty"));
-        return;
-    }
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(ApiKey, void())
+    EMPTY_ARG_RETURN(ApiSecret, void())
 
     FInworldPlayerProfile PlayerProfile;
     PlayerProfile.Name = PlayerName;
@@ -87,21 +76,12 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     Environment.AuthUrl = AuthUrlOverride;
     Environment.TargetUrl = TargetUrlOverride;
 
-    InworldSession->InworldClient->StartSession(SceneName, PlayerProfile, Auth, FInworldSave(), SessionToken, {});
+    InworldSession->GetClient()->StartSession(SceneName, PlayerProfile, Auth, FInworldSave(), SessionToken, {});
 }
 
 void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride, FInworldSave SavedSessionState)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
-
-    if (!ensure(GetWorld()->GetNetMode() < NM_Client))
-    {
-        UE_LOG(LogInworldAIIntegration, Error, TEXT("UInworldApiSubsystem::StartSession shouldn't be called on client"));
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
     const bool bValidAuth = !Auth.Base64Signature.IsEmpty() || (!Auth.ApiKey.IsEmpty() && !Auth.ApiSecret.IsEmpty());
     if (!bValidAuth)
@@ -114,75 +94,55 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
         UE_LOG(LogInworldAIIntegration, Warning, TEXT("Start Session, please provide unique PlayerProfile.ProjectName for possible troubleshooting"));
     }
 
-    InworldSession->InworldClient->StartSession(SceneName, PlayerProfile, Auth, SavedSessionState, SessionToken, Capabilities);
+    InworldSession->GetClient()->StartSession(SceneName, PlayerProfile, Auth, SavedSessionState, SessionToken, Capabilities);
 }
 
 void UInworldApiSubsystem::PauseSession()
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
-    InworldSession->InworldClient->PauseSession();
+    InworldSession->GetClient()->PauseSession();
 }
 
 void UInworldApiSubsystem::ResumeSession()
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
-    InworldSession->InworldClient->PauseSession();
+    InworldSession->GetClient()->ResumeSession();
 }
 
 void UInworldApiSubsystem::StopSession()
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
-    InworldSession->InworldClient->StopSession();
+    InworldSession->GetClient()->StopSession();
 }
 
 void UInworldApiSubsystem::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
-    InworldSession->InworldClient->SaveSession(Callback);
+    InworldSession->GetClient()->SaveSession(Callback);
 }
 
 void UInworldApiSubsystem::SetResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
-    InworldSession->InworldClient->OnPerceivedLatencyDelegate.Add(Delegate);
+    InworldSession->GetClient()->OnPerceivedLatencyDelegate.Add(Delegate);
 }
 
 void UInworldApiSubsystem::ClearResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
-    InworldSession->InworldClient->OnPerceivedLatencyDelegate.Remove(Delegate);
+    InworldSession->GetClient()->OnPerceivedLatencyDelegate.Remove(Delegate);
 }
 
 void UInworldApiSubsystem::LoadCharacters(const TArray<FString>& Names)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(Names, void())
 
     TArray<UInworldCharacter*> Characters;
     for (UInworldCharacter* Character : InworldSession->GetRegisteredCharacters())
@@ -197,10 +157,8 @@ void UInworldApiSubsystem::LoadCharacters(const TArray<FString>& Names)
 
 void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(Names, void())
 
     TArray<UInworldCharacter*> Characters;
     for (UInworldCharacter* Character : InworldSession->GetRegisteredCharacters())
@@ -215,122 +173,106 @@ void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
 
 void UInworldApiSubsystem::LoadSavedState(const FInworldSave& SavedState)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
-    InworldSession->InworldClient->LoadSavedState(SavedState);
+    InworldSession->GetClient()->LoadSavedState(SavedState);
 }
 
 void UInworldApiSubsystem::LoadCapabilities(const FInworldCapabilitySet& Capabilities)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
-    InworldSession->InworldClient->LoadCapabilities(Capabilities);
+    InworldSession->GetClient()->LoadCapabilities(Capabilities);
 }
 
 void UInworldApiSubsystem::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
-    InworldSession->InworldClient->LoadPlayerProfile(PlayerProfile);
+    InworldSession->GetClient()->LoadPlayerProfile(PlayerProfile);
 }
 
 void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)
 {
-    InworldSession->InworldClient->SendTextMessage(AgentId, Text);
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
+    EMPTY_ARG_RETURN(Text, void())
+
+    InworldSession->GetClient()->SendTextMessage(AgentId, Text);
 }
 
 void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
 {
-    InworldSession->InworldClient->SendTrigger(AgentId, Name, Params);
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
+    EMPTY_ARG_RETURN(Name, void())
+
+    InworldSession->GetClient()->SendTrigger(AgentId, Name, Params);
 }
 
 void UInworldApiSubsystem::SendNarrationEvent(const FString& AgentId, const FString& Content)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
+    EMPTY_ARG_RETURN(Content, void())
 
-    if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-    {
-        return;
-    }
-
-    InworldSession->InworldClient->SendNarrationEvent(AgentId, Content);
+    InworldSession->GetClient()->SendNarrationEvent(AgentId, Content);
 }
 
 void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(InputData, void())
 
-    InworldSession->InworldClient->SendSoundMessage(AgentId, InputData, OutputData);
+    InworldSession->GetClient()->SendSoundMessage(AgentId, InputData, OutputData);
 }
 
 void UInworldApiSubsystem::StartAudioSession(const FString& AgentId)
 {
-    InworldSession->InworldClient->SendAudioSessionStart(AgentId);
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
+
+    InworldSession->GetClient()->SendAudioSessionStart(AgentId);
 }
 
 void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
 {
-    InworldSession->InworldClient->SendAudioSessionStop(AgentId);
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
+
+    InworldSession->GetClient()->SendAudioSessionStop(AgentId);
 }
 
 void UInworldApiSubsystem::ChangeScene(const FString& SceneId)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(SceneId, void())
 
-    InworldSession->InworldClient->SendChangeSceneEvent(SceneId);
+    InworldSession->GetClient()->SendChangeSceneEvent(SceneId);
 }
 
 EInworldConnectionState UInworldApiSubsystem::GetConnectionState() const
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return EInworldConnectionState::Idle;
-    }
+    NO_CLIENT_RETURN(EInworldConnectionState::Idle)
 
     return InworldSession->GetConnectionState();
 }
 
 void UInworldApiSubsystem::GetConnectionError(FString& Message, int32& Code)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
-    InworldSession->InworldClient->GetConnectionError(Message, Code);
+    InworldSession->GetConnectionError(Message, Code);
 }
 
 void UInworldApiSubsystem::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
-    if (!ensureMsgf(InworldSession && InworldSession->InworldClient, TEXT("Inworld Session and Inworld Client must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
+    EMPTY_ARG_RETURN(InteractionId, void())
+    EMPTY_ARG_RETURN(UtteranceIds, void())
 
-	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-	{
-		return;
-	}
-
-    InworldSession->InworldClient->CancelResponse(AgentId, InteractionId, UtteranceIds);
+    InworldSession->GetClient()->CancelResponse(AgentId, InteractionId, UtteranceIds);
 }
 
 void UInworldApiSubsystem::StartAudioReplication()
@@ -387,9 +329,11 @@ void UInworldApiSubsystem::ReplicateAudioEventFromServer(FInworldAudioDataEvent&
 
 void UInworldApiSubsystem::HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet)
 {
-    if (!ensureMsgf(InworldSession, TEXT("Inworld Session must be valid!")))
-    {
-        return;
-    }
+    NO_SESSION_RETURN(void())
+
     InworldSession->HandlePacket(FInworldWrappedPacket(Packet));
 }
+
+#undef EMPTY_ARG_RETURN
+#undef NO_SESSION_RETURN
+#undef NO_CLIENT_RETURN

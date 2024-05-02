@@ -61,7 +61,7 @@ public:
 	void Destroy();
 
 	UFUNCTION(BlueprintPure, Category = "Client")
-	UInworldClient* GetClient() const { return InworldClient; }
+	UInworldClient* GetClient() const { return Client; }
 
 	UFUNCTION()
 	void HandlePacket(const FInworldWrappedPacket& WrappedPacket);
@@ -87,15 +87,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
 	UFUNCTION(BlueprintCallable, Category = "Session")
-	void PauseSession() { InworldClient->PauseSession(); }
+	void PauseSession();
 	UFUNCTION(BlueprintCallable, Category = "Session")
-	void ResumeSession() { InworldClient->ResumeSession(); }
+	void ResumeSession();
 
 	UFUNCTION(BlueprintPure, Category = "Session")
-	FString GetSessionId() const { return InworldClient->GetSessionId(); }
+	FString GetSessionId() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Session")
-	void SaveSession(FOnInworldSessionSavedCallback Callback) { InworldClient->SaveSession(Callback); }
+	void SaveSession(FOnInworldSessionSavedCallback Callback);
 
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void LoadCharacter(UInworldCharacter* Character) { LoadCharacters({ Character }); }
@@ -107,11 +107,11 @@ public:
 	void UnloadCharacters(const TArray<UInworldCharacter*>& Characters);
 
 	UFUNCTION(BlueprintCallable, Category = "Load")
-	void LoadSavedState(const FInworldSave& Save) { InworldClient->LoadSavedState(Save); }
+	void LoadSavedState(const FInworldSave& Save);
 	UFUNCTION(BlueprintCallable, Category = "Load")
-	void LoadCapabilities(const FInworldCapabilitySet& CapabilitySet) { InworldClient->LoadCapabilities(CapabilitySet); }
+	void LoadCapabilities(const FInworldCapabilitySet& CapabilitySet);
 	UFUNCTION(BlueprintCallable, Category = "Load")
-	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile) { InworldClient->LoadPlayerProfile(PlayerProfile); }
+	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
 	void SendTextMessage(UInworldCharacter* Character, const FString& Message);
@@ -148,9 +148,9 @@ public:
 	void CancelResponse(UInworldCharacter* Character, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
 	UFUNCTION(BlueprintPure, Category = "Connection")
-	EInworldConnectionState GetConnectionState() const { return InworldClient->GetConnectionState(); }
+	EInworldConnectionState GetConnectionState() const;
 	UFUNCTION(BlueprintPure, Category = "Connection")
-	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const { InworldClient->GetConnectionError(OutErrorMessage, OutErrorCode); }
+	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const;
 
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldConnectionStateChanged OnConnectionStateChangedDelegate;
@@ -173,7 +173,7 @@ private:
 
 private:
 	UPROPERTY()
-	UInworldClient* InworldClient;
+	UInworldClient* Client;
 
 	UFUNCTION()
 	void OnRep_IsLoaded();
@@ -229,9 +229,6 @@ private:
 	float CurrentRetryConnectionTime = 1.0f;
 
 	FTimerHandle RetryConnectionTimerHandle;
-
-	// Temp: Hack until deprecated functions are removed
-	friend class UInworldApiSubsystem;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)

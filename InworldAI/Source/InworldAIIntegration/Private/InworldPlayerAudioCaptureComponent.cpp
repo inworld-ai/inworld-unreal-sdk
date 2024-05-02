@@ -308,11 +308,17 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
         {
             if (bShouldCaptureVoice)
             {
-                InworldPlayer->SendAudioSessionStartToConversation();
+                if (!InworldPlayer->HasAudioSession())
+                {
+                    InworldPlayer->SendAudioSessionStartToConversation();
+                }
             }
             else
             {
-                InworldPlayer->SendAudioSessionStopToConversation();
+                if (InworldPlayer->HasAudioSession())
+                {
+                    InworldPlayer->SendAudioSessionStopToConversation();
+                }
             }
 
             bServerCapturingVoice = bShouldCaptureVoice;
