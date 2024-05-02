@@ -9,12 +9,16 @@
 #include "InworldPlayer.h"
 #include "InworldCharacter.h"
 #include "InworldSession.h"
+#include "InworldMacros.h"
 
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Engine/NetDriver.h"
 #include "Engine/Engine.h"
 
 #include "Net/UnrealNetwork.h"
+
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldPlayer, Arg, Return)
+#define NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(Session, Return)
 
 void UInworldPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -72,17 +76,28 @@ void UInworldPlayer::SetSession(UInworldSession* InSession)
 
 void UInworldPlayer::SendTextMessageToConversation(const FString& Text)
 {
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(ConversationId, void())
+	EMPTY_ARG_RETURN(Text, void())
+
 	Session->SendTextMessageToConversation(this, Text);
 }
 
 void UInworldPlayer::SendTriggerToConversation(const FString& Name, const TMap<FString, FString>& Params)
 {
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(ConversationId, void())
+	EMPTY_ARG_RETURN(Name, void())
+
 	Session->SendTriggerToConversation(this, Name, Params);
 }
 
 void UInworldPlayer::SendAudioSessionStartToConversation()
 {
-	if (ConversationId.IsEmpty() || bHasAudioSession)
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(ConversationId, void())
+
+	if (bHasAudioSession)
 	{
 		return;
 	}
@@ -92,7 +107,10 @@ void UInworldPlayer::SendAudioSessionStartToConversation()
 
 void UInworldPlayer::SendAudioSessionStopToConversation()
 {
-	if (ConversationId.IsEmpty() || !bHasAudioSession)
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(ConversationId, void())
+
+	if (!bHasAudioSession)
 	{
 		return;
 	}
@@ -102,6 +120,10 @@ void UInworldPlayer::SendAudioSessionStopToConversation()
 
 void UInworldPlayer::SendSoundMessageToConversation(const TArray<uint8>& Input, const TArray<uint8>& Output)
 {
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(ConversationId, void())
+	EMPTY_ARG_RETURN(Input, void())
+
 	if (!bHasAudioSession)
 	{
 		return;
@@ -198,9 +220,12 @@ void UInworldPlayer::UpdateConversation()
 		OnConversationChangedDelegateNative.Broadcast();
 		OnConversationChangedDelegate.Broadcast();
 
-		if (bHadAudioSession)
+		if (bHadAudioSession && !ConversationId.IsEmpty())
 		{
 			SendAudioSessionStartToConversation();
 		}
 	}
 }
+
+#undef EMPTY_ARG_RETURN
+#undef NO_SESSION_RETURN

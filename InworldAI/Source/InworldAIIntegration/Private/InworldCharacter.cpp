@@ -9,12 +9,16 @@
 #include "InworldCharacter.h"
 #include "InworldSession.h"
 #include "InworldPlayer.h"
+#include "InworldMacros.h"
 
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Engine/NetDriver.h"
 #include "Engine/Engine.h"
 
 #include "Net/UnrealNetwork.h"
+
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldCharacter, Arg, Return)
+#define NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(Session, Return)
 
 UInworldCharacter::UInworldCharacter()
 	: Super()
@@ -75,14 +79,14 @@ void UInworldCharacter::SetSession(UInworldSession* InSession)
 		return;
 	}
 
-	if (Session)
+	if (Session && !AgentInfo.BrainName.IsEmpty())
 	{
 		Session->UnregisterCharacter(this);
 	}
 
 	Session = InSession;
 
-	if (Session)
+	if (Session && !AgentInfo.BrainName.IsEmpty())
 	{
 		Session->RegisterCharacter(this);
 	}
@@ -90,36 +94,63 @@ void UInworldCharacter::SetSession(UInworldSession* InSession)
 
 void UInworldCharacter::SendTextMessage(const FString& Text)
 {
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
+	EMPTY_ARG_RETURN(Text, void())
+
 	Session->SendTextMessage(this, Text);
 }
 
 void UInworldCharacter::SendTrigger(const FString& Name, const TMap<FString, FString>& Params)
 {
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
+	EMPTY_ARG_RETURN(Name, void())
+
 	Session->SendTrigger(this, Name, Params);
 }
 
 void UInworldCharacter::SendNarrationEvent(const FString& Content)
 {
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
+	EMPTY_ARG_RETURN(Content, void())
+
 	Session->SendNarrationEvent(this, Content);
 }
 
 void UInworldCharacter::SendAudioSessionStart()
 {
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
+
 	Session->SendAudioSessionStart(this);
 }
 
 void UInworldCharacter::SendAudioSessionStop()
 {
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
+
 	Session->SendAudioSessionStop(this);
 }
 
 void UInworldCharacter::SendSoundMessage(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
+	EMPTY_ARG_RETURN(InputData, void())
+
 	Session->SendSoundMessage(this, InputData, OutputData);
 }
 
 void UInworldCharacter::CancelResponse(const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
+	EMPTY_ARG_RETURN(InteractionId, void())
+	EMPTY_ARG_RETURN(UtteranceIds, void())
+
 	Session->CancelResponse(this, InteractionId, UtteranceIds);
 }
 
@@ -262,3 +293,6 @@ TArray<FString> Inworld::CharactersToAgentIds(const TArray<UInworldCharacter*>& 
 	}
 	return AgentIds;
 }
+
+#undef EMPTY_ARG_RETURN
+#undef NO_SESSION_RETURN

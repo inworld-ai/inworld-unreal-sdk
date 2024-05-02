@@ -10,6 +10,7 @@
 #include "InworldCharacter.h"
 #include "InworldPlayer.h"
 #include "InworldClient.h"
+#include "InworldMacros.h"
 
 #include "InworldAIIntegrationModule.h"
 
@@ -19,8 +20,13 @@
 
 #include "Net/UnrealNetwork.h"
 
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldSession, Arg, Return)
+#define NO_CLIENT_RETURN(Return) EMPTY_ARG_RETURN(Client, Return)
+#define INVALID_CHARACTER_RETURN(Return) EMPTY_ARG_RETURN(Character, Return) EMPTY_ARG_RETURN(Character->GetAgentInfo().AgentId, Return)
+#define INVALID_PLAYER_RETURN(Return) EMPTY_ARG_RETURN(Player, Return) EMPTY_ARG_RETURN(Player->GetConversationId(), Return)
+
 UInworldSession::UInworldSession()
-	: InworldClient(nullptr)
+	: Client(nullptr)
 	, bIsLoaded(false)
 	, PacketVisitor(MakeShared<FInworldSessionPacketVisitor>(this))
 {}
@@ -39,6 +45,7 @@ void UInworldSession::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 	DOREPLIFETIME(UInworldSession, bIsLoaded);
 	DOREPLIFETIME(UInworldSession, RegisteredCharacters);
+	DOREPLIFETIME(UInworldSession, RegisteredPlayers);
 }
 
 int32 UInworldSession::GetFunctionCallspace(UFunction* Function, FFrame* Stack)
@@ -64,9 +71,9 @@ bool UInworldSession::CallRemoteFunction(UFunction* Function, void* Parms, FOutP
 
 void UInworldSession::Init()
 {
-	InworldClient = NewObject<UInworldClient>(this);
-	OnClientPacketReceivedHandle = InworldClient->OnPacketReceived().AddUObject(this, &UInworldSession::HandlePacket);
-	OnClientConnectionStateChangedHandle = InworldClient->OnConnectionStateChanged().AddLambda(
+	Client = NewObject<UInworldClient>(this);
+	OnClientPacketReceivedHandle = Client->OnPacketReceived().AddUObject(this, &UInworldSession::HandlePacket);
+	OnClientConnectionStateChangedHandle = Client->OnConnectionStateChanged().AddLambda(
 		[this](EInworldConnectionState ConnectionState) -> void
 		{
 			OnConnectionStateChangedDelegateNative.Broadcast(ConnectionState);
@@ -96,7 +103,7 @@ void UInworldSession::Init()
 			}
 		}
 	);
-	OnClientPerceivedLatencyHandle = InworldClient->OnPerceivedLatency().AddLambda(
+	OnClientPerceivedLatencyHandle = Client->OnPerceivedLatency().AddLambda(
 		[this](const FString& InteractionId, int32 LatencyMs) -> void
 		{
 			OnPerceivedLatencyDelegateNative.Broadcast(InteractionId, LatencyMs);
@@ -112,20 +119,20 @@ void UInworldSession::Destroy()
 	{
 		UnregisterCharacter(RegisteredCharacter);
 	}
-	if (IsValid(InworldClient))
+	if (IsValid(Client))
 	{
 #if ENGINE_MAJOR_VERSION == 5
-		InworldClient->MarkAsGarbage();
+		Client->MarkAsGarbage();
 #endif
 
 #if ENGINE_MAJOR_VERSION == 4
-		InworldClient->MarkPendingKill();
+		Client->MarkPendingKill();
 #endif
-		InworldClient->OnPacketReceived().Remove(OnClientPacketReceivedHandle);
-		InworldClient->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
-		InworldClient->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
+		Client->OnPacketReceived().Remove(OnClientPacketReceivedHandle);
+		Client->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
+		Client->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
 	}
-	InworldClient = nullptr;
+	Client = nullptr;
 }
 
 void UInworldSession::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
@@ -173,12 +180,11 @@ void UInworldSession::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
 
 void UInworldSession::RegisterCharacter(UInworldCharacter* Character)
 {
+	EMPTY_ARG_RETURN(Character, void())
+
 	const FString& BrainName = Character->GetAgentInfo().BrainName;
 
-	if (BrainName.IsEmpty())
-	{
-		return;
-	}
+	EMPTY_ARG_RETURN(BrainName, void())
 
 	if (!ensureMsgf(!BrainNameToCharacter.Contains(BrainName), TEXT("UInworldSession::RegisterInworldCharacter: Character already registered for Brain: %s!"), *BrainName))
 	{
@@ -198,19 +204,18 @@ void UInworldSession::RegisterCharacter(UInworldCharacter* Character)
 		}
 		else
 		{
-			InworldClient->LoadCharacter(BrainName);
+			Client->LoadCharacter(BrainName);
 		}
 	}
 }
 
 void UInworldSession::UnregisterCharacter(UInworldCharacter* Character)
 {
+	EMPTY_ARG_RETURN(Character, void())
+
 	const FString& BrainName = Character->GetAgentInfo().BrainName;
 
-	if (BrainName.IsEmpty())
-	{
-		return;
-	}
+	EMPTY_ARG_RETURN(BrainName, void())
 
 	if (!ensureMsgf(BrainNameToCharacter.Contains(BrainName) && BrainNameToCharacter[BrainName] == Character, TEXT("UInworldSession::UnregisterInworldCharacter: Component mismatch for Brain: %s!"), *BrainName))
 	{
@@ -220,44 +225,111 @@ void UInworldSession::UnregisterCharacter(UInworldCharacter* Character)
 	AgentIdToCharacter.Remove(Character->GetAgentInfo().AgentId);
 	BrainNameToCharacter.Remove(BrainName);
 	RegisteredCharacters.Remove(Character);
-	InworldClient->UnloadCharacter(BrainName);
+	Client->UnloadCharacter(BrainName);
 	Character->Unpossess();
 }
 
 void UInworldSession::RegisterPlayer(UInworldPlayer* Player)
 {
+	EMPTY_ARG_RETURN(Player, void())
+
 	RegisteredPlayers.Add(Player);
 }
 
 void UInworldSession::UnregisterPlayer(UInworldPlayer* Player)
 {
+	EMPTY_ARG_RETURN(Player, void())
+
 	RegisteredPlayers.Remove(Player);
 }
 
 void UInworldSession::StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save, const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet)
 {
-	InworldClient->StartSession(SceneId, PlayerProfile, Auth, Save, SessionToken, CapabilitySet);
+	NO_CLIENT_RETURN(void())
+
+	Client->StartSession(SceneId, PlayerProfile, Auth, Save, SessionToken, CapabilitySet);
 }
 
 void UInworldSession::StopSession()
 {
 	UnpossessAgents();
-	InworldClient->StopSession();
+	NO_CLIENT_RETURN(void())
+
+	Client->StopSession();
+}
+
+void UInworldSession::PauseSession()
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->PauseSession();
+}
+
+void UInworldSession::ResumeSession()
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->ResumeSession();
+}
+
+FString UInworldSession::GetSessionId() const
+{
+	NO_CLIENT_RETURN({})
+
+	return Client->GetSessionId();
+}
+
+void UInworldSession::SaveSession(FOnInworldSessionSavedCallback Callback)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->SaveSession(Callback);
 }
 
 void UInworldSession::LoadCharacters(const TArray<UInworldCharacter*>& Characters)
 {
-	InworldClient->LoadCharacters(Inworld::CharactersToAgentIds(Characters));
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(Characters, void())
+
+	Client->LoadCharacters(Inworld::CharactersToAgentIds(Characters));
 }
 
 void UInworldSession::UnloadCharacters(const TArray<UInworldCharacter*>& Characters)
 {
-	InworldClient->UnloadCharacters(Inworld::CharactersToAgentIds(Characters));
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(Characters, void())
+
+	Client->UnloadCharacters(Inworld::CharactersToAgentIds(Characters));
+}
+
+void UInworldSession::LoadSavedState(const FInworldSave& Save)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->LoadSavedState(Save);
+}
+
+void UInworldSession::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->LoadCapabilities(CapabilitySet);
+}
+
+void UInworldSession::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->LoadPlayerProfile(PlayerProfile);
 }
 
 void UInworldSession::SendTextMessage(UInworldCharacter* Character, const FString& Message)
 {
-	auto Packet = InworldClient->SendTextMessage(Character->GetAgentInfo().AgentId, Message).Packet;
+	NO_CLIENT_RETURN(void())
+	INVALID_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(Message, void())
+
+	auto Packet = Client->SendTextMessage(Character->GetAgentInfo().AgentId, Message).Packet;
 	if (Packet.IsValid())
 	{
 		Packet->Accept(*PacketVisitor);
@@ -266,7 +338,11 @@ void UInworldSession::SendTextMessage(UInworldCharacter* Character, const FStrin
 
 void UInworldSession::SendTextMessageToConversation(UInworldPlayer* Player, const FString& Message)
 {
-	auto Packet = InworldClient->SendTextMessageToConversation(Player->GetConversationId(), Message).Packet;
+	NO_CLIENT_RETURN(void())
+	INVALID_PLAYER_RETURN(void())
+	EMPTY_ARG_RETURN(Message, void())
+
+	auto Packet = Client->SendTextMessageToConversation(Player->GetConversationId(), Message).Packet;
 	if (Packet.IsValid())
 	{
 		Packet->Accept(*PacketVisitor);
@@ -275,58 +351,112 @@ void UInworldSession::SendTextMessageToConversation(UInworldPlayer* Player, cons
 
 void UInworldSession::SendSoundMessage(UInworldCharacter* Character, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-	InworldClient->SendSoundMessage(Character->GetAgentInfo().AgentId, InputData, OutputData);
+	NO_CLIENT_RETURN(void())
+	INVALID_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(InputData, void())
+
+	Client->SendSoundMessage(Character->GetAgentInfo().AgentId, InputData, OutputData);
 }
 
 void UInworldSession::SendSoundMessageToConversation(UInworldPlayer* Player, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-	InworldClient->SendSoundMessageToConversation(Player->GetConversationId(), InputData, OutputData);
+	NO_CLIENT_RETURN(void())
+	INVALID_PLAYER_RETURN(void())
+	EMPTY_ARG_RETURN(InputData, void())
+
+	Client->SendSoundMessageToConversation(Player->GetConversationId(), InputData, OutputData);
 }
 
 void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character)
 {
-	InworldClient->SendAudioSessionStart(Character->GetAgentInfo().AgentId);
+	NO_CLIENT_RETURN(void())
+	INVALID_CHARACTER_RETURN(void())
+
+	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId);
 }
 
 void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player)
 {
-	InworldClient->SendAudioSessionStartToConversation(Player->GetConversationId());
+	NO_CLIENT_RETURN(void())
+	INVALID_PLAYER_RETURN(void())
+
+	Client->SendAudioSessionStartToConversation(Player->GetConversationId());
 }
 
 void UInworldSession::SendAudioSessionStop(UInworldCharacter* Character)
 {
-	InworldClient->SendAudioSessionStop(Character->GetAgentInfo().AgentId);
+	NO_CLIENT_RETURN(void())
+	INVALID_CHARACTER_RETURN(void())
+
+	Client->SendAudioSessionStop(Character->GetAgentInfo().AgentId);
 }
 
 void UInworldSession::SendAudioSessionStopToConversation(UInworldPlayer* Player)
 {
-	InworldClient->SendAudioSessionStopToConversation(Player->GetConversationId());
+	NO_CLIENT_RETURN(void())
+	INVALID_PLAYER_RETURN(void())
+
+	Client->SendAudioSessionStopToConversation(Player->GetConversationId());
 }
 
 void UInworldSession::SendNarrationEvent(UInworldCharacter* Character, const FString& Content)
 {
-	InworldClient->SendNarrationEvent(Character->GetAgentInfo().AgentId, Content);
+	NO_CLIENT_RETURN(void())
+	INVALID_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(Content, void())
+
+	Client->SendNarrationEvent(Character->GetAgentInfo().AgentId, Content);
 }
 
 void UInworldSession::SendTrigger(UInworldCharacter* Character, const FString& Name, const TMap<FString, FString>& Params)
 {
-	InworldClient->SendTrigger(Character->GetAgentInfo().AgentId, Name, Params);
+	NO_CLIENT_RETURN(void())
+	INVALID_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(Name, void())
+
+	Client->SendTrigger(Character->GetAgentInfo().AgentId, Name, Params);
 }
 
 void UInworldSession::SendTriggerToConversation(UInworldPlayer* Player, const FString& Name, const TMap<FString, FString>& Params)
 {
-	InworldClient->SendTrigger(Player->GetConversationId(), Name, Params);
+	NO_CLIENT_RETURN(void())
+	INVALID_PLAYER_RETURN(void())
+	EMPTY_ARG_RETURN(Name, void())
+
+	Client->SendTriggerToConversation(Player->GetConversationId(), Name, Params);
 }
 
 void UInworldSession::SendChangeSceneEvent(const FString& SceneName)
 {
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(SceneName, void())
+
 	UnpossessAgents();
-	InworldClient->SendChangeSceneEvent(SceneName);
+	Client->SendChangeSceneEvent(SceneName);
 }
 
 void UInworldSession::CancelResponse(UInworldCharacter* Character, const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
-	InworldClient->CancelResponse(Character->GetAgentInfo().AgentId, InteractionId, UtteranceIds);
+	NO_CLIENT_RETURN(void())
+	INVALID_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(InteractionId, void())
+	EMPTY_ARG_RETURN(UtteranceIds, void())
+
+	Client->CancelResponse(Character->GetAgentInfo().AgentId, InteractionId, UtteranceIds);
+}
+
+EInworldConnectionState UInworldSession::GetConnectionState() const
+{
+	NO_CLIENT_RETURN(EInworldConnectionState::Idle)
+
+	return Client->GetConnectionState();
+}
+
+void UInworldSession::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->GetConnectionError(OutErrorMessage, OutErrorCode);
 }
 
 void UInworldSession::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
@@ -362,7 +492,7 @@ void UInworldSession::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
 
 	if (BrainNames.Num() > 0)
 	{
-		InworldClient->LoadCharacters(BrainNames);
+		Client->LoadCharacters(BrainNames);
 	}
 
 	bIsLoaded = true;
@@ -437,3 +567,8 @@ void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldChangeSc
 {
 	Session->PossessAgents(Event.AgentInfos);
 }
+
+#undef EMPTY_ARG_RETURN
+#undef NO_CLIENT_RETURN
+#undef INVALID_CHARACTER_RETURN
+#undef INVALID_PLAYER_RETURN

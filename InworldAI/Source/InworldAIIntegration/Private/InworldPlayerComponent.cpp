@@ -7,10 +7,14 @@
 
 #include "InworldPlayerComponent.h"
 #include "InworldApi.h"
+#include "InworldMacros.h"
 #include "InworldCharacterComponent.h"
 
 #include <Engine/World.h>
 #include <Net/UnrealNetwork.h>
+
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldPlayerComponent, Arg, Return)
+#define NO_PLAYER_RETURN(Return) EMPTY_ARG_RETURN(InworldPlayer, Return)
 
 UInworldPlayerComponent::UInworldPlayerComponent()
     : Super()
@@ -122,48 +126,69 @@ TArray<UInworldCharacterComponent*> UInworldPlayerComponent::GetTargetInworldCha
 
 void UInworldPlayerComponent::ContinueMultiAgentConversation()
 {
+    NO_PLAYER_RETURN(void())
+
     InworldPlayer->SendTriggerToConversation(TEXT("inworld.conversation.next_turn"), {});
 }
 
 void UInworldPlayerComponent::SetTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
+    NO_PLAYER_RETURN(void())
+
     InworldPlayer->AddTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
 }
 
 void UInworldPlayerComponent::ClearTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
+    NO_PLAYER_RETURN(void())
+
     InworldPlayer->RemoveTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
 }
 
 void UInworldPlayerComponent::ClearAllTargetInworldCharacters()
 {
+    NO_PLAYER_RETURN(void())
+
     InworldPlayer->ClearAllTargetCharacters();
 }
 
 void UInworldPlayerComponent::SendTextMessageToTarget(const FString& Message)
 {
-    if (!Message.IsEmpty())
-    {
-        InworldPlayer->SendTextMessageToConversation(Message);
-    }
+    NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(Message, void())
+
+    InworldPlayer->SendTextMessageToConversation(Message);
 }
 
 void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params)
 {
+    NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(Name, void())
+
     InworldPlayer->SendTriggerToConversation(Name, Params);
 }
 
 void UInworldPlayerComponent::StartAudioSessionWithTarget()
 {
+    NO_PLAYER_RETURN(void())
+
     InworldPlayer->SendAudioSessionStartToConversation();
 }
 
 void UInworldPlayerComponent::StopAudioSessionWithTarget()
 {
+    NO_PLAYER_RETURN(void())
+
     InworldPlayer->SendAudioSessionStopToConversation();
 }
 
 void UInworldPlayerComponent::SendAudioMessageToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
+    NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(InputData, void())
+
     InworldPlayer->SendSoundMessageToConversation(InputData, OutputData);
 }
+
+#undef EMPTY_ARG_RETURN
+#undef NO_PLAYER_RETURN

@@ -91,6 +91,9 @@ public:
 	FOnInworldPlayerConversationChanged OnConversationChangedDelegate;
 	FOnInworldPlayerConversationChangedNative& OnConversationChanged() { return OnConversationChangedDelegateNative; }
 
+	UFUNCTION()
+	bool HasAudioSession() const { return bHasAudioSession; }
+
 private:
 	void UpdateConversation();
 
