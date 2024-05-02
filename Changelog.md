@@ -1,3 +1,6 @@
+# 1.5.1
+- Fix for UE 5.4 packaging
+
 # 1.5.0
 - Fix for Dialog Map
 - Fix character attachments for audio
