@@ -185,10 +185,7 @@ private:
 	FDelegateHandle OnClientConnectionStateChangedHandle;
 	FDelegateHandle OnClientPerceivedLatencyHandle;
 
-	UFUNCTION()
-	void OnRep_RegisteredCharacters();
-
-	UPROPERTY(ReplicatedUsing=OnRep_RegisteredCharacters)
+	UPROPERTY(Replicated)
 	TArray<UInworldCharacter*> RegisteredCharacters;
 	UPROPERTY(Replicated)
 	TArray<UInworldPlayer*> RegisteredPlayers;

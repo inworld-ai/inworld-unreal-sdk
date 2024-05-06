@@ -523,20 +523,6 @@ void UInworldSession::OnRep_IsLoaded()
 	OnLoadedDelegate.Broadcast(bIsLoaded);
 }
 
-void UInworldSession::OnRep_RegisteredCharacters()
-{
-	BrainNameToCharacter = {};
-	AgentIdToCharacter = {};
-	BrainNameToAgentInfo = {};
-	for (UInworldCharacter* Character : RegisteredCharacters)
-	{
-		const FInworldAgentInfo& AgentInfo = Character->GetAgentInfo();
-		BrainNameToCharacter.Add(AgentInfo.BrainName, Character);
-		AgentIdToCharacter.Add(AgentInfo.AgentId, Character);
-		BrainNameToAgentInfo.Add(AgentInfo.BrainName, AgentInfo);
-	}
-}
-
 void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldConversationUpdateEvent& Event)
 {
 	if (Event.EventType == EInworldConversationUpdateType::EVICTED)
