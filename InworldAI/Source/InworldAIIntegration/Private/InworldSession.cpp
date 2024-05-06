@@ -78,29 +78,6 @@ void UInworldSession::Init()
 		{
 			OnConnectionStateChangedDelegateNative.Broadcast(ConnectionState);
 			OnConnectionStateChangedDelegate.Broadcast(ConnectionState);
-
-			if (ConnectionState == EInworldConnectionState::Connected)
-			{
-				CurrentRetryConnectionTime = 1.f;
-			}
-
-			if (ConnectionState == EInworldConnectionState::Disconnected)
-			{
-				UWorld* World = GetWorld();
-				if (!World || World->bIsTearingDown)
-				{
-					return;
-				}
-				if (CurrentRetryConnectionTime == 0.f)
-				{
-					ResumeSession();
-				}
-				else
-				{
-					World->GetTimerManager().SetTimer(RetryConnectionTimerHandle, this, &UInworldSession::ResumeSession, CurrentRetryConnectionTime);
-				}
-				CurrentRetryConnectionTime += FMath::Min(CurrentRetryConnectionTime + RetryConnectionIntervalTime, MaxRetryConnectionTime);
-			}
 		}
 	);
 	OnClientPerceivedLatencyHandle = Client->OnPerceivedLatency().AddLambda(

@@ -8,9 +8,13 @@
 
 #include "InworldSessionComponent.h"
 #include "InworldApi.h"
+#include "InworldMacros.h"
 
 #include <Engine/World.h>
 #include <Net/UnrealNetwork.h>
+
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldSessionComponent, Arg, Return)
+#define NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(InworldSession, Return) EMPTY_ARG_RETURN(InworldSession->GetClient(), Return)
 
 UInworldSessionComponent::UInworldSessionComponent()
 	: Super()
@@ -78,9 +82,190 @@ bool UInworldSessionComponent::ReplicateSubobjects(UActorChannel* Channel, FOutB
 #endif
 }
 
+bool UInworldSessionComponent::GetIsLoaded() const
+{
+	NO_SESSION_RETURN(false)
+
+	return InworldSession->IsLoaded();
+}
+
+void UInworldSessionComponent::StartSession()
+{
+	NO_SESSION_RETURN(void())
+
+	InworldSession->GetClient()->SetEnvironment(Environment);
+	InworldSession->StartSession(SceneId, PlayerProfile, Auth, {}, {}, CapabilitySet);
+}
+
+void UInworldSessionComponent::StartSessionFromSave(const FInworldSave& Save)
+{
+	NO_SESSION_RETURN(void())
+
+	InworldSession->GetClient()->SetEnvironment(Environment);
+	InworldSession->StartSession(SceneId, PlayerProfile, Auth, Save, {}, CapabilitySet);
+}
+
+void UInworldSessionComponent::StartSessionFromToken(const FInworldSessionToken& Token)
+{
+	NO_SESSION_RETURN(void())
+
+	InworldSession->GetClient()->SetEnvironment(Environment);
+	InworldSession->StartSession(SceneId, PlayerProfile, Auth, {}, Token, CapabilitySet);
+}
+
+void UInworldSessionComponent::StopSession()
+{
+	NO_SESSION_RETURN(void())
+
+	InworldSession->StopSession();
+}
+
+void UInworldSessionComponent::PauseSession()
+{
+	NO_SESSION_RETURN(void())
+
+	InworldSession->PauseSession();
+}
+
+void UInworldSessionComponent::ResumeSession()
+{
+	NO_SESSION_RETURN(void())
+
+	InworldSession->ResumeSession();
+}
+
+FString UInworldSessionComponent::GetSessionId() const
+{
+	NO_SESSION_RETURN({})
+
+	return InworldSession->GetSessionId();
+}
+
+void UInworldSessionComponent::SaveSession(FOnInworldSessionSavedCallback Callback)
+{
+	NO_SESSION_RETURN(void())
+
+	InworldSession->SaveSession(Callback);
+}
+
+EInworldConnectionState UInworldSessionComponent::GetConnectionState() const
+{
+	NO_SESSION_RETURN(EInworldConnectionState::Idle)
+
+	return InworldSession->GetConnectionState();
+}
+
+void UInworldSessionComponent::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const
+{
+	NO_SESSION_RETURN(void())
+
+	return InworldSession->GetConnectionError(OutErrorMessage, OutErrorCode);
+}
+
+void UInworldSessionComponent::SetSceneId(const FString& InSceneId)
+{
+	SceneId = InSceneId;
+
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	{
+		NO_SESSION_RETURN(void())
+
+		if (GetConnectionState() == EInworldConnectionState::Connected)
+		{
+			InworldSession->SendChangeSceneEvent(InSceneId);
+		}
+	}
+}
+
+void UInworldSessionComponent::SetPlayerProfile(const FInworldPlayerProfile& InPlayerProfile)
+{
+	PlayerProfile = InPlayerProfile;
+
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	{
+		NO_SESSION_RETURN(void())
+
+		if (GetConnectionState() == EInworldConnectionState::Connected)
+		{
+			InworldSession->LoadPlayerProfile(InPlayerProfile);
+		}
+	}
+}
+
+void UInworldSessionComponent::SetCapabilities(const FInworldCapabilitySet& InCapabilitySet)
+{
+	CapabilitySet = InCapabilitySet;
+
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	{
+		NO_SESSION_RETURN(void())
+
+		if (GetConnectionState() == EInworldConnectionState::Connected)
+		{
+			InworldSession->LoadCapabilities(InCapabilitySet);
+		}
+	}
+}
+
 void UInworldSessionComponent::OnRep_InworldSession()
 {
 	GetWorld()->GetSubsystem<UInworldApiSubsystem>()->SetInworldSession(InworldSession);
 	OnSessionCreatedDelegateNative.Broadcast();
 	OnSessionCreatedDelegate.Broadcast();
+
+	const bool bIsLoaded = GetIsLoaded();
+	OnSessionLoadedDelegateNative.Broadcast(bIsLoaded);
+	OnSessionLoadedDelegate.Broadcast(bIsLoaded);
+
+	InworldSession->OnLoaded().AddLambda(
+		[this](bool bIsLoaded) -> void
+		{
+			OnSessionLoadedDelegateNative.Broadcast(bIsLoaded);
+			OnSessionLoadedDelegate.Broadcast(bIsLoaded);
+		}
+	);
+
+	const EInworldConnectionState ConnectionState = GetConnectionState();
+	OnSessionConnectionStateChangedDelegateNative.Broadcast(ConnectionState);
+	OnSessionConnectionStateChangedDelegate.Broadcast(ConnectionState);
+
+	InworldSession->OnConnectionStateChanged().AddLambda(
+		[this](EInworldConnectionState ConnectionState) -> void
+		{
+			OnSessionConnectionStateChangedDelegateNative.Broadcast(ConnectionState);
+			OnSessionConnectionStateChangedDelegate.Broadcast(ConnectionState);
+
+			UWorld* World = GetWorld();
+			if (!World || World->bIsTearingDown)
+			{
+				return;
+			}
+			if (World->GetNetMode() != NM_Client)
+			{
+				if (ConnectionState == EInworldConnectionState::Connected)
+				{
+					CurrentRetryConnectionTime = 1.f;
+				}
+
+				if (ConnectionState == EInworldConnectionState::Disconnected)
+				{
+					if (CurrentRetryConnectionTime == 0.f)
+					{
+						ResumeSession();
+					}
+					else
+					{
+						World->GetTimerManager().SetTimer(RetryConnectionTimerHandle, this, &UInworldSessionComponent::ResumeSession, CurrentRetryConnectionTime);
+					}
+					CurrentRetryConnectionTime += FMath::Min(CurrentRetryConnectionTime + RetryConnectionIntervalTime, MaxRetryConnectionTime);
+				}
+			}
+		}
+	);
 }
+
+#undef EMPTY_ARG_RETURN
+#undef NO_SESSION_RETURN
