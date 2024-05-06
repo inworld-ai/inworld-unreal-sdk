@@ -22,13 +22,13 @@ class INWORLDAIINTEGRATION_API UInworldBlueprintFunctionLibrary : public UBluepr
 	GENERATED_BODY()
 	
 public:
-	UFUNCTION(BlueprintPure, meta = (BlueprintAutocast, DisplayName = "To Inworld Session (Inworld Session Component)", CompactNodeTitle = "->"))
+	UFUNCTION(BlueprintPure, Category = "Inworld|Component", meta = (BlueprintAutocast, DisplayName = "To Inworld Session (Inworld Session Component)", CompactNodeTitle = "->"))
 	static UInworldSession* Conv_InworldSessionComponentToSession(UInworldSessionComponent* SessionComponent);
 
-	UFUNCTION(BlueprintPure, meta = (BlueprintAutocast, DisplayName = "To Inworld Character (Inworld Character Component)", CompactNodeTitle = "->"))
+	UFUNCTION(BlueprintPure, Category = "Inworld|Component", meta = (BlueprintAutocast, DisplayName = "To Inworld Character (Inworld Character Component)", CompactNodeTitle = "->"))
 	static UInworldCharacter* Conv_InworldCharacterComponentToCharacter(UInworldCharacterComponent* CharacterComponent);
 
-	UFUNCTION(BlueprintPure, meta = (BlueprintAutocast, DisplayName = "To Inworld Player (Inworld Player Component)", CompactNodeTitle = "->"))
+	UFUNCTION(BlueprintPure, Category = "Inworld|Component", meta = (BlueprintAutocast, DisplayName = "To Inworld Player (Inworld Player Component)", CompactNodeTitle = "->"))
 	static UInworldPlayer* Conv_InworldPlayerComponentToPlayer(UInworldPlayerComponent* PlayerComponent);
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Audio")
