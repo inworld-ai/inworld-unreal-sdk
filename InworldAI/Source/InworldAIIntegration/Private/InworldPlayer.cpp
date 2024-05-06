@@ -207,23 +207,22 @@ void UInworldPlayer::ClearAllTargetCharacters()
 
 void UInworldPlayer::UpdateConversation()
 {
-	FString NextConversationId = Session->GetClient()->UpdateConversation(ConversationId, Inworld::CharactersToAgentIds(TargetCharacters), false);
-	if (ConversationId != NextConversationId)
+	NO_SESSION_RETURN(void())
+
+	FString NextConversationId = Session->GetClient()->UpdateConversation(ConversationId, Inworld::CharactersToAgentIds(TargetCharacters), true);
+	const bool bHadAudioSession = bHasAudioSession;
+	if (bHasAudioSession)
 	{
-		const bool bHadAudioSession = bHasAudioSession;
-		if (bHasAudioSession)
-		{
-			SendAudioSessionStopToConversation();
-		}
+		SendAudioSessionStopToConversation();
+	}
 
-		ConversationId = NextConversationId;
-		OnConversationChangedDelegateNative.Broadcast();
-		OnConversationChangedDelegate.Broadcast();
+	ConversationId = NextConversationId;
+	OnConversationChangedDelegateNative.Broadcast();
+	OnConversationChangedDelegate.Broadcast();
 
-		if (bHadAudioSession && !ConversationId.IsEmpty())
-		{
-			SendAudioSessionStartToConversation();
-		}
+	if (bHadAudioSession && !ConversationId.IsEmpty())
+	{
+		SendAudioSessionStartToConversation();
 	}
 }
 
