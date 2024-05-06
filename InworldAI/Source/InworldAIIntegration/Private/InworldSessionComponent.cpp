@@ -12,6 +12,7 @@
 
 #include "InworldAIIntegrationModule.h"
 
+#include "TimerManager.h"
 #include <Engine/World.h>
 #include <Net/UnrealNetwork.h>
 
