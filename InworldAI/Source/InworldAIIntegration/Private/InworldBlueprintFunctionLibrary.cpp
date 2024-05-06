@@ -8,8 +8,30 @@
 
 #include "InworldBlueprintFunctionLibrary.h"
 
+#include "InworldSession.h"
+#include "InworldSessionComponent.h"
+#include "InworldCharacter.h"
+#include "InworldCharacterComponent.h"
+#include "InworldPlayer.h"
+#include "InworldPlayerComponent.h"
+
 #include "Audio.h"
 #include "Sound/SoundWave.h"
+
+UInworldSession* UInworldBlueprintFunctionLibrary::Conv_InworldSessionComponentToSession(UInworldSessionComponent* SessionComponent)
+{
+    return IInworldSessionOwnerInterface::Execute_GetInworldSession(SessionComponent);
+}
+
+UInworldCharacter* UInworldBlueprintFunctionLibrary::Conv_InworldCharacterComponentToCharacter(UInworldCharacterComponent* CharacterComponent)
+{
+    return IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(CharacterComponent);
+}
+
+UInworldPlayer* UInworldBlueprintFunctionLibrary::Conv_InworldPlayerComponentToPlayer(UInworldPlayerComponent* PlayerComponent)
+{
+    return IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(PlayerComponent);
+}
 
 bool UInworldBlueprintFunctionLibrary::SoundWaveToDataArray(USoundWave* SoundWave, TArray<uint8>& OutDataArray)
 {
