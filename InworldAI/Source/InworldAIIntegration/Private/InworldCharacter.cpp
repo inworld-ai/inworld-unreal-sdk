@@ -219,11 +219,6 @@ void UInworldCharacter::Unpossess()
 
 void UInworldCharacter::SetTargetPlayer(UInworldPlayer* Player)
 {
-	if (Player == nullptr)
-	{
-		ClearTargetPlayer();
-		return;
-	}
 	if (Player != TargetPlayer)
 	{
 		ClearTargetPlayer();
