@@ -219,13 +219,6 @@ private:
 	};
 
 	TSharedRef<FInworldSessionPacketVisitor> PacketVisitor;
-
-private:
-	float RetryConnectionIntervalTime = 0.25f;
-	float MaxRetryConnectionTime = 5.0f;
-	float CurrentRetryConnectionTime = 1.0f;
-
-	FTimerHandle RetryConnectionTimerHandle;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)
