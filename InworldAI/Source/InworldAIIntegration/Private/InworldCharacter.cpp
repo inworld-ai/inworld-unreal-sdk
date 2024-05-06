@@ -11,6 +11,8 @@
 #include "InworldPlayer.h"
 #include "InworldMacros.h"
 
+#include "InworldAIIntegrationModule.h"
+
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Engine/NetDriver.h"
 #include "Engine/Engine.h"
