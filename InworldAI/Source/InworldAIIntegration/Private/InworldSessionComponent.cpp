@@ -10,6 +10,8 @@
 #include "InworldApi.h"
 #include "InworldMacros.h"
 
+#include "InworldAIIntegrationModule.h"
+
 #include <Engine/World.h>
 #include <Net/UnrealNetwork.h>
 
