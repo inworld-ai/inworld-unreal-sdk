@@ -330,8 +330,18 @@ void UInworldApiSubsystem::ReplicateAudioEventFromServer(FInworldAudioDataEvent&
 void UInworldApiSubsystem::HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet)
 {
     NO_SESSION_RETURN(void())
+    EMPTY_ARG_RETURN(Packet, void())
 
-    InworldSession->HandlePacket(FInworldWrappedPacket(Packet));
+    UInworldCharacter* const* InworldCharacter = InworldSession->GetRegisteredCharacters().FindByPredicate(
+            [Packet](UInworldCharacter* InworldCharacter) -> bool
+            {
+                return InworldCharacter && InworldCharacter->GetAgentInfo().AgentId == Packet->Routing.Source.Name;
+            }
+    );
+    if (InworldCharacter != nullptr)
+    {
+        (*InworldCharacter)->HandlePacket(FInworldWrappedPacket(Packet));
+    }
 }
 
 #undef EMPTY_ARG_RETURN
