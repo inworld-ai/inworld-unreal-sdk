@@ -17,7 +17,8 @@
 #include <Net/UnrealNetwork.h>
 
 #define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldSessionComponent, Arg, Return)
-#define NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(InworldSession, Return) EMPTY_ARG_RETURN(InworldSession->GetClient(), Return)
+#define NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(InworldSession, Return)
+#define NO_CLIENT_RETURN(Return) NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(InworldSession->GetClient(), Return)
 
 UInworldSessionComponent::UInworldSessionComponent()
 	: Super()
@@ -94,7 +95,7 @@ bool UInworldSessionComponent::GetIsLoaded() const
 
 void UInworldSessionComponent::StartSession()
 {
-	NO_SESSION_RETURN(void())
+	NO_CLIENT_RETURN(void())
 
 	InworldSession->GetClient()->SetEnvironment(Environment);
 	InworldSession->StartSession(SceneId, PlayerProfile, Auth, {}, {}, CapabilitySet);
@@ -102,7 +103,7 @@ void UInworldSessionComponent::StartSession()
 
 void UInworldSessionComponent::StartSessionFromSave(const FInworldSave& Save)
 {
-	NO_SESSION_RETURN(void())
+	NO_CLIENT_RETURN(void())
 
 	InworldSession->GetClient()->SetEnvironment(Environment);
 	InworldSession->StartSession(SceneId, PlayerProfile, Auth, Save, {}, CapabilitySet);
@@ -110,7 +111,7 @@ void UInworldSessionComponent::StartSessionFromSave(const FInworldSave& Save)
 
 void UInworldSessionComponent::StartSessionFromToken(const FInworldSessionToken& Token)
 {
-	NO_SESSION_RETURN(void())
+	NO_CLIENT_RETURN(void())
 
 	InworldSession->GetClient()->SetEnvironment(Environment);
 	InworldSession->StartSession(SceneId, PlayerProfile, Auth, {}, Token, CapabilitySet);
@@ -118,21 +119,21 @@ void UInworldSessionComponent::StartSessionFromToken(const FInworldSessionToken&
 
 void UInworldSessionComponent::StopSession()
 {
-	NO_SESSION_RETURN(void())
+	NO_CLIENT_RETURN(void())
 
 	InworldSession->StopSession();
 }
 
 void UInworldSessionComponent::PauseSession()
 {
-	NO_SESSION_RETURN(void())
+	NO_CLIENT_RETURN(void())
 
 	InworldSession->PauseSession();
 }
 
 void UInworldSessionComponent::ResumeSession()
 {
-	NO_SESSION_RETURN(void())
+	NO_CLIENT_RETURN(void())
 
 	InworldSession->ResumeSession();
 }
@@ -272,3 +273,4 @@ void UInworldSessionComponent::OnRep_InworldSession()
 
 #undef EMPTY_ARG_RETURN
 #undef NO_SESSION_RETURN
+#undef NO_CLIENT_RETURN
