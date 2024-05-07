@@ -198,9 +198,19 @@ bool UInworldCharacterComponent::ReplicateSubobjects(UActorChannel* Channel, FOu
 
 void UInworldCharacterComponent::SetBrainName(const FString& Name)
 {
+#if WITH_EDITOR
+	UWorld* World = GetWorld();
+	if (World == nullptr || !World->IsPlayInEditor())
+	{
+		BrainName = Name;
+		return;
+	}
+#endif
 	NO_CHARACTER_RETURN(void())
+	
+	BrainName = Name;
 
-	InworldCharacter->SetBrainName(Name);
+	InworldCharacter->SetBrainName(BrainName);
 }
 
 FString UInworldCharacterComponent::GetBrainName() const
