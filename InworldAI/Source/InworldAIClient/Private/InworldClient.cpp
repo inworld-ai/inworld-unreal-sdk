@@ -263,7 +263,7 @@ void UInworldClient::StartSession(const FString& SceneId, const FInworldPlayerPr
 	Options.Base64 = TCHAR_TO_UTF8(*Auth.Base64Signature);
 	Options.ApiKey = TCHAR_TO_UTF8(*Auth.ApiKey);
 	Options.ApiSecret = TCHAR_TO_UTF8(*Auth.ApiSecret);
-	Options.ProjectName = TCHAR_TO_UTF8(FApp::GetProjectName());
+	Options.ProjectName = TCHAR_TO_UTF8(!PlayerProfile.ProjectName.IsEmpty() ? *PlayerProfile.ProjectName : FApp::GetProjectName());
 
 	ConvertPlayerProfile(PlayerProfile, Options.UserConfig);
 	ConvertCapabilities(CapabilitySet, Options.Capabilities);
