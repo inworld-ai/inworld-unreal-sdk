@@ -44,6 +44,7 @@ void UInworldSession::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	}
 
 	DOREPLIFETIME(UInworldSession, bIsLoaded);
+	DOREPLIFETIME(UInworldSession, ConnectionState);
 	DOREPLIFETIME(UInworldSession, RegisteredCharacters);
 	DOREPLIFETIME(UInworldSession, RegisteredPlayers);
 }
@@ -74,10 +75,10 @@ void UInworldSession::Init()
 	Client = NewObject<UInworldClient>(this);
 	OnClientPacketReceivedHandle = Client->OnPacketReceived().AddUObject(this, &UInworldSession::HandlePacket);
 	OnClientConnectionStateChangedHandle = Client->OnConnectionStateChanged().AddLambda(
-		[this](EInworldConnectionState ConnectionState) -> void
+		[this](EInworldConnectionState InworldConnectionState) -> void
 		{
-			OnConnectionStateChangedDelegateNative.Broadcast(ConnectionState);
-			OnConnectionStateChangedDelegate.Broadcast(ConnectionState);
+			ConnectionState = InworldConnectionState;
+			OnRep_ConnectionState();
 		}
 	);
 	OnClientPerceivedLatencyHandle = Client->OnPerceivedLatency().AddLambda(
@@ -424,9 +425,7 @@ void UInworldSession::CancelResponse(UInworldCharacter* Character, const FString
 
 EInworldConnectionState UInworldSession::GetConnectionState() const
 {
-	NO_CLIENT_RETURN(EInworldConnectionState::Idle)
-
-	return Client->GetConnectionState();
+	return ConnectionState;
 }
 
 void UInworldSession::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const
@@ -498,6 +497,12 @@ void UInworldSession::OnRep_IsLoaded()
 {
 	OnLoadedDelegateNative.Broadcast(bIsLoaded);
 	OnLoadedDelegate.Broadcast(bIsLoaded);
+}
+
+void UInworldSession::OnRep_ConnectionState()
+{
+	OnConnectionStateChangedDelegateNative.Broadcast(ConnectionState);
+	OnConnectionStateChangedDelegate.Broadcast(ConnectionState);
 }
 
 void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldConversationUpdateEvent& Event)

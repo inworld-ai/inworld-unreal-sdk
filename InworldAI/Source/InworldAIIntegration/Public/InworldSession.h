@@ -181,6 +181,12 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_IsLoaded)
 	bool bIsLoaded;
 
+	UFUNCTION()
+	void OnRep_ConnectionState();
+
+	UPROPERTY(ReplicatedUsing = OnRep_ConnectionState)
+	EInworldConnectionState ConnectionState;
+
 	FDelegateHandle OnClientPacketReceivedHandle;
 	FDelegateHandle OnClientConnectionStateChangedHandle;
 	FDelegateHandle OnClientPerceivedLatencyHandle;
