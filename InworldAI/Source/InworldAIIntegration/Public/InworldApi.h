@@ -36,7 +36,7 @@ public:
 
     void SetInworldSession(UInworldSession* Session);
     UFUNCTION(BlueprintPure, Category = "Session")
-    UInworldSession* GetInworldSession() const { return InworldSession; }
+    UInworldSession* GetInworldSession();
 
     /**
      * Start InworldAI session
