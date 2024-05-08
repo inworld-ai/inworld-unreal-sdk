@@ -505,6 +505,14 @@ void UInworldSession::OnRep_ConnectionState()
 	OnConnectionStateChangedDelegate.Broadcast(ConnectionState);
 }
 
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldControlEvent& Event)
+{
+	if (Event.Action == EInworldControlEventAction::WARNING)
+	{
+		UE_LOG(LogInworldAIIntegration, Warning, TEXT("%s"), *Event.Description);
+	}
+}
+
 void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldConversationUpdateEvent& Event)
 {
 	if (Event.EventType == EInworldConversationUpdateType::EVICTED)
