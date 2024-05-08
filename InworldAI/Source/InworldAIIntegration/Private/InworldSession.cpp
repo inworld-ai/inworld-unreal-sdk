@@ -137,7 +137,9 @@ void UInworldSession::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
 			{
 				(*TargetCharacter)->HandlePacket(WrappedPacket);
 			}
-
+		}
+		if (Source.Type == EInworldActorType::PLAYER)
+		{
 			if (TArray<FString>* AgentIds = ConversationIdToAgentIds.Find(ConversationId))
 			{
 				for (const FString& AgentId : *AgentIds)
