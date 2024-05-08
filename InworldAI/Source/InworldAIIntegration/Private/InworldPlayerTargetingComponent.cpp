@@ -40,15 +40,18 @@ void UInworldPlayerTargetingComponent::TickComponent(float DeltaTime, enum ELeve
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    if (InworldPlayer.IsValid())
-    {
-        UpdateTargetCharacters();
-    }
+    UpdateTargetCharacters();
 }
 
 void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
 {
+    if (!InworldPlayer.IsValid())
+    {
+        return;
+    }
+
     // clear all targets if just switched from multiple targeting
+    TArray<UInworldCharacter*> TargetCharacters = InworldPlayer->GetTargetCharacters();
     if (!bMultipleTargets && TargetCharacters.Num() > 1)
     {
         InworldPlayer->ClearAllTargetCharacters();
@@ -60,7 +63,7 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
     const FVector Location = GetOwner()->GetActorLocation();
     for (int32 i = 0; i < TargetCharacters.Num(); i++)
     {
-        UInworldCharacter* Character = TargetCharacters[i].Get();
+        UInworldCharacter* Character = TargetCharacters[i];
         AActor* OuterActor = Character->GetTypedOuter<AActor>();
         const FVector CharacterLocation = OuterActor != nullptr ? OuterActor->GetActorLocation() : FVector::ZeroVector;
         const float DistSq = FVector::DistSquared(Location, CharacterLocation);
@@ -147,7 +150,7 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
         return;
     }
 
-    UInworldCharacter* CurrentTarget = TargetCharacters.Num() != 0 ? TargetCharacters[0].Get() : nullptr;
+    UInworldCharacter* CurrentTarget = TargetCharacters.Num() != 0 ? TargetCharacters[0] : nullptr;
     if (CurrentTarget != BestTarget)
     {
         if (CurrentTarget)

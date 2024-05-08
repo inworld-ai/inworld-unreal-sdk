@@ -42,5 +42,4 @@ public:
 
 private:
 	TWeakObjectPtr<UInworldPlayer> InworldPlayer;
-	TArray<TWeakObjectPtr<UInworldCharacter>> TargetCharacters;
 };

@@ -529,12 +529,12 @@ void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldConversa
 
 void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldLoadCharactersEvent& Event)
 {
-	Session->UnpossessAgents();
 	Session->PossessAgents(Event.AgentInfos);
 }
 
 void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldChangeSceneEvent& Event)
 {
+	Session->UnpossessAgents();
 	Session->PossessAgents(Event.AgentInfos);
 }
 
