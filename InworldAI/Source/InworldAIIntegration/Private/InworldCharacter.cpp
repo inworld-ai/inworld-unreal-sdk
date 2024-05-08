@@ -121,12 +121,12 @@ void UInworldCharacter::SendNarrationEvent(const FString& Content)
 	Session->SendNarrationEvent(this, Content);
 }
 
-void UInworldCharacter::SendAudioSessionStart()
+void UInworldCharacter::SendAudioSessionStart(EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_SESSION_RETURN(void())
 	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
 
-	Session->SendAudioSessionStart(this);
+	Session->SendAudioSessionStart(this, MicrophoneMode);
 }
 
 void UInworldCharacter::SendAudioSessionStop()

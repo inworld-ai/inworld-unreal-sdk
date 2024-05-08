@@ -310,7 +310,7 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
             {
                 if (!InworldPlayer->HasAudioSession())
                 {
-                    InworldPlayer->SendAudioSessionStartToConversation();
+                    InworldPlayer->SendAudioSessionStartToConversation(MicMode);
                 }
             }
             else
@@ -328,13 +328,32 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
                 Rep_ServerCapturingVoice();
             }
         }
+        else if (bShouldCaptureVoice && InworldPlayer->HasAudioSession() && bIsMicModeDirty)
+        {
+            InworldPlayer->SendAudioSessionStartToConversation(MicMode);
+            InworldPlayer->SendAudioSessionStopToConversation();
+        }
     }
 }
 
 void UInworldPlayerAudioCaptureComponent::ServerSetMuted_Implementation(bool bInMuted)
 {
-    bMuted = bInMuted;
-    EvaluateVoiceCapture();
+    if (bMuted != bInMuted)
+    {
+        bMuted = bInMuted;
+        EvaluateVoiceCapture();
+    }
+}
+
+void UInworldPlayerAudioCaptureComponent::ServerSetMicMode_Implementation(EInworldMicrophoneMode InMicMode)
+{
+    if (MicMode != InMicMode)
+    {
+        MicMode = InMicMode;
+        bIsMicModeDirty = true;
+        EvaluateVoiceCapture();
+        bIsMicModeDirty = false;
+    }
 }
 
 void UInworldPlayerAudioCaptureComponent::SetCaptureDeviceById(const FString& DeviceId)

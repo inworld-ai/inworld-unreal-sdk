@@ -95,3 +95,11 @@ enum class EInworldConversationUpdateType : uint8
 	UPDATED = 2,
 	EVICTED = 3,
 };
+
+UENUM(BlueprintType)
+enum class EInworldMicrophoneMode : uint8
+{
+	UNKNOWN = 0 UMETA(Hidden),
+	OPEN_MIC = 1,
+	EXPECT_AUDIO_END = 2,
+};
