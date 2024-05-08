@@ -215,7 +215,8 @@ void UInworldCharacter::Unpossess()
 		}
 		OnPossessedDelegateNative.Broadcast(false);
 		OnPossessedDelegate.Broadcast(false);
-		AgentInfo = {};
+		AgentInfo.AgentId = {};
+		AgentInfo.GivenName = {};
 	}
 }
 
