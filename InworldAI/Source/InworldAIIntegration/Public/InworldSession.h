@@ -216,6 +216,7 @@ private:
 		{}
 		virtual ~FInworldSessionPacketVisitor() = default;
 
+		virtual void Visit(const FInworldControlEvent& Event) override;
 		virtual void Visit(const FInworldConversationUpdateEvent& Event) override;
 		virtual void Visit(const FInworldLoadCharactersEvent& Event) override;
 		virtual void Visit(const FInworldChangeSceneEvent& Event) override;
