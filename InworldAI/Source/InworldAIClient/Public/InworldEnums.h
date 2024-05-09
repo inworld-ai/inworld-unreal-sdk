@@ -23,6 +23,29 @@ enum class EInworldConnectionState : uint8
 };
 
 UENUM(BlueprintType)
+enum class EInworldConnectionErrorType : uint8
+{
+	SESSION_TOKEN_EXPIRED = 0,
+	SESSION_TOKEN_INVALID = 1,
+	SESSION_RESOURCES_EXHAUSTED = 2,
+	BILLING_TOKENS_EXHAUSTED = 3,
+	ACCOUNT_DISABLED = 4,
+	SESSION_INVALID = 5,
+	RESOURCE_NOT_FOUND = 6,
+	SAFETY_VIOLATION = 7,
+	SESSION_EXPIRED = 8,
+};
+
+UENUM(BlueprintType)
+enum class EInworldReconnectionType : uint8
+{
+	UNDEFINED = 0,
+	NO_RETRY = 1,
+	IMMEDIATE = 2,
+	TIMEOUT = 3,
+};
+
+UENUM(BlueprintType)
 enum class EInworldCharacterGesturePlayback : uint8
 {
 	UNSPECIFIED = 0,
