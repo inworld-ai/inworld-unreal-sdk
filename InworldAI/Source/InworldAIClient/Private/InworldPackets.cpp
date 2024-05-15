@@ -235,17 +235,6 @@ void FInworldConversationUpdateEvent::AppendDebugString(FString& Str) const
 	}
 }
 
-void FInworldConversationUpdateEvent::AppendDebugString(FString& Str) const
-{
-	AppendToDebugString(Str, TEXT("ConversationUpdate"));
-	AppendToDebugString(Str, EventType == EInworldConversationUpdateType::STARTED ? TEXT("STARTED") : EventType == EInworldConversationUpdateType::EVICTED ? TEXT("EVICTED") : TEXT("UPDATED"));
-	AppendToDebugString(Str, bIncludePlayer ? TEXT("IncludePlayer") : TEXT("ExcludePlayer"));
-	for (const auto& AgentId : Agents)
-	{
-		AppendToDebugString(Str, AgentId);
-	}
-}
-
 void FInworldEmotionEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Emotion"));

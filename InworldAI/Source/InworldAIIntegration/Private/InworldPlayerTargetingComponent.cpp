@@ -40,10 +40,7 @@ void UInworldPlayerTargetingComponent::TickComponent(float DeltaTime, enum ELeve
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    if (InworldPlayer.IsValid())
-    {
-        UpdateTargetCharacters();
-    }
+    UpdateTargetCharacters();
 }
 
 void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
