@@ -472,7 +472,9 @@ void UInworldClient::SendAudioSessionStart(const FString& AgentId, EInworldMicro
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(AgentId, void())
 
-	Inworld::GetClient()->StartAudioSession(TCHAR_TO_UTF8(*AgentId), MicrophoneMode);
+	Inworld::AudioSessionStartPayload AudioSessionStartPayload;
+	AudioSessionStartPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(MicrophoneMode);
+	Inworld::GetClient()->StartAudioSession(TCHAR_TO_UTF8(*AgentId), AudioSessionStartPayload);
 }
 
 void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
