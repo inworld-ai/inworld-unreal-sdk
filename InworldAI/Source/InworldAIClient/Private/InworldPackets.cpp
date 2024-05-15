@@ -221,6 +221,18 @@ void FInworldControlEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Control"));
 	AppendToDebugString(Str, FString::FromInt(static_cast<int32>(Action)));
+	AppendToDebugString(Str, Description);
+}
+
+void FInworldConversationUpdateEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("ConversationUpdate"));
+	AppendToDebugString(Str, EventType == EInworldConversationUpdateType::STARTED ? TEXT("STARTED") : EventType == EInworldConversationUpdateType::EVICTED ? TEXT("EVICTED") : TEXT("UPDATED"));
+	AppendToDebugString(Str, bIncludePlayer ? TEXT("IncludePlayer") : TEXT("ExcludePlayer"));
+	for (const auto& AgentId : Agents)
+	{
+		AppendToDebugString(Str, AgentId);
+	}
 }
 
 void FInworldConversationUpdateEvent::AppendDebugString(FString& Str) const
