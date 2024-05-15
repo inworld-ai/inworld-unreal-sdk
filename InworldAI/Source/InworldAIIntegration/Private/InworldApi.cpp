@@ -7,46 +7,77 @@
 
 #include "InworldApi.h"
 #include "InworldAIIntegrationModule.h"
-#include "InworldComponentInterface.h"
 #include "InworldPackets.h"
+#include "InworldCharacter.h"
+#include "InworldSessionComponent.h"
+#include "InworldMacros.h"
 #include <Engine/Engine.h>
 #include <UObject/UObjectGlobals.h>
 #include "TimerManager.h"
 #include "InworldAudioRepl.h"
+#include "UObject/UObjectIterator.h"
+#include "GameFramework/GameStateBase.h"
 
 static TAutoConsoleVariable<bool> CVarLogAllPackets(
 TEXT("Inworld.Debug.LogAllPackets"), false,
 TEXT("Enable/Disable logging all packets going from server")
 );
 
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldApiSubsystem, Arg, Return)
+#define NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(InworldSession, Return)
+#define NO_CLIENT_RETURN(Return) NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(InworldSession->GetClient(), Return)
+
 UInworldApiSubsystem::UInworldApiSubsystem()
-    : UWorldSubsystem()
+    : Super()
+    , AudioRepl(nullptr)
+    , InworldSession(nullptr)
+{}
+
+void UInworldApiSubsystem::SetInworldSession(UInworldSession* Session)
 {
+    if (InworldSession != Session)
+    {
+        InworldSession = Session;
+        InworldSession->OnLoaded().AddLambda(
+            [this](bool bLoaded) -> void
+            {
+                OnCharactersInitialized.Broadcast(bLoaded);
+            }
+        );
+        OnCharactersInitialized.Broadcast(InworldSession->IsLoaded());
+        InworldSession->OnConnectionStateChanged().AddLambda(
+            [this](EInworldConnectionState ConnectionState) -> void
+            {
+                OnConnectionStateChanged.Broadcast(ConnectionState);
+            }
+        );
+    }
+}
+
+UInworldSession* UInworldApiSubsystem::GetInworldSession()
+{
+    if (InworldSession == nullptr)
+    {
+        // Lazily instantiate the InworldSession if needed for backwards compatability
+        UWorld* World = GetWorld();
+        if (World && World->GetNetMode() != NM_Client)
+        {
+            // Backward compatibility for calls directly to InworldApi without some sort of session actor
+            UInworldSessionComponent* SessionComponent = Cast<UInworldSessionComponent>(World->GetGameState()->AddComponentByClass(UInworldSessionComponent::StaticClass(), false, FTransform::Identity, false));
+            SetInworldSession(IInworldSessionOwnerInterface::Execute_GetInworldSession(SessionComponent));
+        }
+    }
+    return InworldSession;
 }
 
 void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride, const FString& TargetUrlOverride, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)
 {
-    if (!ensure(GetWorld()->GetNetMode() < NM_Client))
-    {
-        UE_LOG(LogInworldAIIntegration, Error, TEXT("UInworldApiSubsystem::StartSession shouldn't be called on client"));
-        return;
-    }
-
-    if (ApiKey.IsEmpty())
-    {
-        UE_LOG(LogInworldAIIntegration, Error, TEXT("Can't Start Session, ApiKey is empty"));
-        return;
-    }
-    if (ApiSecret.IsEmpty())
-    {
-        UE_LOG(LogInworldAIIntegration, Error, TEXT("Can't Start Session, ApiSecret is empty"));
-        return;
-    }
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(ApiKey, void())
+    EMPTY_ARG_RETURN(ApiSecret, void())
 
     FInworldPlayerProfile PlayerProfile;
     PlayerProfile.Name = PlayerName;
-
-    FInworldCapabilitySet Capabilities;
 
     FInworldAuth Auth;
     Auth.ApiKey = ApiKey;
@@ -61,16 +92,12 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     Environment.AuthUrl = AuthUrlOverride;
     Environment.TargetUrl = TargetUrlOverride;
 
-    Client->Start(SceneName, PlayerProfile, Capabilities, Auth, SessionToken, FInworldSave(), Environment);
+    InworldSession->GetClient()->StartSession(SceneName, PlayerProfile, Auth, FInworldSave(), SessionToken, {});
 }
 
 void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride, FInworldSave SavedSessionState)
 {
-    if (!ensure(GetWorld()->GetNetMode() < NM_Client))
-    {
-        UE_LOG(LogInworldAIIntegration, Error, TEXT("UInworldApiSubsystem::StartSession shouldn't be called on client"));
-        return;
-    }
+    NO_CLIENT_RETURN(void())
 
     const bool bValidAuth = !Auth.Base64Signature.IsEmpty() || (!Auth.ApiKey.IsEmpty() && !Auth.ApiSecret.IsEmpty());
     if (!bValidAuth)
@@ -83,371 +110,185 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
         UE_LOG(LogInworldAIIntegration, Warning, TEXT("Start Session, please provide unique PlayerProfile.ProjectName for possible troubleshooting"));
     }
 
-    Client->Start(SceneName, PlayerProfile, Capabilities, Auth, SessionToken, SavedSessionState, Environment);
+    InworldSession->GetClient()->StartSession(SceneName, PlayerProfile, Auth, SavedSessionState, SessionToken, Capabilities);
 }
 
 void UInworldApiSubsystem::PauseSession()
 {
-    Client->Pause();
+    NO_CLIENT_RETURN(void())
+
+    InworldSession->GetClient()->PauseSession();
 }
 
 void UInworldApiSubsystem::ResumeSession()
 {
-    Client->Resume();
+    NO_CLIENT_RETURN(void())
+
+    InworldSession->GetClient()->ResumeSession();
 }
 
 void UInworldApiSubsystem::StopSession()
 {
-    UnpossessAgents();
+    NO_CLIENT_RETURN(void())
 
-    Client->Stop();
+    InworldSession->GetClient()->StopSession();
 }
 
-void UInworldApiSubsystem::SaveSession(FOnSaveReady Delegate)
+void UInworldApiSubsystem::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
-    Client->OnSessionSaved.BindLambda([this, Delegate](const FInworldSave& Save, bool bSuccess)
-        {
-            Delegate.ExecuteIfBound(Save, bSuccess);
-            Client->OnSessionSaved.Unbind();
-        }
-    );
-    Client->SaveSession();
+    NO_CLIENT_RETURN(void())
+
+    InworldSession->GetClient()->SaveSession(Callback);
 }
 
-void UInworldApiSubsystem::SetResponseLatencyTrackerDelegate(FResponseLatencyTrackerDelegate Delegate)
+void UInworldApiSubsystem::SetResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate)
 {
-    Client->OnPerceivedLatency.BindLambda([this, Delegate](FString InteractionId, int32 LatancyMs)
-        {
-            Delegate.ExecuteIfBound(InteractionId, LatancyMs);
-        });
+    NO_CLIENT_RETURN(void())
+
+    InworldSession->GetClient()->OnPerceivedLatencyDelegate.Add(Delegate);
 }
 
-void UInworldApiSubsystem::ClearResponseLatencyTrackerDelegate()
+void UInworldApiSubsystem::ClearResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate)
 {
-    Client->OnPerceivedLatency.Unbind();
+    NO_CLIENT_RETURN(void())
+
+    InworldSession->GetClient()->OnPerceivedLatencyDelegate.Remove(Delegate);
 }
 
 void UInworldApiSubsystem::LoadCharacters(const TArray<FString>& Names)
 {
-    Client->LoadCharacters(Names);
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(Names, void())
+
+    TArray<UInworldCharacter*> Characters;
+    for (UInworldCharacter* Character : InworldSession->GetRegisteredCharacters())
+    {
+        if (Names.Contains(Character->GetAgentInfo().BrainName))
+        {
+            Characters.Add(Character);
+        }
+    }
+    InworldSession->LoadCharacters(Characters);
 }
 
 void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
 {
-	Client->UnloadCharacters(Names);
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(Names, void())
+
+    TArray<UInworldCharacter*> Characters;
+    for (UInworldCharacter* Character : InworldSession->GetRegisteredCharacters())
+    {
+        if (Names.Contains(Character->GetAgentInfo().BrainName))
+        {
+            Characters.Add(Character);
+        }
+    }
+	InworldSession->UnloadCharacters(Characters);
 }
 
-void UInworldApiSubsystem::LoadSavedState(const TArray<uint8>& SavedState)
+void UInworldApiSubsystem::LoadSavedState(const FInworldSave& SavedState)
 {
-    Client->LoadSavedState(SavedState);
+    NO_CLIENT_RETURN(void())
+
+    InworldSession->GetClient()->LoadSavedState(SavedState);
 }
 
 void UInworldApiSubsystem::LoadCapabilities(const FInworldCapabilitySet& Capabilities)
 {
-    Client->LoadCapabilities(Capabilities);
+    NO_CLIENT_RETURN(void())
+
+    InworldSession->GetClient()->LoadCapabilities(Capabilities);
 }
 
 void UInworldApiSubsystem::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
 {
-    Client->LoadPlayerProfile(PlayerProfile);
-}
+    NO_CLIENT_RETURN(void())
 
-void UInworldApiSubsystem::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
-{
-    for (const auto& AgentInfo : AgentInfos)
-    {
-        FString BrainName = AgentInfo.BrainName;
-        AgentInfoByBrain.Add(BrainName, AgentInfo);
-        if (CharacterComponentByBrainName.Contains(BrainName))
-        {
-            auto Component = CharacterComponentByBrainName[BrainName];
-            if (!Component->IsPossessing())
-            {
-				CharacterComponentByAgentId.Add(AgentInfo.AgentId, Component);
-				Component->Possess(AgentInfo);
-				CharacterComponentByAgentId.Add(Component->GetAgentId(), Component);
-            }
-        }
-        else if (BrainName != FString("__DUMMY__"))
-        {
-            UE_LOG(LogInworldAIIntegration, Warning, TEXT("No component found for BrainName: %s"), *BrainName);
-        }
-    }
-
-    TArray<FString> BrainsToLoad;
-    for (const auto& CharacterComponent : CharacterComponentRegistry)
-    {
-        auto BrainName = CharacterComponent->GetBrainName();
-        if (!AgentInfoByBrain.Contains(BrainName))
-        {
-            BrainsToLoad.Add(BrainName);
-        }
-    }
-
-    if (BrainsToLoad.Num() > 0)
-    {
-        Client->LoadCharacters(BrainsToLoad);
-    }
-
-    bCharactersInitialized = true;
-    OnCharactersInitialized.Broadcast(bCharactersInitialized);
-}
-
-void UInworldApiSubsystem::UnpossessAgents()
-{
-    if (!bCharactersInitialized)
-    {
-        return;
-    }
-
-    auto ComponentsToUnpossess = CharacterComponentRegistry;
-    for (auto* Component : ComponentsToUnpossess)
-    {
-        Component->Unpossess();
-    }
-    CharacterComponentByAgentId.Empty();
-    AgentInfoByBrain.Empty();
-    bCharactersInitialized = false;
-    OnCharactersInitialized.Broadcast(bCharactersInitialized);
-}
-
-void UInworldApiSubsystem::RegisterCharacterComponent(Inworld::ICharacterComponent* Component)
-{
-    FString BrainName = Component->GetBrainName();
-    if (!ensureMsgf(!CharacterComponentByBrainName.Contains(BrainName), TEXT("UInworldApiSubsystem::RegisterCharacterComponent: Component already registered for Brain: %s!"), *BrainName))
-    {
-        return;
-    }
-
-    CharacterComponentRegistry.Add(Component);
-    CharacterComponentByBrainName.Add(BrainName, Component);
-
-    if (bCharactersInitialized)
-    {
-        if (AgentInfoByBrain.Contains(BrainName))
-        {
-            auto AgentInfo = AgentInfoByBrain[BrainName];
-            CharacterComponentByAgentId.Add(AgentInfo.AgentId, Component);
-            Component->Possess(AgentInfo);
-        }
-        else
-        {
-            Client->LoadCharacters({ BrainName });
-        }
-    }
-}
-
-void UInworldApiSubsystem::UnregisterCharacterComponent(Inworld::ICharacterComponent* Component)
-{
-    auto BrainName = Component->GetBrainName();
-    if (!ensureMsgf(CharacterComponentByBrainName.Contains(BrainName) && CharacterComponentByBrainName[BrainName] == Component, TEXT("UInworldApiSubsystem::UnregisterCharacterComponent: Component mismatch for Brain: %s!"), *BrainName))
-    {
-        return;
-    }
-
-    Component->Unpossess();
-    CharacterComponentByAgentId.Remove(Component->GetAgentId());
-    CharacterComponentByBrainName.Remove(BrainName);
-    CharacterComponentRegistry.Remove(Component);
-}
-
-bool UInworldApiSubsystem::IsCharacterComponentRegistered(Inworld::ICharacterComponent* Component)
-{
-    return CharacterComponentRegistry.Contains(Component);
-}
-
-void UInworldApiSubsystem::UpdateCharacterComponentRegistrationOnClient(Inworld::ICharacterComponent* Component, const FString& NewAgentId, const FString& OldAgentId)
-{
-    if (CharacterComponentByAgentId.Contains(OldAgentId) && CharacterComponentByAgentId[OldAgentId] == Component)
-    {
-        CharacterComponentByAgentId.Remove(OldAgentId);
-    }
-
-    if (NewAgentId.IsEmpty())
-    {
-        CharacterComponentRegistry.Remove(Component);
-    }
-    else
-    {
-        CharacterComponentByAgentId.Add(NewAgentId, Component);
-        CharacterComponentRegistry.AddUnique(Component);
-    }
+    InworldSession->GetClient()->LoadPlayerProfile(PlayerProfile);
 }
 
 void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)
 {
-    SendTextMessageMultiAgent({ AgentId }, Text);
-}
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
+    EMPTY_ARG_RETURN(Text, void())
 
-void UInworldApiSubsystem::SendTextMessageMultiAgent(const TArray<FString>& AgentIds, const FString& Text)
-{
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
-    {
-        return;
-    }
-
-    TSharedPtr<FInworldPacket> Packet = Client->SendTextMessage(AgentIds, Text);
-    if (Packet.IsValid())
-    {
-        for (auto& AgentId : AgentIds)
-        {
-            auto* AgentComponentPtr = CharacterComponentByAgentId.Find(AgentId);
-            if (AgentComponentPtr)
-            {
-                (*AgentComponentPtr)->HandlePacket(Packet);
-            }
-        }
-    }
+    InworldSession->GetClient()->SendTextMessage(AgentId, Text);
 }
 
 void UInworldApiSubsystem::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
 {
-    SendTriggerMultiAgent({ AgentId }, Name, Params);
-}
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
+    EMPTY_ARG_RETURN(Name, void())
 
-void UInworldApiSubsystem::SendTriggerMultiAgent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params)
-{
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentId must be valid!")))
-    {
-        return;
-    }
-
-    Client->SendCustomEvent(AgentIds, Name, Params);
+    InworldSession->GetClient()->SendTrigger(AgentId, Name, Params);
 }
 
 void UInworldApiSubsystem::SendNarrationEvent(const FString& AgentId, const FString& Content)
 {
-    if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
+    EMPTY_ARG_RETURN(Content, void())
 
-    Client->SendNarrationEvent(AgentId, Content);
+    InworldSession->GetClient()->SendNarrationEvent(AgentId, Content);
 }
 
-void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, USoundWave* SoundWave)
+void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    SendAudioMessage(TArray<FString>{ AgentId }, SoundWave);
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(InputData, void())
+
+    InworldSession->GetClient()->SendSoundMessage(AgentId, InputData, OutputData);
 }
 
-void UInworldApiSubsystem::SendAudioMessage(const TArray<FString>& AgentIds, USoundWave* SoundWave)
+void UInworldApiSubsystem::StartAudioSession(const FString& AgentId)
 {
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
-    {
-        return;
-    }
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
 
-    Client->SendSoundMessage(AgentIds, SoundWave);
-}
-
-void UInworldApiSubsystem::SendAudioDataMessage(const FString& AgentId, const TArray<uint8>& Data)
-{
-    SendAudioDataMessage(TArray<FString>{ AgentId }, Data);
-}
-
-void UInworldApiSubsystem::SendAudioDataMessage(const TArray<FString>& AgentIds, const TArray<uint8>& Data)
-{
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIdss must be valid!")))
-    {
-        return;
-    }
-
-    Client->SendSoundDataMessage(AgentIds, Data);
-}
-
-void UInworldApiSubsystem::SendAudioMessageWithAEC(const FString& AgentId, USoundWave* InputWave, USoundWave* OutputWave)
-{
-	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-	{
-		return;
-	}
-
-    Client->SendSoundMessageWithEAC({ AgentId }, InputWave, OutputWave);
-}
-
-void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
-{
-    SendAudioDataMessageWithAEC(TArray<FString>{ AgentId }, InputData, OutputData);
-}
-
-void UInworldApiSubsystem::SendAudioDataMessageWithAEC(const TArray<FString>& AgentIds, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
-{
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
-    {
-        return;
-    }
-
-    Client->SendSoundDataMessageWithEAC(AgentIds, InputData, OutputData);
-}
-
-bool UInworldApiSubsystem::StartAudioSession(const FString& AgentId, const AActor* Owner)
-{
-    return StartAudioSessionMultiAgent({ AgentId }, Owner);
-}
-
-bool UInworldApiSubsystem::StartAudioSessionMultiAgent(const TArray<FString>& AgentIds, const AActor* Owner)
-{
-    if (AudioSessionOwner)
-    {
-        return false;
-    }
-
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
-    {
-        return false;
-    }
-
-    AudioSessionOwner = Owner;
-
-    Client->StartAudioSession(AgentIds);
-    return true;
+    InworldSession->GetClient()->SendAudioSessionStart(AgentId);
 }
 
 void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
 {
-    StopAudioSessionMultiAgent({ AgentId });
-}
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
 
-void UInworldApiSubsystem::StopAudioSessionMultiAgent(const TArray<FString>& AgentIds)
-{
-    if (!ensureMsgf(AgentIds.Num() != 0, TEXT("AgentIds must be valid!")))
-    {
-        return;
-    }
-
-    AudioSessionOwner = nullptr;
-
-    Client->StopAudioSession(AgentIds);
+    InworldSession->GetClient()->SendAudioSessionStop(AgentId);
 }
 
 void UInworldApiSubsystem::ChangeScene(const FString& SceneId)
 {
-    UnpossessAgents();
-    Client->SendChangeSceneEvent(SceneId);
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(SceneId, void())
+
+    InworldSession->GetClient()->SendChangeSceneEvent(SceneId);
+}
+
+EInworldConnectionState UInworldApiSubsystem::GetConnectionState() const
+{
+    NO_CLIENT_RETURN(EInworldConnectionState::Idle)
+
+    return InworldSession->GetConnectionState();
 }
 
 void UInworldApiSubsystem::GetConnectionError(FString& Message, int32& Code)
 {
-    Client->GetConnectionError(Message, Code);
-}
+    NO_CLIENT_RETURN(void())
 
-Inworld::ICharacterComponent* UInworldApiSubsystem::GetCharacterComponentByAgentId(const FString& AgentId) const
-{
-    if (CharacterComponentByAgentId.Contains(AgentId))
-    {
-        return CharacterComponentByAgentId[AgentId];
-    }
-    return nullptr;
+    InworldSession->GetConnectionError(Message, Code);
 }
 
 void UInworldApiSubsystem::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
-	if (!ensureMsgf(!AgentId.IsEmpty(), TEXT("AgentId must be valid!")))
-	{
-		return;
-	}
+    NO_CLIENT_RETURN(void())
+    EMPTY_ARG_RETURN(AgentId, void())
+    EMPTY_ARG_RETURN(InteractionId, void())
+    EMPTY_ARG_RETURN(UtteranceIds, void())
 
-    Client->CancelResponse(AgentId, InteractionId, UtteranceIds);
+    InworldSession->GetClient()->CancelResponse(AgentId, InteractionId, UtteranceIds);
 }
 
 void UInworldApiSubsystem::StartAudioReplication()
@@ -466,56 +307,12 @@ bool UInworldApiSubsystem::DoesSupportWorldType(EWorldType::Type WorldType) cons
 void UInworldApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-
-    if (GetWorld()->GetNetMode() == NM_Client)
-    {
-        return;
-    }
-
-    Client = MakeShared<FInworldClient>();
-
-    Client->OnConnectionStateChanged.BindLambda([this](EInworldConnectionState ConnectionState)
-        {
-            OnConnectionStateChanged.Broadcast(ConnectionState);
-
-            if (ConnectionState == EInworldConnectionState::Connected)
-            {
-                CurrentRetryConnectionTime = 1.f;
-            }
-
-            if (ConnectionState == EInworldConnectionState::Disconnected)
-            {
-                if (CurrentRetryConnectionTime == 0.f)
-                {
-                    ResumeSession();
-                }
-                else
-                {
-                    GetWorld()->GetTimerManager().SetTimer(RetryConnectionTimerHandle, this, &UInworldApiSubsystem::ResumeSession, CurrentRetryConnectionTime);
-                }
-                CurrentRetryConnectionTime += FMath::Min(CurrentRetryConnectionTime + RetryConnectionIntervalTime, MaxRetryConnectionTime);
-            }
-        }
-    );
-
-    Client->OnInworldPacketReceived.BindLambda([this](TSharedPtr<FInworldPacket> Packet)
-        {
-            DispatchPacket(Packet);
-        }
-    );
-
-    Client->Init();
 }
 
 void UInworldApiSubsystem::Deinitialize()
 {
     Super::Deinitialize();
-    if (Client)
-    {
-        Client->Destroy();
-    }
-    AudioSessionOwner = nullptr;
-    Client.Reset();
+    InworldSession = nullptr;
 }
 
 #if ENGINE_MAJOR_VERSION > 4
@@ -523,59 +320,13 @@ void UInworldApiSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
     Super::OnWorldBeginPlay(InWorld);
 
-    if (GetWorld()->GetNetMode() != NM_Standalone)
+    UWorld* World = GetWorld();
+    if (World && World->GetNetMode() != NM_Standalone)
     {
         StartAudioReplication();
     }
 }
 #endif
-
-void UInworldApiSubsystem::DispatchPacket(TSharedPtr<FInworldPacket> InworldPacket)
-{
-	auto* SourceComponentPtr = CharacterComponentByAgentId.Find(InworldPacket->Routing.Source.Name);
-	if (SourceComponentPtr)
-	{
-		(*SourceComponentPtr)->HandlePacket(InworldPacket);
-	}
-
-    if (InworldPacket->Routing.Source.Type == EInworldActorType::PLAYER)
-    {
-        auto ProcessTarget = [this, InworldPacket](const FInworldActor& TargetActor)
-            {
-                auto* TargetComponentPtr = CharacterComponentByAgentId.Find(TargetActor.Name);
-                if (TargetComponentPtr)
-                {
-                    (*TargetComponentPtr)->HandlePacket(InworldPacket);
-                }
-            };
-
-        ProcessTarget(InworldPacket->Routing.Target);
-
-        for (const auto& Target : InworldPacket->Routing.Targets)
-        {
-            if (Target.Name != InworldPacket->Routing.Target.Name)
-            {
-                ProcessTarget(Target);
-            }
-        }
-    }
-
-    if (ensure(InworldPacket))
-    {
-        InworldPacket->Accept(*this);
-    }
-}
-
-void UInworldApiSubsystem::Visit(const FInworldChangeSceneEvent& Event)
-{
-    UnpossessAgents();
-    PossessAgents(Event.AgentInfos);
-}
-
-void UInworldApiSubsystem::Visit(const FInworldLoadCharactersEvent& Event)
-{
-    PossessAgents(Event.AgentInfos);
-}
 
 void UInworldApiSubsystem::ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet)
 {
@@ -587,5 +338,21 @@ void UInworldApiSubsystem::ReplicateAudioEventFromServer(FInworldAudioDataEvent&
 
 void UInworldApiSubsystem::HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet)
 {
-    DispatchPacket(Packet);
+    NO_SESSION_RETURN(void())
+    EMPTY_ARG_RETURN(Packet, void())
+
+    UInworldCharacter* const* InworldCharacter = InworldSession->GetRegisteredCharacters().FindByPredicate(
+            [Packet](UInworldCharacter* InworldCharacter) -> bool
+            {
+                return InworldCharacter && InworldCharacter->GetAgentInfo().AgentId == Packet->Routing.Source.Name;
+            }
+    );
+    if (InworldCharacter != nullptr)
+    {
+        (*InworldCharacter)->HandlePacket(FInworldWrappedPacket(Packet));
+    }
 }
+
+#undef EMPTY_ARG_RETURN
+#undef NO_SESSION_RETURN
+#undef NO_CLIENT_RETURN

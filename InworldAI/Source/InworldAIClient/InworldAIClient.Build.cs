@@ -31,6 +31,7 @@ public class InworldAIClient : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Projects",
+                "InworldAINDK",
                 "InworldAINDKLibrary",
             });
     }

@@ -7,25 +7,73 @@
 
 #include "InworldCharacterComponent.h"
 #include "InworldApi.h"
+#include "InworldMacros.h"
 #include "InworldAIIntegrationModule.h"
 #include "Engine/EngineBaseTypes.h"
 #include "InworldPlayerComponent.h"
 #include <Camera/CameraComponent.h>
 #include <Net/UnrealNetwork.h>
 #include <Engine/World.h>
+#include <Engine/ActorChannel.h>
 #include <GameFramework/GameStateBase.h>
 #include <GameFramework/PlayerState.h>
 
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldCharacterComponent, Arg, Return)
+#define NO_CHARACTER_RETURN(Return) EMPTY_ARG_RETURN(InworldCharacter, Return)
+
 UInworldCharacterComponent::UInworldCharacterComponent()
-	: MessageQueue(MakeShared<FCharacterMessageQueue>(this))
+	: Super()
+	, MessageQueue(MakeShared<FCharacterMessageQueue>(this))
 {
     PrimaryComponentTick.bCanEverTick = true;
     bWantsInitializeComponent = true;
+	SetIsReplicatedByDefault(true);
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+	bReplicateUsingRegisteredSubObjectList = true;
+#endif
+}
+
+void UInworldCharacterComponent::OnRegister()
+{
+	Super::OnRegister();
+
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	{
+		InworldCharacter = NewObject<UInworldCharacter>(this);
+		OnRep_InworldCharacter();
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+		AddReplicatedSubObject(InworldCharacter);
+#endif
+	}
+}
+
+void UInworldCharacterComponent::OnUnregister()
+{
+	Super::OnUnregister();
+
+	if (IsValid(InworldCharacter))
+	{
+#if ENGINE_MAJOR_VERSION == 5
+		InworldCharacter->MarkAsGarbage();
+#endif
+
+#if ENGINE_MAJOR_VERSION == 4
+		InworldCharacter->MarkPendingKill();
+#endif
+	}
+
+	InworldCharacter = nullptr;
 }
 
 void UInworldCharacterComponent::InitializeComponent()
 {
     Super::InitializeComponent();
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	{
+		InworldCharacter->SetSession(World->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession());
+	}
 
 #if WITH_EDITOR
 	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
@@ -52,6 +100,12 @@ void UInworldCharacterComponent::UninitializeComponent()
 {
 	Super::UninitializeComponent();
 
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	{
+		InworldCharacter->SetSession(nullptr);
+	}
+
 #if WITH_EDITOR
 	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
 	{
@@ -69,13 +123,9 @@ void UInworldCharacterComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetIsReplicated(true);
-
-	InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
-
-	if (GetNetMode() != NM_Client)
+	if (GetOwnerRole() == ROLE_Authority)
 	{
-		Register();
+		InworldCharacter->SetBrainName(BrainName);
 	}
 
     for (auto* Pb : Playbacks)
@@ -86,24 +136,16 @@ void UInworldCharacterComponent::BeginPlay()
 
 void UInworldCharacterComponent::EndPlay(EEndPlayReason::Type Reason)
 {
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		InworldCharacter->SetBrainName({});
+	}
+
     for (auto* Pb : Playbacks)
     {
         Pb->EndPlay();
 		Pb->ClearCharacterComponent();
     }
-
-	if (GetNetMode() == NM_Client)
-	{
-		if (InworldSubsystem.IsValid())
-		{
-			FString NewAgentId = FString();
-			InworldSubsystem->UpdateCharacterComponentRegistrationOnClient(this, NewAgentId, AgentId);
-		}
-	}
-	else
-	{
-		Unregister();
-	}
 	
 	MessageQueue->Clear();
 
@@ -135,49 +177,61 @@ void UInworldCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProp
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UInworldCharacterComponent, TargetPlayer);
-	DOREPLIFETIME(UInworldCharacterComponent, AgentId);
+	DOREPLIFETIME(UInworldCharacterComponent, InworldCharacter);
 }
 
-void UInworldCharacterComponent::Possess(const FInworldAgentInfo& AgentInfo)
+bool UInworldCharacterComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
 {
-	AgentId = AgentInfo.AgentId;
-	GivenName = AgentInfo.GivenName;
-	OnPossessed.Broadcast();
-}
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+	return Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+#else
+	bool WroteSomething = true;
 
-void UInworldCharacterComponent::Unpossess()
-{
-	if (IsPossessing())
+	if (IsValid(InworldCharacter))
 	{
-		OnUnpossessed.Broadcast();
-		AgentId = FString();
-		GivenName = FString();
+		WroteSomething |= Channel->ReplicateSubobject(InworldCharacter, *Bunch, *RepFlags);
 	}
+
+	return WroteSomething;
+#endif
 }
 
 void UInworldCharacterComponent::SetBrainName(const FString& Name)
 {
 #if WITH_EDITOR
-	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
+	UWorld* World = GetWorld();
+	if (World == nullptr || !World->IsPlayInEditor())
 	{
 		BrainName = Name;
 		return;
 	}
 #endif
-	if (GetNetMode() == NM_Client)
-	{
-		return;
-	}
-
-	if (!ensure(InworldSubsystem.IsValid()))
-	{
-		return;
-	}
-
-	Unregister();
+	NO_CHARACTER_RETURN(void())
+	
 	BrainName = Name;
-	Register();
+
+	InworldCharacter->SetBrainName(BrainName);
+}
+
+FString UInworldCharacterComponent::GetBrainName() const
+{
+	NO_CHARACTER_RETURN({})
+
+	return InworldCharacter->GetAgentInfo().BrainName;
+}
+
+FString UInworldCharacterComponent::GetAgentId() const
+{
+	NO_CHARACTER_RETURN({})
+
+	return InworldCharacter->GetAgentInfo().AgentId;
+}
+
+FString UInworldCharacterComponent::GetGivenName() const
+{
+	NO_CHARACTER_RETURN({})
+
+	return InworldCharacter->GetAgentInfo().GivenName;
 }
 
 UInworldCharacterPlayback* UInworldCharacterComponent::GetPlayback(TSubclassOf<UInworldCharacterPlayback> Class) const
@@ -192,159 +246,76 @@ UInworldCharacterPlayback* UInworldCharacterComponent::GetPlayback(TSubclassOf<U
     return nullptr;
 }
 
-void UInworldCharacterComponent::HandlePacket(TSharedPtr<FInworldPacket> Packet)
-{
-    if (ensure(Packet))
-	{
-		Packet->Accept(*this);
-    }
-}
-
-Inworld::IPlayerComponent* UInworldCharacterComponent::GetTargetPlayer()
-{
-	return TargetPlayer;
-}
-
-bool UInworldCharacterComponent::StartPlayerInteraction(UInworldPlayerComponent* Player)
-{
-	if (TargetPlayer != nullptr)
-	{
-		return false;
-	}
-
-	TargetPlayer = Player;
-	OnPlayerInteractionStateChanged.Broadcast(true);
-	return true;
-}
-
-bool UInworldCharacterComponent::StopPlayerInteraction(UInworldPlayerComponent* Player)
-{
-	if (TargetPlayer != Player)
-	{
-		return false;
-	}
-
-	TargetPlayer = nullptr;
-	OnPlayerInteractionStateChanged.Broadcast(false);
-	return true;
-}
-
 bool UInworldCharacterComponent::IsInteractingWithPlayer() const
 {
-	return TargetPlayer != nullptr;
+	return InworldCharacter != nullptr && InworldCharacter->GetTargetPlayer() != nullptr;
 }
 
 void UInworldCharacterComponent::CancelCurrentInteraction()
 {
+	NO_CHARACTER_RETURN(void())
+
 	TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
     if (!ensure(CurrentMessage.IsValid()))
     {
         return;
     }
 
-	const FString CurrentInteractionId = CurrentMessage->InteractionId;
-	TArray<FString> CanceledUtterances = MessageQueue->CancelInteraction(CurrentInteractionId);
-	if (CanceledUtterances.Num() > 0 && !AgentId.IsEmpty())
+	const FString CanceledInteractionId = CurrentMessage->InteractionId;
+	TArray<FString> CanceledUtterances = MessageQueue->CancelInteraction(CanceledInteractionId);
+	if (CanceledUtterances.Num() > 0)
 	{
-		InworldSubsystem->CancelResponse(AgentId, CurrentInteractionId, CanceledUtterances);
+		InworldCharacter->CancelResponse(CanceledInteractionId, CanceledUtterances);
 	}
 }
 
 void UInworldCharacterComponent::SendTextMessage(const FString& Text) const
 {
-    if (ensure(!AgentId.IsEmpty()))
-    {
-        InworldSubsystem->SendTextMessage(AgentId, Text);
-    }
+	NO_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(Text, void())
+
+	InworldCharacter->SendTextMessage(Text);
 }
 
 void UInworldCharacterComponent::SendTrigger(const FString& Name, const TMap<FString, FString>& Params) const
 {
-    if (ensure(!AgentId.IsEmpty()))
-    {
-        InworldSubsystem->SendTrigger(AgentId, Name, Params);
-    }
-}
+	NO_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(Name, void())
 
-void UInworldCharacterComponent::SendAudioMessage(USoundWave* SoundWave) const
-{
-    if (ensure(!AgentId.IsEmpty()))
-    {
-        InworldSubsystem->SendAudioMessage(AgentId, SoundWave);
-    }
+	InworldCharacter->SendTrigger(Name, Params);
 }
 
 void UInworldCharacterComponent::SendNarrationEvent(const FString& Content)
 {
-	if (ensure(!AgentId.IsEmpty()))
-	{
-		InworldSubsystem->SendNarrationEvent(AgentId, Content);
-	}
+	NO_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(Content, void())
+
+	InworldCharacter->SendNarrationEvent(Content);
 }
 
-void UInworldCharacterComponent::StartAudioSession(const AActor* Owner) const
+void UInworldCharacterComponent::StartAudioSession()
 {
-    if (ensure(!AgentId.IsEmpty()))
-    {
-        InworldSubsystem->StartAudioSession(AgentId, Owner);
-    }
+	NO_CHARACTER_RETURN(void())
+
+	InworldCharacter->SendAudioSessionStart();
 }
 
-void UInworldCharacterComponent::StopAudioSession() const
+void UInworldCharacterComponent::StopAudioSession()
 {
-    if (ensure(!AgentId.IsEmpty()))
-    {
-        InworldSubsystem->StopAudioSession(AgentId);
-    }
-}
+	NO_CHARACTER_RETURN(void())
 
-bool UInworldCharacterComponent::Register()
-{
-    if (BrainName.IsEmpty())
-    {
-        return false;
-    }
-
-	if (!ensure(InworldSubsystem.IsValid()))
-	{
-        return false;
-	}
-
-	if (InworldSubsystem->IsCharacterComponentRegistered(this))
-	{
-		return false;
-	}
-
-    InworldSubsystem->RegisterCharacterComponent(this);
-
-    return true;
-}
-
-bool UInworldCharacterComponent::Unregister()
-{
-	if (!ensure(InworldSubsystem.IsValid()))
-	{
-		return false;
-	}
-
-	if (!InworldSubsystem->IsCharacterComponentRegistered(this))
-	{
-		return false;
-	}
-
-    InworldSubsystem->UnregisterCharacterComponent(this);
-
-    return true;
+	InworldCharacter->SendAudioSessionStop();
 }
 
 FVector UInworldCharacterComponent::GetTargetPlayerCameraLocation()
 {
-	if (TargetPlayer == nullptr)
+	if (InworldCharacter == nullptr || InworldCharacter->GetTargetPlayer() == nullptr)
 	{
 		return FVector::ZeroVector;
 	}
 
-	UCameraComponent* CameraComponent = Cast<UCameraComponent>(TargetPlayer->GetOwner()->GetComponentByClass(UCameraComponent::StaticClass()));
+	AActor* TargetPlayerActor = InworldCharacter->GetTargetPlayer()->GetTypedOuter<AActor>();
+	UCameraComponent* CameraComponent = Cast<UCameraComponent>(TargetPlayerActor->GetComponentByClass(UCameraComponent::StaticClass()));
 	if (!CameraComponent)
 	{
 		return GetOwner()->GetActorLocation();
@@ -375,42 +346,6 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
         return;
     }
 
-	auto ProcessTarget = [this, Event](const FInworldActor& ToActor)
-		{
-			if (Event.Routing.Source.Type == EInworldActorType::PLAYER && ToActor.Type == EInworldActorType::AGENT && ToActor.Name == GetAgentId())
-			{
-				if (Event.Final)
-				{
-					UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *ToActor.Name, *Event.Text);
-				}
-
-				// Don't add to queue, player talking is instant.
-				FCharacterMessagePlayerTalk PlayerTalk;
-				PlayerTalk.InteractionId = Event.PacketId.InteractionId;
-				PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
-				PlayerTalk.Text = Event.Text;
-				PlayerTalk.bTextFinal = Event.Final;
-
-				OnPlayerTalk.Broadcast(PlayerTalk);
-
-				TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
-				if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
-				{
-					CancelCurrentInteraction();
-				}
-			}
-		};
-
-	ProcessTarget(Event.Routing.Target);
-
-	for (const auto& ToActor : Event.Routing.Targets)
-	{
-		if (ToActor.Name != Event.Routing.Target.Name)
-		{
-			ProcessTarget(ToActor);
-		}
-	}
-
 	const auto& FromActor = Event.Routing.Source;
 	if (FromActor.Type == EInworldActorType::AGENT)
 	{
@@ -423,6 +358,28 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 			MessageToUpdate->Text = Event.Text;
 			MessageToUpdate->bTextFinal = Event.Final;
 		});
+	}
+	else if (FromActor.Type == EInworldActorType::PLAYER)
+	{
+		if (Event.Final)
+		{
+			UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *Event.Routing.Target.Name, *Event.Text);
+		}
+
+		// Don't add to queue, player talking is instant.
+		FCharacterMessagePlayerTalk PlayerTalk;
+		PlayerTalk.InteractionId = Event.PacketId.InteractionId;
+		PlayerTalk.UtteranceId = Event.PacketId.UtteranceId;
+		PlayerTalk.Text = Event.Text;
+		PlayerTalk.bTextFinal = Event.Final;
+
+		OnPlayerTalk.Broadcast(PlayerTalk);
+
+		TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
+		if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
+		{
+			CancelCurrentInteraction();
+		}
 	}
 }
 
@@ -448,39 +405,6 @@ void UInworldCharacterComponent::VisitAudioOnClient(const FInworldAudioDataEvent
 			VisemeInfo_Ref.Code = VisemeInfo.Code;
 		}
 	});
-}
-
-void UInworldCharacterComponent::OnRep_TargetPlayer(UInworldPlayerComponent* OldTargetPlayer)
-{
-	OnPlayerInteractionStateChanged.Broadcast(TargetPlayer != nullptr);
-}
-
-void UInworldCharacterComponent::OnRep_AgentId(FString OldAgentId)
-{
-	if (AgentId == OldAgentId)
-	{
-		return;
-	}
-
-	// BeginPlay can be called later, don't use cached ptr
-	auto* InworldApi = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
-	if (!ensure(InworldApi))
-	{
-		return;
-	}
-
-	const bool bWasRegistered = !OldAgentId.IsEmpty();
-	const bool bIsRegistered = !AgentId.IsEmpty();
-	if (bIsRegistered && !bWasRegistered)
-	{
-		OnPossessed.Broadcast();
-	}
-	if (!bIsRegistered && bWasRegistered)
-	{
-		OnUnpossessed.Broadcast();
-	}
-
-	InworldApi->UpdateCharacterComponentRegistrationOnClient(this, AgentId, OldAgentId);
 }
 
 void UInworldCharacterComponent::Multicast_VisitSilence_Implementation(const FInworldSilenceEvent& Event)
@@ -556,12 +480,12 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 	}
 }
 
-void UInworldCharacterComponent::Visit(const FInworldTextEvent& Event)
+void UInworldCharacterComponent::OnInworldTextEvent(const FInworldTextEvent& Event)
 {
     Multicast_VisitText(Event);
 }
 
-void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
+void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEvent& Event)
 {
 	if (GetNetMode() == NM_Standalone || GetNetMode() == NM_Client)
 	{
@@ -574,7 +498,8 @@ void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
 		VisitAudioOnClient(Event);
 	}
 
-	if (ensure(InworldSubsystem.IsValid()))
+	UInworldApiSubsystem* InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
+	if (ensure(InworldSubsystem))
 	{
 		TArray<FInworldAudioDataEvent> RepEvents;
 		FInworldAudioDataEvent::ConvertToReplicatableEvents(Event, RepEvents);
@@ -586,27 +511,27 @@ void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
 	}
 }
 
-void UInworldCharacterComponent::Visit(const FInworldSilenceEvent& Event)
+void UInworldCharacterComponent::OnInworldSilenceEvent(const FInworldSilenceEvent& Event)
 {
     Multicast_VisitSilence(Event);
 }
 
-void UInworldCharacterComponent::Visit(const FInworldControlEvent& Event)
+void UInworldCharacterComponent::OnInworldControlEvent(const FInworldControlEvent& Event)
 {
     Multicast_VisitControl(Event);
 }
 
-void UInworldCharacterComponent::Visit(const FInworldEmotionEvent& Event)
+void UInworldCharacterComponent::OnInworldEmotionEvent(const FInworldEmotionEvent& Event)
 {
     Multicast_VisitEmotion(Event);
 }
 
-void UInworldCharacterComponent::Visit(const FInworldCustomEvent& Event)
+void UInworldCharacterComponent::OnInworldCustomEvent(const FInworldCustomEvent& Event)
 {
 	Multicast_VisitCustom(Event);
 }
 
-void UInworldCharacterComponent::Visit(const FInworldRelationEvent& Event)
+void UInworldCharacterComponent::OnInworldRelationEvent(const FInworldRelationEvent& Event)
 {
 	Multicast_VisitRelation(Event);
 }
@@ -640,3 +565,27 @@ void UInworldCharacterComponent::Handle(const FCharacterMessageInteractionEnd& M
 {
 	OnInteractionEnd.Broadcast(Message);
 }
+
+void UInworldCharacterComponent::OnRep_InworldCharacter()
+{
+	if (InworldCharacter)
+	{
+		InworldCharacter->OnTargetPlayerChanged().AddLambda(
+			[this]() -> void
+			{
+				OnPlayerInteractionStateChanged.Broadcast(InworldCharacter->GetTargetPlayer() != nullptr);
+			}
+		);
+		OnPlayerInteractionStateChanged.Broadcast(InworldCharacter->GetTargetPlayer() != nullptr);
+
+		InworldCharacter->OnInworldTextEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldTextEvent);
+		InworldCharacter->OnInworldAudioEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldAudioEvent);
+		InworldCharacter->OnInworldSilenceEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldSilenceEvent);
+		InworldCharacter->OnInworldControlEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldControlEvent);
+		InworldCharacter->OnInworldEmotionEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldEmotionEvent);
+		InworldCharacter->OnInworldCustomEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldCustomEvent);
+	}
+}
+
+#undef EMPTY_ARG_RETURN
+#undef NO_CHARACTER_RETURN
