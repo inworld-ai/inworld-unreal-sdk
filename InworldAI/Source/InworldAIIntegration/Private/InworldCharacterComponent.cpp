@@ -293,11 +293,11 @@ void UInworldCharacterComponent::SendNarrationEvent(const FString& Content)
 	InworldCharacter->SendNarrationEvent(Content);
 }
 
-void UInworldCharacterComponent::StartAudioSession()
+void UInworldCharacterComponent::StartAudioSession(EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CHARACTER_RETURN(void())
 
-	InworldCharacter->SendAudioSessionStart();
+	InworldCharacter->SendAudioSessionStart(MicrophoneMode);
 }
 
 void UInworldCharacterComponent::StopAudioSession()

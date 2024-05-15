@@ -80,6 +80,12 @@ public:
     UFUNCTION(Server, Reliable, Category = "Audio")
     void ServerSetMuted(bool bInMuted);
 
+    UFUNCTION(BlueprintCallable, Category = "Audio")
+    void SetMicMode(EInworldMicrophoneMode InMicMode) { ServerSetMicMode(MicMode); }
+
+    UFUNCTION(Server, Reliable, Category = "Audio")
+    void ServerSetMicMode(EInworldMicrophoneMode InMicMode);
+
     UFUNCTION(BlueprintCallable, Category = "Devices")
     void SetCaptureDeviceById(const FString& DeviceId);
 
@@ -99,6 +105,10 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
     bool bMuted = false;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+    EInworldMicrophoneMode MicMode = EInworldMicrophoneMode::OPEN_MIC;
+    bool bIsMicModeDirty = false;
 
 private:
 	UFUNCTION()

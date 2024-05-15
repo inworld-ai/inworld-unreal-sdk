@@ -347,20 +347,20 @@ void UInworldSession::SendSoundMessageToConversation(UInworldPlayer* Player, con
 	Client->SendSoundMessageToConversation(Player->GetConversationId(), InputData, OutputData);
 }
 
-void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character)
+void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CLIENT_RETURN(void())
 	INVALID_CHARACTER_RETURN(void())
 
-	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId);
+	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId, MicrophoneMode);
 }
 
-void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player)
+void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CLIENT_RETURN(void())
 	INVALID_PLAYER_RETURN(void())
 
-	Client->SendAudioSessionStartToConversation(Player->GetConversationId());
+	Client->SendAudioSessionStartToConversation(Player->GetConversationId(), MicrophoneMode);
 }
 
 void UInworldSession::SendAudioSessionStop(UInworldCharacter* Character)

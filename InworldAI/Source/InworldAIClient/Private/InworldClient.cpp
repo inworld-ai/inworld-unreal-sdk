@@ -467,20 +467,22 @@ void UInworldClient::SendSoundMessageToConversation(const FString& ConversationI
 	}
 }
 
-void UInworldClient::SendAudioSessionStart(const FString& AgentId)
+void UInworldClient::SendAudioSessionStart(const FString& AgentId, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(AgentId, void())
 
-	Inworld::GetClient()->StartAudioSession(TCHAR_TO_UTF8(*AgentId));
+	Inworld::GetClient()->StartAudioSession(TCHAR_TO_UTF8(*AgentId), MicrophoneMode);
 }
 
-void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId)
+void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
 
-	Inworld::GetClient()->StartAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId));
+	Inworld::AudioSessionStartPayload AudioSessionStartPayload;
+	AudioSessionStartPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(MicrophoneMode);
+	Inworld::GetClient()->StartAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId), AudioSessionStartPayload);
 }
 
 void UInworldClient::SendAudioSessionStop(const FString& AgentId)

@@ -243,12 +243,12 @@ void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, const TArray
     InworldSession->GetClient()->SendSoundMessage(AgentId, InputData, OutputData);
 }
 
-void UInworldApiSubsystem::StartAudioSession(const FString& AgentId)
+void UInworldApiSubsystem::StartAudioSession(const FString& AgentId, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
     NO_CLIENT_RETURN(void())
     EMPTY_ARG_RETURN(AgentId, void())
 
-    InworldSession->GetClient()->SendAudioSessionStart(AgentId);
+    InworldSession->GetClient()->SendAudioSessionStart(AgentId, MicrophoneMode);
 }
 
 void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)

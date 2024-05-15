@@ -82,6 +82,19 @@ void InworldPacketTranslator::TranslateEvent<Inworld::ControlEvent, FInworldCont
 {
 	TranslateInworldPacket(Original, New);
 	New.Action = static_cast<EInworldControlEventAction>(Original.GetControlAction());
+	New.Description = UTF8_TO_TCHAR(Original.GetDescription().c_str());
+}
+
+template <>
+void InworldPacketTranslator::TranslateEvent<>(const Inworld::ControlEventConversationUpdate& Original, FInworldConversationUpdateEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+	New.EventType = static_cast<EInworldConversationUpdateType>(Original.GetType());
+	New.bIncludePlayer = Original.GetIncludePlayer();
+	for (const auto& Agent : Original.GetAgents())
+	{
+		New.Agents.Add(UTF8_TO_TCHAR(Agent.c_str()));
+	}
 }
 
 template <>
