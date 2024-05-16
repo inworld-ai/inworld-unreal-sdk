@@ -50,7 +50,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
 	void SendTriggerToConversation(const FString& Name, const TMap<FString, FString>& Params);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStartToConversation();
+	void SendAudioSessionStartToConversation(EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStopToConversation();
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
@@ -91,8 +91,8 @@ public:
 	FOnInworldPlayerConversationChanged OnConversationChangedDelegate;
 	FOnInworldPlayerConversationChangedNative& OnConversationChanged() { return OnConversationChangedDelegateNative; }
 
-	UFUNCTION()
 	bool HasAudioSession() const { return bHasAudioSession; }
+	EInworldMicrophoneMode GetMicMode() const { return MicMode; }
 
 private:
 	void UpdateConversation();
@@ -112,6 +112,7 @@ private:
 	FOnInworldPlayerConversationChangedNative OnConversationChangedDelegateNative;
 
 	bool bHasAudioSession = false;
+	EInworldMicrophoneMode MicMode = EInworldMicrophoneMode::UNKNOWN;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)

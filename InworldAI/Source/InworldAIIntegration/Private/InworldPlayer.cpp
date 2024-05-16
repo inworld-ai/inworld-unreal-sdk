@@ -94,7 +94,7 @@ void UInworldPlayer::SendTriggerToConversation(const FString& Name, const TMap<F
 	Session->SendTriggerToConversation(this, Name, Params);
 }
 
-void UInworldPlayer::SendAudioSessionStartToConversation()
+void UInworldPlayer::SendAudioSessionStartToConversation(EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_SESSION_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
@@ -104,7 +104,9 @@ void UInworldPlayer::SendAudioSessionStartToConversation()
 		return;
 	}
 	bHasAudioSession = true;
-	Session->SendAudioSessionStartToConversation(this);
+
+	MicMode = MicrophoneMode;
+	Session->SendAudioSessionStartToConversation(this, MicrophoneMode);
 }
 
 void UInworldPlayer::SendAudioSessionStopToConversation()
@@ -117,6 +119,8 @@ void UInworldPlayer::SendAudioSessionStopToConversation()
 		return;
 	}
 	bHasAudioSession = false;
+
+	MicMode = EInworldMicrophoneMode::UNKNOWN;
 	Session->SendAudioSessionStopToConversation(this);
 }
 
@@ -224,7 +228,7 @@ void UInworldPlayer::UpdateConversation()
 
 	if (bHadAudioSession && !ConversationId.IsEmpty())
 	{
-		SendAudioSessionStartToConversation();
+		SendAudioSessionStartToConversation(MicMode);
 	}
 }
 
