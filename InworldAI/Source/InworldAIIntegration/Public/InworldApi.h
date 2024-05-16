@@ -149,7 +149,7 @@ public:
      * call before sending audio messages
      */
     UFUNCTION(BlueprintCallable, Category = "Audio")
-    void StartAudioSession(const FString& AgentId);
+    void StartAudioSession(const FString& AgentId, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 
     /**
      * Stop audio session with agent
