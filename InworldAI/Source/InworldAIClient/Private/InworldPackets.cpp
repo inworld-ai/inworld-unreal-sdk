@@ -221,6 +221,7 @@ void FInworldControlEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Control"));
 	AppendToDebugString(Str, FString::FromInt(static_cast<int32>(Action)));
+	AppendToDebugString(Str, Description);
 }
 
 void FInworldConversationUpdateEvent::AppendDebugString(FString& Str) const
