@@ -11,6 +11,7 @@
 #include "UObject/Interface.h"
 #include "UObject/NoExportTypes.h"
 #include "GameFramework/Actor.h"
+#include "InworldEnums.h"
 #include "InworldPlayer.generated.h"
 
 class UInworldSession;

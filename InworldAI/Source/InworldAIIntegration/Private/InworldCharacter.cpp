@@ -247,36 +247,42 @@ void UInworldCharacter::OnRep_TargetPlayer()
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldTextEvent& Event)
 {
+	IInworldCharacterOwnerInterface::Execute_OnInworldTextEvent(Character->GetOuter(), Event);
 	Character->OnInworldTextEventDelegateNative.Broadcast(Event);
 	Character->OnInworldTextEventDelegate.Broadcast(Event);
 }
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldAudioDataEvent& Event)
 {
+	IInworldCharacterOwnerInterface::Execute_OnInworldAudioEvent(Character->GetOuter(), Event);
 	Character->OnInworldAudioEventDelegateNative.Broadcast(Event);
 	Character->OnInworldAudioEventDelegate.Broadcast(Event);
 }
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldSilenceEvent& Event)
 {
+	IInworldCharacterOwnerInterface::Execute_OnInworldSilenceEvent(Character->GetOuter(), Event);
 	Character->OnInworldSilenceEventDelegateNative.Broadcast(Event);
 	Character->OnInworldSilenceEventDelegate.Broadcast(Event);
 }
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldControlEvent& Event)
 {
+	IInworldCharacterOwnerInterface::Execute_OnInworldControlEvent(Character->GetOuter(), Event);
 	Character->OnInworldControlEventDelegateNative.Broadcast(Event);
 	Character->OnInworldControlEventDelegate.Broadcast(Event);
 }
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldEmotionEvent& Event)
 {
+	IInworldCharacterOwnerInterface::Execute_OnInworldEmotionEvent(Character->GetOuter(), Event);
 	Character->OnInworldEmotionEventDelegateNative.Broadcast(Event);
 	Character->OnInworldEmotionEventDelegate.Broadcast(Event);
 }
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldCustomEvent& Event)
 {
+	IInworldCharacterOwnerInterface::Execute_OnInworldCustomEvent(Character->GetOuter(), Event);
 	Character->OnInworldCustomEventDelegateNative.Broadcast(Event);
 	Character->OnInworldCustomEventDelegate.Broadcast(Event);
 }

@@ -172,6 +172,21 @@ class INWORLDAIINTEGRATION_API IInworldCharacterOwnerInterface
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
 	UInworldCharacter* GetInworldCharacter() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
+	void OnInworldTextEvent(const FInworldTextEvent& Event);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
+	void OnInworldAudioEvent(const FInworldAudioDataEvent& Event);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
+	void OnInworldSilenceEvent(const FInworldSilenceEvent& Event);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
+	void OnInworldControlEvent(const FInworldControlEvent& Event);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
+	void OnInworldEmotionEvent(const FInworldEmotionEvent& Event);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
+	void OnInworldCustomEvent(const FInworldCustomEvent& Event);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
+	void OnInworldRelationEvent(const FInworldRelationEvent& Event);
 };
 
 namespace Inworld
