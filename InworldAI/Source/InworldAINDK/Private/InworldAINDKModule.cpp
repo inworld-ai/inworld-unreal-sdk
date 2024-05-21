@@ -46,8 +46,8 @@ void FInworldAINDKModule::StartupModule()
 #endif
 
 	LoadDll(FPaths::Combine(*DllDirectory, TEXT("Win64/inworld-ndk-vad.dll")), &vadLibHandle);
-	LoadDll(FPaths::Combine(*DllDirectory, TEXT("Win64/onnxruntime.dll")), &onnxruntimeLibHandle);
-	LoadDll(FPaths::Combine(*DllDirectory, TEXT("Win64/onnxruntime_providers_shared.dll")), &onnxruntimeProvLibHandle);
+	//LoadDll(FPaths::Combine(*DllDirectory, TEXT("Win64/onnxruntime.dll")), &onnxruntimeLibHandle);
+	//LoadDll(FPaths::Combine(*DllDirectory, TEXT("Win64/onnxruntime_providers_shared.dll")), &onnxruntimeProvLibHandle);
 }
 
 void FInworldAINDKModule::ShutdownModule()

@@ -17,6 +17,9 @@
 #include "InworldAINDKModule.h"
 #include "InworldUtils.h"
 #include "InworldPacketTranslator.h"
+#include "ThirdParty/InworldAINDKLibrary/include/InworldVAD.h"
+
+#include "onnxruntime_cxx_api.h"
 
 THIRD_PARTY_INCLUDES_START
 #include "Packets.h"
@@ -463,6 +466,17 @@ void UInworldClient::SendSoundMessageToConversation(const FString& ConversationI
 	{
 		std::vector<int16> inputdata((int16*)InputData.GetData(), ((int16*)InputData.GetData()) + (InputData.Num() / 2));
 		std::vector<int16> outputdata((int16*)OutputData.GetData(), ((int16*)OutputData.GetData()) + (OutputData.Num() / 2));
+
+		std::vector<float> FloatData(inputdata.size());
+		for (size_t i = 0; i < inputdata.size(); ++i)
+		{
+			FloatData[i] = static_cast<float>(inputdata[i]) / 32767.0f;
+		}
+
+		const float SpeechProbability = 0.f;//Inworld::VAD_Process(FloatData);
+		const auto Color = SpeechProbability > 0.3f ? FColor::Green : FColor::Red;
+		GEngine->AddOnScreenDebugMessage(111, 0.12f, Color, FString::Printf(TEXT("Speech probability: %f"), SpeechProbability));
+		
 		Inworld::GetClient()->SendSoundMessageWithAECToConversation(TCHAR_TO_UTF8(*ConversationId), inputdata, outputdata);
 	}
 }
@@ -482,6 +496,10 @@ void UInworldClient::SendAudioSessionStartToConversation(const FString& Conversa
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
 
+	//Inworld::VAD_Initialize("");
+	//Ort::SessionOptions session_options;
+	//auto SessionOptions = MakeUnique<Ort::SessionOptions>();
+
 	Inworld::AudioSessionStartPayload AudioSessionStartPayload;
 	AudioSessionStartPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(MicrophoneMode);
 	Inworld::GetClient()->StartAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId), AudioSessionStartPayload);
@@ -499,6 +517,8 @@ void UInworldClient::SendAudioSessionStopToConversation(const FString& Conversat
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
+
+	//Inworld::VAD_Terminate();
 
 	Inworld::GetClient()->StopAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId));
 }

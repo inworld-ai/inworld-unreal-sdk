@@ -33,6 +33,9 @@ public class InworldAIClient : ModuleRules
                 "Projects",
                 "InworldAINDK",
                 "InworldAINDKLibrary",
+                //"NNEOnnxruntimeEditor",
             });
+        
+        PublicIncludePaths.Add("C:/Projects/inworld/Test54/Plugins/inworld-unreal-sdk/InworldAI/inworld-ndk/inworld-vad/third-party/onnxruntime/include");
     }
 }
