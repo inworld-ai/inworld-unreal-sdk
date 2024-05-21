@@ -18,8 +18,13 @@ public:
 	virtual void ShutdownModule() override;
 
 private:
+	void LoadDll(const FString& Path, void** Handle);
+	
 	void* ndkLibraryHandle;
 	void* webrtcLibraryHandle;
+	void* vadLibHandle;
+	void* onnxruntimeLibHandle;
+	void* onnxruntimeProvLibHandle;
 
 public:
 	static inline FInworldAINDKModule& Get()
