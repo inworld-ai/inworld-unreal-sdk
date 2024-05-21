@@ -498,7 +498,7 @@ void UInworldClient::SendAudioSessionStartToConversation(const FString& Conversa
 
 	//Inworld::VAD_Initialize("");
 	//Ort::SessionOptions session_options;
-	//auto SessionOptions = MakeUnique<Ort::SessionOptions>();
+	auto SessionOptions = MakeUnique<Ort::SessionOptions>();
 
 	Inworld::AudioSessionStartPayload AudioSessionStartPayload;
 	AudioSessionStartPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(MicrophoneMode);
