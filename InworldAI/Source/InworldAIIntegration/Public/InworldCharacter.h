@@ -8,6 +8,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InworldSession.h"
 #include "UObject/Interface.h"
 #include "UObject/NoExportTypes.h"
 #include "GameFramework/Actor.h"
