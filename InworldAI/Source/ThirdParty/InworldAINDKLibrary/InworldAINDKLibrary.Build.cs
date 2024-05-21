@@ -145,7 +145,7 @@ public class InworldAINDKLibrary : ModuleRules
                 RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk.dll"));
             }
             
-            /*PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk-vad.dll.lib"));
+            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk-vad.dll.lib"));
             PublicDelayLoadDLLs.Add("inworld-ndk-vad.dll");
             RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk-vad.dll"));
 
@@ -155,7 +155,7 @@ public class InworldAINDKLibrary : ModuleRules
 
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "onnxruntime_providers_shared.lib"));
             PublicDelayLoadDLLs.Add("onnxruntime_providers_shared.dll");
-            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "onnxruntime_providers_shared.dll"));*/
+            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "onnxruntime_providers_shared.dll"));
         }
         else if(Target.Platform == UnrealTargetPlatform.Mac)
         {
