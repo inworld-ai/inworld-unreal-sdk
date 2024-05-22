@@ -19,7 +19,7 @@
 #include "InworldPacketTranslator.h"
 #include "ThirdParty/InworldAINDKLibrary/include/InworldVAD.h"
 
-#include "onnxruntime_cxx_api.h"
+//#include "onnxruntime_cxx_api.h"
 
 THIRD_PARTY_INCLUDES_START
 #include "Packets.h"
@@ -473,7 +473,7 @@ void UInworldClient::SendSoundMessageToConversation(const FString& ConversationI
 			FloatData[i] = static_cast<float>(inputdata[i]) / 32767.0f;
 		}
 
-		const float SpeechProbability = 0.f;//Inworld::VAD_Process(FloatData);
+		const float SpeechProbability = Inworld::VAD_Process(FloatData.data(), FloatData.size());
 		const auto Color = SpeechProbability > 0.3f ? FColor::Green : FColor::Red;
 		GEngine->AddOnScreenDebugMessage(111, 0.12f, Color, FString::Printf(TEXT("Speech probability: %f"), SpeechProbability));
 		
@@ -518,7 +518,7 @@ void UInworldClient::SendAudioSessionStopToConversation(const FString& Conversat
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
 
-	//Inworld::VAD_Terminate();
+	Inworld::VAD_Terminate();
 
 	Inworld::GetClient()->StopAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId));
 }
