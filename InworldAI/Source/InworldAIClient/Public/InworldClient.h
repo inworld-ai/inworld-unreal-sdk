@@ -131,6 +131,9 @@ public:
 	void SetEnvironment(const FInworldEnvironment& InEnvironment) { Environment = InEnvironment; }
 
 private:
+	UPROPERTY()
+	UInworldAudioSender* AudioSender;
+	
 	FOnInworldPacketReceivedNative OnPacketReceivedDelegateNative;
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
@@ -146,5 +149,4 @@ private:
 #endif
 
 	FInworldEnvironment Environment;
-	FInworldAudioSender AudioSender;
 };

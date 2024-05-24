@@ -90,8 +90,8 @@ UInworldClient::UInworldClient()
 	// Ensure dependencies are loaded
 	FInworldAINDKModule::Get();
 
-	AudioSender.Initialize();
-	AudioSender.EnableVAD(true);
+	AudioSender = NewObject<UInworldAudioSender>(this);
+	AudioSender->Initialize(true);
 
 	FString ClientVer;
 	TSharedPtr<IPlugin> InworldAIPlugin = IPluginManager::Get().FindPlugin("InworldAI");
@@ -190,7 +190,17 @@ UInworldClient::~UInworldClient()
 #if !UE_BUILD_SHIPPING
 	OnAudioDumperCVarChanged.Remove(OnAudioDumperCVarChangedHandle);
 #endif
-	AudioSender.Terminate();
+	if (IsValid(AudioSender))
+	{
+		AudioSender->Terminate();
+#if ENGINE_MAJOR_VERSION == 5
+		AudioSender->MarkAsGarbage();
+#endif
+#if ENGINE_MAJOR_VERSION == 4
+		AudioSender->MarkPendingKill();
+#endif
+	}
+	AudioSender = nullptr;
 	Inworld::DestroyClient();
 }
 
@@ -445,12 +455,12 @@ void UInworldClient::SendSoundMessage(const FString& AgentId, const TArray<uint8
 	std::vector<int16> inputdata((int16*)InputData.GetData(), ((int16*)InputData.GetData()) + (InputData.Num() / 2));
 	if (OutputData.Num() > 0)
 	{
-		AudioSender.SendSoundMessage(TCHAR_TO_UTF8(*AgentId), inputdata);
+		AudioSender->SendSoundMessage(TCHAR_TO_UTF8(*AgentId), inputdata);
 	}
 	else
 	{
 		std::vector<int16> outputdata((int16*)OutputData.GetData(), ((int16*)OutputData.GetData()) + (OutputData.Num() / 2));
-		AudioSender.SendSoundMessageWithAEC(TCHAR_TO_UTF8(*AgentId), inputdata, outputdata);
+		AudioSender->SendSoundMessageWithAEC(TCHAR_TO_UTF8(*AgentId), inputdata, outputdata);
 	}
 }
 
@@ -463,12 +473,12 @@ void UInworldClient::SendSoundMessageToConversation(const FString& ConversationI
 	std::vector<int16> inputdata((int16*)InputData.GetData(), ((int16*)InputData.GetData()) + (InputData.Num() / 2));
 	if (OutputData.Num() == 0)
 	{
-		AudioSender.SendSoundMessageToConversation(TCHAR_TO_UTF8(*ConversationId), inputdata);
+		AudioSender->SendSoundMessageToConversation(TCHAR_TO_UTF8(*ConversationId), inputdata);
 	}
 	else
 	{
 		std::vector<int16> outputdata((int16*)OutputData.GetData(), ((int16*)OutputData.GetData()) + (OutputData.Num() / 2));
-		AudioSender.SendSoundMessageWithAECToConversation(TCHAR_TO_UTF8(*ConversationId), inputdata, outputdata);
+		AudioSender->SendSoundMessageWithAECToConversation(TCHAR_TO_UTF8(*ConversationId), inputdata, outputdata);
 	}
 }
 
@@ -477,7 +487,7 @@ void UInworldClient::SendAudioSessionStart(const FString& AgentId, EInworldMicro
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(AgentId, void())
 
-	AudioSender.StartAudioSession(TCHAR_TO_UTF8(*AgentId), MicrophoneMode);
+	AudioSender->StartAudioSession(TCHAR_TO_UTF8(*AgentId), MicrophoneMode);
 }
 
 void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
@@ -485,7 +495,7 @@ void UInworldClient::SendAudioSessionStartToConversation(const FString& Conversa
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
 
-	AudioSender.StartAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId), MicrophoneMode);
+	AudioSender->StartAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId), MicrophoneMode);
 }
 
 void UInworldClient::SendAudioSessionStop(const FString& AgentId)
@@ -493,7 +503,7 @@ void UInworldClient::SendAudioSessionStop(const FString& AgentId)
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(AgentId, void())
 
-	AudioSender.StopAudioSession(TCHAR_TO_UTF8(*AgentId));
+	AudioSender->StopAudioSession(TCHAR_TO_UTF8(*AgentId));
 }
 
 void UInworldClient::SendAudioSessionStopToConversation(const FString& ConversationId)
@@ -503,7 +513,7 @@ void UInworldClient::SendAudioSessionStopToConversation(const FString& Conversat
 
 	Inworld::VAD_Terminate();
 
-	AudioSender.StopAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId));
+	AudioSender->StopAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId));
 }
 
 void UInworldClient::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)

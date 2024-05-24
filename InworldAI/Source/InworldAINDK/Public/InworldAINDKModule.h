@@ -23,8 +23,6 @@ private:
 	void* ndkLibraryHandle;
 	void* webrtcLibraryHandle;
 	void* vadLibHandle;
-	void* onnxruntimeLibHandle;
-	void* onnxruntimeProvLibHandle;
 
 public:
 	static inline FInworldAINDKModule& Get()

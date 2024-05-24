@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <memory>
 #include <queue>
 #include <string>
 #include <vector>
@@ -15,17 +14,21 @@
 #include "CoreMinimal.h"
 #include "InworldEnums.h"
 
+#include "InworldAudioSender.generated.h"
+
 namespace Inworld
 {
 	class AECFilter;
 }
 
-class FInworldAudioSender
+UCLASS()
+class INWORLDAICLIENT_API UInworldAudioSender : public UObject
 {
 public:
-	void Initialize();
+	GENERATED_BODY()
+	
+	void Initialize(bool bEnableVAD);
 	void Terminate();
-	void EnableVAD(bool bVal);
 
 	void StartAudioSession(const std::string& AgentId, EInworldMicrophoneMode MicMode);
 	void StartAudioSessionInConversation(const std::string& ConversationId, EInworldMicrophoneMode MicMode);
@@ -45,9 +48,11 @@ private:
 	void ProcessAudio(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	std::vector<int16_t>  ApplyAEC(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	void SendAudio(const std::string& Data);
+	void AdvanceAudioQueue();
 	void ClearState();
 
-	std::queue<std::string> PendingAudio;
+	FTimerHandle TimerHandle;
+	std::queue<std::string> AudioQueue;
 	void* AecHandle = nullptr;
 	EInworldMicrophoneMode MicMode = EInworldMicrophoneMode::UNKNOWN;
 	std::string RoutingId;

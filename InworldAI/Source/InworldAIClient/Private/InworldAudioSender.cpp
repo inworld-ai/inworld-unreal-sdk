@@ -12,32 +12,37 @@
 #include "ThirdParty/InworldAINDKLibrary/include/InworldVAD.h"
 #include "ThirdParty/InworldAINDKLibrary/include/AECInterop.h"
 
-void FInworldAudioSender::Initialize()
+void UInworldAudioSender::Initialize(bool bEnableVAD)
 {
+	bVADEnabled = bEnableVAD;
+	if (bVADEnabled)
+	{
+		Inworld::VAD_Initialize("model");
+	}
 	AecHandle = WebRtcAec3_Create(16000);
-	Inworld::VAD_Initialize("model");
 }
 
-void FInworldAudioSender::Terminate()
+void UInworldAudioSender::Terminate()
 {
+	GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+	ClearState();
 	WebRtcAec3_Free(AecHandle);
-	Inworld::VAD_Terminate();
+	if (bVADEnabled)
+	{
+		Inworld::VAD_Terminate();
+	}
 }
 
-void FInworldAudioSender::EnableVAD(bool bVal)
-{
-	bVADEnabled = bVal;
-}
-
-void FInworldAudioSender::ClearState()
+void UInworldAudioSender::ClearState()
 {
 	StopActualSession();
 	RoutingId = {};
+	AudioQueue = {};
 	MicMode = EInworldMicrophoneMode::UNKNOWN;
 	VADSilenceCounter = 0;
 }
 
-void FInworldAudioSender::StartAudioSession(const std::string& AgentId, EInworldMicrophoneMode MicrophoneMode)
+void UInworldAudioSender::StartAudioSession(const std::string& AgentId, EInworldMicrophoneMode MicrophoneMode)
 {
 	ClearState();
 	RoutingId = AgentId;
@@ -49,7 +54,7 @@ void FInworldAudioSender::StartAudioSession(const std::string& AgentId, EInworld
 	}
 }
 
-void FInworldAudioSender::StartAudioSessionInConversation(const std::string& ConversationId, EInworldMicrophoneMode MicrophoneMode)
+void UInworldAudioSender::StartAudioSessionInConversation(const std::string& ConversationId, EInworldMicrophoneMode MicrophoneMode)
 {
 	ClearState();
 	RoutingId = ConversationId;
@@ -61,7 +66,7 @@ void FInworldAudioSender::StartAudioSessionInConversation(const std::string& Con
 	}
 }
 
-void FInworldAudioSender::StopAudioSession(const std::string& AgentId)
+void UInworldAudioSender::StopAudioSession(const std::string& AgentId)
 {
 	ClearState();
 	if (!bVADEnabled)
@@ -70,7 +75,7 @@ void FInworldAudioSender::StopAudioSession(const std::string& AgentId)
 	}
 }
 
-void FInworldAudioSender::StopAudioSessionInConversation(const std::string& ConversationId)
+void UInworldAudioSender::StopAudioSessionInConversation(const std::string& ConversationId)
 {
 	ClearState();
 	if (!bVADEnabled)
@@ -79,51 +84,51 @@ void FInworldAudioSender::StopAudioSessionInConversation(const std::string& Conv
 	}
 }
 
-void FInworldAudioSender::SendSoundMessage(const std::string& AgentId, const std::vector<int16_t>& InputData)
+void UInworldAudioSender::SendSoundMessage(const std::string& AgentId, const std::vector<int16_t>& InputData)
 {
 	if (bConversation || RoutingId != AgentId)
 	{
-		UE_LOG(LogInworldAIClient, Warning, TEXT("FInworldAudioSender::SendSoundMessage invalid routing: Agent %hs."), AgentId.c_str());
+		UE_LOG(LogInworldAIClient, Warning, TEXT("UInworldAudioSender::SendSoundMessage invalid routing: Agent %hs."), AgentId.c_str());
 		return;
 	}
 
 	ProcessAudio(InputData, {});
 }
 
-void FInworldAudioSender::SendSoundMessageToConversation(const std::string& ConversationId, const std::vector<int16_t>& InputData)
+void UInworldAudioSender::SendSoundMessageToConversation(const std::string& ConversationId, const std::vector<int16_t>& InputData)
 {
 	if (!bConversation || RoutingId != ConversationId)
 	{
-		UE_LOG(LogInworldAIClient, Warning, TEXT("FInworldAudioSender::SendSoundMessage invalid routing: Conversation %hs."), ConversationId.c_str());
+		UE_LOG(LogInworldAIClient, Warning, TEXT("UInworldAudioSender::SendSoundMessage invalid routing: Conversation %hs."), ConversationId.c_str());
 		return;
 	}
 
 	ProcessAudio(InputData, {});
 }
 
-void FInworldAudioSender::SendSoundMessageWithAEC(const std::string& AgentId, const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
+void UInworldAudioSender::SendSoundMessageWithAEC(const std::string& AgentId, const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
 {
 	if (bConversation || RoutingId != AgentId)
 	{
-		UE_LOG(LogInworldAIClient, Warning, TEXT("FInworldAudioSender::SendSoundMessage invalid routing: Agent %hs."), AgentId.c_str());
+		UE_LOG(LogInworldAIClient, Warning, TEXT("UInworldAudioSender::SendSoundMessage invalid routing: Agent %hs."), AgentId.c_str());
 		return;
 	}
 
 	ProcessAudio(InputData, OutputData);
 }
 
-void FInworldAudioSender::SendSoundMessageWithAECToConversation(const std::string& ConversationId, const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
+void UInworldAudioSender::SendSoundMessageWithAECToConversation(const std::string& ConversationId, const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
 {
 	if (!bConversation || RoutingId != ConversationId)
 	{
-		UE_LOG(LogInworldAIClient, Warning, TEXT("FInworldAudioSender::SendSoundMessage invalid routing: Conversation %hs."), ConversationId.c_str());
+		UE_LOG(LogInworldAIClient, Warning, TEXT("UInworldAudioSender::SendSoundMessage invalid routing: Conversation %hs."), ConversationId.c_str());
 		return;
 	}
 
 	ProcessAudio(InputData, OutputData);
 }
 
-void FInworldAudioSender::StartActualSession()
+void UInworldAudioSender::StartActualSession()
 {
 	if (bSessionActive)
 	{
@@ -141,10 +146,10 @@ void FInworldAudioSender::StartActualSession()
 		Inworld::GetClient()->StartAudioSession(RoutingId, AudioSessionStartPayload);
 	}
 	bSessionActive = true;
-	UE_LOG(LogInworldAIClient, Log, TEXT("FInworldAudioSender start actual audio session."));
+	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender start actual audio session."));
 }
 
-void FInworldAudioSender::StopActualSession()
+void UInworldAudioSender::StopActualSession()
 {
 	if (!bSessionActive)
 	{
@@ -160,14 +165,14 @@ void FInworldAudioSender::StopActualSession()
 		Inworld::GetClient()->StopAudioSession(RoutingId);
 	}
 	bSessionActive = false;
-	UE_LOG(LogInworldAIClient, Log, TEXT("FInworldAudioSender stop actual audio session."));
+	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender stop actual audio session."));
 }
 
-void FInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
+void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
 {
-	constexpr float VADThreshhold = 0.3f;
-	constexpr int8_t VADMaxSilence = 10;
-	constexpr int8_t VADMaxPendingAudio = 10;
+	constexpr float VADProbThreshhold = 0.3f;
+	constexpr int8_t VADPreviousChunks = 5;
+	constexpr int8_t VADSubsequentChunks = 5;
 
 	GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Red, FString::Printf(TEXT("NOT SENDING AUDIO")));
 	
@@ -185,38 +190,34 @@ void FInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 		FloatData[i] = static_cast<float>(FilteredData[i]) / 32767.0f;
 	}
 
-	const bool bSpeech = Inworld::VAD_Process(FloatData.data(), FloatData.size()) > VADThreshhold;
+	const bool bSpeech = Inworld::VAD_Process(FloatData.data(), FloatData.size()) > VADProbThreshhold;
 	if (bSpeech)
 	{
 		StartActualSession();
-		while (PendingAudio.size() > 0)
-		{
-			SendAudio(PendingAudio.front());
-			PendingAudio.pop();
-		}
-		SendAudio(Data);
+		AudioQueue.push(Data);
+		AdvanceAudioQueue();
 		return;
 	}
 
 	if (!bSessionActive)
 	{
-		PendingAudio.push(Data);
-		if (PendingAudio.size() > VADMaxPendingAudio)
+		AudioQueue.push(Data);
+		if (AudioQueue.size() > VADPreviousChunks)
 		{
-			PendingAudio.pop();
+			AudioQueue.pop();
 		}
 		return;
 	}
 
 	SendAudio(Data);
-	if (++VADSilenceCounter > VADMaxSilence)
+	if (++VADSilenceCounter > VADSubsequentChunks)
 	{
 		StopActualSession();
 		VADSilenceCounter = 0;
 	}
 }
 
-std::vector<int16_t> FInworldAudioSender::ApplyAEC(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
+std::vector<int16_t> UInworldAudioSender::ApplyAEC(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
 {
 	std::vector<int16_t> FilteredAudio = InputData;
 	constexpr int32_t NumSamples = 160;
@@ -230,11 +231,11 @@ std::vector<int16_t> FInworldAudioSender::ApplyAEC(const std::vector<int16_t>& I
 	return FilteredAudio;
 }
 
-void FInworldAudioSender::SendAudio(const std::string& Data)
+void UInworldAudioSender::SendAudio(const std::string& Data)
 {
 	if (RoutingId.empty())
 	{
-		UE_LOG(LogInworldAIClient, Warning, TEXT("FInworldAudioSender::SendAudio invalid routing."));
+		UE_LOG(LogInworldAIClient, Warning, TEXT("UInworldAudioSender::SendAudio invalid routing."));
 		return;
 	}
 	
@@ -248,4 +249,18 @@ void FInworldAudioSender::SendAudio(const std::string& Data)
 	}
 
 	GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Green, FString::Printf(TEXT("SENDING AUDIO")));
+}
+
+void UInworldAudioSender::AdvanceAudioQueue()
+{
+	SendAudio(AudioQueue.front());
+	AudioQueue.pop();
+
+	if (!AudioQueue.empty())
+	{
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
+		{
+			AdvanceAudioQueue();
+		}, 10, false);
+	}
 }

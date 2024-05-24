@@ -45,7 +45,9 @@ void FInworldAINDKModule::StartupModule()
 	LoadDll(LibraryPath, &ndkLibraryHandle);
 #endif
 
+#if PLATFORM_WINDOWS
 	LoadDll(FPaths::Combine(*DllDirectory, TEXT("Win64/inworld-ndk-vad.dll")), &vadLibHandle);
+#endif
 }
 
 void FInworldAINDKModule::ShutdownModule()
@@ -62,12 +64,6 @@ void FInworldAINDKModule::ShutdownModule()
 
 	FPlatformProcess::FreeDllHandle(vadLibHandle);
 	vadLibHandle = nullptr;
-	
-	FPlatformProcess::FreeDllHandle(onnxruntimeLibHandle);
-	onnxruntimeLibHandle = nullptr;
-	
-	FPlatformProcess::FreeDllHandle(onnxruntimeProvLibHandle);\
-	onnxruntimeProvLibHandle = nullptr;
 }
 
 void FInworldAINDKModule::LoadDll(const FString& Path, void** Handle)
