@@ -91,6 +91,7 @@ UInworldClient::UInworldClient()
 	FInworldAINDKModule::Get();
 
 	AudioSender.Initialize();
+	AudioSender.EnableVAD(true);
 
 	FString ClientVer;
 	TSharedPtr<IPlugin> InworldAIPlugin = IPluginManager::Get().FindPlugin("InworldAI");

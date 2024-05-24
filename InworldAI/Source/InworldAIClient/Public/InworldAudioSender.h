@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <queue>
 #include <string>
 #include <vector>
 
@@ -42,10 +43,12 @@ private:
 	void StartActualSession();
 	void StopActualSession();
 	void ProcessAudio(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
+	std::vector<int16_t>  ApplyAEC(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	void SendAudio(const std::string& Data);
 	void ClearState();
-	
-	Inworld::AECFilter* AECFilter = nullptr;
+
+	std::queue<std::string> PendingAudio;
+	void* AecHandle = nullptr;
 	EInworldMicrophoneMode MicMode = EInworldMicrophoneMode::UNKNOWN;
 	std::string RoutingId;
 	bool bVADEnabled = false;
