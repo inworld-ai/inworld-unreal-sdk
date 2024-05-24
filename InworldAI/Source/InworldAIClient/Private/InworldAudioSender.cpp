@@ -9,33 +9,45 @@
 
 #include "Client.h"
 #include "InworldAIClientModule.h"
+#ifdef INWORLD_VAD
 #include "ThirdParty/InworldAINDKLibrary/include/InworldVAD.h"
+#endif
+#ifdef INWORLD_AEC
 #include "ThirdParty/InworldAINDKLibrary/include/AECInterop.h"
+#endif
 
 void UInworldAudioSender::Initialize(bool bEnableVAD)
 {
 	bVADEnabled = bEnableVAD;
 	if (bVADEnabled)
 	{
-		Inworld::VAD_Initialize("model");
+#ifdef INWORLD_VAD
+	Inworld::VAD_Initialize("model");
+#endif
 	}
+#ifdef INWORLD_AEC
 	AecHandle = WebRtcAec3_Create(16000);
+#endif
 }
 
 void UInworldAudioSender::Terminate()
 {
 	GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
 	ClearState();
+#ifdef INWORLD_AEC
 	WebRtcAec3_Free(AecHandle);
+#endif
 	if (bVADEnabled)
 	{
-		Inworld::VAD_Terminate();
+#ifdef INWORLD_VAD
+	Inworld::VAD_Terminate();
+#endif
 	}
 }
 
 void UInworldAudioSender::ClearState()
 {
-	StopActualSession();
+	StopActualAudioSession();
 	RoutingId = {};
 	AudioQueue = {};
 	MicMode = EInworldMicrophoneMode::UNKNOWN;
@@ -50,7 +62,7 @@ void UInworldAudioSender::StartAudioSession(const std::string& AgentId, EInworld
 	MicMode = MicrophoneMode;
 	if (!bVADEnabled)
 	{
-		StartActualSession();
+		StartActualAudioSession();
 	}
 }
 
@@ -62,7 +74,7 @@ void UInworldAudioSender::StartAudioSessionInConversation(const std::string& Con
 	MicMode = MicrophoneMode;
 	if (!bVADEnabled)
 	{
-		StartActualSession();
+		StartActualAudioSession();
 	}
 }
 
@@ -71,7 +83,7 @@ void UInworldAudioSender::StopAudioSession(const std::string& AgentId)
 	ClearState();
 	if (!bVADEnabled)
 	{
-		StopActualSession();
+		StopActualAudioSession();
 	}
 }
 
@@ -80,7 +92,7 @@ void UInworldAudioSender::StopAudioSessionInConversation(const std::string& Conv
 	ClearState();
 	if (!bVADEnabled)
 	{
-		StopActualSession();
+		StopActualAudioSession();
 	}
 }
 
@@ -128,7 +140,7 @@ void UInworldAudioSender::SendSoundMessageWithAECToConversation(const std::strin
 	ProcessAudio(InputData, OutputData);
 }
 
-void UInworldAudioSender::StartActualSession()
+void UInworldAudioSender::StartActualAudioSession()
 {
 	if (bSessionActive)
 	{
@@ -149,7 +161,7 @@ void UInworldAudioSender::StartActualSession()
 	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender start actual audio session."));
 }
 
-void UInworldAudioSender::StopActualSession()
+void UInworldAudioSender::StopActualAudioSession()
 {
 	if (!bSessionActive)
 	{
@@ -178,7 +190,14 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 	
 	const std::vector<int16_t> FilteredData = OutputData.empty() ? InputData : ApplyAEC(InputData, OutputData);
 	std::string Data((char*)FilteredData.data(), FilteredData.size() * 2);
-	if (!bVADEnabled)
+
+	const bool bVad =
+#ifdef INWORLD_VAD
+		bVADEnabled;
+#else
+		false;
+#endif
+	if (!bVad)
 	{
 		SendAudio(Data);
 		return;
@@ -190,10 +209,19 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 		FloatData[i] = static_cast<float>(FilteredData[i]) / 32767.0f;
 	}
 
-	const bool bSpeech = Inworld::VAD_Process(FloatData.data(), FloatData.size()) > VADProbThreshhold;
-	if (bSpeech)
+	const float SpeechProb =
+#ifdef INWORLD_VAD
+		Inworld::VAD_Process(FloatData.data(), FloatData.size());
+#else
+		1.f;
+#endif
+
+	GEngine->AddOnScreenDebugMessage(112, 0.12f, SpeechProb > VADProbThreshhold ? FColor::Green : FColor::Red,
+		FString::Printf(TEXT("Speech prob: %f"), SpeechProb));
+	
+	if (SpeechProb > VADProbThreshhold)
 	{
-		StartActualSession();
+		StartActualAudioSession();
 		AudioQueue.push(Data);
 		AdvanceAudioQueue();
 		return;
@@ -212,13 +240,14 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 	SendAudio(Data);
 	if (++VADSilenceCounter > VADSubsequentChunks)
 	{
-		StopActualSession();
+		StopActualAudioSession();
 		VADSilenceCounter = 0;
 	}
 }
 
 std::vector<int16_t> UInworldAudioSender::ApplyAEC(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
 {
+#ifdef INWORLD_AEC
 	std::vector<int16_t> FilteredAudio = InputData;
 	constexpr int32_t NumSamples = 160;
 	const int32_t MaxSamples = std::min(InputData.size(), OutputData.size()) / NumSamples * NumSamples;
@@ -229,6 +258,9 @@ std::vector<int16_t> UInworldAudioSender::ApplyAEC(const std::vector<int16_t>& I
 		WebRtcAec3_Process(AecHandle, InputData.data() + i, FilteredAudio.data() + i);
 	}
 	return FilteredAudio;
+#else
+	return InputData;
+#endif
 }
 
 void UInworldAudioSender::SendAudio(const std::string& Data)

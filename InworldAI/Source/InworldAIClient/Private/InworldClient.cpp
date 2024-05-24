@@ -512,8 +512,6 @@ void UInworldClient::SendAudioSessionStopToConversation(const FString& Conversat
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
 
-	Inworld::VAD_Terminate();
-
 	AudioSender->StopAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId));
 }
 

@@ -16,11 +16,6 @@
 
 #include "InworldAudioSender.generated.h"
 
-namespace Inworld
-{
-	class AECFilter;
-}
-
 UCLASS()
 class INWORLDAICLIENT_API UInworldAudioSender : public UObject
 {
@@ -43,8 +38,8 @@ public:
 	void SendSoundMessageWithAECToConversation(const std::string& ConversationId, const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 
 private:
-	void StartActualSession();
-	void StopActualSession();
+	void StartActualAudioSession();
+	void StopActualAudioSession();
 	void ProcessAudio(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	std::vector<int16_t>  ApplyAEC(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	void SendAudio(const std::string& Data);
