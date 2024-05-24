@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "InworldAudioSender.h"
 #include "InworldEnums.h"
 #include "InworldTypes.h"
 #include "InworldPackets.h"
@@ -145,4 +146,5 @@ private:
 #endif
 
 	FInworldEnvironment Environment;
+	FInworldAudioSender AudioSender;
 };
