@@ -253,6 +253,9 @@ void UInworldAudioSender::SendAudio(const std::string& Data)
 
 void UInworldAudioSender::AdvanceAudioQueue()
 {
+	// unwind the queue sending audio every 5ms
+	// data loss if send all at once
+	
 	SendAudio(AudioQueue.front());
 	AudioQueue.pop();
 
@@ -261,6 +264,6 @@ void UInworldAudioSender::AdvanceAudioQueue()
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
 		{
 			AdvanceAudioQueue();
-		}, 10, false);
+		}, 0.005f, false);
 	}
 }

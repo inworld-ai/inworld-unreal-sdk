@@ -90,8 +90,7 @@ UInworldClient::UInworldClient()
 	// Ensure dependencies are loaded
 	FInworldAINDKModule::Get();
 
-	AudioSender = NewObject<UInworldAudioSender>(this);
-	AudioSender->Initialize(true);
+	AudioSender = CreateDefaultSubobject<UInworldAudioSender>(TEXT("AudioSender"));
 
 	FString ClientVer;
 	TSharedPtr<IPlugin> InworldAIPlugin = IPluginManager::Get().FindPlugin("InworldAI");
@@ -192,7 +191,6 @@ UInworldClient::~UInworldClient()
 #endif
 	if (IsValid(AudioSender))
 	{
-		AudioSender->Terminate();
 #if ENGINE_MAJOR_VERSION == 5
 		AudioSender->MarkAsGarbage();
 #endif
@@ -297,12 +295,15 @@ void UInworldClient::StartSession(const FString& SceneId, const FInworldPlayerPr
 	}
 
 	Inworld::GetClient()->StartClient(Options, Info);
+	
+	AudioSender->Initialize(true);
 }
 
 void UInworldClient::StopSession()
 {
 	NO_CLIENT_RETURN(void())
 
+	AudioSender->Terminate();
 	Inworld::GetClient()->StopClient();
 }
 
