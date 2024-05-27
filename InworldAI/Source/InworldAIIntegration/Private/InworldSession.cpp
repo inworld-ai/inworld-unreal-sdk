@@ -116,8 +116,7 @@ void UInworldSession::Destroy()
 		Client->OnPacketReceived().Remove(OnClientPacketReceivedHandle);
 		Client->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
 		Client->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
-		Client->OnVoiceDetected().Remove(OnVoiceDetectedHandle);
-		Client->OnSilenceDetected().Remove(OnSilenceDetectedHandle);
+		Client->OnVAD().Remove(OnVADHandle);
 	}
 	Client = nullptr;
 }

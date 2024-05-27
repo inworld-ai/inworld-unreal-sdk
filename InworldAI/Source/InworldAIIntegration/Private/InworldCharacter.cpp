@@ -121,12 +121,12 @@ void UInworldCharacter::SendNarrationEvent(const FString& Content)
 	Session->SendNarrationEvent(this, Content);
 }
 
-void UInworldCharacter::SendAudioSessionStart(EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldCharacter::SendAudioSessionStart(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_SESSION_RETURN(void())
 	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
 
-	Session->SendAudioSessionStart(this, MicrophoneMode);
+	Session->SendAudioSessionStart(this, Player, MicrophoneMode);
 }
 
 void UInworldCharacter::SendAudioSessionStop()
@@ -224,9 +224,10 @@ void UInworldCharacter::SetTargetPlayer(UInworldPlayer* Player)
 {
 	if (Player != TargetPlayer)
 	{
+		UInworldPlayer* Old = TargetPlayer;
 		ClearTargetPlayer();
 		TargetPlayer = Player;
-		OnRep_TargetPlayer();
+		OnRep_TargetPlayer(Old);
 	}
 }
 

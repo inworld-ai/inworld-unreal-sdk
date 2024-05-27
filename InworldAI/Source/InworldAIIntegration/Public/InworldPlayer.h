@@ -28,10 +28,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldPlayerConversationChanged);
 DECLARE_MULTICAST_DELEGATE(FOnInworldPlayerConversationChangedNative);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetection, bool, bVoiceDetected);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetectionNative, bool, bVoiceDetected);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetectionNative, bool /*bVoiceDetected*/);
 
 UCLASS(BlueprintType)
-class INWORLDAIINTEGRATION_API UInworldPlayer : public UObject
+class INWORLDAICLIENT_API UInworldPlayer : public UObject
 {
 	GENERATED_BODY()
 public:

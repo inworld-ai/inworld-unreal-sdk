@@ -175,10 +175,13 @@ void UInworldAudioSender::StartActualAudioSession()
 	}
 	bSessionActive = true;
 	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender start actual audio session."));
-	if (bVADEnabled && PlayerSender)
+	if (bVADEnabled)
 	{
 		OnVADNative.Broadcast(PlayerSender, true);
-		PlayerSender->SetVoiceDetected(true);
+		if (PlayerSender)
+		{
+			PlayerSender->SetVoiceDetected(true);
+		}
 	}
 }
 
@@ -202,7 +205,10 @@ void UInworldAudioSender::StopActualAudioSession()
 	if (bVADEnabled && PlayerSender)
 	{
 		OnVADNative.Broadcast(PlayerSender, false);
-		PlayerSender->SetVoiceDetected(false);
+		if (PlayerSender)
+		{
+			PlayerSender->SetVoiceDetected(false);
+		}
 	}
 }
 

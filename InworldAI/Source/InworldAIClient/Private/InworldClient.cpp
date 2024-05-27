@@ -496,7 +496,6 @@ void UInworldClient::SendAudioSessionStart(const FString& AgentId, UInworldPlaye
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(AgentId, void())
-	INVALID_PLAYER_RETURN(void())
 
 	AudioSender->StartAudioSession(TCHAR_TO_UTF8(*AgentId), Player, MicrophoneMode);
 }
