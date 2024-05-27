@@ -89,8 +89,13 @@ void UInworldSession::Init()
 		}
 	);
 	OnVADHandle = Client->OnVAD().AddLambda(
-		[this](UInworldPlayer* Player, bool bVoiceDetected) -> void
+		[this](UObject* SessionOwner, bool bVoiceDetected) -> void
 		{
+			UInworldPlayer* Player = Cast<UInworldPlayer>(SessionOwner);
+			if (Player)
+			{
+				Player->SetVoiceDetected(bVoiceDetected);
+			}
 			OnVADDelegate.Broadcast(Player, bVoiceDetected);
 			OnVADDelegateNative.Broadcast(Player, bVoiceDetected);
 		}

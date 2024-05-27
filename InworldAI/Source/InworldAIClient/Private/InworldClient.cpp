@@ -17,8 +17,6 @@
 #include "InworldAINDKModule.h"
 #include "InworldUtils.h"
 #include "InworldPacketTranslator.h"
-#include "InworldAIIntegration/Public/InworldPlayer.h"
-#include "ThirdParty/InworldAINDKLibrary/include/InworldVAD.h"
 
 //#include "onnxruntime_cxx_api.h"
 
@@ -94,9 +92,9 @@ UInworldClient::UInworldClient()
 
 	AudioSender = CreateDefaultSubobject<UInworldAudioSender>(TEXT("AudioSender"));
 	OnVADHandle = AudioSender->OnVAD().AddLambda(
-		[this](UInworldPlayer* Player, bool bVoiceDetected) -> void
+		[this](UObject* Owner, bool bVoiceDetected) -> void
 		{
-			OnVADDelegateNative.Broadcast(Player, bVoiceDetected);
+			OnVADDelegateNative.Broadcast(Owner, bVoiceDetected);
 		}
 	);
 
@@ -492,21 +490,20 @@ void UInworldClient::SendSoundMessageToConversation(const FString& ConversationI
 	}
 }
 
-void UInworldClient::SendAudioSessionStart(const FString& AgentId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldClient::SendAudioSessionStart(const FString& AgentId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(AgentId, void())
 
-	AudioSender->StartAudioSession(TCHAR_TO_UTF8(*AgentId), Player, MicrophoneMode);
+	AudioSender->StartAudioSession(TCHAR_TO_UTF8(*AgentId), Owner, MicrophoneMode);
 }
 
-void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
-	INVALID_PLAYER_RETURN(void())
 
-	AudioSender->StartAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId), Player, MicrophoneMode);
+	AudioSender->StartAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId), Owner, MicrophoneMode);
 }
 
 void UInworldClient::SendAudioSessionStop(const FString& AgentId)

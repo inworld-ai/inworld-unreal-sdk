@@ -253,7 +253,7 @@ void UInworldCharacter::OnRep_TargetPlayer(UInworldPlayer* OldTargetPlayer)
 	if (TargetPlayer)
 	{
 		OnVADHandle = TargetPlayer->OnVoiceDetection().AddLambda(
-			[this](UInworldPlayer* Player, bool bVoiceDetected) -> void
+			[this](bool bVoiceDetected) -> void
 		{
 			GetInworldCharacterOwner()->HandleTargetPlayerVoiceDetection(bVoiceDetected);
 		});

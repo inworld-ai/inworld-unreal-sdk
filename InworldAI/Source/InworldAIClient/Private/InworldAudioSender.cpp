@@ -9,7 +9,6 @@
 
 #include "Client.h"
 #include "InworldAIClientModule.h"
-#include "InworldAIIntegration/Public/InworldPlayer.h"
 #ifdef INWORLD_VAD
 #include "ThirdParty/InworldAINDKLibrary/include/InworldVAD.h"
 #endif
@@ -64,29 +63,29 @@ void UInworldAudioSender::ClearState()
 	AudioQueue = {};
 	MicMode = EInworldMicrophoneMode::UNKNOWN;
 	VADSilenceCounter = 0;
-	PlayerSender = nullptr;
+	SessionOwner = nullptr;
 }
 
-void UInworldAudioSender::StartAudioSession(const std::string& AgentId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode)
+void UInworldAudioSender::StartAudioSession(const std::string& AgentId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode)
 {
 	ClearState();
 	RoutingId = AgentId;
 	bConversation = false;
 	MicMode = MicrophoneMode;
-	PlayerSender = Player;
+	SessionOwner = Owner;
 	if (!bVADEnabled)
 	{
 		StartActualAudioSession();
 	}
 }
 
-void UInworldAudioSender::StartAudioSessionInConversation(const std::string& ConversationId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode)
+void UInworldAudioSender::StartAudioSessionInConversation(const std::string& ConversationId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode)
 {
 	ClearState();
 	RoutingId = ConversationId;
 	bConversation = true;
 	MicMode = MicrophoneMode;
-	PlayerSender = Player;
+	SessionOwner = Owner;
 	if (!bVADEnabled)
 	{
 		StartActualAudioSession();
@@ -177,11 +176,7 @@ void UInworldAudioSender::StartActualAudioSession()
 	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender start actual audio session."));
 	if (bVADEnabled)
 	{
-		OnVADNative.Broadcast(PlayerSender, true);
-		if (PlayerSender)
-		{
-			PlayerSender->SetVoiceDetected(true);
-		}
+		OnVADNative.Broadcast(SessionOwner, true);
 	}
 }
 
@@ -202,13 +197,9 @@ void UInworldAudioSender::StopActualAudioSession()
 	}
 	bSessionActive = false;
 	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender stop actual audio session."));
-	if (bVADEnabled && PlayerSender)
+	if (bVADEnabled)
 	{
-		OnVADNative.Broadcast(PlayerSender, false);
-		if (PlayerSender)
-		{
-			PlayerSender->SetVoiceDetected(false);
-		}
+		OnVADNative.Broadcast(SessionOwner, false);
 	}
 }
 

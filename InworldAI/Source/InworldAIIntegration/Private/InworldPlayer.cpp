@@ -33,6 +33,7 @@ void UInworldPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME(UInworldPlayer, Session);
 	DOREPLIFETIME(UInworldPlayer, TargetCharacters);
+	DOREPLIFETIME(UInworldPlayer, bVoiceDetected);
 }
 
 int32 UInworldPlayer::GetFunctionCallspace(UFunction* Function, FFrame* Stack)

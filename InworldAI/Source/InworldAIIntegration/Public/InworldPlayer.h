@@ -31,7 +31,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetection, bool
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetectionNative, bool /*bVoiceDetected*/);
 
 UCLASS(BlueprintType)
-class INWORLDAICLIENT_API UInworldPlayer : public UObject
+class INWORLDAIINTEGRATION_API UInworldPlayer : public UObject
 {
 	GENERATED_BODY()
 public:
@@ -97,7 +97,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Conversation")
 	FOnInworldPlayerVoiceDetection OnVoiceDetectionDelegate;
-	FOnInworldPlayerConversationChangedNative& OnVoiceDetection() { return OnConversationChangedDelegateNative; }
+	FOnInworldPlayerVoiceDetectionNative& OnVoiceDetection() { return OnVoiceDetectionDelegateNative; }
 
 	bool HasAudioSession() const { return bHasAudioSession; }
 	EInworldMicrophoneMode GetMicMode() const { return MicMode; }

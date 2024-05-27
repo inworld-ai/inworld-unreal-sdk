@@ -9,6 +9,7 @@
 #include "InworldAIIntegrationModule.h"
 #include "InworldPackets.h"
 #include "InworldCharacter.h"
+#include "InworldPlayer.h"
 #include "InworldSessionComponent.h"
 #include "InworldMacros.h"
 #include <Engine/Engine.h>
@@ -248,7 +249,7 @@ void UInworldApiSubsystem::StartAudioSession(const FString& AgentId, UInworldPla
     NO_CLIENT_RETURN(void())
     EMPTY_ARG_RETURN(AgentId, void())
 
-    InworldSession->GetClient()->SendAudioSessionStart(AgentId, Player, MicrophoneMode);
+    InworldSession->GetClient()->SendAudioSessionStart(AgentId, Cast<UObject>(Player), MicrophoneMode);
 }
 
 void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
