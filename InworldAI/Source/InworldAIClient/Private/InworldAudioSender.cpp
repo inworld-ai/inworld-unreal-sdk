@@ -16,13 +16,22 @@
 #include "ThirdParty/InworldAINDKLibrary/include/AECInterop.h"
 #endif
 
+static TAutoConsoleVariable<bool> CVarEnableVAD(
+	TEXT("Inworld.Debug.ForceDisableVAD"), false,
+	TEXT("Force disable VAD")
+);
+
 void UInworldAudioSender::Initialize(bool bEnableVAD)
 {
 #ifdef INWORLD_VAD
 	bVADEnabled = bEnableVAD;
+	if (CVarEnableVAD->GetBool())
+	{
+		bVADEnabled = false;
+	}
 	if (bVADEnabled)
 	{
-	Inworld::VAD_Initialize("model");
+		Inworld::VAD_Initialize("model");
 	}
 #else
 	bVADEnabled = false;
@@ -150,7 +159,8 @@ void UInworldAudioSender::StartActualAudioSession()
 	}
 
 	Inworld::AudioSessionStartPayload AudioSessionStartPayload;
-	AudioSessionStartPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(MicMode);
+	const EInworldMicrophoneMode Mode = /*bVADEnabled ? EInworldMicrophoneMode::EXPECT_AUDIO_END :*/ MicMode;
+	AudioSessionStartPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(Mode);
 	if (bConversation)
 	{
 		Inworld::GetClient()->StartAudioSessionInConversation(RoutingId, AudioSessionStartPayload);
@@ -161,7 +171,10 @@ void UInworldAudioSender::StartActualAudioSession()
 	}
 	bSessionActive = true;
 	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender start actual audio session."));
-	OnVoiceDetectedNative.Broadcast();
+	if (bVADEnabled)
+	{
+		OnVoiceDetectedNative.Broadcast();
+	}
 }
 
 void UInworldAudioSender::StopActualAudioSession()
@@ -181,14 +194,17 @@ void UInworldAudioSender::StopActualAudioSession()
 	}
 	bSessionActive = false;
 	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender stop actual audio session."));
-	OnSilenceDetectedNative.Broadcast();
+	if (bVADEnabled)
+	{
+		OnSilenceDetectedNative.Broadcast();
+	}
 }
 
 void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
 {
 	constexpr float VADProbThreshhold = 0.3f;
 	constexpr int8_t VADPreviousChunks = 3;
-	constexpr int8_t VADSubsequentChunks = 5;
+	constexpr int8_t VADSubsequentChunks = 3;
 
 	GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Red, FString::Printf(TEXT("NOT SENDING AUDIO")));
 	
@@ -214,11 +230,12 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 		1.f;
 #endif
 
-	GEngine->AddOnScreenDebugMessage(112, 0.12f, SpeechProb > VADProbThreshhold ? FColor::Green : FColor::Red,
-		FString::Printf(TEXT("Speech prob: %f"), SpeechProb));
+	//GEngine->AddOnScreenDebugMessage(112, 0.12f, SpeechProb > VADProbThreshhold ? FColor::Green : FColor::Red,
+	//	FString::Printf(TEXT("Speech prob: %f"), SpeechProb));
 	
 	if (SpeechProb > VADProbThreshhold)
 	{
+		VADSilenceCounter = 0;
 		StartActualAudioSession();
 		AudioQueue.push(Data);
 		AdvanceAudioQueue();
