@@ -35,7 +35,7 @@ UInworldCharacterComponent::UInworldCharacterComponent()
 #endif
 }
 
-void UInworldCharacterComponent::HandleTargetPlayerVoiceDetection_Implementation(bool bVoiceDetected)
+void UInworldCharacterComponent::HandleTargetPlayerVoiceDetection(bool bVoiceDetected)
 {
 	UInworldCharacterAudioComponent* AudioComponent = GetOwner()->FindComponentByClass<UInworldCharacterAudioComponent>();
 	AudioComponent->HandleTargetPlayerVoiceDetection(bVoiceDetected);

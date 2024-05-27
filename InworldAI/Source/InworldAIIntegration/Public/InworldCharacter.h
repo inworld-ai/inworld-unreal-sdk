@@ -176,8 +176,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
 	UInworldCharacter* GetInworldCharacter() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
-	void HandleTargetPlayerVoiceDetection(bool bVoiceDetected);
+	virtual void HandleTargetPlayerVoiceDetection(bool bVoiceDetected) {}
 };
 
 namespace Inworld
