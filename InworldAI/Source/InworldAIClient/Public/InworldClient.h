@@ -130,6 +130,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inworld Development")
 	void SetEnvironment(const FInworldEnvironment& InEnvironment) { Environment = InEnvironment; }
 
+	FOnInworldVADNative& OnVoiceDetected() { return OnVoiceDetectedDelegateNative; }
+	FOnInworldVADNative& OnSilenceDetected() { return OnSilenceDetectedDelegateNative; }
+
 private:
 	UPROPERTY()
 	UInworldAudioSender* AudioSender;
@@ -137,6 +140,11 @@ private:
 	FOnInworldPacketReceivedNative OnPacketReceivedDelegateNative;
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
+	FOnInworldVADNative OnVoiceDetectedDelegateNative;
+	FOnInworldVADNative OnSilenceDetectedDelegateNative;
+
+	FDelegateHandle OnVoiceDetectedHandle;
+	FDelegateHandle OnSilenceDetectedHandle;
 
 	bool bIsBeingDestroyed = false;
 

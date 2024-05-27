@@ -91,6 +91,18 @@ UInworldClient::UInworldClient()
 	FInworldAINDKModule::Get();
 
 	AudioSender = CreateDefaultSubobject<UInworldAudioSender>(TEXT("AudioSender"));
+	OnVoiceDetectedHandle = AudioSender->OnVoiceDetected().AddLambda(
+		[this]() -> void
+		{
+			OnVoiceDetectedDelegateNative.Broadcast();
+		}
+		);
+	OnSilenceDetectedHandle = AudioSender->OnSilenceDetected().AddLambda(
+		[this]() -> void
+		{
+			OnSilenceDetectedDelegateNative.Broadcast();
+		}
+	);
 
 	FString ClientVer;
 	TSharedPtr<IPlugin> InworldAIPlugin = IPluginManager::Get().FindPlugin("InworldAI");
@@ -191,6 +203,8 @@ UInworldClient::~UInworldClient()
 #endif
 	if (IsValid(AudioSender))
 	{
+		AudioSender->OnVoiceDetected().Remove(OnVoiceDetectedHandle);
+		AudioSender->OnSilenceDetected().Remove(OnSilenceDetectedHandle);
 #if ENGINE_MAJOR_VERSION == 5
 		AudioSender->MarkAsGarbage();
 #endif

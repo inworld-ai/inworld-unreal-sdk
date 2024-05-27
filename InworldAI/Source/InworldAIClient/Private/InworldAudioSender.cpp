@@ -18,13 +18,15 @@
 
 void UInworldAudioSender::Initialize(bool bEnableVAD)
 {
+#ifdef INWORLD_VAD
 	bVADEnabled = bEnableVAD;
 	if (bVADEnabled)
 	{
-#ifdef INWORLD_VAD
 	Inworld::VAD_Initialize("model");
-#endif
 	}
+#else
+	bVADEnabled = false;
+#endif
 #ifdef INWORLD_AEC
 	AecHandle = WebRtcAec3_Create(16000);
 #endif
@@ -37,12 +39,12 @@ void UInworldAudioSender::Terminate()
 #ifdef INWORLD_AEC
 	WebRtcAec3_Free(AecHandle);
 #endif
+#ifdef INWORLD_VAD
 	if (bVADEnabled)
 	{
-#ifdef INWORLD_VAD
-	Inworld::VAD_Terminate();
-#endif
+		Inworld::VAD_Terminate();
 	}
+#endif
 }
 
 void UInworldAudioSender::ClearState()
@@ -159,6 +161,7 @@ void UInworldAudioSender::StartActualAudioSession()
 	}
 	bSessionActive = true;
 	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender start actual audio session."));
+	OnVoiceDetectedNative.Broadcast();
 }
 
 void UInworldAudioSender::StopActualAudioSession()
@@ -178,12 +181,13 @@ void UInworldAudioSender::StopActualAudioSession()
 	}
 	bSessionActive = false;
 	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender stop actual audio session."));
+	OnSilenceDetectedNative.Broadcast();
 }
 
 void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
 {
 	constexpr float VADProbThreshhold = 0.3f;
-	constexpr int8_t VADPreviousChunks = 5;
+	constexpr int8_t VADPreviousChunks = 3;
 	constexpr int8_t VADSubsequentChunks = 5;
 
 	GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Red, FString::Printf(TEXT("NOT SENDING AUDIO")));
@@ -191,13 +195,7 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 	const std::vector<int16_t> FilteredData = OutputData.empty() ? InputData : ApplyAEC(InputData, OutputData);
 	std::string Data((char*)FilteredData.data(), FilteredData.size() * 2);
 
-	const bool bVad =
-#ifdef INWORLD_VAD
-		bVADEnabled;
-#else
-		false;
-#endif
-	if (!bVad)
+	if (!bVADEnabled)
 	{
 		SendAudio(Data);
 		return;
@@ -286,7 +284,7 @@ void UInworldAudioSender::SendAudio(const std::string& Data)
 void UInworldAudioSender::AdvanceAudioQueue()
 {
 	// unwind the queue sending audio every 5ms
-	// data loss if send all at once
+	// data loss if sent all at once
 	
 	SendAudio(AudioQueue.front());
 	AudioQueue.pop();

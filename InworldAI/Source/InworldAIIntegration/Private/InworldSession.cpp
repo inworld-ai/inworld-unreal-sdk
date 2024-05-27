@@ -88,6 +88,20 @@ void UInworldSession::Init()
 			OnPerceivedLatencyDelegate.Broadcast(InteractionId, LatencyMs);
 		}
 	);
+	OnVoiceDetectedHandle = Client->OnVoiceDetected().AddLambda(
+		[this]() -> void
+		{
+			OnVoiceDetectedDelegate.Broadcast();
+			OnVoiceDetectedDelegateNative.Broadcast();
+		}
+		);
+	OnSilenceDetectedHandle = Client->OnSilenceDetected().AddLambda(
+		[this]() -> void
+		{
+			OnSilenceDetectedDelegate.Broadcast();
+			OnSilenceDetectedDelegateNative.Broadcast();
+		}
+	);
 }
 
 void UInworldSession::Destroy()
@@ -109,6 +123,8 @@ void UInworldSession::Destroy()
 		Client->OnPacketReceived().Remove(OnClientPacketReceivedHandle);
 		Client->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
 		Client->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
+		Client->OnVoiceDetected().Remove(OnVoiceDetectedHandle);
+		Client->OnSilenceDetected().Remove(OnSilenceDetectedHandle);
 	}
 	Client = nullptr;
 }

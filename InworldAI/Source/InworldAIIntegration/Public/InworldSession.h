@@ -34,6 +34,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEvent, const FInwor
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEventNative, const FInworldEmotionEvent& /*EmotionEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEvent, const FInworldCustomEvent&, CustomEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEventNative, const FInworldCustomEvent& /*CustomEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldVAD);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoaded, bool, bLoaded);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoadedNative, bool /*bLoaded*/);
@@ -167,6 +168,15 @@ public:
 	FOnInworldPerceivedLatency OnPerceivedLatencyDelegate;
 	FOnInworldPerceivedLatencyNative& OnPerceivedLatency() { return OnPerceivedLatencyDelegateNative; }
 
+	UPROPERTY(BlueprintAssignable, Category = "VAD")
+	FOnInworldVAD OnVoiceDetectedDelegate;
+	FOnInworldVADNative& OnVoiceDetected() { return OnVoiceDetectedDelegateNative; }
+	
+	UPROPERTY(BlueprintAssignable, Category = "VAD")
+	FOnInworldVAD OnSilenceDetectedDelegate;
+	FOnInworldVADNative& OnSilenceDetected() { return OnSilenceDetectedDelegateNative; }
+	
+
 private:
 	void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
 	void UnpossessAgents();
@@ -190,6 +200,8 @@ private:
 	FDelegateHandle OnClientPacketReceivedHandle;
 	FDelegateHandle OnClientConnectionStateChangedHandle;
 	FDelegateHandle OnClientPerceivedLatencyHandle;
+	FDelegateHandle OnVoiceDetectedHandle;
+	FDelegateHandle OnSilenceDetectedHandle;
 
 	UPROPERTY(Replicated)
 	TArray<UInworldCharacter*> RegisteredCharacters;
@@ -204,6 +216,8 @@ private:
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldSessionLoadedNative OnLoadedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
+	FOnInworldVADNative OnVoiceDetectedDelegateNative;
+	FOnInworldVADNative OnSilenceDetectedDelegateNative;
 
 	class FInworldSessionPacketVisitor : public TSharedFromThis<FInworldSessionPacketVisitor>, public InworldPacketVisitor
 	{

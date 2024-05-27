@@ -16,6 +16,8 @@
 
 #include "InworldAudioSender.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnInworldVADNative);
+
 UCLASS()
 class INWORLDAICLIENT_API UInworldAudioSender : public UObject
 {
@@ -36,7 +38,10 @@ public:
 		
 	void SendSoundMessageWithAEC(const std::string& AgentId, const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	void SendSoundMessageWithAECToConversation(const std::string& ConversationId, const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
-
+	
+	FOnInworldVADNative& OnVoiceDetected() { return OnVoiceDetectedNative; }
+	FOnInworldVADNative& OnSilenceDetected() { return OnSilenceDetectedNative; }
+	
 private:
 	void StartActualAudioSession();
 	void StopActualAudioSession();
@@ -45,6 +50,9 @@ private:
 	void SendAudio(const std::string& Data);
 	void AdvanceAudioQueue();
 	void ClearState();
+
+	FOnInworldVADNative OnVoiceDetectedNative;
+	FOnInworldVADNative OnSilenceDetectedNative;
 
 	FTimerHandle TimerHandle;
 	std::queue<std::string> AudioQueue;
