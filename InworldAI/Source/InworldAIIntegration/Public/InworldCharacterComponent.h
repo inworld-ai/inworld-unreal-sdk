@@ -37,6 +37,7 @@ public:
 
 	// IInworldCharacterOwnerInterface
 	virtual UInworldCharacter* GetInworldCharacter_Implementation() const override { return InworldCharacter; }
+	virtual void HandleTargetPlayerVoiceDetection_Implementation(bool bVoiceDetected) override;
 	// ~IInworldCharacterOwnerInterface
 
 	virtual void OnRegister() override;

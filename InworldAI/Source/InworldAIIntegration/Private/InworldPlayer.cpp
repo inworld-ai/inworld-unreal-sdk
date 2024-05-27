@@ -211,6 +211,22 @@ void UInworldPlayer::ClearAllTargetCharacters()
 	}
 }
 
+void UInworldPlayer::SetVoiceDetected(bool bVal)
+{
+	const bool bOldValue = bVoiceDetected;
+	bVoiceDetected = bVal;
+	OnRep_VoiceDetected(bOldValue);
+}
+
+void UInworldPlayer::OnRep_VoiceDetected(bool bOldValue)
+{
+	if (bVoiceDetected != bOldValue)
+	{
+		OnVoiceDetectionDelegate.Broadcast(bVoiceDetected);
+		OnVoiceDetectionDelegateNative.Broadcast(bVoiceDetected);
+	}
+}
+
 void UInworldPlayer::UpdateConversation()
 {
 	NO_SESSION_RETURN(void())

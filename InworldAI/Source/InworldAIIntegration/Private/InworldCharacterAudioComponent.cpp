@@ -96,6 +96,18 @@ float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() con
 	return (1.f - CurrentAudioPlaybackPercent) * Sound->Duration;
 }
 
+void UInworldCharacterAudioComponent::HandleTargetPlayerVoiceDetection(bool bVoiceDetected)
+{
+	if (GetPlayState() == EAudioComponentPlayState::Playing && bVoiceDetected)
+	{
+		SetPaused(true);
+	}
+	else if (GetPlayState() == EAudioComponentPlayState::Paused && !bVoiceDetected)
+	{
+		SetPaused(false);
+	}
+}
+
 void UInworldCharacterAudioComponent::OnAudioPlaybackPercent(const UAudioComponent* InAudioComponent, const USoundWave* InSoundWave, float Percent)
 {
 	CurrentAudioPlaybackPercent = Percent;

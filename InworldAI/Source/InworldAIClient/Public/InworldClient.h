@@ -86,9 +86,9 @@ public:
 	void SendSoundMessageToConversation(const FString& ConversationId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(const FString& AgentId, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+	void SendAudioSessionStart(const FString& AgentId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStartToConversation(const FString& ConversationId, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+	void SendAudioSessionStartToConversation(const FString& ConversationId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStop(const FString& AgentId);
@@ -130,8 +130,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inworld Development")
 	void SetEnvironment(const FInworldEnvironment& InEnvironment) { Environment = InEnvironment; }
 
-	FOnInworldVADNative& OnVoiceDetected() { return OnVoiceDetectedDelegateNative; }
-	FOnInworldVADNative& OnSilenceDetected() { return OnSilenceDetectedDelegateNative; }
+	FOnInworldVADNative& OnVAD() { return OnVADDelegateNative; }
 
 private:
 	UPROPERTY()
@@ -140,11 +139,9 @@ private:
 	FOnInworldPacketReceivedNative OnPacketReceivedDelegateNative;
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
-	FOnInworldVADNative OnVoiceDetectedDelegateNative;
-	FOnInworldVADNative OnSilenceDetectedDelegateNative;
+	FOnInworldVADNative OnVADDelegateNative;
 
-	FDelegateHandle OnVoiceDetectedHandle;
-	FDelegateHandle OnSilenceDetectedHandle;
+	FDelegateHandle OnVADHandle;
 
 	bool bIsBeingDestroyed = false;
 

@@ -9,6 +9,7 @@
 
 #include "Client.h"
 #include "InworldAIClientModule.h"
+#include "InworldAIIntegration/Public/InworldPlayer.h"
 #ifdef INWORLD_VAD
 #include "ThirdParty/InworldAINDKLibrary/include/InworldVAD.h"
 #endif
@@ -63,26 +64,29 @@ void UInworldAudioSender::ClearState()
 	AudioQueue = {};
 	MicMode = EInworldMicrophoneMode::UNKNOWN;
 	VADSilenceCounter = 0;
+	PlayerSender = nullptr;
 }
 
-void UInworldAudioSender::StartAudioSession(const std::string& AgentId, EInworldMicrophoneMode MicrophoneMode)
+void UInworldAudioSender::StartAudioSession(const std::string& AgentId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode)
 {
 	ClearState();
 	RoutingId = AgentId;
 	bConversation = false;
 	MicMode = MicrophoneMode;
+	PlayerSender = Player;
 	if (!bVADEnabled)
 	{
 		StartActualAudioSession();
 	}
 }
 
-void UInworldAudioSender::StartAudioSessionInConversation(const std::string& ConversationId, EInworldMicrophoneMode MicrophoneMode)
+void UInworldAudioSender::StartAudioSessionInConversation(const std::string& ConversationId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode)
 {
 	ClearState();
 	RoutingId = ConversationId;
 	bConversation = true;
 	MicMode = MicrophoneMode;
+	PlayerSender = Player;
 	if (!bVADEnabled)
 	{
 		StartActualAudioSession();
@@ -91,20 +95,20 @@ void UInworldAudioSender::StartAudioSessionInConversation(const std::string& Con
 
 void UInworldAudioSender::StopAudioSession(const std::string& AgentId)
 {
-	ClearState();
 	if (!bVADEnabled)
 	{
 		StopActualAudioSession();
 	}
+	ClearState();
 }
 
 void UInworldAudioSender::StopAudioSessionInConversation(const std::string& ConversationId)
 {
-	ClearState();
 	if (!bVADEnabled)
 	{
 		StopActualAudioSession();
 	}
+	ClearState();
 }
 
 void UInworldAudioSender::SendSoundMessage(const std::string& AgentId, const std::vector<int16_t>& InputData)
@@ -171,9 +175,10 @@ void UInworldAudioSender::StartActualAudioSession()
 	}
 	bSessionActive = true;
 	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender start actual audio session."));
-	if (bVADEnabled)
+	if (bVADEnabled && PlayerSender)
 	{
-		OnVoiceDetectedNative.Broadcast();
+		OnVADNative.Broadcast(PlayerSender, true);
+		PlayerSender->SetVoiceDetected(true);
 	}
 }
 
@@ -194,9 +199,10 @@ void UInworldAudioSender::StopActualAudioSession()
 	}
 	bSessionActive = false;
 	UE_LOG(LogInworldAIClient, Log, TEXT("UInworldAudioSender stop actual audio session."));
-	if (bVADEnabled)
+	if (bVADEnabled && PlayerSender)
 	{
-		OnSilenceDetectedNative.Broadcast();
+		OnVADNative.Broadcast(PlayerSender, false);
+		PlayerSender->SetVoiceDetected(false);
 	}
 }
 

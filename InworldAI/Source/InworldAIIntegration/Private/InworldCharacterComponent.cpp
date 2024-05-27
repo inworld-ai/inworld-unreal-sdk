@@ -18,6 +18,8 @@
 #include <GameFramework/GameStateBase.h>
 #include <GameFramework/PlayerState.h>
 
+#include "InworldCharacterAudioComponent.h"
+
 #define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldCharacterComponent, Arg, Return)
 #define NO_CHARACTER_RETURN(Return) EMPTY_ARG_RETURN(InworldCharacter, Return)
 
@@ -31,6 +33,12 @@ UInworldCharacterComponent::UInworldCharacterComponent()
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
 	bReplicateUsingRegisteredSubObjectList = true;
 #endif
+}
+
+void UInworldCharacterComponent::HandleTargetPlayerVoiceDetection_Implementation(bool bVoiceDetected)
+{
+	UInworldCharacterAudioComponent* AudioComponent = GetOwner()->FindComponentByClass<UInworldCharacterAudioComponent>();
+	AudioComponent->HandleTargetPlayerVoiceDetection(bVoiceDetected);
 }
 
 void UInworldCharacterComponent::OnRegister()
@@ -363,7 +371,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 	{
 		if (Event.Final)
 		{
-			UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *Event.Routing.Target.Name, *Event.Text);
+			UE_LOG(LogInworldAIIntegration, Log, TEXT("____ To %s: %s"), *Event.Routing.Target.Name, *Event.Text);
 		}
 
 		// Don't add to queue, player talking is instant.

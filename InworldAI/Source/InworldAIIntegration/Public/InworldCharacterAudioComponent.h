@@ -31,6 +31,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Sound")
 	float GetRemainingTimeForCurrentUtterance() const;
 
+	void HandleTargetPlayerVoiceDetection(bool bVoiceDetected);
+
 private:
 	UFUNCTION()
 	void OnCharacterUtterance(const FCharacterMessageUtterance& Message);

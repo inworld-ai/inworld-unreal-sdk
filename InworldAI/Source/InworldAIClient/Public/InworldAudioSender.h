@@ -16,7 +16,9 @@
 
 #include "InworldAudioSender.generated.h"
 
-DECLARE_MULTICAST_DELEGATE(FOnInworldVADNative);
+class UInworldPlayer;
+
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldVADNative, UInworldPlayer*, bool);
 
 UCLASS()
 class INWORLDAICLIENT_API UInworldAudioSender : public UObject
@@ -27,8 +29,8 @@ public:
 	void Initialize(bool bEnableVAD);
 	void Terminate();
 
-	void StartAudioSession(const std::string& AgentId, EInworldMicrophoneMode MicMode);
-	void StartAudioSessionInConversation(const std::string& ConversationId, EInworldMicrophoneMode MicMode);
+	void StartAudioSession(const std::string& AgentId, UInworldPlayer* Player, EInworldMicrophoneMode MicMode);
+	void StartAudioSessionInConversation(const std::string& ConversationId, UInworldPlayer* Player, EInworldMicrophoneMode MicMode);
 		
 	void StopAudioSession(const std::string& AgentId);
 	void StopAudioSessionInConversation(const std::string& ConversationId);
@@ -39,8 +41,7 @@ public:
 	void SendSoundMessageWithAEC(const std::string& AgentId, const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	void SendSoundMessageWithAECToConversation(const std::string& ConversationId, const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	
-	FOnInworldVADNative& OnVoiceDetected() { return OnVoiceDetectedNative; }
-	FOnInworldVADNative& OnSilenceDetected() { return OnSilenceDetectedNative; }
+	FOnInworldVADNative& OnVAD() { return OnVADNative; }
 	
 private:
 	void StartActualAudioSession();
@@ -51,9 +52,9 @@ private:
 	void AdvanceAudioQueue();
 	void ClearState();
 
-	FOnInworldVADNative OnVoiceDetectedNative;
-	FOnInworldVADNative OnSilenceDetectedNative;
+	FOnInworldVADNative OnVADNative;
 
+	UInworldPlayer* PlayerSender = nullptr;
 	FTimerHandle TimerHandle;
 	std::queue<std::string> AudioQueue;
 	void* AecHandle = nullptr;

@@ -88,18 +88,11 @@ void UInworldSession::Init()
 			OnPerceivedLatencyDelegate.Broadcast(InteractionId, LatencyMs);
 		}
 	);
-	OnVoiceDetectedHandle = Client->OnVoiceDetected().AddLambda(
-		[this]() -> void
+	OnVADHandle = Client->OnVAD().AddLambda(
+		[this](UInworldPlayer* Player, bool bVoiceDetected) -> void
 		{
-			OnVoiceDetectedDelegate.Broadcast();
-			OnVoiceDetectedDelegateNative.Broadcast();
-		}
-		);
-	OnSilenceDetectedHandle = Client->OnSilenceDetected().AddLambda(
-		[this]() -> void
-		{
-			OnSilenceDetectedDelegate.Broadcast();
-			OnSilenceDetectedDelegateNative.Broadcast();
+			OnVADDelegate.Broadcast(Player, bVoiceDetected);
+			OnVADDelegateNative.Broadcast(Player, bVoiceDetected);
 		}
 	);
 }
@@ -363,12 +356,12 @@ void UInworldSession::SendSoundMessageToConversation(UInworldPlayer* Player, con
 	Client->SendSoundMessageToConversation(Player->GetConversationId(), InputData, OutputData);
 }
 
-void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CLIENT_RETURN(void())
 	INVALID_CHARACTER_RETURN(void())
 
-	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId, MicrophoneMode);
+	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId, Player, MicrophoneMode);
 }
 
 void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
@@ -376,7 +369,7 @@ void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player
 	NO_CLIENT_RETURN(void())
 	INVALID_PLAYER_RETURN(void())
 
-	Client->SendAudioSessionStartToConversation(Player->GetConversationId(), MicrophoneMode);
+	Client->SendAudioSessionStartToConversation(Player->GetConversationId(), Player, MicrophoneMode);
 }
 
 void UInworldSession::SendAudioSessionStop(UInworldCharacter* Character)

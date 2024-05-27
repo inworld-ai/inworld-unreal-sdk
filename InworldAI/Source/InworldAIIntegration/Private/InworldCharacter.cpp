@@ -234,15 +234,29 @@ void UInworldCharacter::ClearTargetPlayer()
 {
 	if (TargetPlayer != nullptr)
 	{
+		UInworldPlayer* Old = TargetPlayer;
 		TargetPlayer = nullptr;
-		OnRep_TargetPlayer();
+		OnRep_TargetPlayer(Old);
 	}
 }
 
-void UInworldCharacter::OnRep_TargetPlayer()
+void UInworldCharacter::OnRep_TargetPlayer(UInworldPlayer* OldTargetPlayer)
 {
 	OnTargetPlayerChangedDelegateNative.Broadcast();
 	OnTargetPlayerChangedDelegate.Broadcast();
+
+	if (OldTargetPlayer && OnVADHandle.IsValid())
+	{
+		OldTargetPlayer->OnVoiceDetection().Remove(OnVADHandle);
+	}
+	if (TargetPlayer)
+	{
+		OnVADHandle = TargetPlayer->OnVoiceDetection().AddLambda(
+			[this](UInworldPlayer* Player, bool bVoiceDetected) -> void
+		{
+			GetInworldCharacterOwner()->HandleTargetPlayerVoiceDetection(bVoiceDetected);
+		});
+	}
 }
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldTextEvent& Event)

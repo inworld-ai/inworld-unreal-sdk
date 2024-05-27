@@ -27,6 +27,9 @@ DECLARE_MULTICAST_DELEGATE(FOnInworldPlayerTargetCharactersChangedNative);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldPlayerConversationChanged);
 DECLARE_MULTICAST_DELEGATE(FOnInworldPlayerConversationChangedNative);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetection, bool, bVoiceDetected);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetectionNative, bool, bVoiceDetected);
+
 UCLASS(BlueprintType)
 class INWORLDAIINTEGRATION_API UInworldPlayer : public UObject
 {
@@ -92,22 +95,35 @@ public:
 	FOnInworldPlayerConversationChanged OnConversationChangedDelegate;
 	FOnInworldPlayerConversationChangedNative& OnConversationChanged() { return OnConversationChangedDelegateNative; }
 
+	UPROPERTY(BlueprintAssignable, Category = "Conversation")
+	FOnInworldPlayerVoiceDetection OnVoiceDetectionDelegate;
+	FOnInworldPlayerConversationChangedNative& OnVoiceDetection() { return OnConversationChangedDelegateNative; }
+
 	bool HasAudioSession() const { return bHasAudioSession; }
 	EInworldMicrophoneMode GetMicMode() const { return MicMode; }
+
+	void SetVoiceDetected(bool bVal);
 
 private:
 	void UpdateConversation();
 
 private:
+	UFUNCTION()
+	void OnRep_VoiceDetected(bool bOldValue);
+	
 	UPROPERTY(Replicated)
 	UInworldSession* Session;
 
 	UPROPERTY(Replicated)
 	TArray<UInworldCharacter*> TargetCharacters;
 
+	UPROPERTY(ReplicatedUsing=OnRep_VoiceDetected)
+	bool bVoiceDetected = false;
+
 	FOnInworldPlayerTargetCharacterAddedNative OnTargetCharacterAddedDelegateNative;
 	FOnInworldPlayerTargetCharacterRemovedNative OnTargetCharacterRemovedDelegateNative;
 	FOnInworldPlayerTargetCharactersChangedNative OnTargetCharactersChangedDelegateNative;
+	FOnInworldPlayerVoiceDetectionNative OnVoiceDetectionDelegateNative;
 
 	FString ConversationId;
 	FOnInworldPlayerConversationChangedNative OnConversationChangedDelegateNative;

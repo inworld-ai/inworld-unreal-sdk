@@ -122,7 +122,7 @@ private:
 	FOnInworldCharacterPossessedNative OnPossessedDelegateNative;
 
 	UFUNCTION()
-	void OnRep_TargetPlayer();
+	void OnRep_TargetPlayer(UInworldPlayer* OldTargetPlayer);
 
 	UPROPERTY(ReplicatedUsing=OnRep_TargetPlayer)
 	UInworldPlayer* TargetPlayer;
@@ -134,6 +134,8 @@ private:
 	FOnInworldControlEventNative OnInworldControlEventDelegateNative;
 	FOnInworldEmotionEventNative OnInworldEmotionEventDelegateNative;
 	FOnInworldCustomEventNative OnInworldCustomEventDelegateNative;
+
+	FDelegateHandle OnVADHandle;
 
 	class FInworldCharacterPacketVisitor : public TSharedFromThis<FInworldCharacterPacketVisitor>, public InworldPacketVisitor
 	{
@@ -173,6 +175,9 @@ class INWORLDAIINTEGRATION_API IInworldCharacterOwnerInterface
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
 	UInworldCharacter* GetInworldCharacter() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
+	void HandleTargetPlayerVoiceDetection(bool bVoiceDetected);
 };
 
 namespace Inworld

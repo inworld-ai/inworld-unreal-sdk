@@ -17,6 +17,7 @@
 #include "InworldAINDKModule.h"
 #include "InworldUtils.h"
 #include "InworldPacketTranslator.h"
+#include "InworldAIIntegration/Public/InworldPlayer.h"
 #include "ThirdParty/InworldAINDKLibrary/include/InworldVAD.h"
 
 //#include "onnxruntime_cxx_api.h"
@@ -63,6 +64,7 @@ FAutoConsoleVariableSink UInworldClient::CVarSink(FConsoleCommandDelegate::Creat
 
 #define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIClient, UInworldClient, Arg, Return)
 #define NO_CLIENT_RETURN(Return) EMPTY_ARG_RETURN(Inworld::GetClient(), Return)
+#define INVALID_PLAYER_RETURN(Return) EMPTY_ARG_RETURN(Player, Return) EMPTY_ARG_RETURN(Player->GetConversationId(), Return)
 
 std::vector<std::string> ToStd(const TArray<FString>& Array)
 {
@@ -91,16 +93,10 @@ UInworldClient::UInworldClient()
 	FInworldAINDKModule::Get();
 
 	AudioSender = CreateDefaultSubobject<UInworldAudioSender>(TEXT("AudioSender"));
-	OnVoiceDetectedHandle = AudioSender->OnVoiceDetected().AddLambda(
-		[this]() -> void
+	OnVADHandle = AudioSender->OnVAD().AddLambda(
+		[this](UInworldPlayer* Player, bool bVoiceDetected) -> void
 		{
-			OnVoiceDetectedDelegateNative.Broadcast();
-		}
-		);
-	OnSilenceDetectedHandle = AudioSender->OnSilenceDetected().AddLambda(
-		[this]() -> void
-		{
-			OnSilenceDetectedDelegateNative.Broadcast();
+			OnVADDelegateNative.Broadcast(Player, bVoiceDetected);
 		}
 	);
 
@@ -203,8 +199,7 @@ UInworldClient::~UInworldClient()
 #endif
 	if (IsValid(AudioSender))
 	{
-		AudioSender->OnVoiceDetected().Remove(OnVoiceDetectedHandle);
-		AudioSender->OnSilenceDetected().Remove(OnSilenceDetectedHandle);
+		AudioSender->OnVAD().Remove(OnVADHandle);
 #if ENGINE_MAJOR_VERSION == 5
 		AudioSender->MarkAsGarbage();
 #endif
@@ -497,20 +492,22 @@ void UInworldClient::SendSoundMessageToConversation(const FString& ConversationI
 	}
 }
 
-void UInworldClient::SendAudioSessionStart(const FString& AgentId, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldClient::SendAudioSessionStart(const FString& AgentId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(AgentId, void())
+	INVALID_PLAYER_RETURN(void())
 
-	AudioSender->StartAudioSession(TCHAR_TO_UTF8(*AgentId), MicrophoneMode);
+	AudioSender->StartAudioSession(TCHAR_TO_UTF8(*AgentId), Player, MicrophoneMode);
 }
 
-void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
+	INVALID_PLAYER_RETURN(void())
 
-	AudioSender->StartAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId), MicrophoneMode);
+	AudioSender->StartAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId), Player, MicrophoneMode);
 }
 
 void UInworldClient::SendAudioSessionStop(const FString& AgentId)
