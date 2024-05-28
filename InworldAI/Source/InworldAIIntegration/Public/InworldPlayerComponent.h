@@ -61,7 +61,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearTargetCharacter"))
     void ClearTargetInworldCharacter(UInworldCharacterComponent* Character);
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearTargetCharacter"))
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearAllTargetCharacters"))
     void ClearAllTargetInworldCharacters();
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
