@@ -206,8 +206,8 @@ void UInworldAudioSender::StopActualAudioSession()
 void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
 {
 	constexpr float VADProbThreshhold = 0.3f;
-	constexpr int8_t VADPreviousChunks = 3;
-	constexpr int8_t VADSubsequentChunks = 3;
+	constexpr int8_t VADPreviousChunks = 5;
+	constexpr int8_t VADSubsequentChunks = 10;
 
 	GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Red, FString::Printf(TEXT("NOT SENDING AUDIO")));
 	
@@ -303,17 +303,22 @@ void UInworldAudioSender::SendAudio(const std::string& Data)
 
 void UInworldAudioSender::AdvanceAudioQueue()
 {
-	// unwind the queue sending audio every 5ms
+	// unwind the queue sending audio every 10ms
 	// data loss if sent all at once
-	
+
+	/*while (!AudioQueue.empty())
+	{
+		SendAudio(AudioQueue.front());
+		AudioQueue.pop();
+	}*/
+
 	SendAudio(AudioQueue.front());
 	AudioQueue.pop();
-
 	if (!AudioQueue.empty())
 	{
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
 		{
 			AdvanceAudioQueue();
-		}, 0.005f, false);
+		}, 0.01f, false);
 	}
 }
