@@ -16,17 +16,6 @@
 class UInworldApiSubsystem;
 class UInworldCharacterComponent;
 
-USTRUCT()
-struct FInworldPlayerTargetCharacter
-{
-    GENERATED_BODY()
-
-	FDelegateHandle UnpossessedHandle;
-
-	UPROPERTY()
-	FString AgentId;
-};
-
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
 class INWORLDAIINTEGRATION_API UInworldPlayerComponent : public UActorComponent, public IInworldPlayerOwnerInterface
 {
@@ -44,24 +33,33 @@ public:
     virtual void InitializeComponent() override;
     virtual void UninitializeComponent() override;
 
+    virtual void BeginPlay() override;
+
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
+
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    void SetConversationParticipation(bool bParticipant);
+
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    void ContinueConversation();
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacter"))
     UInworldCharacterComponent* GetTargetInworldCharacter();
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacters"))
     TArray<UInworldCharacterComponent*> GetTargetInworldCharacters();
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (DeprecatedFunction, DeprecationMessage = "Will be removed in next release."))
-    void ContinueMultiAgentConversation();
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "SetTargetCharacter", DeprecatedFunction, DeprecationMessage="Please use AddTargetCharacter"))
+    void SetTargetInworldCharacter(UInworldCharacterComponent* Character) { AddTargetInworldCharacter(Character); }
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "AddTargetCharacter"))
+    void AddTargetInworldCharacter(UInworldCharacterComponent* Character);
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "SetTargetCharacter"))
-    void SetTargetInworldCharacter(UInworldCharacterComponent* Character);
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearTargetCharacter", DeprecatedFunction, DeprecationMessage = "Please use RemoveTargetCharacter"))
+    void ClearTargetInworldCharacter(UInworldCharacterComponent* Character) { RemoveTargetInworldCharacter(Character); }
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "RemoveTargetCharacter"))
+    void RemoveTargetInworldCharacter(UInworldCharacterComponent* Character);
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearTargetCharacter"))
-    void ClearTargetInworldCharacter(UInworldCharacterComponent* Character);
-
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearTargetCharacter"))
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearAllTargetCharacters"))
     void ClearAllTargetInworldCharacters();
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
@@ -90,6 +88,9 @@ private:
 
     UPROPERTY(Replicated)
     UInworldPlayer* InworldPlayer;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Conversation")
+    bool bConversationParticipant = true;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
     friend class FInworldGameplayDebuggerCategory;
