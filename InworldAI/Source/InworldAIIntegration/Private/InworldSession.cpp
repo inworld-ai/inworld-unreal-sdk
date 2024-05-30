@@ -312,7 +312,7 @@ void UInworldSession::SendTextMessage(UInworldCharacter* Character, const FStrin
 	auto Packet = Client->SendTextMessage(Character->GetAgentInfo().AgentId, Message).Packet;
 	if (Packet.IsValid())
 	{
-		HandlePacket(Packet);
+		Packet->Accept(*PacketVisitor);
 	}
 }
 
@@ -325,7 +325,7 @@ void UInworldSession::SendTextMessageToConversation(UInworldPlayer* Player, cons
 	auto Packet = Client->SendTextMessageToConversation(Player->GetConversationId(), Message).Packet;
 	if (Packet.IsValid())
 	{
-		HandlePacket(Packet);
+		Packet->Accept(*PacketVisitor);
 	}
 }
 
