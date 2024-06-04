@@ -131,14 +131,14 @@ void UInworldSession::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
 				(*SourceCharacter)->HandlePacket(WrappedPacket);
 			}
 		}
-		if (Target.Type == EInworldActorType::AGENT)
+		else if (Target.Type == EInworldActorType::AGENT)
 		{
 			if (UInworldCharacter** TargetCharacter = AgentIdToCharacter.Find(Target.Name))
 			{
 				(*TargetCharacter)->HandlePacket(WrappedPacket);
 			}
 		}
-		if (Source.Type == EInworldActorType::PLAYER)
+		else if (Source.Type == EInworldActorType::PLAYER)
 		{
 			if (TArray<FString>* AgentIds = ConversationIdToAgentIds.Find(ConversationId))
 			{
