@@ -79,6 +79,16 @@ void UInworldPlayerComponent::UninitializeComponent()
     }
 }
 
+void UInworldPlayerComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (GetOwnerRole() == ROLE_Authority)
+    {
+        InworldPlayer->SetConversationParticipation(bConversationParticipant);
+    }
+}
+
 void UInworldPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -100,6 +110,22 @@ bool UInworldPlayerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBu
 
     return WroteSomething;
 #endif
+}
+
+void UInworldPlayerComponent::SetConversationParticipation(bool bParticipating)
+{
+    if (InworldPlayer->IsConversationParticipant() != bParticipating)
+    {
+        InworldPlayer->SetConversationParticipation(bParticipating);
+    }
+    bConversationParticipant = InworldPlayer->IsConversationParticipant();
+}
+
+void UInworldPlayerComponent::ContinueConversation()
+{
+    NO_PLAYER_RETURN(void())
+
+    InworldPlayer->SendTriggerToConversation(TEXT("inworld.conversation.next_turn"), {});
 }
 
 UInworldCharacterComponent* UInworldPlayerComponent::GetTargetInworldCharacter()
@@ -126,21 +152,14 @@ TArray<UInworldCharacterComponent*> UInworldPlayerComponent::GetTargetInworldCha
     return InworldCharacterComponents;
 }
 
-void UInworldPlayerComponent::ContinueMultiAgentConversation()
-{
-    NO_PLAYER_RETURN(void())
-
-    InworldPlayer->SendTriggerToConversation(TEXT("inworld.conversation.next_turn"), {});
-}
-
-void UInworldPlayerComponent::SetTargetInworldCharacter(UInworldCharacterComponent* Character)
+void UInworldPlayerComponent::AddTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
     NO_PLAYER_RETURN(void())
 
     InworldPlayer->AddTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
 }
 
-void UInworldPlayerComponent::ClearTargetInworldCharacter(UInworldCharacterComponent* Character)
+void UInworldPlayerComponent::RemoveTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
     NO_PLAYER_RETURN(void())
 
