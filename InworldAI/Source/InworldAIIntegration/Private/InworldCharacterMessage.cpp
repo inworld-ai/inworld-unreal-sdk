@@ -42,10 +42,11 @@ TArray<FString> FCharacterMessageQueue::CancelInteraction(const FString& Interac
 	return CanceledUtterances;
 }
 
-void FCharacterMessageQueue::TryToProgress(bool bForce)
+void FCharacterMessageQueue::TryToProgress(bool bForce, bool bRepeat)
 {
 	while (!CurrentMessage.IsValid() || LockCount == 0)
 	{
+		auto RepeatMessage = CurrentMessage;
 		CurrentMessage = nullptr;
 
 		if (PendingMessageEntries.Num() == 0)
@@ -53,14 +54,17 @@ void FCharacterMessageQueue::TryToProgress(bool bForce)
 			return;
 		}
 
-		auto NextQueuedEntry = PendingMessageEntries[0];
+		auto NextQueuedEntry = bRepeat ? RepeatMessage : PendingMessageEntries[0];
 		if(!NextQueuedEntry.Message->IsReady() && !bForce)
 		{
 			return;
 		}
 
 		CurrentMessage = NextQueuedEntry.Message;
-		PendingMessageEntries.RemoveAt(0);
+		if (!bRepeat)
+		{
+			PendingMessageEntries.RemoveAt(0);
+		}
 
 		UE_LOG(LogInworldAIIntegration, Log, TEXT("Handle character message '%s::%s'"), *CurrentMessage->InteractionId, *CurrentMessage->UtteranceId);
 
@@ -121,4 +125,15 @@ FCharacterMessageQueueLock::~FCharacterMessageQueueLock()
 			}
 		}
 	}
+}
+
+FCharacterMessageQueueRepeatLock::~FCharacterMessageQueueRepeatLock()
+{
+	auto Queue = QueuePtr.Pin();
+	if (Queue)
+	{
+		return;	
+	}
+
+	Queue->TryToProgress(false, true);
 }

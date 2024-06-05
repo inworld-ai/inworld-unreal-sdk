@@ -35,7 +35,7 @@ void UInworldCharacterAudioComponent::BeginPlay()
 void UInworldCharacterAudioComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GetWorld()->GetTimerManager().ClearTimer(SilenceTimerHandle);
-	GetWorld()->GetTimerManager().ClearTimer(VADTimerHandle);
+	ClearVADLock();
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -76,7 +76,7 @@ void UInworldCharacterAudioComponent::OnCharacterUtteranceInterrupt(const FChara
 	Stop();
 	VisemeBlends = FInworldCharacterVisemeBlends();
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
-	ClearVADLock();
+	//ClearVADLock();
 }
 
 void UInworldCharacterAudioComponent::OnCharacterSilence(const FCharacterMessageSilence& Message)
@@ -89,7 +89,7 @@ void UInworldCharacterAudioComponent::OnCharacterSilenceInterrupt(const FCharact
 {
 	GetWorld()->GetTimerManager().ClearTimer(SilenceTimerHandle);
 	CharacterComponent->ClearMessageQueueLock(CharacterMessageQueueLockHandle);
-	ClearVADLock();
+	//ClearVADLock();
 }
 
 void UInworldCharacterAudioComponent::OnSilenceEnd()
@@ -111,31 +111,12 @@ void UInworldCharacterAudioComponent::HandleTargetPlayerVoiceDetection(bool bVoi
 {
 	if (bVoiceDetected)
 	{
-		if (!bVADInterrupted && GetPlayState() == EAudioComponentPlayState::Playing)
-		{
-			CharacterComponent->MakeMessageQueueLock(VADQueueLockHandle);
-			SetPaused(true);
-			bVADInterrupted = true;
-			return;
-		}
-
-		GetWorld()->GetTimerManager().ClearTimer(VADTimerHandle);
-		return;
+		SetVADLock();
 	}
-
-	if (bVADInterrupted && GetPlayState() == EAudioComponentPlayState::Paused)
+	else
 	{
-		GetWorld()->GetTimerManager().SetTimer(VADTimerHandle, [this]()
-		{
-			if (bVADInterrupted && GetPlayState() == EAudioComponentPlayState::Paused)
-			{
-				ClearVADLock();
-			}
-		}, 1.f, false);
-		return;
+		ClearVADLock();
 	}
-	
-	ClearVADLock();
 }
 
 void UInworldCharacterAudioComponent::OnAudioPlaybackPercent(const UAudioComponent* InAudioComponent, const USoundWave* InSoundWave, float Percent)
@@ -191,10 +172,32 @@ void UInworldCharacterAudioComponent::OnAudioFinished(UAudioComponent* InAudioCo
 	CharacterComponent->ClearMessageQueueLock(CharacterMessageQueueLockHandle);
 }
 
+void UInworldCharacterAudioComponent::SetVADLock()
+{
+	if (VADQueueLockHandle.Lock != nullptr)
+	{
+		return;
+	}
+	
+	if (IsActive() && !bIsPaused)
+	{
+		SetPaused(true);
+	}
+	
+	CharacterComponent->MakeMessageQueueLock(VADQueueLockHandle);
+}
+
 void UInworldCharacterAudioComponent::ClearVADLock()
 {
+	if (VADQueueLockHandle.Lock == nullptr)
+	{
+		return;
+	}
+	
+	if (bIsPaused)
+	{
+		SetPaused(false);
+	}
 	
 	CharacterComponent->ClearMessageQueueLock(VADQueueLockHandle);
-	SetPaused(false);
-	bVADInterrupted = false;
 }

@@ -50,6 +50,7 @@ private:
 	void OnAudioPlaybackPercent(const UAudioComponent* InAudioComponent, const USoundWave* InSoundWave, float Percent);
 	void OnAudioFinished(UAudioComponent* InAudioComponent);
 
+	void SetVADLock();
 	void ClearVADLock();
 
 	TWeakObjectPtr<class UInworldCharacterComponent> CharacterComponent;
@@ -72,7 +73,4 @@ protected:
 	FCharacterMessageUtterance LastMessageUtterrance;
 
 	FTimerHandle SilenceTimerHandle;
-	FTimerHandle VADTimerHandle;
-
-	bool bVADInterrupted = false;
 };

@@ -238,7 +238,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 	}
 
 	TArray<FString> CancelInteraction(const FString& InteractionId);
-	void TryToProgress(bool bForce = false);
+	void TryToProgress(bool bForce = false, bool bRepeat = false);
 	TOptional<float> GetBlockingTimestamp() const;
 	void Clear();
 
@@ -255,6 +255,11 @@ struct FCharacterMessageQueueLock
 
 	TWeakPtr<FCharacterMessageQueue> QueuePtr;
 	TWeakPtr<FCharacterMessage> MessagePtr;
+};
+
+struct FCharacterMessageQueueRepeatLock : FCharacterMessageQueueLock
+{
+	~FCharacterMessageQueueRepeatLock();
 };
 
 USTRUCT(BlueprintType)
