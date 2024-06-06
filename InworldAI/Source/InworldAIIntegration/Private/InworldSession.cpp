@@ -131,14 +131,14 @@ void UInworldSession::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
 				(*SourceCharacter)->HandlePacket(WrappedPacket);
 			}
 		}
-		if (Target.Type == EInworldActorType::AGENT)
+		else if (Target.Type == EInworldActorType::AGENT)
 		{
 			if (UInworldCharacter** TargetCharacter = AgentIdToCharacter.Find(Target.Name))
 			{
 				(*TargetCharacter)->HandlePacket(WrappedPacket);
 			}
 		}
-		if (Source.Type == EInworldActorType::PLAYER)
+		else if (Source.Type == EInworldActorType::PLAYER)
 		{
 			if (TArray<FString>* AgentIds = ConversationIdToAgentIds.Find(ConversationId))
 			{
@@ -312,7 +312,7 @@ void UInworldSession::SendTextMessage(UInworldCharacter* Character, const FStrin
 	auto Packet = Client->SendTextMessage(Character->GetAgentInfo().AgentId, Message).Packet;
 	if (Packet.IsValid())
 	{
-		Packet->Accept(*PacketVisitor);
+		HandlePacket(Packet);
 	}
 }
 
@@ -325,7 +325,7 @@ void UInworldSession::SendTextMessageToConversation(UInworldPlayer* Player, cons
 	auto Packet = Client->SendTextMessageToConversation(Player->GetConversationId(), Message).Packet;
 	if (Packet.IsValid())
 	{
-		Packet->Accept(*PacketVisitor);
+		HandlePacket(Packet);
 	}
 }
 
