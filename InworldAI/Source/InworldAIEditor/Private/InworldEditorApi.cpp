@@ -30,6 +30,7 @@
 #include "PluginData/InworldMetahumanEditorSettings.h"
 #include "Interfaces/IPluginManager.h"
 #include "UObject/SavePackage.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 static FString ServerUrl = "api-studio.inworld.ai:443";
 
