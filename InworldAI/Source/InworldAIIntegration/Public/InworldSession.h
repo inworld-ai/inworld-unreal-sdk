@@ -13,6 +13,7 @@
 #include "GameFramework/Actor.h"
 #include "InworldClient.h"
 #include "InworldTypes.h"
+#include "InworldEnums.h"
 #include "InworldPackets.h"
 #include "InworldSession.generated.h"
 
