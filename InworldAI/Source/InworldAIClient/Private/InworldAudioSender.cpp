@@ -17,8 +17,12 @@
 #include "ThirdParty/InworldAINDKLibrary/include/AECInterop.h"
 #endif
 
-static TAutoConsoleVariable<bool> CVarEnableVAD(
+static TAutoConsoleVariable<bool> CVarDisableVAD(
 	TEXT("Inworld.Debug.ForceDisableVAD"), false,
+	TEXT("Force disable VAD")
+);
+static TAutoConsoleVariable<bool> CVarSendAudioMessage(
+	TEXT("Inworld.Debug.SendAudioMessage"), false,
 	TEXT("Force disable VAD")
 );
 
@@ -26,7 +30,7 @@ void UInworldAudioSender::Initialize(bool bEnableVAD)
 {
 #ifdef INWORLD_VAD
 	bVADEnabled = bEnableVAD;
-	if (CVarEnableVAD->GetBool())
+	if (CVarDisableVAD->GetBool())
 	{
 		bVADEnabled = false;
 	}
@@ -212,7 +216,10 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 	constexpr int8_t VADPreviousChunks = 5;
 	constexpr int8_t VADSubsequentChunks = 5;
 
-	//GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Red, FString::Printf(TEXT("NOT SENDING AUDIO")));
+	if (CVarSendAudioMessage->GetBool())
+	{
+		GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Red, FString::Printf(TEXT("NOT SENDING AUDIO")));
+	}
 	
 	const std::vector<int16_t> FilteredData = OutputData.empty() ? InputData : ApplyAEC(InputData, OutputData);
 	std::string Data((char*)FilteredData.data(), FilteredData.size() * 2);
@@ -298,7 +305,10 @@ void UInworldAudioSender::SendAudio(const std::string& Data)
 		Inworld::GetClient()->SendSoundMessage(RoutingId, Data);
 	}
 
-	//GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Green, FString::Printf(TEXT("SENDING AUDIO")));
+	if (CVarSendAudioMessage->GetBool())
+	{
+		GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Green, FString::Printf(TEXT("SENDING AUDIO")));
+	}
 }
 
 void UInworldAudioSender::AdvanceAudioQueue()

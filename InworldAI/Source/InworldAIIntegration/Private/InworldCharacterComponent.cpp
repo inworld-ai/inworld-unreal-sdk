@@ -373,7 +373,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 	{
 		if (Event.Final)
 		{
-			UE_LOG(LogInworldAIIntegration, Log, TEXT("____ To %s: %s"), *Event.Routing.Target.Name, *Event.Text);
+			UE_LOG(LogInworldAIIntegration, Log, TEXT("To %s: %s"), *Event.Routing.Target.Name, *Event.Text);
 		}
 
 		// Don't add to queue, player talking is instant.

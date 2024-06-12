@@ -18,8 +18,6 @@
 #include "InworldUtils.h"
 #include "InworldPacketTranslator.h"
 
-//#include "onnxruntime_cxx_api.h"
-
 THIRD_PARTY_INCLUDES_START
 #include "Packets.h"
 #include "Client.h"
@@ -62,7 +60,6 @@ FAutoConsoleVariableSink UInworldClient::CVarSink(FConsoleCommandDelegate::Creat
 
 #define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIClient, UInworldClient, Arg, Return)
 #define NO_CLIENT_RETURN(Return) EMPTY_ARG_RETURN(Inworld::GetClient(), Return)
-#define INVALID_PLAYER_RETURN(Return) EMPTY_ARG_RETURN(Player, Return) EMPTY_ARG_RETURN(Player->GetConversationId(), Return)
 
 std::vector<std::string> ToStd(const TArray<FString>& Array)
 {
