@@ -30,6 +30,8 @@ typedef void (*Callback)(bool);
 
 -(int) getPermission
 {
+    if(nil == [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSMicrophoneUsageDescription"]) return -1;
+    
     switch([AVCaptureDevice authorizationStatusForMediaType : AVMediaTypeAudio])
     {
         case AVAuthorizationStatusAuthorized:
