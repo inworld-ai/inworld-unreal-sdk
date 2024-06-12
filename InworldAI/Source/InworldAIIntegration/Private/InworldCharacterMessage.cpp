@@ -46,7 +46,6 @@ void FCharacterMessageQueue::TryToProgress(bool bForce)
 {
 	while (!CurrentMessage.IsValid() || LockCount == 0)
 	{
-		auto RepeatMessage = CurrentMessage;
 		CurrentMessage = nullptr;
 
 		if (PendingMessageEntries.Num() == 0)
@@ -102,33 +101,12 @@ TSharedPtr<FCharacterMessageQueueLock> FCharacterMessageQueue::MakeLock()
 	return MakeShared<FCharacterMessageQueueLock>(AsShared());
 }
 
-TSharedPtr<FCharacterMessageFreeQueueLock> FCharacterMessageQueue::MakeMassageFreeLock()
-{
-	LockCount++;
-	return MakeShared<FCharacterMessageFreeQueueLock>(AsShared());
-}
-
-FCharacterMessageFreeQueueLock::FCharacterMessageFreeQueueLock(TSharedRef<FCharacterMessageQueue> InQueue)
+FCharacterMessageQueueLock::FCharacterMessageQueueLock(TSharedRef<FCharacterMessageQueue> InQueue)
 	: QueuePtr(InQueue)
+	, MessagePtr(InQueue->CurrentMessage)
 {}
 
-void FCharacterMessageFreeQueueLock::Free()
-{
-	auto Queue = QueuePtr.Pin();
-	if (Queue)
-	{
-		Queue->LockCount--;
-		Queue->TryToProgress();
-	}
-}
-
-FCharacterMessageQueueLock::FCharacterMessageQueueLock(TSharedRef<FCharacterMessageQueue> InQueue)
-	: FCharacterMessageFreeQueueLock(InQueue)
-	, MessagePtr(InQueue->CurrentMessage)
-{
-}
-
-void FCharacterMessageQueueLock::Free()
+FCharacterMessageQueueLock::~FCharacterMessageQueueLock()
 {
 	auto Queue = QueuePtr.Pin();
 	auto Message = MessagePtr.Pin();
@@ -143,9 +121,4 @@ void FCharacterMessageQueueLock::Free()
 			}
 		}
 	}
-}
-
-FCharacterMessageFreeQueueLock::~FCharacterMessageFreeQueueLock()
-{
-	Free();
 }

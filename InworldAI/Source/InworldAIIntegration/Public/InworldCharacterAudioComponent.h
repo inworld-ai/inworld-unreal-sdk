@@ -23,7 +23,6 @@ class INWORLDAIINTEGRATION_API UInworldCharacterAudioComponent : public UAudioCo
 	
 public:
 	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterVisemeBlendsUpdated, FInworldCharacterVisemeBlends, VisemeBlends);
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
@@ -31,8 +30,6 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Sound")
 	float GetRemainingTimeForCurrentUtterance() const;
-
-	void HandleTargetPlayerVoiceDetection(bool bVoiceDetected);
 
 private:
 	UFUNCTION()
@@ -50,12 +47,8 @@ private:
 	void OnAudioPlaybackPercent(const UAudioComponent* InAudioComponent, const USoundWave* InSoundWave, float Percent);
 	void OnAudioFinished(UAudioComponent* InAudioComponent);
 
-	void SetVADLock();
-	void ClearVADLock();
-
 	TWeakObjectPtr<class UInworldCharacterComponent> CharacterComponent;
 	FInworldCharacterMessageQueueLockHandle CharacterMessageQueueLockHandle;
-	FInworldCharacterMessageQueueLockHandle VADQueueLockHandle;
 
 protected:
 	FDelegateHandle AudioPlaybackPercentHandle;
@@ -69,8 +62,6 @@ protected:
 	FCharacterUtteranceVisemeInfo PreviousVisemeInfo;
 
 	FInworldCharacterVisemeBlends VisemeBlends;
-
-	FCharacterMessageUtterance LastMessageUtterrance;
 
 	FTimerHandle SilenceTimerHandle;
 };

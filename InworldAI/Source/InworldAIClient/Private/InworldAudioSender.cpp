@@ -9,6 +9,7 @@
 
 #include "Client.h"
 #include "InworldAIClientModule.h"
+#include "Interfaces/IPluginManager.h"
 #ifdef INWORLD_VAD
 #include "ThirdParty/InworldAINDKLibrary/include/InworldVAD.h"
 #endif
@@ -21,8 +22,6 @@ static TAutoConsoleVariable<bool> CVarEnableVAD(
 	TEXT("Force disable VAD")
 );
 
-int64_t g_BytesSent = 0;
-
 void UInworldAudioSender::Initialize(bool bEnableVAD)
 {
 #ifdef INWORLD_VAD
@@ -33,7 +32,9 @@ void UInworldAudioSender::Initialize(bool bEnableVAD)
 	}
 	if (bVADEnabled)
 	{
-		Inworld::VAD_Initialize("model");
+		const FString Path = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/InworldAINDKLibrary/resource/silero_vad_10_27_2022.onnx"));
+		const std::string ModelPath = TCHAR_TO_UTF8(*Path);
+		Inworld::VAD_Initialize(ModelPath.c_str());
 	}
 #else
 	bVADEnabled = false;
@@ -41,7 +42,6 @@ void UInworldAudioSender::Initialize(bool bEnableVAD)
 #ifdef INWORLD_AEC
 	AecHandle = WebRtcAec3_Create(16000);
 #endif
-	g_BytesSent = 0;
 }
 
 void UInworldAudioSender::Terminate()
@@ -212,7 +212,7 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 	constexpr int8_t VADPreviousChunks = 5;
 	constexpr int8_t VADSubsequentChunks = 5;
 
-	GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Red, FString::Printf(TEXT("NOT SENDING AUDIO")));
+	//GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Red, FString::Printf(TEXT("NOT SENDING AUDIO")));
 	
 	const std::vector<int16_t> FilteredData = OutputData.empty() ? InputData : ApplyAEC(InputData, OutputData);
 	std::string Data((char*)FilteredData.data(), FilteredData.size() * 2);
@@ -235,9 +235,6 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 #else
 		1.f;
 #endif
-
-	//GEngine->AddOnScreenDebugMessage(112, 0.12f, SpeechProb > VADProbThreshhold ? FColor::Green : FColor::Red,
-	//	FString::Printf(TEXT("Speech prob: %f"), SpeechProb));
 	
 	if (SpeechProb > VADProbThreshhold)
 	{
@@ -300,22 +297,14 @@ void UInworldAudioSender::SendAudio(const std::string& Data)
 	{
 		Inworld::GetClient()->SendSoundMessage(RoutingId, Data);
 	}
-	g_BytesSent += Data.size();
 
-	GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Green, FString::Printf(TEXT("SENDING AUDIO")));
-	GEngine->AddOnScreenDebugMessage(113, 30.0f, FColor::Green, FString::Printf(TEXT("Audio bytes sent: %lld"), g_BytesSent));
+	//GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Green, FString::Printf(TEXT("SENDING AUDIO")));
 }
 
 void UInworldAudioSender::AdvanceAudioQueue()
 {
 	// unwind the queue sending audio every 10ms
 	// data loss if sent all at once
-
-	/*while (!AudioQueue.empty())
-	{
-		SendAudio(AudioQueue.front());
-		AudioQueue.pop();
-	}*/
 
 	SendAudio(AudioQueue.front());
 	AudioQueue.pop();

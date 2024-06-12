@@ -246,29 +246,15 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 
 	int32 LockCount = 0;
 	TSharedPtr<struct FCharacterMessageQueueLock> MakeLock();
-	TSharedPtr<struct FCharacterMessageFreeQueueLock> MakeMassageFreeLock();
 };
 
-
-struct FCharacterMessageFreeQueueLock
-{
-	FCharacterMessageFreeQueueLock(TSharedRef<FCharacterMessageQueue> InQueue);
-	~FCharacterMessageFreeQueueLock();
-	
-	TWeakPtr<FCharacterMessageQueue> QueuePtr;
-
-protected:
-	virtual void Free();
-};
-
-struct FCharacterMessageQueueLock : FCharacterMessageFreeQueueLock
+struct FCharacterMessageQueueLock
 {
 	FCharacterMessageQueueLock(TSharedRef<FCharacterMessageQueue> InQueue);
+	~FCharacterMessageQueueLock();
 
+	TWeakPtr<FCharacterMessageQueue> QueuePtr;
 	TWeakPtr<FCharacterMessage> MessagePtr;
-
-protected:
-	virtual void Free() override;
 };
 
 USTRUCT(BlueprintType)
@@ -276,5 +262,5 @@ struct FInworldCharacterMessageQueueLockHandle
 {
 	GENERATED_BODY()
 
-	TSharedPtr<FCharacterMessageFreeQueueLock> Lock;
+	TSharedPtr<FCharacterMessageQueueLock> Lock;
 };

@@ -198,12 +198,6 @@ UInworldClient::~UInworldClient()
 	if (IsValid(AudioSender))
 	{
 		AudioSender->OnVAD().Remove(OnVADHandle);
-#if ENGINE_MAJOR_VERSION == 5
-		AudioSender->MarkAsGarbage();
-#endif
-#if ENGINE_MAJOR_VERSION == 4
-		AudioSender->MarkPendingKill();
-#endif
 	}
 	AudioSender = nullptr;
 	Inworld::DestroyClient();

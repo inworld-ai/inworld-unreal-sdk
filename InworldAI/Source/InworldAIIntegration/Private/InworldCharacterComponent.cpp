@@ -37,8 +37,10 @@ UInworldCharacterComponent::UInworldCharacterComponent()
 
 void UInworldCharacterComponent::HandleTargetPlayerVoiceDetection(bool bVoiceDetected)
 {
-	UInworldCharacterAudioComponent* AudioComponent = GetOwner()->FindComponentByClass<UInworldCharacterAudioComponent>();
-	AudioComponent->HandleTargetPlayerVoiceDetection(bVoiceDetected);
+	if (bVoiceDetected)
+	{
+		CancelCurrentInteraction();
+	}
 }
 
 void UInworldCharacterComponent::OnRegister()
@@ -264,7 +266,7 @@ void UInworldCharacterComponent::CancelCurrentInteraction()
 	NO_CHARACTER_RETURN(void())
 
 	TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
-    if (!ensure(CurrentMessage.IsValid()))
+    if (!CurrentMessage.IsValid())
     {
         return;
     }
@@ -335,11 +337,6 @@ FVector UInworldCharacterComponent::GetTargetPlayerCameraLocation()
 void UInworldCharacterComponent::MakeMessageQueueLock(FInworldCharacterMessageQueueLockHandle& Handle)
 {
 	Handle.Lock = MessageQueue->MakeLock();
-}
-
-void UInworldCharacterComponent::MakeMessageFreeQueueLock(FInworldCharacterMessageQueueLockHandle& Handle)
-{
-	Handle.Lock = MessageQueue->MakeMassageFreeLock();
 }
 
 void UInworldCharacterComponent::ClearMessageQueueLock(FInworldCharacterMessageQueueLockHandle& Handle)

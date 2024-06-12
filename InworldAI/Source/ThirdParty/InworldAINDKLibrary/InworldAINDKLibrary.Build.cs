@@ -153,6 +153,8 @@ public class InworldAINDKLibrary : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk-vad.dll.lib"));
             PublicDelayLoadDLLs.Add("inworld-ndk-vad.dll");
             RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "inworld-ndk-vad.dll"));
+            
+            RuntimeDependencies.Add(Path.Combine(ModuleDirectory, "resource/silero_vad_10_27_2022.onnx"));
         }
         else if(Target.Platform == UnrealTargetPlatform.Mac)
         {
