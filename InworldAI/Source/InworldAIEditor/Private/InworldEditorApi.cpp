@@ -112,7 +112,8 @@ void UInworldEditorApiSubsystem::UnbindActionForCharacterData(const FName& Name)
 
 void UInworldEditorApiSubsystem::GetCharacterDataActions(TArray<FName>& OutKeys) const
 {
-	return CharacterStudioDataFunctionMap.GenerateKeyArray(OutKeys);
+	CharacterStudioDataFunctionMap.GenerateKeyArray(OutKeys);
+	OutKeys.Sort(FNameLexicalLess());
 }
 
 bool UInworldEditorApiSubsystem::CanExecuteCharacterDataAction(const FName& Name, const FInworldStudioUserCharacterData& CharacterStudioData)
@@ -426,11 +427,14 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 		);
 	}
 
-	FOnCharacterStudioDataPermission PermissionDelegate;
-	PermissionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CanCreateInnequinActor);
-	FOnCharacterStudioDataAction ActionDelegate;
-	ActionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CreateInnequinActor);
-	BindActionForCharacterData(FName("Create Inworld Avatar"), PermissionDelegate, ActionDelegate);
+	if (IPluginManager::Get().FindPlugin("InworldInnequin").IsValid())
+	{
+		FOnCharacterStudioDataPermission PermissionDelegate;
+		PermissionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CanCreateInnequinActor);
+		FOnCharacterStudioDataAction ActionDelegate;
+		ActionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CreateInnequinActor);
+		BindActionForCharacterData(FName("Create Inworld Avatar"), PermissionDelegate, ActionDelegate);
+	}
 }
 
 void UInworldEditorApiSubsystem::Deinitialize()
