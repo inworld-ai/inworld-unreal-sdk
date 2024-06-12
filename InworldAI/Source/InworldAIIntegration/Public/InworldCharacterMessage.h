@@ -238,7 +238,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 	}
 
 	TArray<FString> CancelInteraction(const FString& InteractionId);
-	void TryToProgress(bool bForce = false, bool bRepeat = false);
+	void TryToProgress(bool bForce = false);
 	TOptional<float> GetBlockingTimestamp() const;
 	void Clear();
 
@@ -246,20 +246,29 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 
 	int32 LockCount = 0;
 	TSharedPtr<struct FCharacterMessageQueueLock> MakeLock();
+	TSharedPtr<struct FCharacterMessageFreeQueueLock> MakeMassageFreeLock();
 };
 
-struct FCharacterMessageQueueLock
+
+struct FCharacterMessageFreeQueueLock
+{
+	FCharacterMessageFreeQueueLock(TSharedRef<FCharacterMessageQueue> InQueue);
+	~FCharacterMessageFreeQueueLock();
+	
+	TWeakPtr<FCharacterMessageQueue> QueuePtr;
+
+protected:
+	virtual void Free();
+};
+
+struct FCharacterMessageQueueLock : FCharacterMessageFreeQueueLock
 {
 	FCharacterMessageQueueLock(TSharedRef<FCharacterMessageQueue> InQueue);
-	~FCharacterMessageQueueLock();
 
-	TWeakPtr<FCharacterMessageQueue> QueuePtr;
 	TWeakPtr<FCharacterMessage> MessagePtr;
-};
 
-struct FCharacterMessageQueueRepeatLock : FCharacterMessageQueueLock
-{
-	~FCharacterMessageQueueRepeatLock();
+protected:
+	virtual void Free() override;
 };
 
 USTRUCT(BlueprintType)
@@ -267,5 +276,5 @@ struct FInworldCharacterMessageQueueLockHandle
 {
 	GENERATED_BODY()
 
-	TSharedPtr<FCharacterMessageQueueLock> Lock;
+	TSharedPtr<FCharacterMessageFreeQueueLock> Lock;
 };

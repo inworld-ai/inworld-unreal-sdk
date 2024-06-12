@@ -21,6 +21,8 @@ static TAutoConsoleVariable<bool> CVarEnableVAD(
 	TEXT("Force disable VAD")
 );
 
+int64_t g_BytesSent = 0;
+
 void UInworldAudioSender::Initialize(bool bEnableVAD)
 {
 #ifdef INWORLD_VAD
@@ -39,6 +41,7 @@ void UInworldAudioSender::Initialize(bool bEnableVAD)
 #ifdef INWORLD_AEC
 	AecHandle = WebRtcAec3_Create(16000);
 #endif
+	g_BytesSent = 0;
 }
 
 void UInworldAudioSender::Terminate()
@@ -207,7 +210,7 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 {
 	constexpr float VADProbThreshhold = 0.3f;
 	constexpr int8_t VADPreviousChunks = 5;
-	constexpr int8_t VADSubsequentChunks = 10;
+	constexpr int8_t VADSubsequentChunks = 5;
 
 	GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Red, FString::Printf(TEXT("NOT SENDING AUDIO")));
 	
@@ -297,8 +300,10 @@ void UInworldAudioSender::SendAudio(const std::string& Data)
 	{
 		Inworld::GetClient()->SendSoundMessage(RoutingId, Data);
 	}
+	g_BytesSent += Data.size();
 
 	GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Green, FString::Printf(TEXT("SENDING AUDIO")));
+	GEngine->AddOnScreenDebugMessage(113, 30.0f, FColor::Green, FString::Printf(TEXT("Audio bytes sent: %lld"), g_BytesSent));
 }
 
 void UInworldAudioSender::AdvanceAudioQueue()

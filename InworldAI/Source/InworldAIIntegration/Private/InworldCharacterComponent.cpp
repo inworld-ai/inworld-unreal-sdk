@@ -337,6 +337,11 @@ void UInworldCharacterComponent::MakeMessageQueueLock(FInworldCharacterMessageQu
 	Handle.Lock = MessageQueue->MakeLock();
 }
 
+void UInworldCharacterComponent::MakeMessageFreeQueueLock(FInworldCharacterMessageQueueLockHandle& Handle)
+{
+	Handle.Lock = MessageQueue->MakeMassageFreeLock();
+}
+
 void UInworldCharacterComponent::ClearMessageQueueLock(FInworldCharacterMessageQueueLockHandle& Handle)
 {
 	Handle.Lock = nullptr;

@@ -42,7 +42,7 @@ TArray<FString> FCharacterMessageQueue::CancelInteraction(const FString& Interac
 	return CanceledUtterances;
 }
 
-void FCharacterMessageQueue::TryToProgress(bool bForce, bool bRepeat)
+void FCharacterMessageQueue::TryToProgress(bool bForce)
 {
 	while (!CurrentMessage.IsValid() || LockCount == 0)
 	{
@@ -54,17 +54,14 @@ void FCharacterMessageQueue::TryToProgress(bool bForce, bool bRepeat)
 			return;
 		}
 
-		auto NextQueuedEntry = bRepeat ? RepeatMessage : PendingMessageEntries[0];
+		auto NextQueuedEntry = PendingMessageEntries[0];
 		if(!NextQueuedEntry.Message->IsReady() && !bForce)
 		{
 			return;
 		}
 
 		CurrentMessage = NextQueuedEntry.Message;
-		if (!bRepeat)
-		{
-			PendingMessageEntries.RemoveAt(0);
-		}
+		PendingMessageEntries.RemoveAt(0);
 
 		UE_LOG(LogInworldAIIntegration, Log, TEXT("Handle character message '%s::%s'"), *CurrentMessage->InteractionId, *CurrentMessage->UtteranceId);
 
@@ -105,12 +102,33 @@ TSharedPtr<FCharacterMessageQueueLock> FCharacterMessageQueue::MakeLock()
 	return MakeShared<FCharacterMessageQueueLock>(AsShared());
 }
 
-FCharacterMessageQueueLock::FCharacterMessageQueueLock(TSharedRef<FCharacterMessageQueue> InQueue)
+TSharedPtr<FCharacterMessageFreeQueueLock> FCharacterMessageQueue::MakeMassageFreeLock()
+{
+	LockCount++;
+	return MakeShared<FCharacterMessageFreeQueueLock>(AsShared());
+}
+
+FCharacterMessageFreeQueueLock::FCharacterMessageFreeQueueLock(TSharedRef<FCharacterMessageQueue> InQueue)
 	: QueuePtr(InQueue)
-	, MessagePtr(InQueue->CurrentMessage)
 {}
 
-FCharacterMessageQueueLock::~FCharacterMessageQueueLock()
+void FCharacterMessageFreeQueueLock::Free()
+{
+	auto Queue = QueuePtr.Pin();
+	if (Queue)
+	{
+		Queue->LockCount--;
+		Queue->TryToProgress();
+	}
+}
+
+FCharacterMessageQueueLock::FCharacterMessageQueueLock(TSharedRef<FCharacterMessageQueue> InQueue)
+	: FCharacterMessageFreeQueueLock(InQueue)
+	, MessagePtr(InQueue->CurrentMessage)
+{
+}
+
+void FCharacterMessageQueueLock::Free()
 {
 	auto Queue = QueuePtr.Pin();
 	auto Message = MessagePtr.Pin();
@@ -127,13 +145,7 @@ FCharacterMessageQueueLock::~FCharacterMessageQueueLock()
 	}
 }
 
-FCharacterMessageQueueRepeatLock::~FCharacterMessageQueueRepeatLock()
+FCharacterMessageFreeQueueLock::~FCharacterMessageFreeQueueLock()
 {
-	auto Queue = QueuePtr.Pin();
-	if (Queue)
-	{
-		return;	
-	}
-
-	Queue->TryToProgress(false, true);
+	Free();
 }

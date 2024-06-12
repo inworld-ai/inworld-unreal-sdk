@@ -145,6 +145,9 @@ public:
 	void MakeMessageQueueLock(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle);
 
 	UFUNCTION(BlueprintCallable, Category = "Message")
+	void MakeMessageFreeQueueLock(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle);
+
+	UFUNCTION(BlueprintCallable, Category = "Message")
 	static void ClearMessageQueueLock(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle);
 
 	template<class T>
