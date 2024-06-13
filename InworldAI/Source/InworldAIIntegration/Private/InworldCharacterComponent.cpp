@@ -17,6 +17,7 @@
 #include <Engine/ActorChannel.h>
 #include <GameFramework/GameStateBase.h>
 #include <GameFramework/PlayerState.h>
+#include "Runtime/Launch/Resources/Version.h"
 
 #define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldCharacterComponent, Arg, Return)
 #define NO_CHARACTER_RETURN(Return) EMPTY_ARG_RETURN(InworldCharacter, Return)

@@ -10,6 +10,7 @@
 #include "CoreMinimal.h"
 #include "AudioCaptureCore.h"
 #include "AudioDevice.h"
+#include "InworldEnums.h"
 #include "Containers/ContainerAllocationPolicies.h"
 
 #include "InworldPlayerAudioCaptureComponent.generated.h"
