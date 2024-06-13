@@ -36,5 +36,5 @@ UInworldAIEditorSettings::UInworldAIEditorSettings(const FObjectInitializer& Obj
 	}
 
 
-	InworldStudioWidget = { TEXT("EditorUtilityWidgetBlueprint'/InworldAI/StudioWidget/EUW_InworldStudio.EUW_InworldStudio'") };
+	InworldStudioWidget = FSoftObjectPath{ TEXT("EditorUtilityWidgetBlueprint'/InworldAI/StudioWidget/EUW_InworldStudio.EUW_InworldStudio'") };
 }
