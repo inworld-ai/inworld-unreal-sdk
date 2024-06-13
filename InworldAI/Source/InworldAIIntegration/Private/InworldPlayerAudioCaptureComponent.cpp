@@ -92,6 +92,8 @@ public:
     FInworldMicrophoneAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
         : FInworldAudioCapture(InOwner, InCallback) {}
 
+    virtual bool Initialize() override;
+
     virtual void RequestCapturePermission();
     virtual bool HasCapturePermission() const override;
     virtual void StartCapture() override;
@@ -117,6 +119,8 @@ public:
     FInworldPixelStreamAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
         : FInworldAudioCapture(InOwner, InCallback) {}
 
+    virtual bool Initialize() override { return true; }
+
     virtual void StartCapture() override;
     virtual void StopCapture() override;
 
@@ -139,6 +143,8 @@ struct FInworldSubmixAudioCapture : public FInworldAudioCapture, public ISubmixB
 public:
     FInworldSubmixAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
         : FInworldAudioCapture(InOwner, InCallback) {}
+
+    virtual bool Initialize() override { return true; }
 
     virtual void StartCapture() override;
     virtual void StopCapture() override;
@@ -227,10 +233,25 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
             OutputAudioCapture = MakeShared<FInworldSubmixAudioCapture>(this, OnOutputCapture);
         }
 
-        InputAudioCapture->RequestCapturePermission();
+        if (InputAudioCapture->Initialize())
+        {
+            InputAudioCapture->RequestCapturePermission();
+        }
+        else
+        {
+            InputAudioCapture.Reset();
+        }
+
         if (OutputAudioCapture.IsValid())
         {
-            OutputAudioCapture->RequestCapturePermission();
+            if (OutputAudioCapture->Initialize())
+            {
+                OutputAudioCapture->RequestCapturePermission();
+            }
+            else
+            {
+                OutputAudioCapture.Reset();
+            }
         }
 
         PrimaryComponentTick.SetTickFunctionEnable(true);
@@ -471,6 +492,15 @@ void UInworldPlayerAudioCaptureComponent::Rep_ServerCapturingVoice()
     {
         StopCapture();
     }
+}
+
+bool FInworldMicrophoneAudioCapture::Initialize()
+{
+    FInworldAIPlatformModule& PlatformModule = FModuleManager::Get().LoadModuleChecked<FInworldAIPlatformModule>("InworldAIPlatform");
+    Inworld::Platform::IMicrophone* Microphone = PlatformModule.GetMicrophone();
+    const bool Initialized = Microphone->Initialize();
+    ensureMsgf(Initialized, TEXT("FInworldMicrophoneAudioCapture::RequestCapturePermission: Platform has failed to initialize microphone."));
+    return Initialized;
 }
 
 void FInworldMicrophoneAudioCapture::RequestCapturePermission()

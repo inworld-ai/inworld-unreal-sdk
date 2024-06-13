@@ -21,6 +21,8 @@ namespace Inworld
             GenericMicrophoneImpl();
             virtual ~GenericMicrophoneImpl();
 
+            virtual bool Initialize() override;
+
             virtual void RequestAccess(RequestAccessCallback Callback) override;
             virtual Permission GetPermission() const override;
         };

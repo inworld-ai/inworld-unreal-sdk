@@ -39,6 +39,8 @@ public:
     {}
     virtual ~FInworldAudioCapture() {}
 
+    virtual bool Initialize() = 0;
+
     virtual void RequestCapturePermission() {}
     virtual bool HasCapturePermission() const { return true; }
 
