@@ -233,9 +233,7 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
             OutputAudioCapture = MakeShared<FInworldSubmixAudioCapture>(this, OnOutputCapture);
         }
 
-        
         InputAudioCapture->RequestCapturePermission();
-
         if (OutputAudioCapture.IsValid())
         {
             OutputAudioCapture->RequestCapturePermission();
