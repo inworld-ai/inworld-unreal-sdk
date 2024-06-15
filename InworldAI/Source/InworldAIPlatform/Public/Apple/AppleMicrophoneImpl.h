@@ -32,9 +32,20 @@ namespace Inworld
 
             virtual bool Initialize() override
             {
+#if PLATFORM_IOS
+                NSError* setCategoryError = nil;
+                [[AVAudioSession sharedInstance]setCategory:AVAudioSessionCategoryPlayAndRecord withOptions : (AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth) error : &setCategoryError];
+                  if (setCategoryError != nil)
+                  {
+                    return false;
+                  }
+                
                 NSError* setActiveError = nil;
                 [[AVAudioSession sharedInstance]setActive:YES error : &setActiveError];
                 return nil == setActiveError;
+#elif PLATFORM_MAC
+                return true;
+#endif
             }
 
             virtual void RequestAccess(RequestAccessCallback Callback) override

@@ -233,25 +233,12 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
             OutputAudioCapture = MakeShared<FInworldSubmixAudioCapture>(this, OnOutputCapture);
         }
 
-        if (InputAudioCapture->Initialize())
-        {
-            InputAudioCapture->RequestCapturePermission();
-        }
-        else
-        {
-            InputAudioCapture.Reset();
-        }
+        
+        InputAudioCapture->RequestCapturePermission();
 
         if (OutputAudioCapture.IsValid())
         {
-            if (OutputAudioCapture->Initialize())
-            {
-                OutputAudioCapture->RequestCapturePermission();
-            }
-            else
-            {
-                OutputAudioCapture.Reset();
-            }
+            OutputAudioCapture->RequestCapturePermission();
         }
 
         PrimaryComponentTick.SetTickFunctionEnable(true);
@@ -419,12 +406,12 @@ void UInworldPlayerAudioCaptureComponent::StartCapture()
         return;
     }
 
-    if (!InputAudioCapture.IsValid() || !InputAudioCapture->HasCapturePermission())
+    if (!InputAudioCapture.IsValid() || !InputAudioCapture->HasCapturePermission() || !InputAudioCapture->Initialize())
     {
         return;
     }
 
-    if (OutputAudioCapture.IsValid() && !InputAudioCapture->HasCapturePermission())
+    if (OutputAudioCapture.IsValid() && (!OutputAudioCapture->HasCapturePermission() || !OutputAudioCapture->Initialize()))
     {
         return;
     }
@@ -455,7 +442,7 @@ void UInworldPlayerAudioCaptureComponent::StopCapture()
     }
 
     InputAudioCapture->StopCapture();
-    if (OutputAudioCapture)
+    if (OutputAudioCapture.IsValid())
     {
         OutputAudioCapture->StopCapture();
     }
