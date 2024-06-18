@@ -14,6 +14,7 @@
 
 #include "InworldAIIntegrationModule.h"
 
+#include "Runtime/Launch/Resources/Version.h"
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Engine/NetDriver.h"
 #include "Engine/Engine.h"

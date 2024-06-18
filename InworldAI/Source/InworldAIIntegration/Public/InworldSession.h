@@ -14,6 +14,7 @@
 #include "InworldClient.h"
 #include "InworldTypes.h"
 #include "InworldPackets.h"
+#include "InworldEnums.h"
 #include "InworldSession.generated.h"
 
 class UInworldPlayer;

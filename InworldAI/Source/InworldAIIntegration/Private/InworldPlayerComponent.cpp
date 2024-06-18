@@ -14,6 +14,7 @@
 
 #include <Engine/World.h>
 #include <Net/UnrealNetwork.h>
+#include "Runtime/Launch/Resources/Version.h"
 
 #define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldPlayerComponent, Arg, Return)
 #define NO_PLAYER_RETURN(Return) EMPTY_ARG_RETURN(InworldPlayer, Return)
