@@ -29,5 +29,12 @@ UInworldAIEditorSettings::UInworldAIEditorSettings(const FObjectInitializer& Obj
 	CharacterPlaybacks = { UInworldCharacterPlaybackTrigger::StaticClass() };
 	OtherCharacterComponents = { UInworldCharacterAudioComponent::StaticClass() };
 
-	InworldStudioWidget = "/InworldAI/StudioWidget/EUW_InworldStudio.EUW_InworldStudio";
+	static ConstructorHelpers::FClassFinder<UActorComponent> ChatComponent3DClassFinder(TEXT("/InworldAI/Components/ChatBubbles/BP_ChatBubblesComponent"));
+	if (ChatComponent3DClassFinder.Class)
+	{
+		OtherCharacterComponents.Add(ChatComponent3DClassFinder.Class);
+	}
+
+
+	InworldStudioWidget = FSoftObjectPath{ TEXT("EditorUtilityWidgetBlueprint'/InworldAI/StudioWidget/EUW_InworldStudio.EUW_InworldStudio'") };
 }
