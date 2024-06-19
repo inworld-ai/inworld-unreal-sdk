@@ -84,6 +84,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|InteractionEnd")
 	FOnInworldCharacterInteractionEnd OnInteractionEnd;
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetection, bool, bVoiceDetected);
+	UPROPERTY(BlueprintAssignable, Category = "Conversation")
+	FOnInworldPlayerVoiceDetection OnVoiceDetection;
+
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	void SetBrainName(const FString& Name);
 

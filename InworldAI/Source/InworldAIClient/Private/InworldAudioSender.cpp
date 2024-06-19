@@ -10,6 +10,7 @@
 #include "Client.h"
 #include "InworldAIClientModule.h"
 #include "Interfaces/IPluginManager.h"
+#include "Engine/Engine.h"
 #ifdef INWORLD_VAD
 #include "ThirdParty/InworldAINDKLibrary/include/InworldVAD.h"
 #endif
@@ -18,11 +19,15 @@
 #endif
 
 static TAutoConsoleVariable<bool> CVarDisableVAD(
-	TEXT("Inworld.Debug.ForceDisableVAD"), false,
+	TEXT("Inworld.Debug.VADForceDisable"), false,
 	TEXT("Force disable VAD")
 );
-static TAutoConsoleVariable<bool> CVarSendAudioMessage(
-	TEXT("Inworld.Debug.SendAudioMessage"), false,
+static TAutoConsoleVariable<bool> CVarShowSendAudioMessage(
+	TEXT("Inworld.Debug.VADShowSendAudioMessage"), false,
+	TEXT("Force disable VAD")
+	);
+static TAutoConsoleVariable<float> CVarBufferedAudioSendDelay(
+	TEXT("Inworld.Debug.VADBufferedAudioSendDelay"), 0.03f,
 	TEXT("Force disable VAD")
 );
 
@@ -216,7 +221,7 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 	constexpr int8_t VADPreviousChunks = 5;
 	constexpr int8_t VADSubsequentChunks = 5;
 
-	if (CVarSendAudioMessage->GetBool())
+	if (CVarShowSendAudioMessage->GetBool())
 	{
 		GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Red, FString::Printf(TEXT("NOT SENDING AUDIO")));
 	}
@@ -248,7 +253,7 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 		VADSilenceCounter = 0;
 		StartActualAudioSession();
 		AudioQueue.push(Data);
-		AdvanceAudioQueue();
+		SendBufferedAudio();
 		return;
 	}
 
@@ -305,24 +310,28 @@ void UInworldAudioSender::SendAudio(const std::string& Data)
 		Inworld::GetClient()->SendSoundMessage(RoutingId, Data);
 	}
 
-	if (CVarSendAudioMessage->GetBool())
+	if (CVarShowSendAudioMessage->GetBool())
 	{
 		GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Green, FString::Printf(TEXT("SENDING AUDIO")));
 	}
 }
 
-void UInworldAudioSender::AdvanceAudioQueue()
+void UInworldAudioSender::SendBufferedAudio()
 {
-	// unwind the queue sending audio every 10ms
-	// data loss if sent all at once
-
-	SendAudio(AudioQueue.front());
-	AudioQueue.pop();
-	if (!AudioQueue.empty())
+	if (AudioQueue.empty())
 	{
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
-		{
-			AdvanceAudioQueue();
-		}, 0.01f, false);
+		return;
 	}
+	
+	std::string Data;
+	while (!AudioQueue.empty())
+	{
+		Data.append(AudioQueue.front());
+		AudioQueue.pop();
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this, Data]()
+	{
+		SendAudio(Data);
+	}, CVarBufferedAudioSendDelay->GetFloat(), false);
 }

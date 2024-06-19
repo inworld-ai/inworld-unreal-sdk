@@ -41,6 +41,7 @@ void UInworldCharacterComponent::HandleTargetPlayerVoiceDetection(bool bVoiceDet
 	{
 		CancelCurrentInteraction();
 	}
+	OnVoiceDetection.Broadcast(bVoiceDetected);
 }
 
 void UInworldCharacterComponent::OnRegister()

@@ -14,6 +14,8 @@
 #include "CoreMinimal.h"
 #include "InworldEnums.h"
 
+#include "Engine/TimerHandle.h"
+
 #include "InworldAudioSender.generated.h"
 
 class UInworldPlayer;
@@ -49,7 +51,7 @@ private:
 	void ProcessAudio(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	std::vector<int16_t>  ApplyAEC(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	void SendAudio(const std::string& Data);
-	void AdvanceAudioQueue();
+	void SendBufferedAudio();
 	void ClearState();
 
 	FOnInworldVADNative OnVADNative;
