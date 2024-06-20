@@ -113,4 +113,32 @@ private:
 	TMap<FName, FCharacterStudioDataFunctions> CharacterStudioDataFunctionMap;
 
 	TSharedPtr<class FInworldEditorRestartRequiredNotification> RestartRequiredNotification;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Inworld|Dialogue Map")
+	void SetDialogueMapCharacterData(const FString& BrainName, const FString& DisplayName, const FString& ImageURI, const FString& Token)
+	{
+		DialogueMapCharacterBrainName = BrainName;
+		DialogueMapCharacterDisplayName = DisplayName;
+		DialogueMapCharacterImageURI = ImageURI;
+		SaveConfig();
+	}
+
+	UFUNCTION(BlueprintPure, Category = "Inworld|Dialogue Map")
+	void GetDialogueMapCharacterData(FString& BrainName, FString& DisplayName, FString& ImageURI)
+	{
+		BrainName = DialogueMapCharacterBrainName;
+		DisplayName = DialogueMapCharacterDisplayName;
+		ImageURI = DialogueMapCharacterImageURI;
+	}
+
+private:
+	UPROPERTY(config)
+	FString DialogueMapCharacterBrainName;
+
+	UPROPERTY(config)
+	FString DialogueMapCharacterDisplayName;
+
+	UPROPERTY(config)
+	FString DialogueMapCharacterImageURI;
 };
