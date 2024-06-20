@@ -37,13 +37,6 @@ public:
 
 	// IInworldCharacterOwnerInterface
 	virtual UInworldCharacter* GetInworldCharacter_Implementation() const override { return InworldCharacter; }
-	virtual void OnInworldTextEvent_Implementation(const FInworldTextEvent& Event) override;
-	virtual void OnInworldAudioEvent_Implementation(const FInworldAudioDataEvent& Event) override;
-	virtual void OnInworldSilenceEvent_Implementation(const FInworldSilenceEvent& Event) override;
-	virtual void OnInworldControlEvent_Implementation(const FInworldControlEvent& Event) override;
-	virtual void OnInworldEmotionEvent_Implementation(const FInworldEmotionEvent& Event) override;
-	virtual void OnInworldCustomEvent_Implementation(const FInworldCustomEvent& Event) override;
-	virtual void OnInworldRelationEvent_Implementation(const FInworldRelationEvent& Event) override;
 	// ~IInworldCharacterOwnerInterface
 
 	virtual void OnRegister() override;
@@ -177,6 +170,20 @@ protected:
 	FString UiName = "Character";
 
 private:
+	UFUNCTION()
+	void OnInworldTextEvent(const FInworldTextEvent& Event);
+	UFUNCTION()
+	void OnInworldAudioEvent(const FInworldAudioDataEvent& Event);
+	UFUNCTION()
+	void OnInworldSilenceEvent(const FInworldSilenceEvent& Event);
+	UFUNCTION()
+	void OnInworldControlEvent(const FInworldControlEvent& Event);
+	UFUNCTION()
+	void OnInworldEmotionEvent(const FInworldEmotionEvent& Event);
+	UFUNCTION()
+	void OnInworldCustomEvent(const FInworldCustomEvent& Event);
+	UFUNCTION()
+	void OnInworldRelationEvent(const FInworldRelationEvent& Event);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitText(const FInworldTextEvent& Event);

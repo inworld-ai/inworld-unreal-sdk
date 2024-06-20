@@ -34,62 +34,6 @@ UInworldCharacterComponent::UInworldCharacterComponent()
 #endif
 }
 
-void UInworldCharacterComponent::OnInworldTextEvent_Implementation(const FInworldTextEvent& Event)
-{
-	Multicast_VisitText(Event);
-}
-
-void UInworldCharacterComponent::OnInworldAudioEvent_Implementation(const FInworldAudioDataEvent& Event)
-{
-	if (GetNetMode() == NM_Standalone || GetNetMode() == NM_Client)
-	{
-		VisitAudioOnClient(Event);
-		return;
-	}
-
-	if (GetNetMode() == NM_ListenServer)
-	{
-		VisitAudioOnClient(Event);
-	}
-
-	UInworldApiSubsystem* InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
-	if (ensure(InworldSubsystem))
-	{
-		TArray<FInworldAudioDataEvent> RepEvents;
-		FInworldAudioDataEvent::ConvertToReplicatableEvents(Event, RepEvents);
-
-		for (auto& E : RepEvents)
-		{
-			InworldSubsystem->ReplicateAudioEventFromServer(E);
-		}
-	}
-}
-
-void UInworldCharacterComponent::OnInworldSilenceEvent_Implementation(const FInworldSilenceEvent& Event)
-{
-	Multicast_VisitSilence(Event);
-}
-
-void UInworldCharacterComponent::OnInworldControlEvent_Implementation(const FInworldControlEvent& Event)
-{
-	Multicast_VisitControl(Event);
-}
-
-void UInworldCharacterComponent::OnInworldEmotionEvent_Implementation(const FInworldEmotionEvent& Event)
-{
-	Multicast_VisitEmotion(Event);
-}
-
-void UInworldCharacterComponent::OnInworldCustomEvent_Implementation(const FInworldCustomEvent& Event)
-{
-	Multicast_VisitCustom(Event);
-}
-
-void UInworldCharacterComponent::OnInworldRelationEvent_Implementation(const FInworldRelationEvent& Event)
-{
-	Multicast_VisitRelation(Event);
-}
-
 void UInworldCharacterComponent::OnRegister()
 {
 	Super::OnRegister();
@@ -478,6 +422,62 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 	}
 }
 
+void UInworldCharacterComponent::OnInworldTextEvent(const FInworldTextEvent& Event)
+{
+	Multicast_VisitText(Event);
+}
+
+void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEvent& Event)
+{
+	if (GetNetMode() == NM_Standalone || GetNetMode() == NM_Client)
+	{
+		VisitAudioOnClient(Event);
+		return;
+	}
+
+	if (GetNetMode() == NM_ListenServer)
+	{
+		VisitAudioOnClient(Event);
+	}
+
+	UInworldApiSubsystem* InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
+	if (ensure(InworldSubsystem))
+	{
+		TArray<FInworldAudioDataEvent> RepEvents;
+		FInworldAudioDataEvent::ConvertToReplicatableEvents(Event, RepEvents);
+
+		for (auto& E : RepEvents)
+		{
+			InworldSubsystem->ReplicateAudioEventFromServer(E);
+		}
+	}
+}
+
+void UInworldCharacterComponent::OnInworldSilenceEvent(const FInworldSilenceEvent& Event)
+{
+	Multicast_VisitSilence(Event);
+}
+
+void UInworldCharacterComponent::OnInworldControlEvent(const FInworldControlEvent& Event)
+{
+	Multicast_VisitControl(Event);
+}
+
+void UInworldCharacterComponent::OnInworldEmotionEvent(const FInworldEmotionEvent& Event)
+{
+	Multicast_VisitEmotion(Event);
+}
+
+void UInworldCharacterComponent::OnInworldCustomEvent(const FInworldCustomEvent& Event)
+{
+	Multicast_VisitCustom(Event);
+}
+
+void UInworldCharacterComponent::OnInworldRelationEvent(const FInworldRelationEvent& Event)
+{
+	Multicast_VisitRelation(Event);
+}
+
 void UInworldCharacterComponent::Handle(const FCharacterMessageUtterance& Message)
 {
 	OnUtterance.Broadcast(Message);
@@ -519,6 +519,13 @@ void UInworldCharacterComponent::OnRep_InworldCharacter()
 			}
 		);
 		OnPlayerInteractionStateChanged.Broadcast(InworldCharacter->GetTargetPlayer() != nullptr);
+
+		InworldCharacter->OnInworldTextEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldTextEvent);
+		InworldCharacter->OnInworldAudioEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldAudioEvent);
+		InworldCharacter->OnInworldSilenceEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldSilenceEvent);
+		InworldCharacter->OnInworldControlEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldControlEvent);
+		InworldCharacter->OnInworldEmotionEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldEmotionEvent);
+		InworldCharacter->OnInworldCustomEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldCustomEvent);
 	}
 }
 
