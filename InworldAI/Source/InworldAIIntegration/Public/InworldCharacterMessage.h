@@ -22,6 +22,8 @@ class ICharacterMessageVisitor
 public:
 	virtual void Handle(const FCharacterMessageUtterance& Event) { }
 	virtual void Interrupt(const FCharacterMessageUtterance& Event) { }
+	virtual void Pause(const FCharacterMessageUtterance& Event) { }
+	virtual void Resume(const FCharacterMessageUtterance& Event) { }
 
 	virtual void Handle(const FCharacterMessageSilence& Event) { }
 	virtual void Interrupt(const FCharacterMessageSilence& Event) { }
@@ -189,7 +191,10 @@ struct FCharacterMessageInteractionEnd : public FCharacterMessage
 {
 	GENERATED_BODY()
 
-	void Populate(const FInworldControlEvent& event) { }
+	void Populate(const FInworldControlEvent& Event)
+	{
+		FCharacterMessage::Populate(Event);
+	}
 
 	virtual FString ToDebugString() const override { return TEXT("InteractionEnd"); }
 };
