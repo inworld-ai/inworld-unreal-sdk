@@ -208,7 +208,6 @@ private:
 	TArray<UInworldCharacterPlayback*> Playbacks;
 
 	TSharedRef<FCharacterMessageQueue> MessageQueue;
-	float TimeToForceQueue = 3.f;
 
 	virtual void Handle(const FCharacterMessageUtterance& Message) override;
 	virtual void Interrupt(const FCharacterMessageUtterance& Message) override;
