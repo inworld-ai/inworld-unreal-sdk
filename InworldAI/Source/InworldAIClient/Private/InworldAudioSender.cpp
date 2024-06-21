@@ -22,13 +22,9 @@ static TAutoConsoleVariable<bool> CVarDisableVAD(
 	TEXT("Inworld.Debug.VADForceDisable"), false,
 	TEXT("Force disable VAD")
 );
-static TAutoConsoleVariable<bool> CVarShowSendAudioMessage(
-	TEXT("Inworld.Debug.VADShowSendAudioMessage"), false,
-	TEXT("Force disable VAD")
-	);
 static TAutoConsoleVariable<float> CVarBufferedAudioSendDelay(
 	TEXT("Inworld.Debug.VADBufferedAudioSendDelay"), 0.03f,
-	TEXT("Force disable VAD")
+	TEXT("VAD buffered audio send delay in seconds")
 );
 
 void UInworldAudioSender::Initialize(bool bEnableVAD)
@@ -229,10 +225,9 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 	constexpr int8_t VADPreviousChunks = 5;
 	constexpr int8_t VADSubsequentChunks = 5;
 
-	if (CVarShowSendAudioMessage->GetBool())
-	{
+#ifdef INWORLD_SHOW_ONSCREEN_AUDIO_SEND
 		GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Red, FString::Printf(TEXT("NOT SENDING AUDIO")));
-	}
+#endif
 	
 	const std::vector<int16_t> FilteredData = OutputData.empty() ? InputData : ApplyAEC(InputData, OutputData);
 	std::string Data((char*)FilteredData.data(), FilteredData.size() * 2);
@@ -325,10 +320,9 @@ void UInworldAudioSender::SendAudio(const std::string& Data)
 		Inworld::GetClient()->SendSoundMessage(RoutingId, Data);
 	}
 
-	if (CVarShowSendAudioMessage->GetBool())
-	{
-		GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Green, FString::Printf(TEXT("SENDING AUDIO")));
-	}
+#if INWORLD_SHOW_ONSCREEN_AUDIO_SEND
+	GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Green, FString::Printf(TEXT("SENDING AUDIO")));
+#endif
 }
 
 void UInworldAudioSender::SendBufferedAudio()
