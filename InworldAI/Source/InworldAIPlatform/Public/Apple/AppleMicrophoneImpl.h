@@ -11,6 +11,7 @@
 
 #include "InworldAIPlatformInterfaces.h"
 #import "AppleAudioPermission.h"
+#import <AVFoundation/AVAudioSession.h>
 
 namespace Inworld
 {
@@ -21,22 +22,40 @@ namespace Inworld
         public:
             AppleMicrophoneImpl()
             {
-                obj = [[AppleAudioPermission alloc]init];
+                permission = [[AppleAudioPermission alloc]init];
             }
             
             virtual ~AppleMicrophoneImpl()
             {
-                obj = nil;
+                permission = nil;
+            }
+
+            virtual bool Initialize() override
+            {
+#if PLATFORM_IOS
+                NSError* setCategoryError = nil;
+                [[AVAudioSession sharedInstance]setCategory:AVAudioSessionCategoryPlayAndRecord withOptions : (AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth) error : &setCategoryError];
+                  if (setCategoryError != nil)
+                  {
+                    return false;
+                  }
+                
+                NSError* setActiveError = nil;
+                [[AVAudioSession sharedInstance]setActive:YES error : &setActiveError];
+                return nil == setActiveError;
+#elif PLATFORM_MAC
+                return true;
+#endif
             }
 
             virtual void RequestAccess(RequestAccessCallback Callback) override
             {
-                [obj requestAccess : Callback];
+                [permission requestAccess : Callback];
             }
             
             virtual Permission GetPermission() const override
             {
-                switch ([obj getPermission])
+                switch ([permission getPermission])
                 {
                 case 0:
                     return Permission::GRANTED;
@@ -48,7 +67,7 @@ namespace Inworld
             }
 
         private:
-            AppleAudioPermission* obj;
+            AppleAudioPermission* permission;
         };
     }
 }

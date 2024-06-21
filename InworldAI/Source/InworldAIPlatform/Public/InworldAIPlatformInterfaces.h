@@ -24,6 +24,7 @@ namespace Inworld
             using RequestAccessCallback = void (*)(bool);
 
             virtual ~IMicrophone() = default;
+            virtual bool Initialize() = 0;
             virtual void RequestAccess(RequestAccessCallback Callback) = 0;
             virtual Permission GetPermission() const = 0;
         };

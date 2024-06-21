@@ -21,6 +21,11 @@ namespace Inworld
             AndroidMicrophoneImpl() = default;
             virtual ~AndroidMicrophoneImpl() = default;
 
+            virtual bool Initialize() override
+            {
+                return true;
+            }
+
             virtual void RequestAccess(RequestAccessCallback Callback) override;
             
             virtual Permission GetPermission() const override
