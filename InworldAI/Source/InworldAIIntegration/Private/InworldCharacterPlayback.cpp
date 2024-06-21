@@ -73,10 +73,10 @@ void UInworldCharacterPlayback::ClearCharacterComponent()
 
 void UInworldCharacterPlayback::LockMessageQueue()
 {
-	CharacterComponent->MakeMessageQueueLock(CharacterMessageQueueLockHandle);
+	CharacterComponent->LockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterPlayback::UnlockMessageQueue()
 {
-	CharacterComponent->ClearMessageQueueLock(CharacterMessageQueueLockHandle);
+	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
