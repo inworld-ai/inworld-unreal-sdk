@@ -83,7 +83,7 @@ void FCharacterMessageQueue::SetInterruptible(const FString& InteractionId, bool
 	{
 		if (bInterruptible)
 		{
-			TryToInterrupt(NextUninterruptedInteractionId);
+			TryToInterrupt(NextUninterruptedInteractionId.GetValue());
 			TryToProgress();
 		}
 		else
@@ -116,10 +116,6 @@ void FCharacterMessageQueue::TryToProgress()
 		PendingMessageQueueEntries.RemoveAt(0);
 
 		auto CurrentMessage = CurrentMessageQueueEntry->GetCharacterMessage();
-		if (CurrentMessage->InteractionId == NextUninterruptedInteractionId)
-		{
-			NextUninterruptedInteractionId = {};
-		}
 		UE_LOG(LogInworldAIIntegration, Log, TEXT("Handle character message '%s::%s'"), *CurrentMessage->InteractionId, *CurrentMessage->UtteranceId);
 
 		TSharedPtr<FCharacterMessageQueueLock> LockPinned = MakeLock();
@@ -129,9 +125,9 @@ void FCharacterMessageQueue::TryToProgress()
 		bAdvancedQueue = true;
 	}
 
-	if (bAdvancedQueue && !NextUninterruptedInteractionId.IsEmpty())
+	if (bAdvancedQueue && NextUninterruptedInteractionId.IsSet())
 	{
-		TryToInterrupt(NextUninterruptedInteractionId);
+		TryToInterrupt(NextUninterruptedInteractionId.GetValue());
 	}
 
 	bIsProgressing = false;
@@ -155,6 +151,15 @@ void FCharacterMessageQueue::OnUpdated(const FCharacterMessageInteractionEnd& Me
 	}
 }
 
+void FCharacterMessageQueue::EndInteraction(const FString& InteractionId)
+{
+	if (InteractionId == NextUninterruptedInteractionId)
+	{
+		NextUninterruptedInteractionId.Reset();
+	}
+	InteractionInterruptibleState.Remove(InteractionId);
+}
+
 TSharedPtr<FCharacterMessageQueueLock> FCharacterMessageQueue::MakeLock()
 {
 	return MakeShared<FCharacterMessageQueueLock>(AsShared());
@@ -174,6 +179,11 @@ FCharacterMessageQueueLock::~FCharacterMessageQueueLock()
 	auto QueuePinned = QueuePtr.Pin();
 	if (QueuePinned.IsValid())
 	{
+		auto CurrentMessageQueueEntry = QueuePinned->CurrentMessageQueueEntry;
+		if (CurrentMessageQueueEntry->IsEnd())
+		{
+			QueuePinned->EndInteraction(CurrentMessageQueueEntry->GetCharacterMessage()->InteractionId);
+		}
 		QueuePinned->CurrentMessageQueueEntry = nullptr;
 		QueuePinned->TryToProgress();
 	}

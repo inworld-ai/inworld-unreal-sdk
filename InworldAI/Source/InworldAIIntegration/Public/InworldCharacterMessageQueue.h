@@ -29,6 +29,7 @@ struct FCharacterMessageQueueEntryBase
 	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) = 0;
 
 	virtual bool IsReady() const = 0;
+	virtual bool IsEnd() const = 0;
 };
 
 template<class T>
@@ -49,6 +50,7 @@ struct FCharacterMessageQueueEntry : FCharacterMessageQueueEntryBase
 	virtual void AcceptResume(ICharacterMessageVisitor& Visitor) override;
 	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override;
 	virtual bool IsReady() const override;
+	virtual bool IsEnd() const override;
 };
 
 template<class T>
@@ -63,6 +65,8 @@ template<class T>
 void FCharacterMessageQueueEntry<T>::AcceptCancel(ICharacterMessageVisitor& Visitor) { }
 template<class T>
 bool FCharacterMessageQueueEntry<T>::IsReady() const { return true; }
+template<class T>
+bool FCharacterMessageQueueEntry<T>::IsEnd() const { return false; }
 
 template<>
 inline bool FCharacterMessageQueueEntry<FCharacterMessageUtterance>::IsReady() const { return Message->bTextFinal && Message->bAudioFinal; }
@@ -91,6 +95,8 @@ template<>
 inline void FCharacterMessageQueueEntry<FCharacterMessageInteractionEnd>::AcceptPause(ICharacterMessageVisitor& Visitor) { }
 template<>
 inline void FCharacterMessageQueueEntry<FCharacterMessageInteractionEnd>::AcceptResume(ICharacterMessageVisitor& Visitor) { }
+template<>
+inline bool FCharacterMessageQueueEntry<FCharacterMessageInteractionEnd>::IsEnd() const { return true; }
 
 struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 {
@@ -148,7 +154,7 @@ private:
 	bool bIsInterrupting = false;
 	bool bIsProgressing = false;
 	bool bIsPaused = false;
-	FString NextUninterruptedInteractionId;
+	TOptional<FString> NextUninterruptedInteractionId;
 	TMap<FString, bool> InteractionInterruptibleState;
 	TWeakPtr<FCharacterMessageQueueLock> QueueLock;
 	TSharedPtr<FCharacterMessageQueueLock> MakeLock();
@@ -160,6 +166,8 @@ private:
 	void OnUpdated(const FCharacterMessageSilence& Message) {}
 	void OnUpdated(const FCharacterMessageTrigger& Message);
 	void OnUpdated(const FCharacterMessageInteractionEnd& Message);
+
+	void EndInteraction(const FString& InteractionId);
 };
 
 struct FCharacterMessageQueueLock
