@@ -320,7 +320,7 @@ void UInworldAudioSender::SendAudio(const std::string& Data)
 		Inworld::GetClient()->SendSoundMessage(RoutingId, Data);
 	}
 
-#if INWORLD_SHOW_ONSCREEN_AUDIO_SEND
+#ifdef INWORLD_SHOW_ONSCREEN_AUDIO_SEND
 	GEngine->AddOnScreenDebugMessage(111, 0.12f, FColor::Green, FString::Printf(TEXT("SENDING AUDIO")));
 #endif
 }
