@@ -136,7 +136,7 @@ if copy:
         usage()
         raise SystemExit('Error (copy): Unable to copy NDK files.')
 
-    dirs_to_copy = ['lib', 'include', 'src']
+    dirs_to_copy = ['lib', 'include', 'src', 'resource']
     orig_dirs = {}
     copy_dirs = {}
 
