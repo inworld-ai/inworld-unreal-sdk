@@ -32,6 +32,7 @@ void UInworldPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	}
 
 	DOREPLIFETIME(UInworldPlayer, Session);
+	DOREPLIFETIME(UInworldPlayer, bConversationParticipant);
 	DOREPLIFETIME(UInworldPlayer, TargetCharacters);
 	DOREPLIFETIME(UInworldPlayer, bVoiceDetected);
 }
@@ -100,7 +101,7 @@ void UInworldPlayer::SendAudioSessionStartToConversation(EInworldMicrophoneMode 
 	NO_SESSION_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
 
-	if (bHasAudioSession)
+	if (bHasAudioSession || !bConversationParticipant)
 	{
 		return;
 	}
@@ -131,7 +132,7 @@ void UInworldPlayer::SendSoundMessageToConversation(const TArray<uint8>& Input, 
 	EMPTY_ARG_RETURN(ConversationId, void())
 	EMPTY_ARG_RETURN(Input, void())
 
-	if (!bHasAudioSession)
+	if (!bHasAudioSession || !bConversationParticipant)
 	{
 		return;
 	}
@@ -145,6 +146,18 @@ TScriptInterface<IInworldPlayerOwnerInterface> UInworldPlayer::GetInworldPlayerO
 		return nullptr;
 	}
 	return TScriptInterface<IInworldPlayerOwnerInterface>(GetOuter());
+}
+
+void UInworldPlayer::SetConversationParticipation(bool bParticipate)
+{
+	if (bConversationParticipant != bParticipate)
+	{
+		bConversationParticipant = bParticipate;
+		if (!ConversationId.IsEmpty())
+		{
+			UpdateConversation();
+		}
+	}
 }
 
 void UInworldPlayer::AddTargetCharacter(UInworldCharacter* TargetCharacter)
@@ -232,7 +245,7 @@ void UInworldPlayer::UpdateConversation()
 {
 	NO_SESSION_RETURN(void())
 
-	FString NextConversationId = Session->GetClient()->UpdateConversation(ConversationId, Inworld::CharactersToAgentIds(TargetCharacters), true);
+	FString NextConversationId = Session->GetClient()->UpdateConversation(ConversationId, Inworld::CharactersToAgentIds(TargetCharacters), bConversationParticipant);
 	const bool bHadAudioSession = bHasAudioSession;
 	if (bHasAudioSession)
 	{

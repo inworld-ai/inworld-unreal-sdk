@@ -12,6 +12,7 @@
 #include "UObject/Interface.h"
 #include "UObject/NoExportTypes.h"
 #include "GameFramework/Actor.h"
+#include "InworldEnums.h"
 #include "InworldPlayer.generated.h"
 
 class UInworldSession;
@@ -64,7 +65,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Player")
 	TScriptInterface<IInworldPlayerOwnerInterface> GetInworldPlayerOwner();
 
-	UFUNCTION(BlueprintCallable, Category = "Target")
+	UFUNCTION(BlueprintCallable, Category = "Participation")
+	void SetConversationParticipation(bool bParticipate);
+	UFUNCTION(BlueprintPure, Category = "Participation")
+	bool IsConversationParticipant() const { return bConversationParticipant; }
+
+	UFUNCTION(BlueprintPure, Category = "Target")
 	const TArray<UInworldCharacter*>& GetTargetCharacters() const { return TargetCharacters; }
 
 	UFUNCTION(BlueprintCallable, Category = "Target")
@@ -113,6 +119,9 @@ private:
 	
 	UPROPERTY(Replicated)
 	UInworldSession* Session;
+
+	UPROPERTY(Replicated)
+	bool bConversationParticipant = true;
 
 	UPROPERTY(Replicated)
 	TArray<UInworldCharacter*> TargetCharacters;

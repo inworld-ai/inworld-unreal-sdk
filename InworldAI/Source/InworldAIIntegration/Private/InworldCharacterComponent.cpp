@@ -17,6 +17,7 @@
 #include <Engine/ActorChannel.h>
 #include <GameFramework/GameStateBase.h>
 #include <GameFramework/PlayerState.h>
+#include "Runtime/Launch/Resources/Version.h"
 
 #include "InworldCharacterAudioComponent.h"
 

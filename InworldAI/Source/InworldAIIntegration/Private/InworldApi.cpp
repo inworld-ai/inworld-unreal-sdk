@@ -18,6 +18,7 @@
 #include "InworldAudioRepl.h"
 #include "UObject/UObjectIterator.h"
 #include "GameFramework/GameStateBase.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 static TAutoConsoleVariable<bool> CVarLogAllPackets(
 TEXT("Inworld.Debug.LogAllPackets"), false,
