@@ -11,6 +11,7 @@
 #include "InworldAIClientModule.h"
 #include "Interfaces/IPluginManager.h"
 #include "Engine/Engine.h"
+#include "TimerManager.h"
 #ifdef INWORLD_VAD
 #include "ThirdParty/InworldAINDKLibrary/include/InworldVAD.h"
 #endif
