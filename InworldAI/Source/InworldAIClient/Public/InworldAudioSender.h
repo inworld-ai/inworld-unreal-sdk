@@ -46,8 +46,8 @@ public:
 	FOnInworldVADNative& OnVAD() { return OnVADNative; }
 	
 private:
-	void StartActualAudioSession();
-	void StopActualAudioSession();
+	bool StartActualAudioSession();
+	bool StopActualAudioSession();
 	void ProcessAudio(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	std::vector<int16_t>  ApplyAEC(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData);
 	void SendAudio(const std::string& Data);

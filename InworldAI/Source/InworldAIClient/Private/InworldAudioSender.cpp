@@ -76,6 +76,12 @@ void UInworldAudioSender::ClearState()
 	MicMode = EInworldMicrophoneMode::UNKNOWN;
 	VADSilenceCounter = 0;
 	SessionOwner = nullptr;
+#ifdef INWORLD_VAD
+	if (bVADEnabled)
+	{
+		Inworld::VAD_ResetState();
+	}
+#endif
 }
 
 void UInworldAudioSender::StartAudioSession(const std::string& AgentId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode)
@@ -166,11 +172,11 @@ void UInworldAudioSender::SendSoundMessageWithAECToConversation(const std::strin
 	ProcessAudio(InputData, OutputData);
 }
 
-void UInworldAudioSender::StartActualAudioSession()
+bool UInworldAudioSender::StartActualAudioSession()
 {
 	if (bSessionActive)
 	{
-		return;
+		return false;
 	}
 
 	Inworld::AudioSessionStartPayload AudioSessionStartPayload;
@@ -190,13 +196,14 @@ void UInworldAudioSender::StartActualAudioSession()
 	{
 		OnVADNative.Broadcast(SessionOwner, true);
 	}
+	return true;
 }
 
-void UInworldAudioSender::StopActualAudioSession()
+bool UInworldAudioSender::StopActualAudioSession()
 {
 	if (!bSessionActive)
 	{
-		return;
+		return false;
 	}
 	
 	if (bConversation)
@@ -213,6 +220,7 @@ void UInworldAudioSender::StopActualAudioSession()
 	{
 		OnVADNative.Broadcast(SessionOwner, false);
 	}
+	return true;
 }
 
 void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, const std::vector<int16_t>& OutputData)
@@ -251,9 +259,16 @@ void UInworldAudioSender::ProcessAudio(const std::vector<int16_t>& InputData, co
 	if (SpeechProb > VADProbThreshhold)
 	{
 		VADSilenceCounter = 0;
-		StartActualAudioSession();
-		AudioQueue.push(Data);
-		SendBufferedAudio();
+		const bool bJustStarted = StartActualAudioSession();
+		if (bJustStarted)
+		{
+			AudioQueue.push(Data);
+			SendBufferedAudio();
+		}
+		else
+		{
+			SendAudio(Data);
+		}
 		return;
 	}
 
