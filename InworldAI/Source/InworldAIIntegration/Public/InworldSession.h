@@ -35,6 +35,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEvent, const FInwor
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEventNative, const FInworldEmotionEvent& /*EmotionEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEvent, const FInworldCustomEvent&, CustomEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEventNative, const FInworldCustomEvent& /*CustomEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInworldVAD, UInworldPlayer*, Player, bool, bVoiceDetected);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoaded, bool, bLoaded);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoadedNative, bool /*bLoaded*/);
@@ -125,7 +126,7 @@ public:
 	void SendSoundMessageToConversation(UInworldPlayer* Player, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(UInworldCharacter* Character, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+	void SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStartToConversation(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 
@@ -168,6 +169,10 @@ public:
 	FOnInworldPerceivedLatency OnPerceivedLatencyDelegate;
 	FOnInworldPerceivedLatencyNative& OnPerceivedLatency() { return OnPerceivedLatencyDelegateNative; }
 
+	UPROPERTY(BlueprintAssignable, Category = "VAD")
+	FOnInworldVAD OnVADDelegate;
+	FOnInworldVADNative& OnVAD() { return OnVADDelegateNative; }
+
 private:
 	void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
 	void UnpossessAgents();
@@ -191,6 +196,7 @@ private:
 	FDelegateHandle OnClientPacketReceivedHandle;
 	FDelegateHandle OnClientConnectionStateChangedHandle;
 	FDelegateHandle OnClientPerceivedLatencyHandle;
+	FDelegateHandle OnVADHandle;
 
 	UPROPERTY(Replicated)
 	TArray<UInworldCharacter*> RegisteredCharacters;
@@ -205,6 +211,7 @@ private:
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldSessionLoadedNative OnLoadedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
+	FOnInworldVADNative OnVADDelegateNative;
 
 	class FInworldSessionPacketVisitor : public TSharedFromThis<FInworldSessionPacketVisitor>, public InworldPacketVisitor
 	{

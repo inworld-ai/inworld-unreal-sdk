@@ -28,15 +28,8 @@ void FInworldAINDKModule::StartupModule()
 #if PLATFORM_MAC
 	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("Mac/libwebrtc_aec_plugin.dylib"));
 #endif //PLATFORM_MAC
-
 #ifdef INWORLD_AEC
-	webrtcLibraryHandle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
-#if WITH_EDITOR
-	if (webrtcLibraryHandle == nullptr)
-	{
-		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("InworldAINDKModuleError", "Failed to load webrtc library"));
-	}
-#endif //WITH_EDITOR
+	LoadDll(LibraryPath, &webrtcLibraryHandle);
 #endif //INWORLD_AEC
 	
 #ifdef INWORLD_NDK_SHARED
@@ -49,13 +42,11 @@ void FInworldAINDKModule::StartupModule()
 #elif PLATFORM_ANDROID
 	LibraryPath = FPaths::Combine(*DllDirectory, TEXT("Android/arm64-v8a/libinworld-ndk.so"));
 #endif
-	ndkLibraryHandle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
-#if WITH_EDITOR
-	if (ndkLibraryHandle == nullptr)
-	{
-		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("InworldAINDKModuleError", "Failed to load ndk library"));
-	}
-#endif //WITH_EDITOR
+	LoadDll(LibraryPath, &ndkLibraryHandle);
+#endif
+
+#if PLATFORM_WINDOWS
+	LoadDll(FPaths::Combine(*DllDirectory, TEXT("Win64/inworld-ndk-vad.dll")), &vadLibHandle);
 #endif
 }
 
@@ -71,6 +62,20 @@ void FInworldAINDKModule::ShutdownModule()
 #endif // INWORLD_NDK_SHARED
 	ndkLibraryHandle = nullptr;
 
+	FPlatformProcess::FreeDllHandle(vadLibHandle);
+	vadLibHandle = nullptr;
+}
+
+void FInworldAINDKModule::LoadDll(const FString& Path, void** Handle)
+{
+	*Handle = !Path.IsEmpty() ? FPlatformProcess::GetDllHandle(*Path) : nullptr;
+#if WITH_EDITOR
+	if (Handle == nullptr)
+	{
+		const FString Message = FString::Printf(TEXT("Failed to load %s library"), *Path);
+		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Message));
+	}
+#endif //WITH_EDITOR
 }
 
 #undef LOCTEXT_NAMESPACE

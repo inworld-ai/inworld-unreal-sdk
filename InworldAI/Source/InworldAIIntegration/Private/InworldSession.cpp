@@ -89,6 +89,18 @@ void UInworldSession::Init()
 			OnPerceivedLatencyDelegate.Broadcast(InteractionId, LatencyMs);
 		}
 	);
+	OnVADHandle = Client->OnVAD().AddLambda(
+		[this](UObject* SessionOwner, bool bVoiceDetected) -> void
+		{
+			UInworldPlayer* Player = Cast<UInworldPlayer>(SessionOwner);
+			if (Player)
+			{
+				Player->SetVoiceDetected(bVoiceDetected);
+			}
+			OnVADDelegate.Broadcast(Player, bVoiceDetected);
+			OnVADDelegateNative.Broadcast(Player, bVoiceDetected);
+		}
+	);
 }
 
 void UInworldSession::Destroy()
@@ -110,6 +122,7 @@ void UInworldSession::Destroy()
 		Client->OnPacketReceived().Remove(OnClientPacketReceivedHandle);
 		Client->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
 		Client->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
+		Client->OnVAD().Remove(OnVADHandle);
 	}
 	Client = nullptr;
 }
@@ -348,12 +361,12 @@ void UInworldSession::SendSoundMessageToConversation(UInworldPlayer* Player, con
 	Client->SendSoundMessageToConversation(Player->GetConversationId(), InputData, OutputData);
 }
 
-void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CLIENT_RETURN(void())
 	INVALID_CHARACTER_RETURN(void())
 
-	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId, MicrophoneMode);
+	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId, Player, MicrophoneMode);
 }
 
 void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
@@ -361,7 +374,7 @@ void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player
 	NO_CLIENT_RETURN(void())
 	INVALID_PLAYER_RETURN(void())
 
-	Client->SendAudioSessionStartToConversation(Player->GetConversationId(), MicrophoneMode);
+	Client->SendAudioSessionStartToConversation(Player->GetConversationId(), Player, MicrophoneMode);
 }
 
 void UInworldSession::SendAudioSessionStop(UInworldCharacter* Character)

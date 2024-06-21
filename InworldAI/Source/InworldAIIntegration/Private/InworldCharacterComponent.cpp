@@ -19,6 +19,8 @@
 #include <GameFramework/PlayerState.h>
 #include "Runtime/Launch/Resources/Version.h"
 
+#include "InworldCharacterAudioComponent.h"
+
 #define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldCharacterComponent, Arg, Return)
 #define NO_CHARACTER_RETURN(Return) EMPTY_ARG_RETURN(InworldCharacter, Return)
 
@@ -32,6 +34,15 @@ UInworldCharacterComponent::UInworldCharacterComponent()
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
 	bReplicateUsingRegisteredSubObjectList = true;
 #endif
+}
+
+void UInworldCharacterComponent::HandleTargetPlayerVoiceDetection(bool bVoiceDetected)
+{
+	if (bVoiceDetected)
+	{
+		CancelCurrentInteraction();
+	}
+	OnVoiceDetection.Broadcast(bVoiceDetected);
 }
 
 void UInworldCharacterComponent::OnRegister()
@@ -257,7 +268,7 @@ void UInworldCharacterComponent::CancelCurrentInteraction()
 	NO_CHARACTER_RETURN(void())
 
 	TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
-    if (!ensure(CurrentMessage.IsValid()))
+    if (!CurrentMessage.IsValid())
     {
         return;
     }
@@ -294,11 +305,11 @@ void UInworldCharacterComponent::SendNarrationEvent(const FString& Content)
 	InworldCharacter->SendNarrationEvent(Content);
 }
 
-void UInworldCharacterComponent::StartAudioSession(EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldCharacterComponent::StartAudioSession(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CHARACTER_RETURN(void())
 
-	InworldCharacter->SendAudioSessionStart(MicrophoneMode);
+	InworldCharacter->SendAudioSessionStart(Player, MicrophoneMode);
 }
 
 void UInworldCharacterComponent::StopAudioSession()

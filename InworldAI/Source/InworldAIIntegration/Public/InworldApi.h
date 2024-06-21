@@ -141,21 +141,21 @@ public:
      * stop audio session after all audio chunks have been sent
      * chunks should be ~100ms
      */
-    UFUNCTION(BlueprintCallable, Category = "Messages")
+    UFUNCTION(BlueprintCallable, Category = "Messages", meta = (DeprecatedFunction))
     void SendAudioMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
     
     /**
      * Start audio session with agent
      * call before sending audio messages
      */
-    UFUNCTION(BlueprintCallable, Category = "Audio")
-    void StartAudioSession(const FString& AgentId, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+    UFUNCTION(BlueprintCallable, Category = "Audio", meta = (DeprecatedFunction))
+    void StartAudioSession(const FString& AgentId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 
     /**
      * Stop audio session with agent
      * call after all audio messages have been sent
      */
-    UFUNCTION(BlueprintCallable, Category = "Audio")
+    UFUNCTION(BlueprintCallable, Category = "Audio", meta = (DeprecatedFunction))
     void StopAudioSession(const FString& AgentId);
 
     /** Change scene */

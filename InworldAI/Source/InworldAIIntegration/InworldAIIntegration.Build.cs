@@ -37,6 +37,7 @@ public class InworldAIIntegration : ModuleRules
                 "InworldAIPlatform",
                 "Networking",
                 "Sockets",
+                "Projects"
             }
             );
 

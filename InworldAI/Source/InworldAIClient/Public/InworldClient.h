@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "InworldAudioSender.h"
 #include "InworldEnums.h"
 #include "InworldTypes.h"
 #include "InworldPackets.h"
@@ -85,9 +86,9 @@ public:
 	void SendSoundMessageToConversation(const FString& ConversationId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(const FString& AgentId, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+	void SendAudioSessionStart(const FString& AgentId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStartToConversation(const FString& ConversationId, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+	void SendAudioSessionStartToConversation(const FString& ConversationId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStop(const FString& AgentId);
@@ -129,10 +130,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inworld Development")
 	void SetEnvironment(const FInworldEnvironment& InEnvironment) { Environment = InEnvironment; }
 
+	FOnInworldVADNative& OnVAD() { return OnVADDelegateNative; }
+
 private:
+	UPROPERTY()
+	UInworldAudioSender* AudioSender;
+	
 	FOnInworldPacketReceivedNative OnPacketReceivedDelegateNative;
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
+	FOnInworldVADNative OnVADDelegateNative;
+
+	FDelegateHandle OnVADHandle;
 
 	bool bIsBeingDestroyed = false;
 
