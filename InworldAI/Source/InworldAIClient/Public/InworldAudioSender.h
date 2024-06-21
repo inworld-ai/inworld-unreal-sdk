@@ -14,7 +14,7 @@
 #include "CoreMinimal.h"
 #include "InworldEnums.h"
 
-#include "Engine/TimerHandle.h"
+#include "Engine/EngineTypes.h"
 
 #include "InworldAudioSender.generated.h"
 
