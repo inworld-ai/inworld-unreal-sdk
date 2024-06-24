@@ -405,13 +405,22 @@ EInworldConnectionState UInworldClient::GetConnectionState() const
 	return static_cast<EInworldConnectionState>(Inworld::GetClient()->GetConnectionState());
 }
 
-void UInworldClient::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const
+void UInworldClient::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const
 {
 	NO_CLIENT_RETURN(void())
 
-	std::string OutError;
-	Inworld::GetClient()->GetConnectionError(OutError, OutErrorCode);
-	OutErrorMessage = UTF8_TO_TCHAR(OutError.c_str());
+	std::string ErrorMessage;
+	int32_t ErrorCode;
+	Inworld::ErrorDetails ErrorDetails;
+
+	Inworld::GetClient()->GetConnectionError(ErrorMessage, ErrorCode, ErrorDetails);
+
+	OutErrorMessage = UTF8_TO_TCHAR(ErrorMessage.c_str());
+	OutErrorCode = ErrorCode;
+	OutErrorDetails.ConnectionErrorType = static_cast<EInworldConnectionErrorType>(ErrorDetails.Error);
+	OutErrorDetails.ReconnectionType = static_cast<EInworldReconnectionType>(ErrorDetails.Reconnect);
+	OutErrorDetails.ReconnectTime = ErrorDetails.ReconnectTime;
+	OutErrorDetails.MaxRetries = ErrorDetails.MaxRetries;
 }
 
 FString UInworldClient::GetSessionId() const

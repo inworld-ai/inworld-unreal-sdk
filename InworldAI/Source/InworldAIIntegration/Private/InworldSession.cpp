@@ -444,11 +444,11 @@ EInworldConnectionState UInworldSession::GetConnectionState() const
 	return ConnectionState;
 }
 
-void UInworldSession::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const
+void UInworldSession::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->GetConnectionError(OutErrorMessage, OutErrorCode);
+	Client->GetConnectionError(OutErrorMessage, OutErrorCode, OutErrorDetails);
 }
 
 void UInworldSession::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
