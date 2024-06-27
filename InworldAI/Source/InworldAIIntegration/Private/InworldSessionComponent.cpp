@@ -153,6 +153,14 @@ void UInworldSessionComponent::SaveSession(FOnInworldSessionSavedCallback Callba
 	InworldSession->SaveSession(Callback);
 }
 
+void UInworldSessionComponent::SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message)
+{
+	NO_SESSION_RETURN(void())
+	EMPTY_ARG_RETURN(InteractionId, void())
+
+	InworldSession->SendInteractionFeedback(InteractionId, bIsLike, Message);
+}
+
 EInworldConnectionState UInworldSessionComponent::GetConnectionState() const
 {
 	NO_SESSION_RETURN(EInworldConnectionState::Idle)

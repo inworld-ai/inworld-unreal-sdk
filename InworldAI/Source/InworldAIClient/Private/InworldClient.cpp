@@ -343,6 +343,18 @@ void UInworldClient::SaveSession(FOnInworldSessionSavedCallback Callback)
 		});
 }
 
+void UInworldClient::SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(InteractionId, void())
+
+	Inworld::InteractionFeedback InteractionFeedback;
+	InteractionFeedback.bIsLike = true;
+	InteractionFeedback.comment = TCHAR_TO_UTF8(*Message);
+	std::string interaction = TCHAR_TO_UTF8(*InteractionId);
+	Inworld::GetClient()->SendFeedbackAsync(interaction, InteractionFeedback);
+}
+
 void UInworldClient::LoadCharacters(const TArray<FString>& Ids)
 {
 	NO_CLIENT_RETURN(void())
