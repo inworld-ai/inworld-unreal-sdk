@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -12,35 +12,31 @@
 #include "Runtime/Launch/Resources/Version.h"
 
 #include "InworldClient.h"
+#include "InworldSession.h"
 #include "InworldEnums.h"
 #include "InworldTypes.h"
 #include "InworldPackets.h"
-#include "InworldComponentInterface.h"
 
 #include "InworldApi.generated.h"
 
-namespace Inworld
-{
-	class ICharacterComponent;
-	class IPlayerComponent;
-}
 class USoundWave;
 class UInworldAudioRepl;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnectionStateChanged, EInworldConnectionState, State);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharactersInitialized, bool, bCharactersInitialized);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCustomTrigger, FString, Name);
 
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSaveReady, FInworldSave, Save, bool, bSuccess);
-
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FResponseLatencyTrackerDelegate, FString, InteractionId, int32, LatencyMs);
-
 UCLASS(BlueprintType, Config = InworldAI)
-class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, public InworldPacketVisitor
+class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
 public:
     UInworldApiSubsystem();
+
+    void SetInworldSession(UInworldSession* Session);
+    UFUNCTION(BlueprintPure, Category = "Session")
+    UInworldSession* GetInworldSession();
 
     /**
      * Start InworldAI session
@@ -80,35 +76,49 @@ public:
      * Save InworldAI session data
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    void SaveSession(FOnSaveReady Delegate);
+    void SaveSession(FOnInworldSessionSavedCallback Delegate);
 
     /**
      * Set delegate for response latency tracker
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    void SetResponseLatencyTrackerDelegate(FResponseLatencyTrackerDelegate Delegate);
+    void SetResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate);
 
     /**
      * Clear delegate for response latency tracker
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    void ClearResponseLatencyTrackerDelegate();
+    void ClearResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate);
 
-private:
-    void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
-    void UnpossessAgents();
-
-public:
     /**
-     * Register Character component
-     * call before StartSession
+	 * Load new characters
+	 */
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void LoadCharacters(const TArray<FString>& Names);
+
+    /**
+     * Unload characters
      */
-    void RegisterCharacterComponent(Inworld::ICharacterComponent* Component);
-    void UnregisterCharacterComponent(Inworld::ICharacterComponent* Component);
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void UnloadCharacters(const TArray<FString>& Names);
 
-    bool IsCharacterComponentRegistered(Inworld::ICharacterComponent* Component);
+    /**
+     * Load saved state
+     */
+    UFUNCTION(BlueprintCallable, Category = "Inworld")
+    void LoadSavedState(const FInworldSave& SavedState);
 
-	void UpdateCharacterComponentRegistrationOnClient(Inworld::ICharacterComponent* Component, const FString& NewAgentId, const FString& OldAgentId);
+	/**
+	 * Load capabilities
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Inworld")
+	void LoadCapabilities(const FInworldCapabilitySet& Capabilities);
+
+	/**
+	 * Load player profile
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Inworld")
+	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
 
 public:
     /** Send text to agent */
@@ -121,33 +131,31 @@ public:
     [[deprecated("UInworldApiSubsystem::SendCustomEvent is deprecated, please use UInworldApiSubsystem::SendTrigger")]]
     void SendCustomEvent(const FString& AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
 
+    /** Send narration to agent */
+	UFUNCTION(BlueprintCallable, Category = "Messages")
+	void SendNarrationEvent(const FString& AgentId, const FString& Content);
+
     /**
      * Send audio to agent
      * start audio session before sending audio
      * stop audio session after all audio chunks have been sent
      * chunks should be ~100ms
      */
-    UFUNCTION(BlueprintCallable, Category = "Messages")
-	void SendAudioMessage(const FString& AgentId, USoundWave* SoundWave);
-    void SendAudioDataMessage(const FString& AgentId, const TArray<uint8>& Data);
-
-
-    UFUNCTION(BlueprintCallable, Category = "Messages")
-	void SendAudioMessageWithAEC(const FString& AgentId, USoundWave* InputWave, USoundWave* OutputWave);
-	void SendAudioDataMessageWithAEC(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+    UFUNCTION(BlueprintCallable, Category = "Messages", meta = (DeprecatedFunction))
+    void SendAudioMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
     
     /**
      * Start audio session with agent
      * call before sending audio messages
      */
-    UFUNCTION(BlueprintCallable, Category = "Audio")
-    void StartAudioSession(const FString& AgentId);
+    UFUNCTION(BlueprintCallable, Category = "Audio", meta = (DeprecatedFunction))
+    void StartAudioSession(const FString& AgentId, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 
     /**
      * Stop audio session with agent
      * call after all audio messages have been sent
      */
-    UFUNCTION(BlueprintCallable, Category = "Audio")
+    UFUNCTION(BlueprintCallable, Category = "Audio", meta = (DeprecatedFunction))
     void StopAudioSession(const FString& AgentId);
 
     /** Change scene */
@@ -156,23 +164,16 @@ public:
 
     /** Get current connection state */
     UFUNCTION(BlueprintCallable, Category = "Connection")
-	EInworldConnectionState GetConnectionState() const { return Client->GetConnectionState(); }
+    EInworldConnectionState GetConnectionState() const;
 
     /** Get connection error message and code from previous Disconnect */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void GetConnectionError(FString& Message, int32& Code);
-    
-    /** Get all registered character components */
-	const TArray<Inworld::ICharacterComponent*>& GetCharacterComponents() const { return CharacterComponentRegistry; }
-
-    /** Get registered character component by agent id */
-    Inworld::ICharacterComponent* GetCharacterComponentByAgentId(const FString& AgentId) const;
 
     /** Cancel agents response in case agent has been interrupted by player */
     UFUNCTION(BlueprintCallable, Category = "Messages")
     void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
-
-    /** 
+    /**
     * Call on Inworld::FCustomEvent coming to agent
     * custom events meant to be triggered on interaction end (see InworldCharacterComponent)
     */
@@ -196,47 +197,21 @@ public:
 	void ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet);
     void HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet);
 
-    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers", meta = (DeprecatedProperty, DeprecationMessage = "Use InworldSession->OnConnectionStateChanged."))
     FOnConnectionStateChanged OnConnectionStateChanged;
 
-    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers", meta = (DeprecatedProperty, DeprecationMessage = "Use InworldSession->OnCharactersInitialized."))
+    FOnCharactersInitialized OnCharactersInitialized;
+
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers", meta = (DeprecatedProperty, DeprecationMessage = "Use InworldCharacter->OnTrigger."))
     FCustomTrigger OnCustomTrigger;
 
 private:
-	void DispatchPacket(TSharedPtr<FInworldPacket> InworldPacket);
-
-    virtual void Visit(const FInworldChangeSceneEvent& Event) override;
-
-    UPROPERTY(EditAnywhere, config, Category = "Connection")
-    FString SentryDSN;
-
-	UPROPERTY(EditAnywhere, config, Category = "Connection")
-	FString SentryTransactionName;
-
-	UPROPERTY(EditAnywhere, config, Category = "Connection")
-	FString SentryTransactionOperation;
-
-    UPROPERTY(EditAnywhere, config, Category = "Connection")
-    float RetryConnectionIntervalTime = 0.25f;
-
-    UPROPERTY(EditAnywhere, config, Category = "Connection")
-    float MaxRetryConnectionTime = 5.0f;
-
-    float CurrentRetryConnectionTime = 1.0f;
-
     UPROPERTY()
     UInworldAudioRepl* AudioRepl;
 
-    FTimerHandle RetryConnectionTimerHandle;
-
-    TMap<FString, Inworld::ICharacterComponent*> CharacterComponentByBrainName;
-    TMap<FString, Inworld::ICharacterComponent*> CharacterComponentByAgentId;
-    TArray<Inworld::ICharacterComponent*> CharacterComponentRegistry;
-    TMap<FString, FInworldAgentInfo> AgentInfoByBrain;
-
-    TSharedPtr<FInworldClient> Client;
-
-	bool bCharactersInitialized = false;
+    UPROPERTY()
+    UInworldSession* InworldSession;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
 	friend class FInworldGameplayDebuggerCategory;

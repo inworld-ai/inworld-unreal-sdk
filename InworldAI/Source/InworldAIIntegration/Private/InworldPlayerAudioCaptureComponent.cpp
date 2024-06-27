@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -9,7 +9,9 @@
 #undef PlaySound
 
 #include "InworldPlayerAudioCaptureComponent.h"
-#include "InworldPlayerComponent.h"
+#include "InworldPlayer.h"
+#include "InworldCharacter.h"
+#include "InworldSession.h"
 #include "AudioMixerDevice.h"
 #include "AudioMixerSubmix.h"
 #include "AudioResampler.h"
@@ -33,6 +35,7 @@
 #include <Algo/Accumulate.h>
 #include <Net/UnrealNetwork.h>
 #include <GameFramework/PlayerController.h>
+#include <Engine/World.h>
 
 constexpr uint32 gSamplesPerSec = 16000;
 constexpr uint32 gNumChannels = 1;
@@ -58,8 +61,8 @@ void ConvertAudioToInworldFormat(const float* AudioData, int32 NumFrames, int32 
         Audio::FResamplingParameters ResamplerParams = {
             Audio::EResamplingMethod::Linear,
             gNumChannels,
-            SampleRate,
-            gSamplesPerSec,
+            (float)SampleRate,
+            (float)gSamplesPerSec,
             InputBuffer
         };
 
@@ -89,6 +92,8 @@ public:
     FInworldMicrophoneAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
         : FInworldAudioCapture(InOwner, InCallback) {}
 
+    virtual bool Initialize() override;
+
     virtual void RequestCapturePermission();
     virtual bool HasCapturePermission() const override;
     virtual void StartCapture() override;
@@ -114,6 +119,8 @@ public:
     FInworldPixelStreamAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
         : FInworldAudioCapture(InOwner, InCallback) {}
 
+    virtual bool Initialize() override { return true; }
+
     virtual void StartCapture() override;
     virtual void StopCapture() override;
 
@@ -137,6 +144,8 @@ public:
     FInworldSubmixAudioCapture(UObject* InOwner, TFunction<void(const TArray<uint8>& AudioData)> InCallback)
         : FInworldAudioCapture(InOwner, InCallback) {}
 
+    virtual bool Initialize() override { return true; }
+
     virtual void StartCapture() override;
     virtual void StopCapture() override;
 
@@ -153,25 +162,38 @@ UInworldPlayerAudioCaptureComponent::UInworldPlayerAudioCaptureComponent(const F
 {
     PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.bTickEvenWhenPaused = true;
+    SetIsReplicatedByDefault(true);
 }
 
 void UInworldPlayerAudioCaptureComponent::BeginPlay()
 {
     Super::BeginPlay();
 
-    SetIsReplicated(true);
-
     if (GetOwnerRole() == ROLE_Authority)
     {
-        InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
-
-        InworldSubsystem->OnConnectionStateChanged.AddDynamic(this, &UInworldPlayerAudioCaptureComponent::OnInworldConnectionStateChanged);
-
-        PlayerComponent = Cast<UInworldPlayerComponent>(GetOwner()->GetComponentByClass(UInworldPlayerComponent::StaticClass()));
-        if (ensureMsgf(PlayerComponent.IsValid(), TEXT("UInworldPlayerAudioCaptureComponent::BeginPlay: add InworldPlayerComponent.")))
+        TArray<UActorComponent*> PlayerOwnerComponents = GetOwner()->GetComponentsByInterface(UInworldPlayerOwnerInterface::StaticClass());
+        if (ensureMsgf(PlayerOwnerComponents.Num() > 0, TEXT("The owner of the AudioCapture must contain an InworldPlayerOwner!")))
         {
-            PlayerTargetSetHandle = PlayerComponent->OnTargetSet.AddUObject(this, &UInworldPlayerAudioCaptureComponent::OnPlayerTargetSet);
-            PlayerTargetClearHandle = PlayerComponent->OnTargetClear.AddUObject(this, &UInworldPlayerAudioCaptureComponent::OnPlayerTargetClear);
+            InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(PlayerOwnerComponents[0]);
+            OnPlayerConversationChanged = InworldPlayer->OnConversationChanged().AddLambda(
+                [this]() -> void
+                {
+                    EvaluateVoiceCapture();
+                }
+            );
+
+            OnSessionConnectionStateChanged = InworldPlayer->GetSession()->OnConnectionStateChanged().AddLambda(
+                [this](EInworldConnectionState ConnectionState) -> void
+                {
+                    EvaluateVoiceCapture();
+                }
+            );
+            OnSessionLoaded = InworldPlayer->GetSession()->OnLoaded().AddLambda(
+                [this](bool bLoaded) -> void
+                {
+                    EvaluateVoiceCapture();
+                }
+            );
         }
 
         PrimaryComponentTick.SetTickFunctionEnable(false);
@@ -218,25 +240,23 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
         }
 
         PrimaryComponentTick.SetTickFunctionEnable(true);
+        Rep_ServerCapturingVoice();
     }
 }
 
 void UInworldPlayerAudioCaptureComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    if (GetOwnerRole() == ROLE_Authority)
-    {
-        InworldSubsystem->OnConnectionStateChanged.RemoveDynamic(this, &UInworldPlayerAudioCaptureComponent::OnInworldConnectionStateChanged);
-    }
-
-    if (PlayerComponent.IsValid())
-    {
-        PlayerComponent->OnTargetSet.Remove(PlayerTargetSetHandle);
-        PlayerComponent->OnTargetClear.Remove(PlayerTargetClearHandle);
-    }
-
     if (bCapturingVoice)
     {
         StopCapture();
+    }
+
+    if (GetOwnerRole() == ROLE_Authority)
+    {
+        InworldPlayer->OnConversationChanged().Remove(OnPlayerConversationChanged);
+
+        InworldPlayer->GetSession()->OnConnectionStateChanged().Remove(OnSessionConnectionStateChanged);
+        InworldPlayer->GetSession()->OnLoaded().Remove(OnSessionLoaded);
     }
 
     Super::EndPlay(EndPlayReason);
@@ -245,8 +265,6 @@ void UInworldPlayerAudioCaptureComponent::EndPlay(const EEndPlayReason::Type End
 void UInworldPlayerAudioCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-    EvaluateVoiceCapture();
 
     {   
         FScopeLock InputScopedLock(&InputBuffer.CriticalSection);
@@ -285,23 +303,28 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
     {
         const bool bIsMicHot = !bMuted;
         const bool bIsWorldPlaying = !GetWorld()->IsPaused();
-        const bool bHasTargetCharacter = PlayerAudioTarget.bActive;
-        const bool bHasActiveInworldSession = InworldSubsystem.IsValid() && (InworldSubsystem->GetConnectionState() == EInworldConnectionState::Connected || InworldSubsystem->GetConnectionState() == EInworldConnectionState::Reconnecting);
+        const bool bIsParticipating = InworldPlayer->IsConversationParticipant();
+        const bool bHasConversation = !InworldPlayer->GetConversationId().IsEmpty();
+        UInworldSession* InworldSession = InworldPlayer->GetSession();
+        const EInworldConnectionState ConnectionState = InworldSession ? InworldSession->GetConnectionState() : EInworldConnectionState::Idle;
+        const bool bHasActiveInworldSession = InworldSession && InworldSession->IsLoaded() && (ConnectionState == EInworldConnectionState::Connected || ConnectionState == EInworldConnectionState::Reconnecting);
 
-        const bool bShouldCaptureVoice = bIsMicHot && bIsWorldPlaying && bHasTargetCharacter && bHasActiveInworldSession;
+        const bool bShouldCaptureVoice = bIsMicHot && bIsWorldPlaying && bIsParticipating && bHasConversation && bHasActiveInworldSession;
 
         if (bShouldCaptureVoice != bServerCapturingVoice)
         {
             if (bShouldCaptureVoice)
             {
-                InworldSubsystem->StartAudioSession(PlayerAudioTarget.AgentId);
+                if (!InworldPlayer->HasAudioSession())
+                {
+                    InworldPlayer->SendAudioSessionStartToConversation(MicMode);
+                }
             }
             else
             {
-                InworldSubsystem->StopAudioSession(PlayerAudioTarget.AgentId);
-                if (!PlayerAudioTarget.bActive)
+                if (InworldPlayer->HasAudioSession())
                 {
-                    PlayerAudioTarget.AgentId = {};
+                    InworldPlayer->SendAudioSessionStopToConversation();
                 }
             }
 
@@ -312,18 +335,32 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
                 Rep_ServerCapturingVoice();
             }
         }
+        else if (bShouldCaptureVoice && InworldPlayer->HasAudioSession() && bIsMicModeDirty)
+        {
+            InworldPlayer->SendAudioSessionStartToConversation(MicMode);
+            InworldPlayer->SendAudioSessionStopToConversation();
+        }
     }
-}
-
-void UInworldPlayerAudioCaptureComponent::OnInworldConnectionStateChanged(EInworldConnectionState ConnectionState)
-{
-    EvaluateVoiceCapture();
 }
 
 void UInworldPlayerAudioCaptureComponent::ServerSetMuted_Implementation(bool bInMuted)
 {
-    bMuted = bInMuted;
-    EvaluateVoiceCapture();
+    if (bMuted != bInMuted)
+    {
+        bMuted = bInMuted;
+        EvaluateVoiceCapture();
+    }
+}
+
+void UInworldPlayerAudioCaptureComponent::ServerSetMicMode_Implementation(EInworldMicrophoneMode InMicMode)
+{
+    if (MicMode != InMicMode)
+    {
+        MicMode = InMicMode;
+        bIsMicModeDirty = true;
+        EvaluateVoiceCapture();
+        bIsMicModeDirty = false;
+    }
 }
 
 void UInworldPlayerAudioCaptureComponent::SetCaptureDeviceById(const FString& DeviceId)
@@ -367,12 +404,12 @@ void UInworldPlayerAudioCaptureComponent::StartCapture()
         return;
     }
 
-    if (!InputAudioCapture.IsValid() || !InputAudioCapture->HasCapturePermission())
+    if (!InputAudioCapture.IsValid() || !InputAudioCapture->HasCapturePermission() || !InputAudioCapture->Initialize())
     {
         return;
     }
 
-    if (OutputAudioCapture.IsValid() && !InputAudioCapture->HasCapturePermission())
+    if (OutputAudioCapture.IsValid() && (!OutputAudioCapture->HasCapturePermission() || !OutputAudioCapture->Initialize()))
     {
         return;
     }
@@ -403,7 +440,7 @@ void UInworldPlayerAudioCaptureComponent::StopCapture()
     }
 
     InputAudioCapture->StopCapture();
-    if (OutputAudioCapture)
+    if (OutputAudioCapture.IsValid())
     {
         OutputAudioCapture->StopCapture();
     }
@@ -418,16 +455,9 @@ void UInworldPlayerAudioCaptureComponent::StopCapture()
 
 void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implementation(FPlayerVoiceCaptureInfoRep PlayerVoiceCaptureInfo)
 {
-    if (!PlayerAudioTarget.AgentId.IsEmpty() && PlayerAudioTarget.bActive)
+    if (InworldPlayer.IsValid())
     {
-        if (bEnableAEC)
-        {
-            InworldSubsystem->SendAudioDataMessageWithAEC(PlayerAudioTarget.AgentId, PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
-        }
-        else
-        {
-            InworldSubsystem->SendAudioDataMessage(PlayerAudioTarget.AgentId, PlayerVoiceCaptureInfo.MicSoundData);
-        }
+        InworldPlayer->SendSoundMessageToConversation(PlayerVoiceCaptureInfo.MicSoundData, PlayerVoiceCaptureInfo.OutputSoundData);
     }
 }
 
@@ -435,23 +465,6 @@ bool UInworldPlayerAudioCaptureComponent::IsLocallyControlled() const
 {
     auto* Controller = Cast<APlayerController>(GetOwner()->GetInstigatorController());
     return Controller && Controller->IsLocalController();
-}
-
-void UInworldPlayerAudioCaptureComponent::OnPlayerTargetSet(UInworldCharacterComponent* Target)
-{
-    PlayerAudioTarget.AgentId = Target->GetAgentId();
-    PlayerAudioTarget.bActive = true;
-    EvaluateVoiceCapture();
-}
-
-void UInworldPlayerAudioCaptureComponent::OnPlayerTargetClear(UInworldCharacterComponent* Target)
-{
-    PlayerAudioTarget.bActive = false;
-    if (!bServerCapturingVoice)
-    {
-        PlayerAudioTarget.AgentId = {};
-    }
-    EvaluateVoiceCapture();
 }
 
 void UInworldPlayerAudioCaptureComponent::Rep_ServerCapturingVoice()
@@ -464,6 +477,15 @@ void UInworldPlayerAudioCaptureComponent::Rep_ServerCapturingVoice()
     {
         StopCapture();
     }
+}
+
+bool FInworldMicrophoneAudioCapture::Initialize()
+{
+    FInworldAIPlatformModule& PlatformModule = FModuleManager::Get().LoadModuleChecked<FInworldAIPlatformModule>("InworldAIPlatform");
+    Inworld::Platform::IMicrophone* Microphone = PlatformModule.GetMicrophone();
+    const bool Initialized = Microphone->Initialize();
+    ensureMsgf(Initialized, TEXT("FInworldMicrophoneAudioCapture::RequestCapturePermission: Platform has failed to initialize microphone."));
+    return Initialized;
 }
 
 void FInworldMicrophoneAudioCapture::RequestCapturePermission()
@@ -634,8 +656,14 @@ void FInworldPixelStreamAudioCapture::StopCapture()
 #if defined(INWORLD_PIXEL_STREAMING)
 void FInworldPixelStreamAudioCapture::ConsumeRawPCM(const int16_t* AudioData, int InSampleRate, size_t NChannels, size_t NFrames)
 {
+    TArray<float> fAudioData;
+    fAudioData.SetNumUninitialized(NFrames * NChannels);
+    for (int32 i = 0; i < fAudioData.Num(); i++)
+    {
+        fAudioData[i] = ((float)AudioData[i]) / 32767.f; // 2^15, uint16
+    }
     TArray<uint16> Buffer;
-    ConvertAudioToInworldFormat(AudioData, NumFrames, NumChannels, SampleRate, Buffer);
+    ConvertAudioToInworldFormat(fAudioData.GetData(), NFrames, NChannels, InSampleRate, Buffer);
     Callback({ (uint8*)Buffer.GetData(), Buffer.Num() * 2 });
 }
 #endif

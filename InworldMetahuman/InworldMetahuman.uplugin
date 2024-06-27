@@ -1,26 +1,17 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0",
-	"FriendlyName": "InworldMetahuman",
-	"Description": "",
-	"Category": "Other",
-	"CreatedBy": "",
-	"CreatedByURL": "",
-	"DocsURL": "",
+	"VersionName": "1.6.0",
+	"FriendlyName": "Inworld Metahuman",
+	"Description": "Starting assets for Unreal Metahumans for use with InworldAI!",
+	"Category": "Inworld",
+	"CreatedBy": "InworldAI",
+	"CreatedByURL": "https://inworld.ai/",
+	"DocsURL": "https://docs.inworld.ai/docs/tutorial-integrations/unreal-engine/sdk-structure/inworld-metahuman/",
 	"MarketplaceURL": "",
-	"SupportURL": "",
+	"SupportURL": "mailto:support@inworld.ai",
 	"CanContainContent": true,
-	"IsBetaVersion": false,
-	"IsExperimentalVersion": false,
-	"Installed": false,
-	"Modules": [
-		{
-			"Name": "InworldMetahumanEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		}
-	],
+	"Installed": true,
 	"Plugins": [
 		{
 			"Name": "InworldAI",

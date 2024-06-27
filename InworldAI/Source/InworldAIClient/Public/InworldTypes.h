@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -17,16 +17,16 @@ struct FInworldPlayerProfile
 {
     GENERATED_BODY()
 
-    UPROPERTY(BlueprintReadWrite, Category = "Player")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player")
     FString Name = "";
 
-    UPROPERTY(BlueprintReadWrite, Category = "Player")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player")
     FString UniqueId = "";
 
-    UPROPERTY(BlueprintReadWrite, Category = "Environment")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
     FString ProjectName = "";
 
-    UPROPERTY(BlueprintReadWrite, Category = "Player")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player")
     TMap<FString, FString> Fields = {};
 };
 
@@ -35,38 +35,41 @@ struct FInworldCapabilitySet
 {
     GENERATED_BODY()
 
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     bool Animations = false;
 
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-    bool Text = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     bool Audio = true;
 
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     bool Emotions = true;
 
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-    bool Gestures = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     bool Interruptions = true;
 
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-    bool Triggers = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     bool EmotionStreaming = true;
 
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     bool SilenceEvents = true;
 
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     bool PhonemeInfo = true;
 
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-    bool LoadSceneInSession = true;
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    bool Continuation = true;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    bool TurnBasedSTT = true;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    bool NarratedActions = false;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    bool Relations = true;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    bool MultiAgent = true;
 };
 
 USTRUCT(BlueprintType)
@@ -74,13 +77,13 @@ struct FInworldAuth
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite, Category = "Capability")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
 	FString Base64Signature = "";
 
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     FString ApiKey = "";
 
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     FString ApiSecret = "";
 };
 
@@ -89,13 +92,13 @@ struct FInworldSessionToken
 {
     GENERATED_BODY()
 
-    UPROPERTY(BlueprintReadWrite, Category = "Token")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Token")
     FString Token = "";
 
-    UPROPERTY(BlueprintReadWrite, Category = "Token")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Token")
     int64 ExpirationTime = 0;
 
-    UPROPERTY(BlueprintReadWrite, Category = "Token")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Token")
     FString SessionId = "";
 };
 
@@ -104,7 +107,7 @@ struct FInworldSave
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite, Category = "Data")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Data")
 	TArray<uint8> Data;
 };
 
@@ -113,10 +116,10 @@ struct FInworldEnvironment
 {
     GENERATED_BODY()
 
-    UPROPERTY(BlueprintReadWrite, Category = "Environment")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
     FString AuthUrl = "";
 
-    UPROPERTY(BlueprintReadWrite, Category = "Environment")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
     FString TargetUrl = "";
 };
 
@@ -125,12 +128,12 @@ struct FInworldAgentInfo
 {
     GENERATED_BODY()
 
-    UPROPERTY(BlueprintReadWrite, Category = "Agent")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Agent")
     FString BrainName = "";
 
-    UPROPERTY(BlueprintReadWrite, Category = "Agent")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Agent")
     FString AgentId = "";
 
-    UPROPERTY(BlueprintReadWrite, Category = "Agent")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Agent")
     FString GivenName = "";
 };

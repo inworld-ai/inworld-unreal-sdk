@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -11,7 +11,11 @@
 #include "InworldCharacterPlaybackAudio.h"
 #include "InworldCharacterComponent.h"
 #include "InworldBlueprintFunctionLibrary.h"
+#include "Sound/SoundWave.h"
+#include "TimerManager.h"
 #include <Components/AudioComponent.h>
+#include <GameFramework/Actor.h>
+#include <Engine/World.h>
 
 void UInworldCharacterPlaybackAudio::BeginPlay_Implementation()
 {
@@ -146,8 +150,8 @@ void UInworldCharacterPlaybackAudio::OnAudioPlaybackPercent(const UAudioComponen
 	const float Blend = (CurrentAudioPlaybackTime - PreviousVisemeInfo.Timestamp) / (CurrentVisemeInfo.Timestamp - PreviousVisemeInfo.Timestamp);
 
 	VisemeBlends.STOP = 0.f;
-	*VisemeBlends[PreviousVisemeInfo.Code] = FMath::Clamp(1.f - Blend, 0.f, 1.f);
-	*VisemeBlends[CurrentVisemeInfo.Code] = FMath::Clamp(Blend, 0.f, 1.f);
+	VisemeBlends[PreviousVisemeInfo.Code] = FMath::Clamp(1.f - Blend, 0.f, 1.f);
+	VisemeBlends[CurrentVisemeInfo.Code] = FMath::Clamp(Blend, 0.f, 1.f);
 
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
 }

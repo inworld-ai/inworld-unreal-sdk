@@ -31,7 +31,7 @@ jobs:
         exit 1
     - name: Copy NDK
       run: |
-        python3 "InworldAI/Source/ThirdParty/Inworld/dev-tools/ndk-util.py" --copy
+        python3 "build-scripts/ndk-util.py" --copy
     - run: mkdir -p TestInworldFPS 
     - uses: actions/checkout@v2
       with:
@@ -43,11 +43,11 @@ jobs:
           rm -rf "InworldAI/Content"
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
           rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
-          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldReadyPlayerMe"
+          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldInnequin"
           mkdir "TestInworldFPS/TestInworldFPS/Plugins"
           cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins"
           cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
-          cp -r "InworldReadyPlayerMe" "TestInworldFPS/TestInworldFPS/Plugins"
+          cp -r "InworldInnequin" "TestInworldFPS/TestInworldFPS/Plugins"
     - name: BuildEditor-Mac-50
       shell: bash
       run: |

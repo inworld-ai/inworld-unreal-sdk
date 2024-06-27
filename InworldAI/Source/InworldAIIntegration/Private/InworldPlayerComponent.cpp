@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -7,151 +7,210 @@
 
 #include "InworldPlayerComponent.h"
 #include "InworldApi.h"
+#include "InworldMacros.h"
 #include "InworldCharacterComponent.h"
+
+#include "InworldAIIntegrationModule.h"
 
 #include <Engine/World.h>
 #include <Net/UnrealNetwork.h>
+#include "Runtime/Launch/Resources/Version.h"
+
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldPlayerComponent, Arg, Return)
+#define NO_PLAYER_RETURN(Return) EMPTY_ARG_RETURN(InworldPlayer, Return)
+
+UInworldPlayerComponent::UInworldPlayerComponent()
+    : Super()
+{
+    bWantsInitializeComponent = true;
+    SetIsReplicatedByDefault(true);
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+    bReplicateUsingRegisteredSubObjectList = true;
+#endif
+}
+
+void UInworldPlayerComponent::OnRegister()
+{
+    Super::OnRegister();
+
+    UWorld* World = GetWorld();
+    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+    {
+        InworldPlayer = NewObject<UInworldPlayer>(this);
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+        AddReplicatedSubObject(InworldPlayer);
+#endif
+    }
+}
+
+void UInworldPlayerComponent::OnUnregister()
+{
+    Super::OnUnregister();
+
+    if (IsValid(InworldPlayer))
+    {
+#if ENGINE_MAJOR_VERSION == 5
+        InworldPlayer->MarkAsGarbage();
+#endif
+
+#if ENGINE_MAJOR_VERSION == 4
+        InworldPlayer->MarkPendingKill();
+#endif
+    }
+    InworldPlayer = nullptr;
+}
+
+void UInworldPlayerComponent::InitializeComponent()
+{
+    Super::InitializeComponent();
+    UWorld* World = GetWorld();
+    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+    {
+        InworldPlayer->SetSession(World->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession());
+    }
+}
+
+void UInworldPlayerComponent::UninitializeComponent()
+{
+    Super::UninitializeComponent();
+    UWorld* World = GetWorld();
+    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+    {
+        InworldPlayer->SetSession(nullptr);
+    }
+}
 
 void UInworldPlayerComponent::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 
-	SetIsReplicated(true);
-
-    InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
-}
-
-void UInworldPlayerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-    Super::EndPlay(EndPlayReason);
+    if (GetOwnerRole() == ROLE_Authority)
+    {
+        InworldPlayer->SetConversationParticipation(bConversationParticipant);
+    }
 }
 
 void UInworldPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UInworldPlayerComponent, TargetCharacterAgentId);
+    DOREPLIFETIME(UInworldPlayerComponent, InworldPlayer);
 }
 
-Inworld::ICharacterComponent* UInworldPlayerComponent::GetTargetCharacter()
+bool UInworldPlayerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
 {
-    if (InworldSubsystem.IsValid() && !TargetCharacterAgentId.IsEmpty())
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+    return Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+#else
+    bool WroteSomething = true;
+
+    if (IsValid(InworldPlayer))
     {
-        return InworldSubsystem->GetCharacterComponentByAgentId(TargetCharacterAgentId);
+        WroteSomething |= Channel->ReplicateSubobject(InworldPlayer, *Bunch, *RepFlags);
     }
 
+    return WroteSomething;
+#endif
+}
+
+void UInworldPlayerComponent::SetConversationParticipation(bool bParticipating)
+{
+    if (InworldPlayer->IsConversationParticipant() != bParticipating)
+    {
+        InworldPlayer->SetConversationParticipation(bParticipating);
+    }
+    bConversationParticipant = InworldPlayer->IsConversationParticipant();
+}
+
+void UInworldPlayerComponent::ContinueConversation()
+{
+    NO_PLAYER_RETURN(void())
+
+    InworldPlayer->SendTriggerToConversation(TEXT("inworld.conversation.next_turn"), {});
+}
+
+UInworldCharacterComponent* UInworldPlayerComponent::GetTargetInworldCharacter()
+{
+    TArray<UInworldCharacterComponent*> TargetCharacters = GetTargetInworldCharacters();
+    if (TargetCharacters.Num() > 0)
+    {
+        return TargetCharacters[0];
+    }
     return nullptr;
 }
 
-void UInworldPlayerComponent::SetTargetInworldCharacter(UInworldCharacterComponent* Character)
+TArray<UInworldCharacterComponent*> UInworldPlayerComponent::GetTargetInworldCharacters()
 {
-    if (!ensureMsgf(Character && !Character->GetAgentId().IsEmpty(), TEXT("UInworldPlayerComponent::SetTargetCharacter: the Character must have valid AgentId")))
+    TArray<UInworldCharacterComponent*> InworldCharacterComponents;
+    for (UInworldCharacter* Character : InworldPlayer->GetTargetCharacters())
     {
-        return;
+        UInworldCharacterComponent* InworldCharacterComponent = Cast<UInworldCharacterComponent>(Character->GetOuter());
+        if (InworldCharacterComponent)
+        {
+            InworldCharacterComponents.Add(InworldCharacterComponent);
+        }
     }
-
-    ClearTargetInworldCharacter();
-
-    if (Character->StartPlayerInteraction(this))
-    {
-        CharacterTargetUnpossessedHandle = Character->OnUnpossessed.AddUObject(this, &UInworldPlayerComponent::ClearTargetInworldCharacter);
-        TargetCharacterAgentId = Character->GetAgentId();
-        OnTargetSet.Broadcast(Character);
-    }
+    return InworldCharacterComponents;
 }
 
-void UInworldPlayerComponent::ClearTargetInworldCharacter()
+void UInworldPlayerComponent::AddTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
-    UInworldCharacterComponent* TargetCharacter = GetTargetInworldCharacter();
-    if (TargetCharacter && TargetCharacter->StopPlayerInteraction(this))
-    {
-        TargetCharacter->OnUnpossessed.Remove(CharacterTargetUnpossessedHandle);
-        OnTargetClear.Broadcast(TargetCharacter);
-		TargetCharacterAgentId = FString();
-    }
+    NO_PLAYER_RETURN(void())
+
+    InworldPlayer->AddTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
 }
 
-void UInworldPlayerComponent::SendTextMessageToTarget_Implementation(const FString& Message)
+void UInworldPlayerComponent::RemoveTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
-    if (!Message.IsEmpty() && !TargetCharacterAgentId.IsEmpty())
-    {
-        InworldSubsystem->SendTextMessage(TargetCharacterAgentId, Message);
-    }
+    NO_PLAYER_RETURN(void())
+
+    InworldPlayer->RemoveTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
 }
 
-void UInworldPlayerComponent::SendTextMessage_Implementation(const FString& Message, const FString& AgentId)
+void UInworldPlayerComponent::ClearAllTargetInworldCharacters()
 {
-	if (!Message.IsEmpty() && !AgentId.IsEmpty())
-	{
-		InworldSubsystem->SendTextMessage(AgentId, Message);
-	}
+    NO_PLAYER_RETURN(void())
+
+    InworldPlayer->ClearAllTargetCharacters();
+}
+
+void UInworldPlayerComponent::SendTextMessageToTarget(const FString& Message)
+{
+    NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(Message, void())
+
+    InworldPlayer->SendTextMessageToConversation(Message);
 }
 
 void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params)
 {
-    if (!TargetCharacterAgentId.IsEmpty())
-    {
-        InworldSubsystem->SendTrigger(TargetCharacterAgentId, Name, Params);
-    }
+    NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(Name, void())
+
+    InworldPlayer->SendTriggerToConversation(Name, Params);
 }
 
 void UInworldPlayerComponent::StartAudioSessionWithTarget()
 {
-    if (!TargetCharacterAgentId.IsEmpty())
-    {
-        InworldSubsystem->StartAudioSession(TargetCharacterAgentId);
-    }
+    NO_PLAYER_RETURN(void())
+
+    InworldPlayer->SendAudioSessionStartToConversation();
 }
 
 void UInworldPlayerComponent::StopAudioSessionWithTarget()
 {
-    if (!TargetCharacterAgentId.IsEmpty())
-	{
-		InworldSubsystem->StopAudioSession(TargetCharacterAgentId);
-	}
+    NO_PLAYER_RETURN(void())
+
+    InworldPlayer->SendAudioSessionStopToConversation();
 }
 
-void UInworldPlayerComponent::SendAudioMessageToTarget(USoundWave* SoundWave)
+void UInworldPlayerComponent::SendAudioMessageToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
-    if (!TargetCharacterAgentId.IsEmpty())
-    {
-        InworldSubsystem->SendAudioMessage(TargetCharacterAgentId, SoundWave);
-    }
+    NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(InputData, void())
+
+    InworldPlayer->SendSoundMessageToConversation(InputData, OutputData);
 }
 
-void UInworldPlayerComponent::SendAudioDataMessageToTarget(const TArray<uint8>& Data)
-{
-    if (!TargetCharacterAgentId.IsEmpty())
-    {
-        InworldSubsystem->SendAudioDataMessage(TargetCharacterAgentId, Data);
-    }
-}
-
-void UInworldPlayerComponent::SendAudioDataMessageWithAECToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
-{
-    if (!TargetCharacterAgentId.IsEmpty())
-    {
-        InworldSubsystem->SendAudioDataMessageWithAEC(TargetCharacterAgentId, InputData, OutputData);
-    }
-}
-
-void UInworldPlayerComponent::OnRep_TargetCharacterAgentId(FString OldAgentId)
-{
-    if (!ensure(InworldSubsystem.IsValid()))
-    {
-        return;
-    }
-
-	const bool bHadTarget = !OldAgentId.IsEmpty();
-	const bool bHasTarget = !TargetCharacterAgentId.IsEmpty();
-	if (bHadTarget && !bHasTarget)
-	{
-        auto* Component = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(OldAgentId));
-        OnTargetClear.Broadcast(Component);
-	}
-	if (bHasTarget && OldAgentId != TargetCharacterAgentId)
-	{
-        auto* Component = static_cast<UInworldCharacterComponent*>(InworldSubsystem->GetCharacterComponentByAgentId(TargetCharacterAgentId));
-		OnTargetSet.Broadcast(Component);
-	}
-}
+#undef EMPTY_ARG_RETURN
+#undef NO_PLAYER_RETURN

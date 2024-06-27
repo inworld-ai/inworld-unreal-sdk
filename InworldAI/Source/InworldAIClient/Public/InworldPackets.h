@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -15,6 +15,50 @@
 #include "Serialization/MemoryArchive.h"
 
 #include "InworldPackets.generated.h"
+
+USTRUCT()
+struct FInworldReplicatedMapStruct
+{
+	GENERATED_BODY()
+
+	UPROPERTY(NotReplicated)
+	TMap<FString, FString> RepMap;
+
+	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
+	{
+		TArray<FString> ParamKeys;
+		TArray<FString> ParamValues;
+
+		if (Ar.IsLoading())
+		{
+			Ar << ParamKeys;
+			Ar << ParamValues;
+			for (auto It = ParamKeys.CreateConstIterator(); It; ++It)
+			{
+				RepMap.Add(ParamKeys[It.GetIndex()], ParamValues[It.GetIndex()]);
+			}
+		}
+		else
+		{
+			RepMap.GenerateKeyArray(ParamKeys);
+			RepMap.GenerateValueArray(ParamValues);
+			Ar << ParamKeys;
+			Ar << ParamValues;
+		}
+
+		bOutSuccess = true;
+		return true;
+	}
+};
+
+template<>
+struct TStructOpsTypeTraits<FInworldReplicatedMapStruct> : public TStructOpsTypeTraitsBase2<FInworldReplicatedMapStruct>
+{
+	enum
+	{
+		WithNetSerializer = true
+	};
+};
 
 USTRUCT()
 struct INWORLDAICLIENT_API FInworldActor
@@ -45,9 +89,10 @@ struct INWORLDAICLIENT_API FInworldRouting
 	
 	FInworldRouting() = default;
 	FInworldRouting(const FInworldRouting& Other) = default;
-	FInworldRouting(const FInworldActor& InSource, const FInworldActor& InTarget)
+	FInworldRouting(const FInworldActor& InSource, const FInworldActor& InTarget, const FString& InConversationId)
 		: Source(InSource)
 		, Target(InTarget)
+		, ConversationId(InConversationId)
 	{}
 
 	void Serialize(FMemoryArchive& Ar);
@@ -58,6 +103,8 @@ struct INWORLDAICLIENT_API FInworldRouting
 	FInworldActor Source;
 	UPROPERTY()
 	FInworldActor Target;
+	UPROPERTY()
+	FString ConversationId;
 };
 
 USTRUCT()
@@ -90,11 +137,13 @@ struct FInworldDataEvent;
 struct FInworldAudioDataEvent;
 struct FInworldSilenceEvent;
 struct FInworldControlEvent;
+struct FInworldConversationUpdateEvent;
 struct FInworldEmotionEvent;
 struct FInworldCancelResponseEvent;
 struct FInworldSimpleGestureEvent;
 struct FInworldCustomGestureEvent;
 struct FInworldCustomEvent;
+struct FInworldLoadCharactersEvent;
 struct FInworldChangeSceneEvent;
 struct FInworldRelationEvent;
 
@@ -106,16 +155,37 @@ public:
 	virtual void Visit(const FInworldAudioDataEvent& Event) {  }
 	virtual void Visit(const FInworldSilenceEvent& Event) {  }
 	virtual void Visit(const FInworldControlEvent& Event) {  }
+	virtual void Visit(const FInworldConversationUpdateEvent& Event) {  }
 	virtual void Visit(const FInworldEmotionEvent& Event) {  }
 	virtual void Visit(const FInworldCancelResponseEvent& Event) {  }
 	virtual void Visit(const FInworldSimpleGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomEvent& Event) {  }
+	virtual void Visit(const FInworldLoadCharactersEvent& Event) {  }
 	virtual void Visit(const FInworldChangeSceneEvent& Event) {  }
 	virtual void Visit(const FInworldRelationEvent& Event) {  }
 };
 
-USTRUCT()
+struct FInworldPacket;
+
+USTRUCT(BlueprintType)
+struct INWORLDAICLIENT_API FInworldWrappedPacket
+{
+	GENERATED_BODY()
+public:
+	FInworldWrappedPacket()
+		: Packet(nullptr)
+	{}
+
+	FInworldWrappedPacket(TSharedPtr<FInworldPacket> InPacket)
+		: Packet(InPacket)
+	{}
+
+	TSharedPtr<FInworldPacket> Packet = {};
+
+};
+
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldPacket
 {
 	GENERATED_BODY()
@@ -138,7 +208,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const PURE_VIRTUAL(FInworldPacket::AppendDebugString);
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldTextEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -157,7 +227,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const override;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldDataEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -175,7 +245,7 @@ protected:
 	virtual void AppendDebugString(FString& Str) const;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldVisemeInfo
 {
 	GENERATED_BODY()
@@ -188,7 +258,7 @@ struct INWORLDAICLIENT_API FInworldVisemeInfo
 	float Timestamp = 0.f;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldAudioDataEvent : public FInworldDataEvent
 {
 	GENERATED_BODY()
@@ -206,10 +276,10 @@ struct INWORLDAICLIENT_API FInworldAudioDataEvent : public FInworldDataEvent
 	bool bFinal = true;
 
 protected:
-	virtual void AppendDebugString(FString& Str) const;
+	virtual void AppendDebugString(FString& Str) const override;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldSilenceEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -223,10 +293,10 @@ struct INWORLDAICLIENT_API FInworldSilenceEvent : public FInworldPacket
 	float Duration = 0.f;
 
 protected:
-	virtual void AppendDebugString(FString& Str) const;
+	virtual void AppendDebugString(FString& Str) const override;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldControlEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -239,11 +309,35 @@ struct INWORLDAICLIENT_API FInworldControlEvent : public FInworldPacket
 	UPROPERTY()
 	EInworldControlEventAction Action = EInworldControlEventAction::UNKNOWN;
 
+	UPROPERTY()
+	FString Description;
+
 protected:
-	virtual void AppendDebugString(FString& Str) const;
+	virtual void AppendDebugString(FString& Str) const override;
 };
 
 USTRUCT()
+struct INWORLDAICLIENT_API FInworldConversationUpdateEvent : public FInworldControlEvent
+{
+	GENERATED_BODY()
+
+	FInworldConversationUpdateEvent() = default;
+	virtual ~FInworldConversationUpdateEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	UPROPERTY()
+	TArray<FString> Agents;
+	UPROPERTY()
+	EInworldConversationUpdateType EventType;
+	UPROPERTY()
+	bool bIncludePlayer;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const override;
+};
+
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldEmotionEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -259,10 +353,10 @@ struct INWORLDAICLIENT_API FInworldEmotionEvent : public FInworldPacket
 	EInworldCharacterEmotionStrength Strength = EInworldCharacterEmotionStrength::NORMAL;
 
 protected:
-	virtual void AppendDebugString(FString& Str) const;
+	virtual void AppendDebugString(FString& Str) const override;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldCustomEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -275,50 +369,31 @@ struct INWORLDAICLIENT_API FInworldCustomEvent : public FInworldPacket
 	UPROPERTY()
 	FString Name;
 
-	UPROPERTY(NotReplicated)
-	TMap<FString, FString> Params;
-	
-	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
-	{
-		TArray<FString> ParamKeys;
-		TArray<FString> ParamValues;
-
-		if (Ar.IsLoading())
-		{
-			Ar << ParamKeys;
-			Ar << ParamValues;
-			for (auto It = ParamKeys.CreateConstIterator(); It; ++It)
-			{
-				Params.Add(ParamKeys[It.GetIndex()], ParamValues[It.GetIndex()]);
-			}
-		}
-		else
-		{
-			Params.GenerateKeyArray(ParamKeys);
-			Params.GenerateValueArray(ParamValues);
-			Ar << ParamKeys;
-			Ar << ParamValues;
-		}
-
-		bOutSuccess = true;
-		return true;
-	}
+	UPROPERTY()
+	FInworldReplicatedMapStruct Params;
 	
 protected:
-	virtual void AppendDebugString(FString& Str) const;
+	virtual void AppendDebugString(FString& Str) const override;
 };
 
-template<>
-struct TStructOpsTypeTraits<FInworldCustomEvent> : public TStructOpsTypeTraitsBase2<FInworldCustomEvent>
+USTRUCT(BlueprintType)
+struct INWORLDAICLIENT_API FInworldLoadCharactersEvent : public FInworldPacket
 {
-	enum
-	{
-		WithNetSerializer = true
-	};
+	GENERATED_BODY()
+
+	FInworldLoadCharactersEvent() = default;
+	virtual ~FInworldLoadCharactersEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	TArray<FInworldAgentInfo> AgentInfos;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const override;
 };
 
-USTRUCT()
-struct INWORLDAICLIENT_API FInworldChangeSceneEvent : public FInworldPacket
+USTRUCT(BlueprintType)
+struct INWORLDAICLIENT_API FInworldChangeSceneEvent : public FInworldLoadCharactersEvent
 {
 	GENERATED_BODY()
 
@@ -327,10 +402,8 @@ struct INWORLDAICLIENT_API FInworldChangeSceneEvent : public FInworldPacket
 
 	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
 
-	TArray<FInworldAgentInfo> AgentInfos;
-
 protected:
-	virtual void AppendDebugString(FString& Str) const;
+	virtual void AppendDebugString(FString& Str) const override;
 };
 
 USTRUCT()
@@ -344,20 +417,20 @@ struct INWORLDAICLIENT_API FInworldRelationEvent : public FInworldPacket
 	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
 
 	UPROPERTY()
-	int32 Attraction;
+	int32 Attraction = 0;
 
 	UPROPERTY()
-	int32 Familiar;
+	int32 Familiar = 0;
 
 	UPROPERTY()
-	int32 Flirtatious;
+	int32 Flirtatious = 0;
 
 	UPROPERTY()
-	int32 Respect;
+	int32 Respect = 0;
 
 	UPROPERTY()
-	int32 Trust;
+	int32 Trust = 0;
 
 protected:
-	virtual void AppendDebugString(FString& Str) const;
+	virtual void AppendDebugString(FString& Str) const override;
 };

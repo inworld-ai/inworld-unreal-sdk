@@ -1,0 +1,21 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.6.0",
+	"FriendlyName": "Inworld Innequin",
+	"Description": "Create Innequin Characters for use with InworldAI!",
+	"Category": "Inworld",
+	"CreatedBy": "InworldAI",
+	"CreatedByURL": "https://inworld.ai/",
+	"DocsURL": "https://docs.inworld.ai/docs/tutorial-integrations/unreal-engine/getting-started/character-setup/inworld-3d-avatar",
+	"MarketplaceURL": "",
+	"SupportURL": "mailto:support@inworld.ai",
+	"CanContainContent": true,
+	"Installed": true,
+	"Plugins": [
+		{
+			"Name": "InworldAI",
+			"Enabled": true
+		}
+	]
+}

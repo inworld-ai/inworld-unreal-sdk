@@ -1,3 +1,27 @@
+# 1.5.1
+- Fix for UE 5.4 packaging
+
+# 1.5.0
+- Fix for Dialog Map
+- Fix character attachments for audio
+- Fix for Pixel Streaming
+- Fix multiple GRPC versions in one project issues(Windows, Mac, Android)
+- Unitary Session support
+- Audio dumper fixes
+- Add Inworld Innequin Plugin
+- Multiplayer fixes
+
+# 1.4.3
+- Fix NDK logging
+
+# 1.4.2
+- Improved metahuman face assets
+- Add studio widget directly to tools menu
+- Fix UE 5.3 audio when using 41000 sample rate
+- Gameplay debugger build fixes
+- Fix SendTrigger node on InworldCharacterComponent
+- Implement true push to talk
+
 # 1.4.1
 - Fix for auto reconnect
 

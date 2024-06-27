@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -70,6 +70,7 @@ enum class EInworldActorType : uint8
 	UNKNOWN = 0,
 	PLAYER = 1,
 	AGENT = 2,
+	WORLD = 3,
 };
 
 UENUM(BlueprintType)
@@ -81,5 +82,24 @@ enum class EInworldControlEventAction : uint8
 	INTERACTION_END = 3,
 	TTS_PLAYBACK_START = 4,
 	TTS_PLAYBACK_END = 5,
+	TTS_PLAYBACK_MUTE = 6,
+	TTS_PLAYBACK_UNMUTE = 7,
+	WARNING = 8,
 };
 
+UENUM(BlueprintType)
+enum class EInworldConversationUpdateType : uint8
+{
+	UNKNOWN = 0,
+	STARTED = 1,
+	UPDATED = 2,
+	EVICTED = 3,
+};
+
+UENUM(BlueprintType)
+enum class EInworldMicrophoneMode : uint8
+{
+	UNKNOWN = 0 UMETA(Hidden),
+	OPEN_MIC = 1,
+	EXPECT_AUDIO_END = 2,
+};

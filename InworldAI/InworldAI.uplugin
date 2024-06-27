@@ -1,21 +1,32 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.4.1",
+	"VersionName": "1.6.0",
 	"FriendlyName": "InworldAI",
 	"Description": "Integrate Characters from https://studio.inworld.ai",
 	"Category": "AI",
 	"CreatedBy": "InworldAI",
 	"CreatedByURL": "https://www.inworld.ai/",
 	"DocsURL": "https://docs.inworld.ai/docs/tutorial-integrations/unreal-engine/",
-	"MarketplaceURL": "",
-	"SupportURL": "",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/f2c8fa2e6b7d4212ba5b93cd0b897c4c",
+	"SupportURL": "mailto:support@inworld.ai",
 	"IsBetaVersion": false,
 	"CanContainContent": true,
 	"EnabledByDefault": true,
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Modules": [
+		{
+			"Name": "InworldAINDK",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64",
+				"Mac",
+				"Android",
+				"IOS"
+			]
+		},
 		{
 			"Name": "InworldAIClient",
 			"Type": "Runtime",
@@ -57,6 +68,13 @@
 				"Win64",
 				"Mac"
 			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "AndroidPermission",
+			"Enabled": true,
+			"PlatformAllowList": [ "Android" ]
 		}
 	]
 }

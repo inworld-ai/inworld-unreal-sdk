@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -16,8 +16,8 @@
 
 #define UI UI_ST
 THIRD_PARTY_INCLUDES_START
-#include "openssl/hmac.h"
 #include "Utils/SslCredentials.h"
+#include "Utils/Utils.h"
 THIRD_PARTY_INCLUDES_END
 #undef UI
 
@@ -95,12 +95,6 @@ bool Inworld::Utils::SoundWaveToString(USoundWave* SoundWave, std::string& Strin
     String.resize(NewSampleDataSize);
 
     return true;
-}
-
-void Inworld::Utils::DataArray16ToVec16(const TArray<int16>& Data, std::vector<int16>& VecData)
-{
-    VecData.resize(Data.Num());
-    FMemory::Memcpy((void*)VecData.data(), (void*)Data.GetData(), VecData.size() * sizeof(int16));
 }
 
 void Inworld::Utils::DataArray16ToString(const TArray<int16>& Data, std::string& String)
@@ -274,10 +268,14 @@ USoundWave* Inworld::Utils::VecToSoundWave(const std::vector<int16>& data)
 
 TArray<uint8> Inworld::Utils::HmacSha256(const TArray<uint8>& Data, const TArray<uint8>& Key)
 {
-    TArray<uint8> Res;
-    Res.SetNumZeroed(32);
-	uint32 OutputLen = 0;
-	HMAC(EVP_sha256(), Key.GetData(), Key.Num(), Data.GetData(), Data.Num(), Res.GetData(), &OutputLen);
+	std::vector<uint8> VData, VKey;
+	DataArrayToVec(Data, VData);
+	DataArrayToVec(Key, VKey);
+	
+	std::vector<uint8> VRes(32);
+	Inworld::Utils::HmacSha256(VData, VKey, VRes);
+	TArray<uint8> Res;
+    VecToDataArray(VRes, Res);
     return Res;
 }
 

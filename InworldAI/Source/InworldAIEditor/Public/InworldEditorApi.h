@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -9,6 +9,8 @@
 
 
 #include "CoreMinimal.h"
+
+#include "EditorSubsystem.h"
 #include "TickableEditorObject.h"
 #include "InworldStudio.h"
 #include "InworldStudioTypes.h"
@@ -22,11 +24,14 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FOnCharacterStudioDataAction, const FInworldSt
 DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnCharacterStudioDataPermission, const FInworldStudioUserCharacterData&, CharacterStudioData);
 
 UCLASS(BlueprintType, Config = InworldAI)
-class INWORLDAIEDITOR_API UInworldEditorApiSubsystem : public UWorldSubsystem
+class INWORLDAIEDITOR_API UInworldEditorApiSubsystem : public UEditorSubsystem
 {
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintPure, Category = "Plugin")
+	static FString GetInworldAIPluginVersion();
+
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FInworldEditorApiSubsystemOnLogin OnLogin;
 
@@ -44,17 +49,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inworld")
 	bool IsRequestInProgress() const { return EditorClient.IsRequestInProgress() || Studio.IsRequestInProgress(); }
 
-	UFUNCTION(BlueprintCallable, Category = "Inworld")
-	UWorld* GetViewportWorld() const { return GetWorld(); }
-
-	UFUNCTION(BlueprintCallable, Category = "Inworld")
-	TArray<FString> GetWorldActorNames() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Inworld")
-	void SetupActor(const FInworldStudioUserCharacterData& Data, const FString& Name, const FString& PreviousName);
-
 	UFUNCTION(BlueprintPure, Category = "Inworld")
-	const FString& GetError() { return !EditorClient.GetError().IsEmpty() ? EditorClient.GetError() : Studio.GetError(); }
+	FString GetError() { return !EditorClient.GetError().IsEmpty() ? EditorClient.GetError() : Studio.GetError(); }
 
 	UFUNCTION(BlueprintPure, Category = "Inworld")
 	const FInworldStudioUserData& GetCachedStudioData() const;
@@ -81,8 +77,11 @@ public:
 	void SetupAssetAsInworldCharacter(const FAssetData& AssetData);
 	void SetupBlueprintAsInworldCharacter(UBlueprint* Blueprint);
 
+	bool CanSetupAssetAsInworldMetahuman(const FAssetData& AssetData, bool bLogErrors = false);
+	void SetupAssetAsInworldMetahuman(const FAssetData& AssetData);
+	void SetupBlueprintAsInworldMetahuman(UBlueprint* Blueprint);
+
 	/** Subsystem interface */
-	virtual bool DoesSupportWorldType(EWorldType::Type WorldType) const override;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
@@ -98,15 +97,9 @@ public:
 	UFUNCTION()
 	void CreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData);
 
-	UFUNCTION(BlueprintPure, Category = "Innequin")
-	FString GetInnequinVersion() const { return InnequinPluginVersion; };
-
+private:
 	FInworldEditorClient EditorClient;
 	FInworldStudio Studio;
-
-private:
-	UPROPERTY(config)
-	FString InnequinPluginVersion;
 
 	void CacheStudioData(const FInworldStudioUserData& Data);
 
@@ -120,4 +113,32 @@ private:
 	TMap<FName, FCharacterStudioDataFunctions> CharacterStudioDataFunctionMap;
 
 	TSharedPtr<class FInworldEditorRestartRequiredNotification> RestartRequiredNotification;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Inworld|Dialogue Map")
+	void SetDialogueMapCharacterData(const FString& BrainName, const FString& DisplayName, const FString& ImageURI, const FString& Token)
+	{
+		DialogueMapCharacterBrainName = BrainName;
+		DialogueMapCharacterDisplayName = DisplayName;
+		DialogueMapCharacterImageURI = ImageURI;
+		SaveConfig();
+	}
+
+	UFUNCTION(BlueprintPure, Category = "Inworld|Dialogue Map")
+	void GetDialogueMapCharacterData(FString& BrainName, FString& DisplayName, FString& ImageURI)
+	{
+		BrainName = DialogueMapCharacterBrainName;
+		DisplayName = DialogueMapCharacterDisplayName;
+		ImageURI = DialogueMapCharacterImageURI;
+	}
+
+private:
+	UPROPERTY(config)
+	FString DialogueMapCharacterBrainName;
+
+	UPROPERTY(config)
+	FString DialogueMapCharacterDisplayName;
+
+	UPROPERTY(config)
+	FString DialogueMapCharacterImageURI;
 };

@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -29,5 +29,12 @@ UInworldAIEditorSettings::UInworldAIEditorSettings(const FObjectInitializer& Obj
 	CharacterPlaybacks = { UInworldCharacterPlaybackTrigger::StaticClass() };
 	OtherCharacterComponents = { UInworldCharacterAudioComponent::StaticClass() };
 
-	InworldStudioWidget = "/InworldAI/StudioWidget/InworldStudioWidget.InworldStudioWidget";
+	static ConstructorHelpers::FClassFinder<UActorComponent> ChatComponent3DClassFinder(TEXT("/InworldAI/Components/ChatBubbles/BP_ChatBubblesComponent"));
+	if (ChatComponent3DClassFinder.Class)
+	{
+		OtherCharacterComponents.Add(ChatComponent3DClassFinder.Class);
+	}
+
+
+	InworldStudioWidget = FSoftObjectPath{ TEXT("EditorUtilityWidgetBlueprint'/InworldAI/StudioWidget/EUW_InworldStudio.EUW_InworldStudio'") };
 }

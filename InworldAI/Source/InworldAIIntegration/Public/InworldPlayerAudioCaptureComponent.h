@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -10,13 +10,12 @@
 #include "CoreMinimal.h"
 #include "AudioCaptureCore.h"
 #include "AudioDevice.h"
+#include "InworldEnums.h"
 #include "Containers/ContainerAllocationPolicies.h"
 
 #include "InworldPlayerAudioCaptureComponent.generated.h"
 
-class UInworldApiSubsystem;
-class UInworldPlayerComponent;
-class UInworldCharacterComponent;
+class UInworldPlayer;
 class USoundWave;
 class UAudioCaptureComponent;
 
@@ -39,6 +38,8 @@ public:
         , Callback(InCallback)
     {}
     virtual ~FInworldAudioCapture() {}
+
+    virtual bool Initialize() = 0;
 
     virtual void RequestCapturePermission() {}
     virtual bool HasCapturePermission() const { return true; }
@@ -72,9 +73,6 @@ public:
 private:
     void EvaluateVoiceCapture();
 
-    UFUNCTION()
-    void OnInworldConnectionStateChanged(EInworldConnectionState ConnectionState);
-
 public:
     UFUNCTION(BlueprintCallable, Category = "Volume", meta=(DeprecatedFunction, DeprecationMessage="SetVolumeMultiplier is deprecated, use SetMuted instead."))
     void SetVolumeMultiplier(float InVolumeMultiplier) { bMuted = InVolumeMultiplier == 0.f; }
@@ -84,6 +82,12 @@ public:
 
     UFUNCTION(Server, Reliable, Category = "Audio")
     void ServerSetMuted(bool bInMuted);
+
+    UFUNCTION(BlueprintCallable, Category = "Audio")
+    void SetMicMode(EInworldMicrophoneMode InMicMode) { ServerSetMicMode(MicMode); }
+
+    UFUNCTION(Server, Reliable, Category = "Audio")
+    void ServerSetMicMode(EInworldMicrophoneMode InMicMode);
 
     UFUNCTION(BlueprintCallable, Category = "Devices")
     void SetCaptureDeviceById(const FString& DeviceId);
@@ -97,13 +101,17 @@ private:
 
 protected:
     UPROPERTY(EditDefaultsOnly, Category = "Filter")
-	bool bEnableAEC = false;
+	bool bEnableAEC = true;
 
     UPROPERTY(EditDefaultsOnly, Category = "Pixel Stream")
     bool bPixelStream = false;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
     bool bMuted = false;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+    EInworldMicrophoneMode MicMode = EInworldMicrophoneMode::OPEN_MIC;
+    bool bIsMicModeDirty = false;
 
 private:
 	UFUNCTION()
@@ -114,8 +122,11 @@ private:
 
     TAtomic<bool> bCapturingVoice = false;
 
-	TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
-    TWeakObjectPtr<UInworldPlayerComponent> PlayerComponent;
+    TWeakObjectPtr<UInworldPlayer> InworldPlayer;
+    FDelegateHandle OnPlayerConversationChanged;
+
+    FDelegateHandle OnSessionConnectionStateChanged;
+    FDelegateHandle OnSessionLoaded;
 
     TSharedPtr<FInworldAudioCapture> InputAudioCapture;
     TSharedPtr<FInworldAudioCapture> OutputAudioCapture;
@@ -128,19 +139,6 @@ private:
 
     FAudioBuffer InputBuffer;
     FAudioBuffer OutputBuffer;
-
-    void OnPlayerTargetSet(UInworldCharacterComponent* Target);
-    void OnPlayerTargetClear(UInworldCharacterComponent* Target);
-
-    FDelegateHandle PlayerTargetSetHandle;
-    FDelegateHandle PlayerTargetClearHandle;
-
-    struct FPlayerAudioTarget
-    {
-        FString AgentId;
-        bool bActive;
-
-    } PlayerAudioTarget;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
     friend class FInworldGameplayDebuggerCategory;

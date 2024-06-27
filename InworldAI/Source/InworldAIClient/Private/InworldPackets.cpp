@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -115,6 +115,9 @@ void FInworldActor::AppendDebugString(FString& Str) const
 	case EInworldActorType::AGENT:
 		AppendToDebugString(Str, TEXT("AGENT"));
 		break;
+	case EInworldActorType::WORLD:
+		AppendToDebugString(Str, TEXT("WORLD"));
+		break;
 	default:
 		break;
 	}
@@ -218,6 +221,18 @@ void FInworldControlEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Control"));
 	AppendToDebugString(Str, FString::FromInt(static_cast<int32>(Action)));
+	AppendToDebugString(Str, Description);
+}
+
+void FInworldConversationUpdateEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("ConversationUpdate"));
+	AppendToDebugString(Str, EventType == EInworldConversationUpdateType::STARTED ? TEXT("STARTED") : EventType == EInworldConversationUpdateType::EVICTED ? TEXT("EVICTED") : TEXT("UPDATED"));
+	AppendToDebugString(Str, bIncludePlayer ? TEXT("IncludePlayer") : TEXT("ExcludePlayer"));
+	for (const auto& AgentId : Agents)
+	{
+		AppendToDebugString(Str, AgentId);
+	}
 }
 
 void FInworldEmotionEvent::AppendDebugString(FString& Str) const
@@ -231,23 +246,28 @@ void FInworldCustomEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Custom"));
 	AppendToDebugString(Str, Name);
-	if (Params.Num() > 0)
+	if (Params.RepMap.Num() > 0)
 	{
 		AppendToDebugString(Str, TEXT("Params"));
 	}
-	for (const auto& Param : Params)
+	for (const auto& Param : Params.RepMap)
 	{
 		AppendToDebugString(Str, Param.Key + ":" + Param.Value);
+	}
+}
+
+void FInworldLoadCharactersEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("LoadCharacters"));
+	for (auto& Agent : AgentInfos)
+	{
+		AppendToDebugString(Str, Agent.GivenName);
 	}
 }
 
 void FInworldChangeSceneEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("ChangeScene"));
-	for (auto& Agent : AgentInfos)
-	{
-		AppendToDebugString(Str, Agent.GivenName);
-	}
 }
 
 void FInworldRelationEvent::AppendDebugString(FString& Str) const

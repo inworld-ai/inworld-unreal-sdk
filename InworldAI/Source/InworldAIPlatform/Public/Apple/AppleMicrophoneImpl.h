@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -11,6 +11,7 @@
 
 #include "InworldAIPlatformInterfaces.h"
 #import "AppleAudioPermission.h"
+#import <AVFoundation/AVAudioSession.h>
 
 namespace Inworld
 {
@@ -21,22 +22,40 @@ namespace Inworld
         public:
             AppleMicrophoneImpl()
             {
-                obj = [[AppleAudioPermission alloc]init];
+                permission = [[AppleAudioPermission alloc]init];
             }
             
             virtual ~AppleMicrophoneImpl()
             {
-                obj = nil;
+                permission = nil;
+            }
+
+            virtual bool Initialize() override
+            {
+#if PLATFORM_IOS
+                NSError* setCategoryError = nil;
+                [[AVAudioSession sharedInstance]setCategory:AVAudioSessionCategoryPlayAndRecord withOptions : (AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth) error : &setCategoryError];
+                  if (setCategoryError != nil)
+                  {
+                    return false;
+                  }
+                
+                NSError* setActiveError = nil;
+                [[AVAudioSession sharedInstance]setActive:YES error : &setActiveError];
+                return nil == setActiveError;
+#elif PLATFORM_MAC
+                return true;
+#endif
             }
 
             virtual void RequestAccess(RequestAccessCallback Callback) override
             {
-                [obj requestAccess : Callback];
+                [permission requestAccess : Callback];
             }
             
             virtual Permission GetPermission() const override
             {
-                switch ([obj getPermission])
+                switch ([permission getPermission])
                 {
                 case 0:
                     return Permission::GRANTED;
@@ -48,7 +67,7 @@ namespace Inworld
             }
 
         private:
-            AppleAudioPermission* obj;
+            AppleAudioPermission* permission;
         };
     }
 }

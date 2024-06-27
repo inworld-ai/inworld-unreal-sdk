@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -9,6 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "InworldCharacterComponent.h"
+#include "InworldPlayer.h"
 
 #include "InworldPlayerComponent.generated.h"
 
@@ -16,39 +17,56 @@ class UInworldApiSubsystem;
 class UInworldCharacterComponent;
 
 UCLASS(ClassGroup = (Inworld), meta = (BlueprintSpawnableComponent))
-class INWORLDAIINTEGRATION_API UInworldPlayerComponent : public UActorComponent, public Inworld::IPlayerComponent
+class INWORLDAIINTEGRATION_API UInworldPlayerComponent : public UActorComponent, public IInworldPlayerOwnerInterface
 {
 	GENERATED_BODY()
 
 public:
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerTargetChange, UInworldCharacterComponent*);
-    FOnInworldPlayerTargetChange OnTargetSet;
-    FOnInworldPlayerTargetChange OnTargetClear;
+    UInworldPlayerComponent();
+
+    // IInworldPlayerInterface
+    virtual UInworldPlayer* GetInworldPlayer_Implementation() const override { return InworldPlayer; }
+    // ~IInworldPlayerInterface
+
+    virtual void OnRegister() override;
+    virtual void OnUnregister() override;
+    virtual void InitializeComponent() override;
+    virtual void UninitializeComponent() override;
 
     virtual void BeginPlay() override;
-    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
+
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    void SetConversationParticipation(bool bParticipant);
+
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    void ContinueConversation();
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacter"))
-    UInworldCharacterComponent* GetTargetInworldCharacter() { return static_cast<UInworldCharacterComponent*>(GetTargetCharacter()); }
+    UInworldCharacterComponent* GetTargetInworldCharacter();
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacters"))
+    TArray<UInworldCharacterComponent*> GetTargetInworldCharacters();
 
-    virtual Inworld::ICharacterComponent* GetTargetCharacter() override;
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "SetTargetCharacter", DeprecatedFunction, DeprecationMessage="Please use AddTargetCharacter"))
+    void SetTargetInworldCharacter(UInworldCharacterComponent* Character) { AddTargetInworldCharacter(Character); }
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "AddTargetCharacter"))
+    void AddTargetInworldCharacter(UInworldCharacterComponent* Character);
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "SetTargetCharacter"))
-    void SetTargetInworldCharacter(UInworldCharacterComponent* Character);
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearTargetCharacter", DeprecatedFunction, DeprecationMessage = "Please use RemoveTargetCharacter"))
+    void ClearTargetInworldCharacter(UInworldCharacterComponent* Character) { RemoveTargetInworldCharacter(Character); }
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "RemoveTargetCharacter"))
+    void RemoveTargetInworldCharacter(UInworldCharacterComponent* Character);
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearTargetCharacter"))
-    void ClearTargetInworldCharacter();
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearAllTargetCharacters"))
+    void ClearAllTargetInworldCharacters();
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-    bool IsInteracting() { return !TargetCharacterAgentId.IsEmpty(); }
+    bool IsInteracting() { return InworldPlayer->GetTargetCharacters().Num() > 0; }
 
-    UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Interaction")
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
     void SendTextMessageToTarget(const FString& Message);
-
-    UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Interaction")
-    void SendTextMessage(const FString& Message, const FString& AgentId);
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (AutoCreateRefTerm = "Params"))
     void SendTriggerToTarget(const FString& Name, const TMap<FString, FString>& Params);
@@ -62,23 +80,17 @@ public:
     void StopAudioSessionWithTarget();
 
     UFUNCTION(BlueprintCallable, Category = "Interaction")
-    void SendAudioMessageToTarget(USoundWave* SoundWave);
-    void SendAudioDataMessageToTarget(const TArray<uint8>& Data);
-    void SendAudioDataMessageWithAECToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+    void SendAudioMessageToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 private:
-	UFUNCTION()
-	void OnRep_TargetCharacterAgentId(FString OldAgentId);
-
-    FDelegateHandle CharacterTargetUnpossessedHandle;
-
     UPROPERTY(EditAnywhere, Category = "UI")
     FString UiName = "Player";
 
-    TWeakObjectPtr<UInworldApiSubsystem> InworldSubsystem;
+    UPROPERTY(Replicated)
+    UInworldPlayer* InworldPlayer;
 
-	UPROPERTY(ReplicatedUsing = OnRep_TargetCharacterAgentId)
-	FString TargetCharacterAgentId;
+    UPROPERTY(EditDefaultsOnly, Category = "Conversation")
+    bool bConversationParticipant = true;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
     friend class FInworldGameplayDebuggerCategory;
