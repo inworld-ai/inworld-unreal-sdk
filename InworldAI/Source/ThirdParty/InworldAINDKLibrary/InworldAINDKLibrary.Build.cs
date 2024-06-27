@@ -178,7 +178,7 @@ public class InworldAINDKLibrary : ModuleRules
 
             if (bVAD)
             {
-	            PublicDelayLoadDLLs.Add("libinworld-ndk-vad.dylib");
+	            PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory,"libinworld-ndk-vad.dylib"));
 	            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk-vad.dylib"));
 
 	            RuntimeDependencies.Add(Path.Combine(ModuleDirectory, "resource/silero_vad_10_27_2022.onnx"));

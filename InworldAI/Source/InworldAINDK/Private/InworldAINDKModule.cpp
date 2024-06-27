@@ -68,8 +68,8 @@ void FInworldAINDKModule::ShutdownModule()
 
 #ifdef INWORLD_VAD
 	FPlatformProcess::FreeDllHandle(vadLibHandle);
-	vadLibHandle = nullptr;
 #endif
+	vadLibHandle = nullptr;
 }
 
 void FInworldAINDKModule::LoadDll(const FString& Path, void** Handle)
