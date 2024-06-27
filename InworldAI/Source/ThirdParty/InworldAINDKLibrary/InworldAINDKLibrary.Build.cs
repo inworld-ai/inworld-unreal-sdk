@@ -66,13 +66,15 @@ public class InworldAINDKLibrary : ModuleRules
             PublicDefinitions.Add("INWORLD_AUDIO_DUMP=1");
         }
         
-        // Voice Activity Detection (VAD) supported on Windows only
-        const bool bUseVAD = false;
-        bool bVAD = bUseVAD && Target.Platform == UnrealTargetPlatform.Win64;
+        // Voice Activity Detection (VAD) supported on Windows and Mac
+        const bool bUseVAD = true;
+        bool bVAD = bUseVAD && 
+            (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac);
         
         if (bVAD)
         {
 	        PublicDefinitions.Add("INWORLD_VAD=1");
+	        PublicDefinitions.Add("INWORLD_SHOW_ONSCREEN_AUDIO_SEND=1");
         }
 
         PublicDefinitions.Add("INWORLD_LOG=1");
@@ -172,6 +174,14 @@ public class InworldAINDKLibrary : ModuleRules
             {
                 PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
                 RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
+            }
+
+            if (bVAD)
+            {
+	            PublicDelayLoadDLLs.Add("libinworld-ndk-vad.dylib");
+	            RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk-vad.dylib"));
+
+	            RuntimeDependencies.Add(Path.Combine(ModuleDirectory, "resource/silero_vad_10_27_2022.onnx"));
             }
         }
         else if(Target.Platform == UnrealTargetPlatform.IOS && bUseSharedInworldNDK)

@@ -45,8 +45,12 @@ void FInworldAINDKModule::StartupModule()
 	LoadDll(LibraryPath, &ndkLibraryHandle);
 #endif
 
+#ifdef INWORLD_VAD
 #if PLATFORM_WINDOWS
 	LoadDll(FPaths::Combine(*DllDirectory, TEXT("Win64/inworld-ndk-vad.dll")), &vadLibHandle);
+#elif PLATFORM_MAC
+	LoadDll(FPaths::Combine(*DllDirectory, TEXT("Mac/libinworld-ndk-vad.dylib")), &vadLibHandle);
+#endif
 #endif
 }
 
@@ -62,8 +66,10 @@ void FInworldAINDKModule::ShutdownModule()
 #endif // INWORLD_NDK_SHARED
 	ndkLibraryHandle = nullptr;
 
+#ifdef INWORLD_VAD
 	FPlatformProcess::FreeDllHandle(vadLibHandle);
 	vadLibHandle = nullptr;
+#endif
 }
 
 void FInworldAINDKModule::LoadDll(const FString& Path, void** Handle)
