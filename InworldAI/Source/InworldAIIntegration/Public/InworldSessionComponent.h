@@ -63,6 +63,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
 
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message);
+
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldConnectionStateChanged OnSessionConnectionStateChangedDelegate;
 	FOnInworldConnectionStateChangedNative& OnSessionConnectionStateChanged() { return OnSessionConnectionStateChangedDelegateNative; }

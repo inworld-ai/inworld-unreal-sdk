@@ -280,6 +280,14 @@ void UInworldSession::SaveSession(FOnInworldSessionSavedCallback Callback)
 	Client->SaveSession(Callback);
 }
 
+void UInworldSession::SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(InteractionId, void())
+
+	Client->SendInteractionFeedback(InteractionId, bIsLike, Message);
+}
+
 void UInworldSession::LoadCharacters(const TArray<UInworldCharacter*>& Characters)
 {
 	NO_CLIENT_RETURN(void())

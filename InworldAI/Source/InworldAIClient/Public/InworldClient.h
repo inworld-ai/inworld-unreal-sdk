@@ -56,6 +56,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
 
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message);
+
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void LoadCharacter(const FString& Id) { LoadCharacters({ Id }); }
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
