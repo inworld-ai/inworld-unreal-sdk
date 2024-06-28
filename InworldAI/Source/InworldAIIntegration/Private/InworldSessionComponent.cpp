@@ -168,11 +168,11 @@ EInworldConnectionState UInworldSessionComponent::GetConnectionState() const
 	return InworldSession->GetConnectionState();
 }
 
-void UInworldSessionComponent::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const
+void UInworldSessionComponent::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const
 {
 	NO_SESSION_RETURN(void())
 
-	return InworldSession->GetConnectionError(OutErrorMessage, OutErrorCode);
+	return InworldSession->GetConnectionError(OutErrorMessage, OutErrorCode, OutErrorDetails);
 }
 
 void UInworldSessionComponent::SetSceneId(const FString& InSceneId)
@@ -260,20 +260,29 @@ void UInworldSessionComponent::OnRep_InworldSession()
 			{
 				if (ConnectionState == EInworldConnectionState::Connected)
 				{
-					CurrentRetryConnectionTime = 1.f;
+					World->GetTimerManager().ClearTimer(RetryConnectionTimerHandle);
 				}
 
 				if (ConnectionState == EInworldConnectionState::Disconnected)
 				{
-					if (CurrentRetryConnectionTime == 0.f)
+					FString OutErrorMessage;
+					int32 OutErrorCode;
+					FInworldConnectionErrorDetails OutErrorDetails;
+					GetConnectionError(OutErrorMessage, OutErrorCode, OutErrorDetails);
+					if (OutErrorDetails.ReconnectionType == EInworldReconnectionType::IMMEDIATE)
 					{
+						UE_LOG(LogInworldAIIntegration, Log, TEXT("Attempting reconnection immediately: (%s, Code: %d)"), *OutErrorMessage, OutErrorCode);
 						ResumeSession();
+					}
+					else if (OutErrorDetails.ReconnectionType == EInworldReconnectionType::TIMEOUT)
+					{
+						UE_LOG(LogInworldAIIntegration, Log, TEXT("Attempting reconnection after timeout: (%s, Code: %d)"), *OutErrorMessage, OutErrorCode);
+						World->GetTimerManager().SetTimer(RetryConnectionTimerHandle, this, &UInworldSessionComponent::ResumeSession, OutErrorDetails.ReconnectTime);
 					}
 					else
 					{
-						World->GetTimerManager().SetTimer(RetryConnectionTimerHandle, this, &UInworldSessionComponent::ResumeSession, CurrentRetryConnectionTime);
+						UE_LOG(LogInworldAIIntegration, Warning, TEXT("Will not reattempt Reconnection for: (%s, Code: %d)"), *OutErrorMessage, OutErrorCode);
 					}
-					CurrentRetryConnectionTime += FMath::Min(CurrentRetryConnectionTime + RetryConnectionIntervalTime, MaxRetryConnectionTime);
 				}
 			}
 		}

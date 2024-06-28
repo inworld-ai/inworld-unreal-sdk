@@ -168,7 +168,7 @@ public:
 
     /** Get connection error message and code from previous Disconnect */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
-    void GetConnectionError(FString& Message, int32& Code);
+    void GetConnectionError(FString& Message, int32& Code, FInworldConnectionErrorDetails& OutErrorDetails);
 
     /** Cancel agents response in case agent has been interrupted by player */
     UFUNCTION(BlueprintCallable, Category = "Messages")

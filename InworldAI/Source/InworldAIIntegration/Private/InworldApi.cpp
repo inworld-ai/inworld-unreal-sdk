@@ -276,11 +276,11 @@ EInworldConnectionState UInworldApiSubsystem::GetConnectionState() const
     return InworldSession->GetConnectionState();
 }
 
-void UInworldApiSubsystem::GetConnectionError(FString& Message, int32& Code)
+void UInworldApiSubsystem::GetConnectionError(FString& Message, int32& Code, FInworldConnectionErrorDetails& Details)
 {
     NO_CLIENT_RETURN(void())
 
-    InworldSession->GetConnectionError(Message, Code);
+    InworldSession->GetConnectionError(Message, Code, Details);
 }
 
 void UInworldApiSubsystem::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)
