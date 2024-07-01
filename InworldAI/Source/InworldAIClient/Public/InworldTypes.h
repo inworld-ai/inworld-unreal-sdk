@@ -137,3 +137,21 @@ struct FInworldAgentInfo
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Agent")
     FString GivenName = "";
 };
+
+USTRUCT(BlueprintType)
+struct FInworldConnectionErrorDetails
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadOnly, Category = "Agent")
+    EInworldConnectionErrorType ConnectionErrorType;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Agent")
+    EInworldReconnectionType ReconnectionType;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Agent")
+    int64 ReconnectTime = 0;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Agent")
+    int32 MaxRetries = 0;
+};

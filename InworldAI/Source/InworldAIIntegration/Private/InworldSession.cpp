@@ -280,6 +280,14 @@ void UInworldSession::SaveSession(FOnInworldSessionSavedCallback Callback)
 	Client->SaveSession(Callback);
 }
 
+void UInworldSession::SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(InteractionId, void())
+
+	Client->SendInteractionFeedback(InteractionId, bIsLike, Message);
+}
+
 void UInworldSession::LoadCharacters(const TArray<UInworldCharacter*>& Characters)
 {
 	NO_CLIENT_RETURN(void())
@@ -444,11 +452,11 @@ EInworldConnectionState UInworldSession::GetConnectionState() const
 	return ConnectionState;
 }
 
-void UInworldSession::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const
+void UInworldSession::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->GetConnectionError(OutErrorMessage, OutErrorCode);
+	Client->GetConnectionError(OutErrorMessage, OutErrorCode, OutErrorDetails);
 }
 
 void UInworldSession::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)

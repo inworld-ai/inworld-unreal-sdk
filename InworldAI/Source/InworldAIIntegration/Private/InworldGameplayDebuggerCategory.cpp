@@ -45,7 +45,8 @@ void FInworldGameplayDebuggerCategory::CollectData(APlayerController* OwnerPC, A
 
 	DataPack.bInworldApiExists = true;
 	DataPack.SessionStatus = static_cast<uint8>(InworldApi->GetInworldSession()->GetConnectionState());
-	InworldApi->GetInworldSession()->GetConnectionError(DataPack.SessionError, DataPack.ErrorCode);
+	FInworldConnectionErrorDetails OutErrorDetails;
+	InworldApi->GetInworldSession()->GetConnectionError(DataPack.SessionError, DataPack.ErrorCode, OutErrorDetails);
 	DataPack.SessionId = InworldApi->GetInworldSession()->GetSessionId();
 
 	for (UInworldCharacter* Character : InworldApi->GetInworldSession()->GetRegisteredCharacters())

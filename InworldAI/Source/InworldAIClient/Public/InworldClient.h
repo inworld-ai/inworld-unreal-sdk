@@ -56,6 +56,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
 
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message);
+
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void LoadCharacter(const FString& Id) { LoadCharacters({ Id }); }
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
@@ -116,7 +119,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	EInworldConnectionState GetConnectionState() const;
 	UFUNCTION(BlueprintPure, Category = "Connection")
-	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const;
+	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const;
 
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldConnectionStateChanged OnConnectionStateChangedDelegate;

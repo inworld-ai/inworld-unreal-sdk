@@ -344,6 +344,18 @@ void UInworldClient::SaveSession(FOnInworldSessionSavedCallback Callback)
 		});
 }
 
+void UInworldClient::SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(InteractionId, void())
+
+	Inworld::InteractionFeedback InteractionFeedback;
+	InteractionFeedback.bIsLike = true;
+	InteractionFeedback.comment = TCHAR_TO_UTF8(*Message);
+	std::string interaction = TCHAR_TO_UTF8(*InteractionId);
+	Inworld::GetClient()->SendFeedbackAsync(interaction, InteractionFeedback);
+}
+
 void UInworldClient::LoadCharacters(const TArray<FString>& Ids)
 {
 	NO_CLIENT_RETURN(void())
@@ -406,13 +418,22 @@ EInworldConnectionState UInworldClient::GetConnectionState() const
 	return static_cast<EInworldConnectionState>(Inworld::GetClient()->GetConnectionState());
 }
 
-void UInworldClient::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const
+void UInworldClient::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const
 {
 	NO_CLIENT_RETURN(void())
 
-	std::string OutError;
-	Inworld::GetClient()->GetConnectionError(OutError, OutErrorCode);
-	OutErrorMessage = UTF8_TO_TCHAR(OutError.c_str());
+	std::string ErrorMessage;
+	int32_t ErrorCode;
+	Inworld::ErrorDetails ErrorDetails;
+
+	Inworld::GetClient()->GetConnectionError(ErrorMessage, ErrorCode, ErrorDetails);
+
+	OutErrorMessage = UTF8_TO_TCHAR(ErrorMessage.c_str());
+	OutErrorCode = ErrorCode;
+	OutErrorDetails.ConnectionErrorType = static_cast<EInworldConnectionErrorType>(ErrorDetails.Error);
+	OutErrorDetails.ReconnectionType = static_cast<EInworldReconnectionType>(ErrorDetails.Reconnect);
+	OutErrorDetails.ReconnectTime = ErrorDetails.ReconnectTime;
+	OutErrorDetails.MaxRetries = ErrorDetails.MaxRetries;
 }
 
 FString UInworldClient::GetSessionId() const
