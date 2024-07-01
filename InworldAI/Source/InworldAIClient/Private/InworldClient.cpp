@@ -195,6 +195,7 @@ UInworldClient::~UInworldClient()
 	if (IsValid(AudioSender))
 	{
 		AudioSender->OnVAD().Remove(OnVADHandle);
+		AudioSender->Terminate();
 	}
 	AudioSender = nullptr;
 	Inworld::DestroyClient();
