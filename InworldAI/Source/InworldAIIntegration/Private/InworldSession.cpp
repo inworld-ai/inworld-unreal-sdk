@@ -169,6 +169,11 @@ void UInworldSession::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
 				}
 			}
 		}
+
+		if (UInworldPlayer** ConversationPlayer = ConversationIdToPlayer.Find(ConversationId))
+		{
+			(*ConversationPlayer)->HandlePacket(WrappedPacket);
+		}
 	}
 }
 
@@ -323,6 +328,23 @@ void UInworldSession::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfi
 	NO_CLIENT_RETURN(void())
 
 	Client->LoadPlayerProfile(PlayerProfile);
+}
+
+FString UInworldSession::UpdateConversation(UInworldPlayer* Player)
+{
+	NO_CLIENT_RETURN({})
+	EMPTY_ARG_RETURN(Player, {})
+	EMPTY_ARG_RETURN(Player->GetTargetCharacters(), {})
+
+	const FString PreviousConversationId = Player->GetConversationId();
+	if(ConversationIdToPlayer.Contains(PreviousConversationId))
+	{
+		ConversationIdToPlayer.Remove(PreviousConversationId);
+	}
+
+	const FString NextConversationId = Client->UpdateConversation(Player->GetConversationId(), Inworld::CharactersToAgentIds(Player->GetTargetCharacters()), Player->IsConversationParticipant());
+	ConversationIdToPlayer.Add({ NextConversationId, Player });
+	return NextConversationId;
 }
 
 void UInworldSession::SendTextMessage(UInworldCharacter* Character, const FString& Message)
