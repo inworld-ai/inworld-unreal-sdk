@@ -343,7 +343,7 @@ FString UInworldSession::UpdateConversation(UInworldPlayer* Player)
 	}
 
 	const FString NextConversationId = Client->UpdateConversation(Player->GetConversationId(), Inworld::CharactersToAgentIds(Player->GetTargetCharacters()), Player->IsConversationParticipant());
-	ConversationIdToPlayer.Add({ NextConversationId, Player });
+	ConversationIdToPlayer.Add(NextConversationId, Player);
 	return NextConversationId;
 }
 
