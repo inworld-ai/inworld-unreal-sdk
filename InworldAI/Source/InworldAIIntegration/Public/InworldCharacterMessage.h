@@ -59,6 +59,11 @@ USTRUCT(BlueprintType)
 struct FCharacterUtteranceVisemeInfo
 {
 	GENERATED_BODY()
+	FCharacterUtteranceVisemeInfo() = default;
+	FCharacterUtteranceVisemeInfo(const FString& InCode, float InTimestamp)
+		: Code(InCode)
+		, Timestamp(InTimestamp)
+	{}
 
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString Code;

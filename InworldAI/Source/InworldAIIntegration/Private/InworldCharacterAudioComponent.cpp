@@ -55,6 +55,7 @@ void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessa
 				VisemeInfoPlayback.Add(VisemeInfo);
 			}
 		}
+		VisemeInfoPlayback.Add({ TEXT("STOP"), SoundDuration });
 
 		Play();
 
