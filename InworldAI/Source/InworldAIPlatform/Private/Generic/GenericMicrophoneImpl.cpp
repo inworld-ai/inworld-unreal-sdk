@@ -21,6 +21,11 @@ namespace Inworld
         {
         }
 
+        bool GenericMicrophoneImpl::Initialize()
+        {
+            return true;
+        }
+
         Permission GenericMicrophoneImpl::GetPermission() const
         {
             // Assume microphone access is always granted for generic

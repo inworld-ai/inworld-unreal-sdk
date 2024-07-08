@@ -35,6 +35,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEvent, const FInwor
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEventNative, const FInworldEmotionEvent& /*EmotionEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEvent, const FInworldCustomEvent&, CustomEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEventNative, const FInworldCustomEvent& /*CustomEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInworldVAD, UInworldPlayer*, Player, bool, bVoiceDetected);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoaded, bool, bLoaded);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoadedNative, bool /*bLoaded*/);
@@ -98,6 +99,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
 
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message);
+
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void LoadCharacter(UInworldCharacter* Character) { LoadCharacters({ Character }); }
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
@@ -125,7 +129,7 @@ public:
 	void SendSoundMessageToConversation(UInworldPlayer* Player, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(UInworldCharacter* Character, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+	void SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStartToConversation(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 
@@ -151,7 +155,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	EInworldConnectionState GetConnectionState() const;
 	UFUNCTION(BlueprintPure, Category = "Connection")
-	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const;
+	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const;
 
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldConnectionStateChanged OnConnectionStateChangedDelegate;
@@ -167,6 +171,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldPerceivedLatency OnPerceivedLatencyDelegate;
 	FOnInworldPerceivedLatencyNative& OnPerceivedLatency() { return OnPerceivedLatencyDelegateNative; }
+
+	UPROPERTY(BlueprintAssignable, Category = "VAD")
+	FOnInworldVAD OnVADDelegate;
+	FOnInworldVADNative& OnVAD() { return OnVADDelegateNative; }
 
 private:
 	void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
@@ -191,6 +199,7 @@ private:
 	FDelegateHandle OnClientPacketReceivedHandle;
 	FDelegateHandle OnClientConnectionStateChangedHandle;
 	FDelegateHandle OnClientPerceivedLatencyHandle;
+	FDelegateHandle OnVADHandle;
 
 	UPROPERTY(Replicated)
 	TArray<UInworldCharacter*> RegisteredCharacters;
@@ -205,6 +214,7 @@ private:
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldSessionLoadedNative OnLoadedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
+	FOnInworldVADNative OnVADDelegateNative;
 
 	class FInworldSessionPacketVisitor : public TSharedFromThis<FInworldSessionPacketVisitor>, public InworldPacketVisitor
 	{

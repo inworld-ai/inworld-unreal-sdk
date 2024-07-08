@@ -34,6 +34,7 @@ void UInworldPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(UInworldPlayer, Session);
 	DOREPLIFETIME(UInworldPlayer, bConversationParticipant);
 	DOREPLIFETIME(UInworldPlayer, TargetCharacters);
+	DOREPLIFETIME(UInworldPlayer, bVoiceDetected);
 }
 
 int32 UInworldPlayer::GetFunctionCallspace(UFunction* Function, FFrame* Stack)
@@ -221,6 +222,22 @@ void UInworldPlayer::ClearAllTargetCharacters()
 
 		OnTargetCharactersChangedDelegateNative.Broadcast();
 		OnTargetCharactersChangedDelegate.Broadcast();
+	}
+}
+
+void UInworldPlayer::SetVoiceDetected(bool bVal)
+{
+	const bool bOldValue = bVoiceDetected;
+	bVoiceDetected = bVal;
+	OnRep_VoiceDetected(bOldValue);
+}
+
+void UInworldPlayer::OnRep_VoiceDetected(bool bOldValue)
+{
+	if (bVoiceDetected != bOldValue)
+	{
+		OnVoiceDetectionDelegate.Broadcast(bVoiceDetected);
+		OnVoiceDetectionDelegateNative.Broadcast(bVoiceDetected);
 	}
 }
 

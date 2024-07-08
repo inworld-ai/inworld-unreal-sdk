@@ -37,6 +37,7 @@ public:
 
 	// IInworldCharacterOwnerInterface
 	virtual UInworldCharacter* GetInworldCharacter_Implementation() const override { return InworldCharacter; }
+	virtual void HandleTargetPlayerVoiceDetection(bool bVoiceDetected) override;
 	// ~IInworldCharacterOwnerInterface
 
 	virtual void OnRegister() override;
@@ -83,6 +84,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|InteractionEnd")
 	FOnInworldCharacterInteractionEnd OnInteractionEnd;
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetection, bool, bVoiceDetected);
+	UPROPERTY(BlueprintAssignable, Category = "Conversation")
+	FOnInworldPlayerVoiceDetection OnVoiceDetection;
+
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	void SetBrainName(const FString& Name);
 
@@ -124,7 +129,7 @@ public:
 	void SendNarrationEvent(const FString& Content);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void StartAudioSession(EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+	void StartAudioSession(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession();

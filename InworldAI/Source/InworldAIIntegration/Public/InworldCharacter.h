@@ -8,6 +8,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InworldSession.h"
 #include "UObject/Interface.h"
 #include "UObject/NoExportTypes.h"
 #include "GameFramework/Actor.h"
@@ -53,7 +54,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Narration")
 	void SendNarrationEvent(const FString& Content);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+	void SendAudioSessionStart(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStop();
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
@@ -122,7 +123,7 @@ private:
 	FOnInworldCharacterPossessedNative OnPossessedDelegateNative;
 
 	UFUNCTION()
-	void OnRep_TargetPlayer();
+	void OnRep_TargetPlayer(UInworldPlayer* OldTargetPlayer);
 
 	UPROPERTY(ReplicatedUsing=OnRep_TargetPlayer)
 	UInworldPlayer* TargetPlayer;
@@ -134,6 +135,8 @@ private:
 	FOnInworldControlEventNative OnInworldControlEventDelegateNative;
 	FOnInworldEmotionEventNative OnInworldEmotionEventDelegateNative;
 	FOnInworldCustomEventNative OnInworldCustomEventDelegateNative;
+
+	FDelegateHandle OnVADHandle;
 
 	class FInworldCharacterPacketVisitor : public TSharedFromThis<FInworldCharacterPacketVisitor>, public InworldPacketVisitor
 	{
@@ -173,6 +176,8 @@ class INWORLDAIINTEGRATION_API IInworldCharacterOwnerInterface
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
 	UInworldCharacter* GetInworldCharacter() const;
+
+	virtual void HandleTargetPlayerVoiceDetection(bool bVoiceDetected) {}
 };
 
 namespace Inworld
