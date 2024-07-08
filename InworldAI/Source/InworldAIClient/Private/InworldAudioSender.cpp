@@ -52,7 +52,10 @@ void UInworldAudioSender::Initialize(bool bEnableVAD)
 
 void UInworldAudioSender::Terminate()
 {
-	GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+	if (TimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+	}
 	ClearState();
 #ifdef INWORLD_AEC
 	WebRtcAec3_Free(AecHandle);
