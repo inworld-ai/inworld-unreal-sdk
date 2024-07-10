@@ -48,6 +48,7 @@ void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessa
 
 		CurrentVisemeInfo = FCharacterUtteranceVisemeInfo();
 		PreviousVisemeInfo = FCharacterUtteranceVisemeInfo();
+		VisemeInfoPlayback.Add({ TEXT("STOP"), 0.f });
 		for (const auto& VisemeInfo : Message.VisemeInfos)
 		{
 			if (!VisemeInfo.Code.IsEmpty())
