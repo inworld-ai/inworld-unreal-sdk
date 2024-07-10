@@ -129,7 +129,7 @@ void UInworldSession::Destroy()
 
 void UInworldSession::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
 {
-	auto Packet = WrappedPacket.Packet;
+	auto& Packet = WrappedPacket.Packet;
 	if (Packet.IsValid())
 	{
 		Packet->Accept(*PacketVisitor);
@@ -334,7 +334,6 @@ FString UInworldSession::UpdateConversation(UInworldPlayer* Player)
 {
 	NO_CLIENT_RETURN({})
 	EMPTY_ARG_RETURN(Player, {})
-	EMPTY_ARG_RETURN(Player->GetTargetCharacters(), {})
 
 	const FString PreviousConversationId = Player->GetConversationId();
 	if(ConversationIdToPlayer.Contains(PreviousConversationId))
@@ -343,7 +342,10 @@ FString UInworldSession::UpdateConversation(UInworldPlayer* Player)
 	}
 
 	const FString NextConversationId = Client->UpdateConversation(Player->GetConversationId(), Inworld::CharactersToAgentIds(Player->GetTargetCharacters()), Player->IsConversationParticipant());
-	ConversationIdToPlayer.Add(NextConversationId, Player);
+	if (!NextConversationId.IsEmpty())
+	{
+		ConversationIdToPlayer.Add(NextConversationId, Player);
+	}
 	return NextConversationId;
 }
 

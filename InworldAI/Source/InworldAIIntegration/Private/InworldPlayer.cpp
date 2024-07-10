@@ -68,7 +68,7 @@ bool UInworldPlayer::CallRemoteFunction(UFunction* Function, void* Parms, FOutPa
 
 void UInworldPlayer::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
 {
-	auto Packet = WrappedPacket.Packet;
+	auto& Packet = WrappedPacket.Packet;
 	if (Packet.IsValid())
 	{
 		Packet->Accept(*PacketVisitor);
