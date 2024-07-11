@@ -40,7 +40,7 @@ void UInworldCharacterComponent::HandleTargetPlayerVoiceDetection(bool bVoiceDet
 {
 	if (bVoiceDetected)
 	{
-		CancelCurrentInteraction();
+		Interrupt();
 	}
 	OnVoiceDetection.Broadcast(bVoiceDetected);
 }
@@ -350,7 +350,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 
 		// Don't add to queue, player talking is instant.
 		FCharacterMessagePlayerTalk PlayerTalk;
-		PlayerTalk.Populate(Event);
+		PlayerTalk << Event;
 
 		OnPlayerTalk.Broadcast(PlayerTalk);
 
