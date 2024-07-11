@@ -13,6 +13,7 @@
 #include "UObject/NoExportTypes.h"
 #include "GameFramework/Actor.h"
 #include "InworldEnums.h"
+#include "InworldPackets.h"
 #include "InworldPlayer.generated.h"
 
 class UInworldSession;
@@ -36,6 +37,9 @@ class INWORLDAIINTEGRATION_API UInworldPlayer : public UObject
 {
 	GENERATED_BODY()
 public:
+	UInworldPlayer();
+	virtual ~UInworldPlayer();
+
 	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -45,6 +49,9 @@ public:
 	// ~UObject
 
 public:
+	UFUNCTION()
+	void HandlePacket(const FInworldWrappedPacket& WrappedPacket);
+
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SetSession(UInworldSession* InSession);
 	UFUNCTION(BlueprintPure, Category = "Session")
@@ -139,6 +146,25 @@ private:
 
 	bool bHasAudioSession = false;
 	EInworldMicrophoneMode MicMode = EInworldMicrophoneMode::UNKNOWN;
+
+	class FInworldPlayerPacketVisitor : public TSharedFromThis<FInworldPlayerPacketVisitor>, public InworldPacketVisitor
+	{
+	public:
+		FInworldPlayerPacketVisitor()
+			: FInworldPlayerPacketVisitor(nullptr)
+		{}
+		FInworldPlayerPacketVisitor(class UInworldPlayer* InPlayer)
+			: Player(InPlayer)
+		{}
+		virtual ~FInworldPlayerPacketVisitor() = default;
+
+		virtual void Visit(const FInworldConversationUpdateEvent& Event) override;
+
+	private:
+		UInworldPlayer* Player;
+	};
+
+	TSharedRef<FInworldPlayerPacketVisitor> PacketVisitor;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)
