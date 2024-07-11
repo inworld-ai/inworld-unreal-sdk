@@ -435,7 +435,7 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 
 void UInworldCharacterComponent::OnInworldTextEvent(const FInworldTextEvent& Event)
 {
-	Multicast_VisitText(Event);
+    Multicast_VisitText(Event);
 }
 
 void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEvent& Event)
@@ -466,17 +466,17 @@ void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEven
 
 void UInworldCharacterComponent::OnInworldSilenceEvent(const FInworldSilenceEvent& Event)
 {
-	Multicast_VisitSilence(Event);
+    Multicast_VisitSilence(Event);
 }
 
 void UInworldCharacterComponent::OnInworldControlEvent(const FInworldControlEvent& Event)
 {
-	Multicast_VisitControl(Event);
+    Multicast_VisitControl(Event);
 }
 
 void UInworldCharacterComponent::OnInworldEmotionEvent(const FInworldEmotionEvent& Event)
 {
-	Multicast_VisitEmotion(Event);
+    Multicast_VisitEmotion(Event);
 }
 
 void UInworldCharacterComponent::OnInworldCustomEvent(const FInworldCustomEvent& Event)
