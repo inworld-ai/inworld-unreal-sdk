@@ -137,7 +137,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 			PendingMessageQueueEntries.Emplace(MakeShared<FCharacterMessageQueueEntry<U>>(Message));
 		}
 
-		Message->Populate(Event);
+		(*Message) << Event;
 
 		OnUpdated(*Message);
 

@@ -8,10 +8,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InworldEnums.h"
 #include "UObject/Interface.h"
 #include "UObject/NoExportTypes.h"
 #include "GameFramework/Actor.h"
 #include "InworldEnums.h"
+#include "InworldPackets.h"
 #include "InworldPlayer.generated.h"
 
 class UInworldSession;
@@ -27,11 +29,17 @@ DECLARE_MULTICAST_DELEGATE(FOnInworldPlayerTargetCharactersChangedNative);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldPlayerConversationChanged);
 DECLARE_MULTICAST_DELEGATE(FOnInworldPlayerConversationChangedNative);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetection, bool, bVoiceDetected);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetectionNative, bool /*bVoiceDetected*/);
+
 UCLASS(BlueprintType)
 class INWORLDAIINTEGRATION_API UInworldPlayer : public UObject
 {
 	GENERATED_BODY()
 public:
+	UInworldPlayer();
+	virtual ~UInworldPlayer();
+
 	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -41,6 +49,9 @@ public:
 	// ~UObject
 
 public:
+	UFUNCTION()
+	void HandlePacket(const FInworldWrappedPacket& WrappedPacket);
+
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SetSession(UInworldSession* InSession);
 	UFUNCTION(BlueprintPure, Category = "Session")
@@ -97,13 +108,22 @@ public:
 	FOnInworldPlayerConversationChanged OnConversationChangedDelegate;
 	FOnInworldPlayerConversationChangedNative& OnConversationChanged() { return OnConversationChangedDelegateNative; }
 
+	UPROPERTY(BlueprintAssignable, Category = "Conversation")
+	FOnInworldPlayerVoiceDetection OnVoiceDetectionDelegate;
+	FOnInworldPlayerVoiceDetectionNative& OnVoiceDetection() { return OnVoiceDetectionDelegateNative; }
+
 	bool HasAudioSession() const { return bHasAudioSession; }
 	EInworldMicrophoneMode GetMicMode() const { return MicMode; }
+
+	void SetVoiceDetected(bool bVal);
 
 private:
 	void UpdateConversation();
 
 private:
+	UFUNCTION()
+	void OnRep_VoiceDetected(bool bOldValue);
+	
 	UPROPERTY(Replicated)
 	UInworldSession* Session;
 
@@ -113,15 +133,38 @@ private:
 	UPROPERTY(Replicated)
 	TArray<UInworldCharacter*> TargetCharacters;
 
+	UPROPERTY(ReplicatedUsing=OnRep_VoiceDetected)
+	bool bVoiceDetected = false;
+
 	FOnInworldPlayerTargetCharacterAddedNative OnTargetCharacterAddedDelegateNative;
 	FOnInworldPlayerTargetCharacterRemovedNative OnTargetCharacterRemovedDelegateNative;
 	FOnInworldPlayerTargetCharactersChangedNative OnTargetCharactersChangedDelegateNative;
+	FOnInworldPlayerVoiceDetectionNative OnVoiceDetectionDelegateNative;
 
 	FString ConversationId;
 	FOnInworldPlayerConversationChangedNative OnConversationChangedDelegateNative;
 
 	bool bHasAudioSession = false;
 	EInworldMicrophoneMode MicMode = EInworldMicrophoneMode::UNKNOWN;
+
+	class FInworldPlayerPacketVisitor : public TSharedFromThis<FInworldPlayerPacketVisitor>, public InworldPacketVisitor
+	{
+	public:
+		FInworldPlayerPacketVisitor()
+			: FInworldPlayerPacketVisitor(nullptr)
+		{}
+		FInworldPlayerPacketVisitor(class UInworldPlayer* InPlayer)
+			: Player(InPlayer)
+		{}
+		virtual ~FInworldPlayerPacketVisitor() = default;
+
+		virtual void Visit(const FInworldConversationUpdateEvent& Event) override;
+
+	private:
+		UInworldPlayer* Player;
+	};
+
+	TSharedRef<FInworldPlayerPacketVisitor> PacketVisitor;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)

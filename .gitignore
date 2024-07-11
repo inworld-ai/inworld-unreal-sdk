@@ -85,6 +85,7 @@ InworldInnequin/DerivedDataCache/*
 InworldAI/Source/ThirdParty/InworldAINDKLibrary/include/*
 InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/*
 InworldAI/Source/ThirdParty/InworldAINDKLibrary/src/*
+InworldAI/Source/ThirdParty/InworldAINDKLibrary/resource/*
 
 package-release/*
 build-scripts/*.zip

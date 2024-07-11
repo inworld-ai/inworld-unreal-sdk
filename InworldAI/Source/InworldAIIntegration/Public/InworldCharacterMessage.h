@@ -47,12 +47,6 @@ struct FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString InteractionId;
 
-	void Populate(const FInworldPacket& Packet)
-	{
-		UtteranceId = Packet.PacketId.UtteranceId;
-		InteractionId = Packet.PacketId.InteractionId;
-	}
-
 	virtual FString ToDebugString() const PURE_VIRTUAL(FCharacterMessage::ToDebugString, return FString();)
 };
 
@@ -88,31 +82,6 @@ struct FCharacterMessageUtterance : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	TArray<uint8> SoundData;
 
-	void Populate(const FInworldTextEvent& Event)
-	{
-		FCharacterMessage::Populate(Event);
-		Text = Event.Text;
-		bTextFinal = Event.Final;
-	}
-
-	void Populate(const FInworldAudioDataEvent& Event)
-	{
-		FCharacterMessage::Populate(Event);
-		SoundData.Append(Event.Chunk);
-
-		ensure(!bAudioFinal);
-		bAudioFinal = Event.bFinal;
-
-		auto& InworldVisemeInfos = Event.VisemeInfos;
-		VisemeInfos.Reserve(InworldVisemeInfos.Num());
-		for (auto& VisemeInfo : InworldVisemeInfos)
-		{
-			FCharacterUtteranceVisemeInfo& VisemeInfo_Ref = VisemeInfos.AddDefaulted_GetRef();
-			VisemeInfo_Ref.Timestamp = VisemeInfo.Timestamp;
-			VisemeInfo_Ref.Code = VisemeInfo.Code;
-		}
-	}
-
 	virtual FString ToDebugString() const override { return FString::Printf(TEXT("Utterance. Text: %s"), *Text); }
 };
 
@@ -127,13 +96,6 @@ struct FCharacterMessagePlayerTalk : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	bool bTextFinal = false;
 
-	void Populate(const FInworldTextEvent& Event)
-	{
-		FCharacterMessage::Populate(Event);
-		Text = Event.Text;
-		bTextFinal = Event.Final;
-	}
-
 	virtual FString ToDebugString() const override { return FString::Printf(TEXT("PlayerTalk. Text: %s"), *Text); }
 };
 
@@ -144,12 +106,6 @@ struct FCharacterMessageSilence : public FCharacterMessage
 
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	float Duration = 0.f;
-
-	void Populate(const FInworldSilenceEvent& Event)
-	{
-		FCharacterMessage::Populate(Event);
-		Duration = Event.Duration;
-	}
 
 	virtual FString ToDebugString() const override { return FString::Printf(TEXT("Silence. Duration: %f"), Duration); }
 };
@@ -165,24 +121,6 @@ struct FCharacterMessageTrigger : public FCharacterMessage
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	TMap<FString, FString> Params;
 
-	void Populate(const FInworldCustomEvent& Event)
-	{
-		FCharacterMessage::Populate(Event);
-		Name = Event.Name;
-		Params = Event.Params.RepMap;
-	}
-
-	void Populate(const FInworldRelationEvent& Event)
-	{
-		FCharacterMessage::Populate(Event);
-		Name = TEXT("inworld.relation.update");
-		Params.Add(TEXT("Attraction"), FString::FromInt(Event.Attraction));
-		Params.Add(TEXT("Familiar"), FString::FromInt(Event.Familiar));
-		Params.Add(TEXT("Flirtatious"), FString::FromInt(Event.Flirtatious));
-		Params.Add(TEXT("Respect"), FString::FromInt(Event.Respect));
-		Params.Add(TEXT("Trust"), FString::FromInt(Event.Trust));
-	}
-
 	virtual FString ToDebugString() const override { return FString::Printf(TEXT("Trigger. Name: %s"), *Name); }
 };
 
@@ -191,10 +129,14 @@ struct FCharacterMessageInteractionEnd : public FCharacterMessage
 {
 	GENERATED_BODY()
 
-	void Populate(const FInworldControlEvent& Event)
-	{
-		FCharacterMessage::Populate(Event);
-	}
-
 	virtual FString ToDebugString() const override { return TEXT("InteractionEnd"); }
 };
+
+void operator<<(FCharacterMessage& Message, const FInworldPacket& Packet);
+void operator<<(FCharacterMessageUtterance& Message, const FInworldTextEvent& Event);
+void operator<<(FCharacterMessageUtterance& Message, const FInworldAudioDataEvent& Event);
+void operator<<(FCharacterMessagePlayerTalk& Message, const FInworldTextEvent& Event);
+void operator<<(FCharacterMessageSilence& Message, const FInworldSilenceEvent& Event);
+void operator<<(FCharacterMessageTrigger& Message, const FInworldCustomEvent& Event);
+void operator<<(FCharacterMessageTrigger& Message, const FInworldRelationEvent& Event);
+void operator<<(FCharacterMessageInteractionEnd& Message, const FInworldControlEvent& Event);

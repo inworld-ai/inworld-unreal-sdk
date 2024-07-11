@@ -67,7 +67,7 @@ bool UInworldCharacter::CallRemoteFunction(UFunction* Function, void* Parms, FOu
 
 void UInworldCharacter::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
 {
-	auto Packet = WrappedPacket.Packet;
+	auto& Packet = WrappedPacket.Packet;
 	if (Packet.IsValid())
 	{
 		Packet->Accept(*PacketVisitor);
@@ -121,12 +121,12 @@ void UInworldCharacter::SendNarrationEvent(const FString& Content)
 	Session->SendNarrationEvent(this, Content);
 }
 
-void UInworldCharacter::SendAudioSessionStart(EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldCharacter::SendAudioSessionStart(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_SESSION_RETURN(void())
 	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
 
-	Session->SendAudioSessionStart(this, MicrophoneMode);
+	Session->SendAudioSessionStart(this, Player, MicrophoneMode);
 }
 
 void UInworldCharacter::SendAudioSessionStop()
@@ -224,9 +224,10 @@ void UInworldCharacter::SetTargetPlayer(UInworldPlayer* Player)
 {
 	if (Player != TargetPlayer)
 	{
+		UInworldPlayer* Old = TargetPlayer;
 		ClearTargetPlayer();
 		TargetPlayer = Player;
-		OnRep_TargetPlayer();
+		OnRep_TargetPlayer(Old);
 	}
 }
 
@@ -234,15 +235,29 @@ void UInworldCharacter::ClearTargetPlayer()
 {
 	if (TargetPlayer != nullptr)
 	{
+		UInworldPlayer* Old = TargetPlayer;
 		TargetPlayer = nullptr;
-		OnRep_TargetPlayer();
+		OnRep_TargetPlayer(Old);
 	}
 }
 
-void UInworldCharacter::OnRep_TargetPlayer()
+void UInworldCharacter::OnRep_TargetPlayer(UInworldPlayer* OldTargetPlayer)
 {
 	OnTargetPlayerChangedDelegateNative.Broadcast();
 	OnTargetPlayerChangedDelegate.Broadcast();
+
+	if (OldTargetPlayer && OnVADHandle.IsValid())
+	{
+		OldTargetPlayer->OnVoiceDetection().Remove(OnVADHandle);
+	}
+	if (TargetPlayer)
+	{
+		OnVADHandle = TargetPlayer->OnVoiceDetection().AddLambda(
+			[this](bool bVoiceDetected) -> void
+		{
+			GetInworldCharacterOwner()->HandleTargetPlayerVoiceDetection(bVoiceDetected);
+		});
+	}
 }
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldTextEvent& Event)

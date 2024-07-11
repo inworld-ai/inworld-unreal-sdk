@@ -63,6 +63,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
 
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message);
+
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldConnectionStateChanged OnSessionConnectionStateChangedDelegate;
 	FOnInworldConnectionStateChangedNative& OnSessionConnectionStateChanged() { return OnSessionConnectionStateChangedDelegateNative; }
@@ -70,7 +73,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	EInworldConnectionState GetConnectionState() const;
 	UFUNCTION(BlueprintPure, Category = "Connection")
-	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode) const;
+	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Scene")
 	void SetSceneId(const FString& InSceneId);
@@ -96,15 +99,6 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Config|Internal")
 	FInworldEnvironment Environment;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config|Connection")
-	float RetryConnectionIntervalTime = 0.25f;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config|Connection")
-	float MaxRetryConnectionTime = 5.0f;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config|Connection")
-	float CurrentRetryConnectionTime = 1.0f;
 
 	FTimerHandle RetryConnectionTimerHandle;
 

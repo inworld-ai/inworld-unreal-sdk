@@ -19,6 +19,8 @@
 #include <GameFramework/PlayerState.h>
 #include "Runtime/Launch/Resources/Version.h"
 
+#include "InworldCharacterAudioComponent.h"
+
 #define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldCharacterComponent, Arg, Return)
 #define NO_CHARACTER_RETURN(Return) EMPTY_ARG_RETURN(InworldCharacter, Return)
 
@@ -32,6 +34,15 @@ UInworldCharacterComponent::UInworldCharacterComponent()
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
 	bReplicateUsingRegisteredSubObjectList = true;
 #endif
+}
+
+void UInworldCharacterComponent::HandleTargetPlayerVoiceDetection(bool bVoiceDetected)
+{
+	if (bVoiceDetected)
+	{
+		Interrupt();
+	}
+	OnVoiceDetection.Broadcast(bVoiceDetected);
 }
 
 void UInworldCharacterComponent::OnRegister()
@@ -275,11 +286,11 @@ void UInworldCharacterComponent::SendNarrationEvent(const FString& Content)
 	InworldCharacter->SendNarrationEvent(Content);
 }
 
-void UInworldCharacterComponent::StartAudioSession(EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldCharacterComponent::StartAudioSession(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
 {
 	NO_CHARACTER_RETURN(void())
 
-	InworldCharacter->SendAudioSessionStart(MicrophoneMode);
+	InworldCharacter->SendAudioSessionStart(Player, MicrophoneMode);
 }
 
 void UInworldCharacterComponent::StopAudioSession()
@@ -337,7 +348,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 
 		// Don't add to queue, player talking is instant.
 		FCharacterMessagePlayerTalk PlayerTalk;
-		PlayerTalk.Populate(Event);
+		PlayerTalk << Event;
 
 		OnPlayerTalk.Broadcast(PlayerTalk);
 
@@ -422,7 +433,7 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 
 void UInworldCharacterComponent::OnInworldTextEvent(const FInworldTextEvent& Event)
 {
-	Multicast_VisitText(Event);
+    Multicast_VisitText(Event);
 }
 
 void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEvent& Event)
@@ -453,17 +464,17 @@ void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEven
 
 void UInworldCharacterComponent::OnInworldSilenceEvent(const FInworldSilenceEvent& Event)
 {
-	Multicast_VisitSilence(Event);
+    Multicast_VisitSilence(Event);
 }
 
 void UInworldCharacterComponent::OnInworldControlEvent(const FInworldControlEvent& Event)
 {
-	Multicast_VisitControl(Event);
+    Multicast_VisitControl(Event);
 }
 
 void UInworldCharacterComponent::OnInworldEmotionEvent(const FInworldEmotionEvent& Event)
 {
-	Multicast_VisitEmotion(Event);
+    Multicast_VisitEmotion(Event);
 }
 
 void UInworldCharacterComponent::OnInworldCustomEvent(const FInworldCustomEvent& Event)
