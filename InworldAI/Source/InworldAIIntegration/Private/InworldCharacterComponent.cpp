@@ -156,7 +156,7 @@ void UInworldCharacterComponent::EndPlay(EEndPlayReason::Type Reason)
     for (auto* Pb : Playbacks)
     {
         Pb->EndPlay();
-		Pb->ClearCharacterComponent();
+        Pb->ClearCharacterComponent();
     }
 
     Super::EndPlay(Reason);
