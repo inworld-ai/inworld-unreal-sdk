@@ -4,121 +4,72 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
+
 #include "InworldCharacterMessage.h"
-#include "InworldAIIntegrationModule.h"
 
-TArray<FString> FCharacterMessageQueue::CancelInteraction(const FString& InteractionId)
+void operator<<(FCharacterMessage& Message, const FInworldPacket& Packet)
 {
-	CanceledInteractions.Add(InteractionId);
-
-	TArray<FString> CanceledUtterances;
-	CanceledUtterances.Reserve(PendingMessageEntries.Num() + 1);
-
-	if (CurrentMessage.IsValid() && CurrentMessage->InteractionId == InteractionId)
-	{
-		CanceledUtterances.Add(CurrentMessage->UtteranceId);
-		CurrentMessage->AcceptInterrupt(*MessageVisitor);
-		CurrentMessage = nullptr;
-		LockCount = 0;
-	}
-	
-	auto FilterPredicate = [InteractionId](const FCharacterMessageQueueEntry& MessageQueueEntry)
-		{
-			return MessageQueueEntry.Message->InteractionId == InteractionId;
-		};
-
-	TArray<FCharacterMessageQueueEntry> EntriesToCancel = PendingMessageEntries.FilterByPredicate(FilterPredicate);
-	for (const FCharacterMessageQueueEntry& EntryToCancel : EntriesToCancel)
-	{
-		auto& PendingMessage = EntryToCancel.Message;
-		CanceledUtterances.Add(PendingMessage->UtteranceId);
-		PendingMessage->AcceptCancel(*MessageVisitor);
-	}
-	
-	PendingMessageEntries.RemoveAll(FilterPredicate);
-
-	TryToProgress();
-
-	return CanceledUtterances;
+	Message.UtteranceId = Packet.PacketId.UtteranceId;
+	Message.InteractionId = Packet.PacketId.InteractionId;
 }
 
-void FCharacterMessageQueue::TryToProgress(bool bForce)
+void operator<<(FCharacterMessageUtterance& Message, const FInworldTextEvent& Event)
 {
-	while (!CurrentMessage.IsValid() || LockCount == 0)
+	((FCharacterMessage&)(Message)) << Event;
+	Message.Text = Event.Text;
+	Message.bTextFinal = Event.Final;
+}
+
+void operator<<(FCharacterMessageUtterance& Message, const FInworldAudioDataEvent& Event)
+{
+	((FCharacterMessage&)(Message)) << Event;
+	Message.SoundData.Append(Event.Chunk);
+
+	ensure(!Message.bAudioFinal);
+	Message.bAudioFinal = Event.bFinal;
+
+	auto& InworldVisemeInfos = Event.VisemeInfos;
+	Message.VisemeInfos.Reserve(InworldVisemeInfos.Num());
+	for (auto& VisemeInfo : InworldVisemeInfos)
 	{
-		CurrentMessage = nullptr;
-
-		if (PendingMessageEntries.Num() == 0)
-		{
-			return;
-		}
-
-		auto NextQueuedEntry = PendingMessageEntries[0];
-		if(!NextQueuedEntry.Message->IsReady() && !bForce)
-		{
-			return;
-		}
-
-		CurrentMessage = NextQueuedEntry.Message;
-		PendingMessageEntries.RemoveAt(0);
-
-		UE_LOG(LogInworldAIIntegration, Log, TEXT("Handle character message '%s::%s'"), *CurrentMessage->InteractionId, *CurrentMessage->UtteranceId);
-
-		CurrentMessage->AcceptHandle(*MessageVisitor);
+		FCharacterUtteranceVisemeInfo& VisemeInfo_Ref = Message.VisemeInfos.AddDefaulted_GetRef();
+		VisemeInfo_Ref.Timestamp = VisemeInfo.Timestamp;
+		VisemeInfo_Ref.Code = VisemeInfo.Code;
 	}
 }
 
-TOptional<float> FCharacterMessageQueue::GetBlockingTimestamp() const
+void operator<<(FCharacterMessagePlayerTalk& Message, const FInworldTextEvent& Event)
 {
-	TOptional<float> Timestamp;
-	if (!CurrentMessage.IsValid() && PendingMessageEntries.Num() > 0)
-	{
-		auto NextQueuedEntry = PendingMessageEntries[0];
-		if (!NextQueuedEntry.Message->IsReady())
-		{
-			Timestamp = NextQueuedEntry.Timestamp;
-		}
-	}
-	return Timestamp;
+	((FCharacterMessage&)(Message)) << Event;
+	Message.Text = Event.Text;
+	Message.bTextFinal = Event.Final;
 }
 
-void FCharacterMessageQueue::Clear()
+void operator<<(FCharacterMessageSilence& Message, const FInworldSilenceEvent& Event)
 {
-	LockCount = 0;
-
-	if (CurrentMessage)
-	{
-		CurrentMessage->AcceptInterrupt(*MessageVisitor);
-		CurrentMessage = nullptr;
-	}
-
-	PendingMessageEntries.Empty();
+	((FCharacterMessage&)(Message)) << Event;
+	Message.Duration = Event.Duration;
 }
 
-TSharedPtr<FCharacterMessageQueueLock> FCharacterMessageQueue::MakeLock()
+void operator<<(FCharacterMessageTrigger& Message, const FInworldCustomEvent& Event)
 {
-	LockCount++;
-	return MakeShared<FCharacterMessageQueueLock>(AsShared());
+	((FCharacterMessage&)(Message)) << Event;
+	Message.Name = Event.Name;
+	Message.Params = Event.Params.RepMap;
 }
 
-FCharacterMessageQueueLock::FCharacterMessageQueueLock(TSharedRef<FCharacterMessageQueue> InQueue)
-	: QueuePtr(InQueue)
-	, MessagePtr(InQueue->CurrentMessage)
-{}
-
-FCharacterMessageQueueLock::~FCharacterMessageQueueLock()
+void operator<<(FCharacterMessageTrigger& Message, const FInworldRelationEvent& Event)
 {
-	auto Queue = QueuePtr.Pin();
-	auto Message = MessagePtr.Pin();
-	if (Queue && Message)
-	{
-		if (Queue->CurrentMessage == Message)
-		{
-			Queue->LockCount--;
-			if (Queue->LockCount == 0)
-			{
-				Queue->TryToProgress();
-			}
-		}
-	}
+	((FCharacterMessage&)(Message)) << Event;
+	Message.Name = TEXT("inworld.relation.update");
+	Message.Params.Add(TEXT("Attraction"), FString::FromInt(Event.Attraction));
+	Message.Params.Add(TEXT("Familiar"), FString::FromInt(Event.Familiar));
+	Message.Params.Add(TEXT("Flirtatious"), FString::FromInt(Event.Flirtatious));
+	Message.Params.Add(TEXT("Respect"), FString::FromInt(Event.Respect));
+	Message.Params.Add(TEXT("Trust"), FString::FromInt(Event.Trust));
+}
+
+void operator<<(FCharacterMessageInteractionEnd& Message, const FInworldControlEvent& Event)
+{
+	((FCharacterMessage&)(Message)) << Event;
 }
