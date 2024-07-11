@@ -144,6 +144,8 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 		TryToProgress();
 	}
 
+	void Pause();
+	void Resume();
 	void TryToInterrupt(const FString& InterruptingInteractionId);
 	void TryToProgress();
 
@@ -151,6 +153,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 	void Unlock(FInworldCharacterMessageQueueLockHandle& LockHandle);
 
 private:
+	bool bIsPendingInterruptState = false;
 	bool bIsInterrupting = false;
 	bool bIsProgressing = false;
 	bool bIsPaused = false;

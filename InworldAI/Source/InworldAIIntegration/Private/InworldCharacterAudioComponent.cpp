@@ -58,6 +58,11 @@ void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessa
 			}
 		}
 
+		if (bIsPaused)
+		{
+			SetPaused(false);
+		}
+
 		Play();
 
 		CharacterComponent->LockMessageQueue(CharacterMessageQueueLockHandle);

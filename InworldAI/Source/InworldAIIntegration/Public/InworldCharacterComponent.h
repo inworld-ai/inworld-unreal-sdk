@@ -138,10 +138,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession();
 
-	void Interrupt(const FString& InteractionId);
-
 	UFUNCTION(BlueprintPure, Category = "Interaction")
 	FVector GetTargetPlayerCameraLocation();
+
+	void Pause();
+	void Resume();
+	void Interrupt(const FString& InteractionId);
 
 	const TSharedPtr<FCharacterMessage> GetCurrentMessage() const
 	{ 

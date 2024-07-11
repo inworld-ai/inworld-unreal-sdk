@@ -7,6 +7,31 @@
 #include "InworldCharacterMessageQueue.h"
 #include "InworldAIIntegrationModule.h"
 
+void FCharacterMessageQueue::Pause()
+{
+	if (!bIsPaused)
+	{
+		if (CurrentMessageQueueEntry.IsValid())
+		{
+			CurrentMessageQueueEntry->AcceptPause(*MessageVisitor);
+		}
+	}
+	bIsPaused = true;
+}
+
+void FCharacterMessageQueue::Resume()
+{
+	if (bIsPaused && CurrentMessageQueueEntry.IsValid())
+	{
+		if (CurrentMessageQueueEntry.IsValid())
+		{
+			CurrentMessageQueueEntry->AcceptResume(*MessageVisitor);
+		}
+		TryToProgress();
+	}
+	bIsPaused = false;
+}
+
 void FCharacterMessageQueue::TryToInterrupt(const FString& InterruptingInteractionId)
 {
 	bIsInterrupting = true;
@@ -24,7 +49,7 @@ void FCharacterMessageQueue::TryToInterrupt(const FString& InterruptingInteracti
 	if (ShouldPauseCurrentQueueEntry())
 	{
 		CurrentMessageQueueEntry->AcceptPause(*MessageVisitor);
-		bIsPaused = true;
+		bIsPendingInterruptState = true;
 	}
 	else
 	{
@@ -80,23 +105,28 @@ void FCharacterMessageQueue::TryToInterrupt(const FString& InterruptingInteracti
 void FCharacterMessageQueue::SetInterruptible(const FString& InteractionId, bool bInterruptible)
 {
 	InteractionInterruptibleState.Add(InteractionId, bInterruptible);
-	if (bIsPaused && CurrentMessageQueueEntry->GetCharacterMessage()->InteractionId == InteractionId)
+	if (bIsPendingInterruptState && CurrentMessageQueueEntry->GetCharacterMessage()->InteractionId == InteractionId)
 	{
 		if (bInterruptible)
 		{
 			TryToInterrupt(NextUninterruptedInteractionId.GetValue());
 			TryToProgress();
 		}
-		else
+		else if(!bIsPaused)
 		{
 			CurrentMessageQueueEntry->AcceptResume(*MessageVisitor);
 		}
-		bIsPaused = false;
+		bIsPendingInterruptState = false;
 	}
 }
 
 void FCharacterMessageQueue::TryToProgress()
 {
+	if (bIsPaused)
+	{
+		return;
+	}
+
 	bIsProgressing = true;
 
 	bool bAdvancedQueue = false;
