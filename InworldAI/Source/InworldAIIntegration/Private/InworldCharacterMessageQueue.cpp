@@ -49,7 +49,7 @@ void FCharacterMessageQueue::TryToInterrupt(const FString& InterruptingInteracti
 		CurrentMessageQueueEntry->AcceptPause(*MessageVisitor);
 		bIsPendingInterruptState = true;
 		break;
-	case EInworldInteractionInterruptibleState::YES:
+	case EInworldInteractionInterruptibleState::INTERRUPTIBLE:
 		CurrentMessageQueueEntry->AcceptInterrupt(*MessageVisitor);
 
 		// Current Message and its lock should never be valid after AcceptInterrupt, as users should clear handle on interrupt.
@@ -146,12 +146,12 @@ void FCharacterMessageQueue::SetInterruptible(const FString& InteractionId, bool
 bool FCharacterMessageQueue::CanPauseCurrentMessageQueueEntry() const
 {
 	const EInworldInteractionInterruptibleState CurrentInterruptibleState = GetQueueEntryInterruptibleState(CurrentMessageQueueEntry);
-	return CurrentInterruptibleState == EInworldInteractionInterruptibleState::YES || CurrentInterruptibleState == EInworldInteractionInterruptibleState::UNDETERMINED;
+	return CurrentInterruptibleState == EInworldInteractionInterruptibleState::INTERRUPTIBLE || CurrentInterruptibleState == EInworldInteractionInterruptibleState::UNDETERMINED;
 }
 
 void FCharacterMessageQueue::CancelInterruptiblePendingQueueEntries()
 {
-	while (PendingMessageQueueEntries.Num() > 0 && GetQueueEntryInterruptibleState(PendingMessageQueueEntries[0]) == EInworldInteractionInterruptibleState::YES)
+	while (PendingMessageQueueEntries.Num() > 0 && GetQueueEntryInterruptibleState(PendingMessageQueueEntries[0]) == EInworldInteractionInterruptibleState::INTERRUPTIBLE)
 	{
 		PendingMessageQueueEntries[0]->AcceptCancel(*MessageVisitor);
 		PendingMessageQueueEntries.RemoveAt(0);
@@ -162,7 +162,7 @@ FCharacterMessageQueue::EInworldInteractionInterruptibleState FCharacterMessageQ
 {
 	if (InteractionInterruptibleState.Contains(InteractionId))
 	{
-		return InteractionInterruptibleState[InteractionId] ? EInworldInteractionInterruptibleState::YES : EInworldInteractionInterruptibleState::NO;
+		return InteractionInterruptibleState[InteractionId] ? EInworldInteractionInterruptibleState::INTERRUPTIBLE : EInworldInteractionInterruptibleState::UNINTERRUPTIBLE;
 	}
 	return EInworldInteractionInterruptibleState::UNDETERMINED;
 }

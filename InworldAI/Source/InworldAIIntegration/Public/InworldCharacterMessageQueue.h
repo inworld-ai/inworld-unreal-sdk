@@ -162,8 +162,8 @@ private:
 	TMap<FString, bool> InteractionInterruptibleState;
 	enum class EInworldInteractionInterruptibleState : uint8
 	{
-		YES = 0,
-		NO = 1,
+		INTERRUPTIBLE = 0,
+		UNINTERRUPTIBLE = 1,
 		UNDETERMINED = 2,
 		INVALID = 3,
 	};
