@@ -169,6 +169,8 @@ private:
 	};
 
 	void SetInterruptible(const FString& InteractionId, bool bInterruptible);
+	bool CanPauseCurrentMessageQueueEntry() const;
+	void CancelInterruptiblePendingQueueEntries();
 	EInworldInteractionInterruptibleState GetInteractionInterruptibleState(const FString& InteractionId) const;
 	EInworldInteractionInterruptibleState GetQueueEntryInterruptibleState(const TSharedPtr<FCharacterMessageQueueEntryBase>& QueueEntry) const;
 
