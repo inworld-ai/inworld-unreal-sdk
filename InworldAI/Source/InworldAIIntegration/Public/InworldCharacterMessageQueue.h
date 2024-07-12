@@ -144,8 +144,8 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 		TryToProgress();
 	}
 
-	void Pause();
-	void Resume();
+	void TryToPause();
+	void TryToResume();
 	void TryToInterrupt(const FString& InterruptingInteractionId);
 	void TryToProgress();
 
@@ -157,13 +157,20 @@ private:
 	bool bIsInterrupting = false;
 	bool bIsProgressing = false;
 	bool bIsPaused = false;
-	TOptional<FString> NextUninterruptedInteractionId;
+
+	TOptional<FString> NextInterruptingInteractionId;
 	TMap<FString, bool> InteractionInterruptibleState;
-	TWeakPtr<FCharacterMessageQueueLock> QueueLock;
-	TSharedPtr<FCharacterMessageQueueLock> MakeLock();
-	friend struct FCharacterMessageQueueLock;
+	enum class EInworldInteractionInterruptibleState : uint8
+	{
+		YES = 0,
+		NO = 1,
+		UNDETERMINED = 2,
+		INVALID = 3,
+	};
 
 	void SetInterruptible(const FString& InteractionId, bool bInterruptible);
+	EInworldInteractionInterruptibleState GetInteractionInterruptibleState(const FString& InteractionId) const;
+	EInworldInteractionInterruptibleState GetQueueEntryInterruptibleState(const TSharedPtr<FCharacterMessageQueueEntryBase>& QueueEntry) const;
 
 	void OnUpdated(const FCharacterMessageUtterance& Message) {}
 	void OnUpdated(const FCharacterMessageSilence& Message) {}
@@ -171,6 +178,10 @@ private:
 	void OnUpdated(const FCharacterMessageInteractionEnd& Message);
 
 	void EndInteraction(const FString& InteractionId);
+
+	TWeakPtr<FCharacterMessageQueueLock> QueueLock;
+	TSharedPtr<FCharacterMessageQueueLock> MakeLock();
+	friend struct FCharacterMessageQueueLock;
 };
 
 struct FCharacterMessageQueueLock

@@ -7,11 +7,12 @@
 #include "InworldCharacterMessageQueue.h"
 #include "InworldAIIntegrationModule.h"
 
-void FCharacterMessageQueue::Pause()
+void FCharacterMessageQueue::TryToPause()
 {
 	if (!bIsPaused)
 	{
-		if (CurrentMessageQueueEntry.IsValid())
+		const EInworldInteractionInterruptibleState CurrentInterruptibleState = GetQueueEntryInterruptibleState(CurrentMessageQueueEntry);
+		if (CurrentInterruptibleState == EInworldInteractionInterruptibleState::YES || CurrentInterruptibleState == EInworldInteractionInterruptibleState::UNDETERMINED)
 		{
 			CurrentMessageQueueEntry->AcceptPause(*MessageVisitor);
 		}
@@ -19,9 +20,9 @@ void FCharacterMessageQueue::Pause()
 	bIsPaused = true;
 }
 
-void FCharacterMessageQueue::Resume()
+void FCharacterMessageQueue::TryToResume()
 {
-	if (bIsPaused && CurrentMessageQueueEntry.IsValid())
+	if (bIsPaused && !bIsPendingInterruptState)
 	{
 		if (CurrentMessageQueueEntry.IsValid())
 		{
@@ -34,99 +35,57 @@ void FCharacterMessageQueue::Resume()
 
 void FCharacterMessageQueue::TryToInterrupt(const FString& InterruptingInteractionId)
 {
+	if (InterruptingInteractionId == NextInterruptingInteractionId)
+	{
+		return;
+	}
+
 	bIsInterrupting = true;
 
-	NextUninterruptedInteractionId = InterruptingInteractionId;
+	NextInterruptingInteractionId = InterruptingInteractionId;
 
-	auto ShouldPauseCurrentQueueEntry = [&]() -> bool
-		{
-			if (!CurrentMessageQueueEntry.IsValid()) return false;
-			const FString& CurrentInteractionId = CurrentMessageQueueEntry->GetCharacterMessage()->InteractionId;
-			if (CurrentInteractionId == NextUninterruptedInteractionId) return false;
-			return !InteractionInterruptibleState.Contains(CurrentInteractionId);
-		};
-
-	if (ShouldPauseCurrentQueueEntry())
+	switch (GetQueueEntryInterruptibleState(CurrentMessageQueueEntry))
 	{
+	case EInworldInteractionInterruptibleState::UNDETERMINED:
 		CurrentMessageQueueEntry->AcceptPause(*MessageVisitor);
 		bIsPendingInterruptState = true;
-	}
-	else
-	{
-		auto ShouldCancelCurrentQueueEntry = [&]() -> bool
-			{
-				if (!CurrentMessageQueueEntry.IsValid()) return false;
-				const FString& CurrentInteractionId = CurrentMessageQueueEntry->GetCharacterMessage()->InteractionId;
-				if (CurrentInteractionId == NextUninterruptedInteractionId) return false;
-				return InteractionInterruptibleState.Contains(CurrentInteractionId) && InteractionInterruptibleState[CurrentInteractionId];
-			};
-		if (ShouldCancelCurrentQueueEntry())
-		{
-			CurrentMessageQueueEntry->AcceptInterrupt(*MessageVisitor);
+		break;
+	case EInworldInteractionInterruptibleState::YES:
+		CurrentMessageQueueEntry->AcceptInterrupt(*MessageVisitor);
 
-			// Current Message and its lock should never be valid after AcceptInterrupt, as users should clear handle on interrupt.
-			// However, since this can not be guaranteed, make lock invalid if it is still lingering.
-			if (CurrentMessageQueueEntry.IsValid())
+		// Current Message and its lock should never be valid after AcceptInterrupt, as users should clear handle on interrupt.
+		// However, since this can not be guaranteed, make lock invalid if it is still lingering.
+		if (CurrentMessageQueueEntry.IsValid())
+		{
+			auto LockPinned = QueueLock.Pin();
+			if (LockPinned.IsValid())
 			{
-				auto LockPinned = QueueLock.Pin();
-				if (LockPinned.IsValid())
-				{
-					LockPinned->Valid = false;
-				}
+				LockPinned->Valid = false;
 			}
-			CurrentMessageQueueEntry = nullptr;
+		}
+		CurrentMessageQueueEntry = nullptr;
+		break;
+	}
+
+	if (!CurrentMessageQueueEntry.IsValid())
+	{
+		while (PendingMessageQueueEntries.Num() > 0 && GetQueueEntryInterruptibleState(PendingMessageQueueEntries[0]) == EInworldInteractionInterruptibleState::YES)
+		{
+			PendingMessageQueueEntries[0]->AcceptCancel(*MessageVisitor);
+			PendingMessageQueueEntries.RemoveAt(0);
 		}
 
-		if (!CurrentMessageQueueEntry.IsValid())
+		if (!bIsProgressing)
 		{
-			auto ShouldCancelNextPendingQueueEntry = [&]() -> bool
-				{
-					if (PendingMessageQueueEntries.Num() == 0) return false;
-					const FString& NextInteractionId = PendingMessageQueueEntries[0]->GetCharacterMessage()->InteractionId;
-					if (NextInteractionId == NextUninterruptedInteractionId) return false;
-					return InteractionInterruptibleState.Contains(NextInteractionId) && InteractionInterruptibleState[NextInteractionId];
-				};
-			while (ShouldCancelNextPendingQueueEntry())
-			{
-				PendingMessageQueueEntries[0]->AcceptCancel(*MessageVisitor);
-				PendingMessageQueueEntries.RemoveAt(0);
-			}
-
-			if (!bIsProgressing)
-			{
-				TryToProgress();
-			}
+			TryToProgress();
 		}
 	}
 
 	bIsInterrupting = false;
 }
 
-void FCharacterMessageQueue::SetInterruptible(const FString& InteractionId, bool bInterruptible)
-{
-	InteractionInterruptibleState.Add(InteractionId, bInterruptible);
-	if (bIsPendingInterruptState && CurrentMessageQueueEntry->GetCharacterMessage()->InteractionId == InteractionId)
-	{
-		if (bInterruptible)
-		{
-			TryToInterrupt(NextUninterruptedInteractionId.GetValue());
-			TryToProgress();
-		}
-		else if(!bIsPaused)
-		{
-			CurrentMessageQueueEntry->AcceptResume(*MessageVisitor);
-		}
-		bIsPendingInterruptState = false;
-	}
-}
-
 void FCharacterMessageQueue::TryToProgress()
 {
-	if (bIsPaused)
-	{
-		return;
-	}
-
 	bIsProgressing = true;
 
 	bool bAdvancedQueue = false;
@@ -134,13 +93,22 @@ void FCharacterMessageQueue::TryToProgress()
 	{
 		if (PendingMessageQueueEntries.Num() == 0)
 		{
-			return;
+			break;
 		}
 
 		auto NextQueuedEntry = PendingMessageQueueEntries[0];
 		if(!NextQueuedEntry->IsReady())
 		{
-			return;
+			break;
+		}
+
+		if (bIsPaused)
+		{
+			const EInworldInteractionInterruptibleState CurrentInterruptibleState = GetQueueEntryInterruptibleState(NextQueuedEntry);
+			if (CurrentInterruptibleState == EInworldInteractionInterruptibleState::YES || CurrentInterruptibleState == EInworldInteractionInterruptibleState::UNDETERMINED)
+			{
+				break;
+			}
 		}
 
 		CurrentMessageQueueEntry = NextQueuedEntry;
@@ -156,12 +124,48 @@ void FCharacterMessageQueue::TryToProgress()
 		bAdvancedQueue = true;
 	}
 
-	if (bAdvancedQueue && NextUninterruptedInteractionId.IsSet())
+	if (bAdvancedQueue && NextInterruptingInteractionId.IsSet())
 	{
-		TryToInterrupt(NextUninterruptedInteractionId.GetValue());
+		TryToInterrupt(NextInterruptingInteractionId.GetValue());
 	}
 
 	bIsProgressing = false;
+}
+
+void FCharacterMessageQueue::SetInterruptible(const FString& InteractionId, bool bInterruptible)
+{
+	InteractionInterruptibleState.Add(InteractionId, bInterruptible);
+	if (bIsPendingInterruptState && CurrentMessageQueueEntry->GetCharacterMessage()->InteractionId == InteractionId)
+	{
+		if (bInterruptible)
+		{
+			TryToInterrupt(NextInterruptingInteractionId.GetValue());
+			TryToProgress();
+		}
+		else
+		{
+			CurrentMessageQueueEntry->AcceptResume(*MessageVisitor);
+		}
+		bIsPendingInterruptState = false;
+	}
+}
+
+FCharacterMessageQueue::EInworldInteractionInterruptibleState FCharacterMessageQueue::GetInteractionInterruptibleState(const FString& InteractionId) const
+{
+	if (InteractionInterruptibleState.Contains(InteractionId))
+	{
+		return InteractionInterruptibleState[InteractionId] ? EInworldInteractionInterruptibleState::YES : EInworldInteractionInterruptibleState::NO;
+	}
+	return EInworldInteractionInterruptibleState::UNDETERMINED;
+}
+
+FCharacterMessageQueue::EInworldInteractionInterruptibleState FCharacterMessageQueue::GetQueueEntryInterruptibleState(const TSharedPtr<FCharacterMessageQueueEntryBase>& QueueEntry) const
+{
+	if (!QueueEntry.IsValid() || !QueueEntry->GetCharacterMessage().IsValid())
+	{
+		return EInworldInteractionInterruptibleState::INVALID;
+	}
+	return GetInteractionInterruptibleState(QueueEntry->GetCharacterMessage()->InteractionId);
 }
 
 void FCharacterMessageQueue::OnUpdated(const FCharacterMessageTrigger& Message)
@@ -184,9 +188,17 @@ void FCharacterMessageQueue::OnUpdated(const FCharacterMessageInteractionEnd& Me
 
 void FCharacterMessageQueue::EndInteraction(const FString& InteractionId)
 {
-	if (InteractionId == NextUninterruptedInteractionId)
+	if (InteractionId == NextInterruptingInteractionId)
 	{
-		NextUninterruptedInteractionId.Reset();
+		NextInterruptingInteractionId.Reset();
+	}
+	if (!InteractionInterruptibleState[InteractionId])
+	{
+		while (PendingMessageQueueEntries.Num() > 0 && GetQueueEntryInterruptibleState(PendingMessageQueueEntries[0]) == EInworldInteractionInterruptibleState::YES)
+		{
+			PendingMessageQueueEntries[0]->AcceptCancel(*MessageVisitor);
+			PendingMessageQueueEntries.RemoveAt(0);
+		}
 	}
 	InteractionInterruptibleState.Remove(InteractionId);
 }

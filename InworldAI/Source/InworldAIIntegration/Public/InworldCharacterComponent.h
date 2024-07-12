@@ -141,8 +141,6 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Interaction")
 	FVector GetTargetPlayerCameraLocation();
 
-	void Pause();
-	void Resume();
 	void Interrupt(const FString& InteractionId);
 
 	const TSharedPtr<FCharacterMessage> GetCurrentMessage() const

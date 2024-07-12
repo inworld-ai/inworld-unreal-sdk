@@ -40,11 +40,11 @@ void UInworldCharacterComponent::HandleTargetPlayerVoiceDetection(bool bVoiceDet
 {
 	if (bVoiceDetected)
 	{
-		Pause();
+		MessageQueue->TryToPause();
 	}
 	else
 	{
-		Resume();
+		MessageQueue->TryToResume();
 	}
 	OnVoiceDetection.Broadcast(bVoiceDetected);
 }
@@ -257,16 +257,6 @@ UInworldCharacterPlayback* UInworldCharacterComponent::GetPlayback(TSubclassOf<U
 bool UInworldCharacterComponent::IsInteractingWithPlayer() const
 {
 	return InworldCharacter != nullptr && InworldCharacter->GetTargetPlayer() != nullptr;
-}
-
-void UInworldCharacterComponent::Pause()
-{
-	MessageQueue->Pause();
-}
-
-void UInworldCharacterComponent::Resume()
-{
-	MessageQueue->Resume();
 }
 
 void UInworldCharacterComponent::Interrupt(const FString& InterruptingInteractionId)
