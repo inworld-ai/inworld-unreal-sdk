@@ -67,7 +67,7 @@ public class InworldAINDKLibrary : ModuleRules
         }
         
         // Voice Activity Detection (VAD) supported on Windows and Mac
-        const bool bUseVAD = true;
+        const bool bUseVAD = false;
         bool bVAD = bUseVAD && 
             (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac);
         
