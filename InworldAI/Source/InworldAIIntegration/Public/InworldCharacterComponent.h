@@ -134,22 +134,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession();
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void CancelCurrentInteraction();
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void Interrupt();
+	[[deprecated("UInworldCharacterComponent::CancelCurrentInteraction is deprecated, please use UInworldCharacterComponent::Interrupt")]]
+	void CancelCurrentInteraction() { Interrupt(); }
 
 	UFUNCTION(BlueprintPure, Category = "Interaction")
 	FVector GetTargetPlayerCameraLocation();
 
 	const TSharedPtr<FCharacterMessage> GetCurrentMessage() const
 	{ 
-		return MessageQueue->CurrentMessage;
+		return MessageQueue->CurrentMessageQueueEntry ? MessageQueue->CurrentMessageQueueEntry->GetCharacterMessage() : nullptr;
 	}
 
 	UFUNCTION(BlueprintCallable, Category = "Message")
-	void MakeMessageQueueLock(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle);
+	bool LockMessageQueue(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle) { return MessageQueue->Lock(Handle); }
 
 	UFUNCTION(BlueprintCallable, Category = "Message")
-	static void ClearMessageQueueLock(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle);
+	void UnlockMessageQueue(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle) { MessageQueue->Unlock(Handle); }
 
 	template<class T>
 	T* GetPlaybackNative()
@@ -211,7 +213,6 @@ private:
 	TArray<UInworldCharacterPlayback*> Playbacks;
 
 	TSharedRef<FCharacterMessageQueue> MessageQueue;
-	float TimeToForceQueue = 3.f;
 
 	virtual void Handle(const FCharacterMessageUtterance& Message) override;
 	virtual void Interrupt(const FCharacterMessageUtterance& Message) override;

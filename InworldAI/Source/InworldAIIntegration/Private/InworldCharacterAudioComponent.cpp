@@ -60,7 +60,7 @@ void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessa
 
 		Play();
 
-		CharacterComponent->MakeMessageQueueLock(CharacterMessageQueueLockHandle);
+		CharacterComponent->LockMessageQueue(CharacterMessageQueueLockHandle);
 	}
 }
 
@@ -69,23 +69,24 @@ void UInworldCharacterAudioComponent::OnCharacterUtteranceInterrupt(const FChara
 	Stop();
 	VisemeBlends = FInworldCharacterVisemeBlends();
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
+	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterAudioComponent::OnCharacterSilence(const FCharacterMessageSilence& Message)
 {
 	GetWorld()->GetTimerManager().SetTimer(SilenceTimerHandle, this, &UInworldCharacterAudioComponent::OnSilenceEnd, Message.Duration);
-	CharacterComponent->MakeMessageQueueLock(CharacterMessageQueueLockHandle);
+	CharacterComponent->LockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterAudioComponent::OnCharacterSilenceInterrupt(const FCharacterMessageSilence& Message)
 {
 	GetWorld()->GetTimerManager().ClearTimer(SilenceTimerHandle);
-	CharacterComponent->ClearMessageQueueLock(CharacterMessageQueueLockHandle);
+	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterAudioComponent::OnSilenceEnd()
 {
-	CharacterComponent->ClearMessageQueueLock(CharacterMessageQueueLockHandle);
+	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
 float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() const
@@ -148,5 +149,5 @@ void UInworldCharacterAudioComponent::OnAudioFinished(UAudioComponent* InAudioCo
 {
 	VisemeBlends = FInworldCharacterVisemeBlends();
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
-	CharacterComponent->ClearMessageQueueLock(CharacterMessageQueueLockHandle);
+	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
