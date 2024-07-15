@@ -24,7 +24,7 @@ jobs:
       id: ndk-cache-mac
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
         fail-on-cache-miss: true
         enableCrossOsArchive: true
     - name: check-cache-success

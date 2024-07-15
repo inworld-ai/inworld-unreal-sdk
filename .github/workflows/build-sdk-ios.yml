@@ -26,7 +26,7 @@ jobs:
       id: ndk-cache-ios
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
         fail-on-cache-miss: true
         enableCrossOsArchive: true
     - name: check-cache-success
