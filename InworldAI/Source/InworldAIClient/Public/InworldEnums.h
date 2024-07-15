@@ -126,3 +126,11 @@ enum class EInworldMicrophoneMode : uint8
 	OPEN_MIC = 1,
 	EXPECT_AUDIO_END = 2,
 };
+
+UENUM(BlueprintType)
+enum class EInworldUnderstandingMode : uint8
+{
+	UNKNOWN = 0 UMETA(Hidden),
+	FULL = 1,
+	SPEECH_RECOGNITION_ONLY = 2,
+};

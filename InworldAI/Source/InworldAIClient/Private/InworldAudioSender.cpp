@@ -74,6 +74,7 @@ void UInworldAudioSender::ClearState()
 	RoutingId = {};
 	AudioQueue = {};
 	MicMode = EInworldMicrophoneMode::UNKNOWN;
+	UnderstandingMode = EInworldUnderstandingMode::UNKNOWN;
 	VADSilenceCounter = 0;
 	SessionOwner = nullptr;
 #ifdef INWORLD_VAD
@@ -84,12 +85,13 @@ void UInworldAudioSender::ClearState()
 #endif
 }
 
-void UInworldAudioSender::StartAudioSession(const std::string& AgentId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode)
+void UInworldAudioSender::StartAudioSession(const std::string& AgentId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode, EInworldUnderstandingMode InUnderstandingMode)
 {
 	ClearState();
 	RoutingId = AgentId;
 	bConversation = false;
 	MicMode = MicrophoneMode;
+	UnderstandingMode = InUnderstandingMode;
 	SessionOwner = Owner;
 	if (!bVADEnabled)
 	{
@@ -97,12 +99,13 @@ void UInworldAudioSender::StartAudioSession(const std::string& AgentId, UObject*
 	}
 }
 
-void UInworldAudioSender::StartAudioSessionInConversation(const std::string& ConversationId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode)
+void UInworldAudioSender::StartAudioSessionInConversation(const std::string& ConversationId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode, EInworldUnderstandingMode InUnderstandingMode)
 {
 	ClearState();
 	RoutingId = ConversationId;
 	bConversation = true;
 	MicMode = MicrophoneMode;
+	UnderstandingMode = InUnderstandingMode;
 	SessionOwner = Owner;
 	if (!bVADEnabled)
 	{
@@ -180,8 +183,8 @@ bool UInworldAudioSender::StartActualAudioSession()
 	}
 
 	Inworld::AudioSessionStartPayload AudioSessionStartPayload;
-	const EInworldMicrophoneMode Mode = /*bVADEnabled ? EInworldMicrophoneMode::EXPECT_AUDIO_END :*/ MicMode;
-	AudioSessionStartPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(Mode);
+	AudioSessionStartPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(MicMode);
+	AudioSessionStartPayload.UndMode = static_cast<Inworld::AudioSessionStartPayload::UnderstandingMode>(UnderstandingMode);
 	if (bConversation)
 	{
 		Inworld::GetClient()->StartAudioSessionInConversation(RoutingId, AudioSessionStartPayload);

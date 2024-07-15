@@ -31,8 +31,8 @@ public:
 	void Initialize(bool bEnableVAD);
 	void Terminate();
 
-	void StartAudioSession(const std::string& AgentId, UObject* Owner, EInworldMicrophoneMode MicMode);
-	void StartAudioSessionInConversation(const std::string& ConversationId, UObject* Owner, EInworldMicrophoneMode MicMode);
+	void StartAudioSession(const std::string& AgentId, UObject* Owner, EInworldMicrophoneMode MicMode, EInworldUnderstandingMode UnderstandingMode);
+	void StartAudioSessionInConversation(const std::string& ConversationId, UObject* Owner, EInworldMicrophoneMode MicMode, EInworldUnderstandingMode UnderstandingMode);
 		
 	void StopAudioSession(const std::string& AgentId);
 	void StopAudioSessionInConversation(const std::string& ConversationId);
@@ -61,6 +61,7 @@ private:
 	std::queue<std::string> AudioQueue;
 	void* AecHandle = nullptr;
 	EInworldMicrophoneMode MicMode = EInworldMicrophoneMode::UNKNOWN;
+	EInworldUnderstandingMode UnderstandingMode = EInworldUnderstandingMode::UNKNOWN;
 	std::string RoutingId;
 	bool bVADEnabled = false;
 	bool bConversation = false;
