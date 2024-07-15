@@ -38,9 +38,8 @@ jobs:
     - name: Copy NDK
       run: |
         python3 "build-scripts/ndk-util.py" --copy
-    - run: mkdir -p TestInworldFPS 
     - name: Copy Template - First Person
-      shell: pwsh
+      shell: bash
       run: |
           cp -r "/Users/Shared/Epic Games/UE_${{ matrix.ue-version }}/Templates/TP_FirstPerson" "TP_FirstPerson"
     - name: Copy Plugins & Remove Assets
