@@ -28,6 +28,8 @@ jobs:
         os: ['Win64', 'Mac', 'iOS', 'Android']
     runs-on: ubuntu-latest
     needs: [ build-ndk-win, build-ndk-mac, build-ndk-ios, build-ndk-android ]
+    env:
+        os: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
@@ -38,10 +40,10 @@ jobs:
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/cache/restore@v3
-      id: ndk-cache-${{ matrix.os }}
+      id: ndk-cache-${{ env.os }}
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ndk-cache-${{ matrix.os }}-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-${{ env.os }}-${{ env.INWORLD_NDK_SHA }}
         fail-on-cache-miss: true
     - uses: actions/upload-artifact@v3
       with:
@@ -51,8 +53,8 @@ jobs:
           !InworldAI\inworld-ndk\build\Package\lib
     - uses: actions/upload-artifact@v3
       with:
-        name: ${{ matrix.os }}-NDK-lib
-        path: InworldAI/inworld-ndk/build/Package/lib/${{ matrix.os }}
+        name: ${{ env.os }}-NDK-lib
+        path: InworldAI/inworld-ndk/build/Package/lib/${{ env.os }}
 
   build-sdk-win:
     needs: [ build-ndk-win ]
