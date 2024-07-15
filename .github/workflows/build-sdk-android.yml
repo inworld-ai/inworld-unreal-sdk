@@ -1,5 +1,5 @@
 
-name: Build android UE.5.0
+name: Build SDK (Android)
 
 on:
   workflow_call:
@@ -32,7 +32,7 @@ jobs:
         name: Android-NDK-lib
         path: InworldAI/inworld-ndk/build/Package/lib/Android
 
-  build-android-50:
+  build-android:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
     - uses: actions/checkout@v2
@@ -82,7 +82,7 @@ jobs:
           Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
           Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
           Copy-Item -Path "InworldInnequin"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldInnequin" -Recurse
-    - name: BuildGame-android-50
+    - name: BuildGame-android-52
       shell: pwsh
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_5.2"
@@ -97,7 +97,7 @@ jobs:
           {
             exit 1
           }
-    - name: BuildPlugin-android-50
+    - name: BuildPlugin-android-52
       shell: pwsh
       run: |
           [string]$UEPath = "C:\Program Files\Epic Games\UE_5.2"

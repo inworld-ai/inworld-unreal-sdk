@@ -22,21 +22,18 @@ jobs:
   build-ndk-android:
     uses: ./.github/workflows/build-ndk-android.yml
 
-  build-win-50:
+  build-win:
     needs: [ build-ndk-win ]
-    uses: ./.github/workflows/build-win-50.yml
-  build-win-427:
-    needs: [ build-ndk-win ]
-    uses: ./.github/workflows/build-win-427.yml
-  build-android-50:
+    uses: ./.github/workflows/build-sdk-win.yml
+  build-android:
     needs: [ build-ndk-android, build-ndk-win ]
-    uses: ./.github/workflows/build-android-50.yml
-  build-mac-50:
+    uses: ./.github/workflows/build-sdk-android.yml
+  build-mac:
     needs: [ build-ndk-mac ]
-    uses: ./.github/workflows/build-mac-50.yml
-  build-ios-50:
+    uses: ./.github/workflows/build-sdk-mac.yml
+  build-ios:
     needs: [ build-ndk-ios, build-ndk-mac ]
-    uses: ./.github/workflows/build-ios-50.yml
+    uses: ./.github/workflows/build-sdk-ios.yml
 
   upload-ndk-win:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
@@ -118,7 +115,7 @@ jobs:
 
   package:
     runs-on: ubuntu-latest
-    needs: [ build-win-50, build-win-427, build-android-50, build-mac-50, build-ios-50, upload-ndk-win, upload-ndk-mac, upload-ndk-ios ]
+    needs: [ build-sdk-win, build-sdk-android, build-sdk-mac, build-sdk-ios, upload-ndk-win, upload-ndk-mac, upload-ndk-ios ]
     steps:
       - uses: actions/checkout@v2
       - name: git-update-dependecies

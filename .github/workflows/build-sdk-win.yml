@@ -1,12 +1,15 @@
 
-name: Build Win UE.5.0
+name: Build SDK (Win)
 
 on:
   workflow_call:
   workflow_dispatch:
 
 jobs:
-  build-win-50:
+  build-win:
+    strategy:
+      matrix:
+        ue-version: [5.0, 5.1, 5.2, 5.3, 5.4]
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
     - uses: actions/checkout@v2
@@ -53,10 +56,10 @@ jobs:
           Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
           Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
           Copy-Item -Path "InworldInnequin"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldInnequin" -Recurse
-    - name: BuildEditor-Win-50
+    - name: BuildEditor-Win-${{ matrix.ue-version }}
       shell: pwsh
       run: |
-          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_${{ matrix.ue-version }}"
           [string]$ProjectPath = "$pwd"
           Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildEditor,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildEditorLog.txt" -Wait -NoNewWindow -PassThru
           cat BuildEditorLog.txt
@@ -68,10 +71,10 @@ jobs:
           {
             exit 1
           }
-    - name: BuildGame-Win-50
+    - name: BuildGame-Win-${{ matrix.ue-version }}
       shell: pwsh
       run: |
-          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_${{ matrix.ue-version }}"
           [string]$ProjectPath = "$pwd"
           Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Win64,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru
           cat BuildGameLog.txt
@@ -83,10 +86,10 @@ jobs:
           {
             exit 1
           }
-    - name: BuildPlugin-Win-50
+    - name: BuildPlugin-Win-${{ matrix.ue-version }}
       shell: pwsh
       run: |
-          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.0"
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_${{ matrix.ue-version }}"
           [string]$ProjectPath = "$pwd"
           Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildPlugin,-plugin="$ProjectPath\TestInworldFPS\TestInworldFPS\Plugins\InworldAI\InworldAI.uplugin",-TargetPlatforms=Win64,-package="$ProjectPath\PluginBuild"," > BuildPluginLog.txt" -Wait -NoNewWindow -PassThru
           cat BuildPluginLog.txt
