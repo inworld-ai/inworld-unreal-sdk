@@ -37,6 +37,10 @@ private:
 	void OnCharacterUtterance(const FCharacterMessageUtterance& Message);
 	UFUNCTION()
 	void OnCharacterUtteranceInterrupt(const FCharacterMessageUtterance& Message);
+	UFUNCTION()
+	void OnCharacterUtterancePause(const FCharacterMessageUtterance& Message);
+	UFUNCTION()
+	void OnCharacterUtteranceResume(const FCharacterMessageUtterance& Message);
 
 	UFUNCTION()
 	void OnCharacterSilence(const FCharacterMessageSilence& Message);
