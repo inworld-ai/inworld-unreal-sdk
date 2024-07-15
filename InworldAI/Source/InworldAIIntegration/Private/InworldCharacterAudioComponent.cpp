@@ -27,6 +27,8 @@ void UInworldCharacterAudioComponent::BeginPlay()
 
 		CharacterComponent->OnUtterance.AddDynamic(this, &UInworldCharacterAudioComponent::OnCharacterUtterance);
 		CharacterComponent->OnUtteranceInterrupt.AddDynamic(this, &UInworldCharacterAudioComponent::OnCharacterUtteranceInterrupt);
+		CharacterComponent->OnUtterancePause.AddDynamic(this, &UInworldCharacterAudioComponent::OnCharacterUtterancePause);
+		CharacterComponent->OnUtteranceResume.AddDynamic(this, &UInworldCharacterAudioComponent::OnCharacterUtteranceResume);
 		CharacterComponent->OnSilence.AddDynamic(this, &UInworldCharacterAudioComponent::OnCharacterSilence);
 		CharacterComponent->OnSilenceInterrupt.AddDynamic(this, &UInworldCharacterAudioComponent::OnCharacterSilenceInterrupt);
 	}
@@ -56,6 +58,11 @@ void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessa
 			}
 		}
 
+		if (bIsPaused)
+		{
+			SetPaused(false);
+		}
+
 		Play();
 
 		CharacterComponent->LockMessageQueue(CharacterMessageQueueLockHandle);
@@ -68,6 +75,16 @@ void UInworldCharacterAudioComponent::OnCharacterUtteranceInterrupt(const FChara
 	VisemeBlends = FInworldCharacterVisemeBlends();
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
 	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
+}
+
+void UInworldCharacterAudioComponent::OnCharacterUtterancePause(const FCharacterMessageUtterance& Message)
+{
+	SetPaused(true);
+}
+
+void UInworldCharacterAudioComponent::OnCharacterUtteranceResume(const FCharacterMessageUtterance& Message)
+{
+	SetPaused(false);
 }
 
 void UInworldCharacterAudioComponent::OnCharacterSilence(const FCharacterMessageSilence& Message)

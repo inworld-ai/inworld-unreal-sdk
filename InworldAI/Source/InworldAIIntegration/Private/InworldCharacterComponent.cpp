@@ -40,7 +40,11 @@ void UInworldCharacterComponent::HandleTargetPlayerVoiceDetection(bool bVoiceDet
 {
 	if (bVoiceDetected)
 	{
-		Interrupt();
+		MessageQueue->TryToPause();
+	}
+	else
+	{
+		MessageQueue->TryToResume();
 	}
 	OnVoiceDetection.Broadcast(bVoiceDetected);
 }
@@ -156,10 +160,8 @@ void UInworldCharacterComponent::EndPlay(EEndPlayReason::Type Reason)
     for (auto* Pb : Playbacks)
     {
         Pb->EndPlay();
-		Pb->ClearCharacterComponent();
+        Pb->ClearCharacterComponent();
     }
-	
-	MessageQueue->Interrupt();
 
     Super::EndPlay(Reason);
 }
@@ -257,11 +259,11 @@ bool UInworldCharacterComponent::IsInteractingWithPlayer() const
 	return InworldCharacter != nullptr && InworldCharacter->GetTargetPlayer() != nullptr;
 }
 
-void UInworldCharacterComponent::Interrupt()
+void UInworldCharacterComponent::Interrupt(const FString& InterruptingInteractionId)
 {
-	NO_CHARACTER_RETURN(void())
+	EMPTY_ARG_RETURN(InterruptingInteractionId, void())
 
-	MessageQueue->Interrupt();
+	MessageQueue->TryToInterrupt(InterruptingInteractionId);
 }
 
 void UInworldCharacterComponent::SendTextMessage(const FString& Text) const
@@ -357,7 +359,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 		TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
 		if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
 		{
-			Interrupt();
+			Interrupt(Event.PacketId.InteractionId);
 		}
 	}
 }
@@ -496,7 +498,24 @@ void UInworldCharacterComponent::Handle(const FCharacterMessageUtterance& Messag
 
 void UInworldCharacterComponent::Interrupt(const FCharacterMessageUtterance& Message)
 {
+	const FString& InteractionId = Message.InteractionId;
+	if (!PendingCancelResponses.Contains(Message.InteractionId))
+	{
+		PendingCancelResponses.Add(InteractionId, {});
+	}
+	PendingCancelResponses[InteractionId].Add(Message.UtteranceId);
+
 	OnUtteranceInterrupt.Broadcast(Message);
+}
+
+void UInworldCharacterComponent::Pause(const FCharacterMessageUtterance& Message)
+{
+	OnUtterancePause.Broadcast(Message);
+}
+
+void UInworldCharacterComponent::Resume(const FCharacterMessageUtterance& Message)
+{
+	OnUtteranceResume.Broadcast(Message);
 }
 
 void UInworldCharacterComponent::Handle(const FCharacterMessageSilence& Message)
@@ -516,6 +535,11 @@ void UInworldCharacterComponent::Handle(const FCharacterMessageTrigger& Message)
 
 void UInworldCharacterComponent::Handle(const FCharacterMessageInteractionEnd& Message)
 {
+	const FString& InteractionId = Message.InteractionId;
+	if (PendingCancelResponses.Contains(Message.InteractionId))
+	{
+		InworldCharacter->CancelResponse(InteractionId, PendingCancelResponses[InteractionId]);
+	}
 	OnInteractionEnd.Broadcast(Message);
 }
 
