@@ -9,6 +9,7 @@
 
 
 #include "CoreMinimal.h"
+#include "InworldEnums.h"
 
 #include "InworldTypes.generated.h"
 
