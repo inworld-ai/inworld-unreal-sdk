@@ -22,6 +22,8 @@ class ICharacterMessageVisitor
 public:
 	virtual void Handle(const FCharacterMessageUtterance& Event) { }
 	virtual void Interrupt(const FCharacterMessageUtterance& Event) { }
+	virtual void Pause(const FCharacterMessageUtterance& Event) { }
+	virtual void Resume(const FCharacterMessageUtterance& Event) { }
 
 	virtual void Handle(const FCharacterMessageSilence& Event) { }
 	virtual void Interrupt(const FCharacterMessageSilence& Event) { }
