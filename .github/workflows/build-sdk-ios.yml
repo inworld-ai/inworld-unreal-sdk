@@ -49,7 +49,7 @@ jobs:
           rm -rf "TP_FirstPerson/Plugins/InworldAI"
           rm -rf "TP_FirstPerson/Plugins/InworldMetahuman"
           rm -rf "TP_FirstPerson/Plugins/InworldInnequin"
-          mkdir "TestInworldFPS/TestInworldFPS/Plugins"
+          mkdir "TP_FirstPerson/Plugins"
           cp -r "InworldAI" "TP_FirstPerson/Plugins"
           cp -r "InworldMetahuman" "TP_FirstPerson/Plugins"
           cp -r "InworldInnequin" "TP_FirstPerson/Plugins"
