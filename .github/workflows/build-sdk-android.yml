@@ -6,32 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  upload-ndk-android:
-    runs-on: macos-13
-    steps:
-    - uses: actions/checkout@v2
-    - name: git-update-dependecies
-      run: git submodule update --init
-    - name: Find NDK SHA
-      run: |
-        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
-        echo $INWORLD_NDK_SHA
-        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
-    - uses: actions/cache/restore@v3
-      id: ndk-cache-android
-      with:
-        path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
-    - name: check-cache-success
-      if: steps.ndk-cache-android.outputs.cache-hit != 'true'
-      run: |
-        echo "cache restore failed"
-        exit 1
-    - uses: actions/upload-artifact@v3
-      with:
-        name: Android-NDK-lib
-        path: InworldAI/inworld-ndk/build/Package/lib/Android
-
   build-android:
     strategy:
       matrix:
