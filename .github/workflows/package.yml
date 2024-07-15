@@ -22,23 +22,26 @@ jobs:
   build-ndk-android:
     uses: ./.github/workflows/build-ndk-android.yml
 
-  upload-ndk-win:
-    runs-on: [ self-hosted, Windows, X64, w10-1344 ]
-    needs: [ build-ndk-win ]
+  upload-ndk:
+    strategy:
+      matrix:
+        ue-version: ['Win64', 'Mac', 'iOS', 'Android']
+    runs-on: ubuntu-latest
+    needs: [ build-ndk-win, build-ndk-mac, build-ndk-ios, build-ndk-android ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
       run: git submodule update --init
     - name: Find NDK SHA
       run: |
-        $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
+        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
         echo $INWORLD_NDK_SHA
-        Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
+        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/cache/restore@v3
-      id: ndk-cache-win64
+      id: ndk-cache-${{ matrix.os }}
       with:
-        path: InworldAI\inworld-ndk\build\Package
-        key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
+        path: InworldAI/inworld-ndk/build/Package
+        key: ndk-cache-${{ matrix.os }}-${{ env.INWORLD_NDK_SHA }}
         fail-on-cache-miss: true
     - uses: actions/upload-artifact@v3
       with:
@@ -48,94 +51,25 @@ jobs:
           !InworldAI\inworld-ndk\build\Package\lib
     - uses: actions/upload-artifact@v3
       with:
-        name: Win-NDK-lib
-        path: InworldAI\inworld-ndk\build\Package\lib\Win64
-  
-  upload-ndk-android:
-    runs-on:  [ self-hosted, macOS, ARM64, m1-1317 ]
-    needs: [ build-ndk-android ]
-    steps:
-    - uses: actions/checkout@v2
-    - name: git-update-dependecies
-      run: git submodule update --init
-    - name: Find NDK SHA
-      run: |
-        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
-        echo $INWORLD_NDK_SHA
-        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
-    - uses: actions/cache/restore@v3
-      id: ndk-cache-android
-      with:
-        path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
-        fail-on-cache-miss: true
-    - uses: actions/upload-artifact@v3
-      with:
-        name: Android-NDK-lib
-        path: InworldAI/inworld-ndk/build/Package/lib/Android
-  
-  upload-ndk-mac:
-    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
-    needs: [ build-ndk-mac ]
-    steps:
-    - uses: actions/checkout@v2
-    - name: git-update-dependecies
-      run: git submodule update --init
-    - name: Find NDK SHA
-      run: |
-        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
-        echo $INWORLD_NDK_SHA
-        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
-    - uses: actions/cache/restore@v3
-      id: ndk-cache-mac
-      with:
-        path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
-        fail-on-cache-miss: true
-    - uses: actions/upload-artifact@v3
-      with:
-        name: Mac-NDK-lib
-        path: InworldAI/inworld-ndk/build/Package/lib/Mac
-  
-  upload-ndk-ios:
-    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
-    needs: [ build-ndk-ios ]
-    steps:
-    - uses: actions/checkout@v2
-    - name: git-update-dependecies
-      run: git submodule update --init
-    - name: Find NDK SHA
-      run: |
-        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
-        echo $INWORLD_NDK_SHA
-        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
-    - uses: actions/cache/restore@v3
-      id: ndk-cache-ios
-      with:
-        path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
-        fail-on-cache-miss: true
-    - uses: actions/upload-artifact@v3
-      with:
-        name: iOS-NDK-lib
-        path: InworldAI/inworld-ndk/build/Package/lib/iOS
+        name: ${{ matrix.os }}-NDK-lib
+        path: InworldAI/inworld-ndk/build/Package/lib/${{ matrix.os }}
 
   build-sdk-win:
-    needs: [ upload-ndk-win ]
+    needs: [ build-ndk-win ]
     uses: ./.github/workflows/build-sdk-win.yml
   build-sdk-android:
-    needs: [ upload-ndk-android, upload-ndk-win ]
+    needs: [ build-ndk-android, build-ndk-win ]
     uses: ./.github/workflows/build-sdk-android.yml
   build-sdk-mac:
-    needs: [ upload-ndk-mac ]
+    needs: [ build-ndk-mac ]
     uses: ./.github/workflows/build-sdk-mac.yml
   build-sdk-ios:
-    needs: [ upload-ndk-ios, upload-ndk-mac ]
+    needs: [ build-ndk-ios, build-ndk-mac ]
     uses: ./.github/workflows/build-sdk-ios.yml
 
   package:
     runs-on: ubuntu-latest
-    needs: [ build-sdk-win, build-sdk-android, build-sdk-mac, build-sdk-ios ]
+    needs: [ build-sdk-win, build-sdk-android, build-sdk-mac, build-sdk-ios, upload-ndk ]
     steps:
       - uses: actions/checkout@v2
       - name: git-update-dependecies

@@ -20,7 +20,7 @@ jobs:
       id: ndk-cache-ios
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
     - name: git-update-dependecies
       if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
@@ -38,5 +38,5 @@ jobs:
       if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
