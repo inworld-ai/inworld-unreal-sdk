@@ -54,7 +54,7 @@ jobs:
           cp -r "InworldMetahuman" "TP_FirstPerson/Plugins"
           cp -r "InworldInnequin" "TP_FirstPerson/Plugins"
     
-    - name: BuildGame-ios-51
+    - name: BuildGame-ios-${{ matrix.ue-version }}
       shell: bash
       run: |
           sh "/Users/Shared/Epic Games/UE_${{ matrix.ue-version }}/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="$PWD/TP_FirstPerson/TP_FirstPerson.uproject" -platform=IOS  -notools -configuration=Development+Shipping
@@ -64,7 +64,7 @@ jobs:
               exit 0
           fi
           exit 1
-    - name: BuildPlugin-ios-51
+    - name: BuildPlugin-ios-${{ matrix.ue-version }}
       shell: bash
       run: |
         sh "/Users/Shared/Epic Games/UE_${{ matrix.ue-version }}/Engine/Build/BatchFiles/RunUAT.sh" > BuildPluginLog.txt BuildPlugin -plugin="$PWD/TP_FirstPerson/Plugins/InworldAI/InworldAI.uplugin" -TargetPlatforms=IOS -package="$PWD/PluginBuild"
@@ -74,5 +74,3 @@ jobs:
               exit 0
           fi
           exit 1
-
-         

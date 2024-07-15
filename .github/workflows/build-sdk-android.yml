@@ -33,6 +33,9 @@ jobs:
         path: InworldAI/inworld-ndk/build/Package/lib/Android
 
   build-android:
+    strategy:
+      matrix:
+        ue-version: ['5.2']
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
     - uses: actions/checkout@v2
@@ -67,27 +70,26 @@ jobs:
           {
             exit 1
           }
-    - run: mkdir -p TestInworldFPS 
-    - uses: actions/checkout@v2
-      with:
-        ref: 'TestInworldFPS'
-        path: 'TestInworldFPS'
+    - name: Copy Template - First Person
+      shell: pwsh
+      run: |
+          Copy-Item -Path "C:\Program Files\Epic Games\UE_${{ matrix.ue-version }}\Templates\TP_FirstPerson"  -Destination "TP_FirstPerson" -Recurse
     - name: Copy Plugins & Remove Assets
       shell: pwsh
       run: |
           Remove-Item "InworldAI\Content\*" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "TestInworldFPS\TestInworldFPS\Plugins\InworldInnequin" -Recurse -ErrorAction SilentlyContinue
-          Copy-Item -Path "InworldAI"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldAI" -Recurse
-          Copy-Item -Path "InworldMetahuman"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldMetahuman" -Recurse
-          Copy-Item -Path "InworldInnequin"  -Destination "TestInworldFPS\TestInworldFPS\Plugins\InworldInnequin" -Recurse
-    - name: BuildGame-android-52
+          Remove-Item "TP_FirstPerson\Plugins\InworldAI" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TP_FirstPerson\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
+          Remove-Item "TP_FirstPerson\Plugins\InworldInnequin" -Recurse -ErrorAction SilentlyContinue
+          Copy-Item -Path "InworldAI"  -Destination "TP_FirstPerson\Plugins\InworldAI" -Recurse
+          Copy-Item -Path "InworldMetahuman"  -Destination "TP_FirstPerson\Plugins\InworldMetahuman" -Recurse
+          Copy-Item -Path "InworldInnequin"  -Destination "TP_FirstPerson\Plugins\InworldInnequin" -Recurse
+    - name: BuildGame-android-${{ matrix.ue-version }}
       shell: pwsh
       run: |
-          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.2"
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_${{ matrix.ue-version }}"
           [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TestInworldFPS\TestInworldFPS\TestInworldFPS.uproject",-platform=Android,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildGame,-Project="$ProjectPath\TP_FirstPerson\TP_FirstPerson.uproject",-platform=Android,-notools,-configuration=Development+Shipping," > BuildGameLog.txt" -Wait -NoNewWindow -PassThru
           cat BuildGameLog.txt
           if (Select-String -Path BuildGameLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {
@@ -97,12 +99,12 @@ jobs:
           {
             exit 1
           }
-    - name: BuildPlugin-android-52
+    - name: BuildPlugin-android-${{ matrix.ue-version }}
       shell: pwsh
       run: |
-          [string]$UEPath = "C:\Program Files\Epic Games\UE_5.2"
+          [string]$UEPath = "C:\Program Files\Epic Games\UE_${{ matrix.ue-version }}"
           [string]$ProjectPath = "$pwd"
-          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildPlugin,-plugin="$ProjectPath\TestInworldFPS\TestInworldFPS\Plugins\InworldAI\InworldAI.uplugin",-TargetPlatforms=Android,-package="$ProjectPath\PluginBuild"," > BuildPluginLog.txt" -Wait -NoNewWindow -PassThru
+          Start-Process -FilePath "$UEPath\Engine\Build\BatchFiles\RunUAT.bat" -ArgumentList BuildPlugin,-plugin="$ProjectPath\TP_FirstPerson\Plugins\InworldAI\InworldAI.uplugin",-TargetPlatforms=Android,-package="$ProjectPath\PluginBuild"," > BuildPluginLog.txt" -Wait -NoNewWindow -PassThru
           cat BuildPluginLog.txt
           if (Select-String -Path BuildPluginLog.txt -Pattern "BUILD SUCCESSFUL" -SimpleMatch -Quiet)
           {
