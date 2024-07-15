@@ -1,3 +1,15 @@
+# 1.6.1
+- Connection Management
+- iOS/Mac mic permission warning
+- iOS mic fix
+- Scene-less characters to display in studio UI
+- Character 'Bubbles' sample in-world widget
+
+# 1.6.0
+- Runtime YAML warnings
+- Multi-agent (early-access) support
+- push-to-talk mic modes
+
 # 1.5.1
 - Fix for UE 5.4 packaging
 
