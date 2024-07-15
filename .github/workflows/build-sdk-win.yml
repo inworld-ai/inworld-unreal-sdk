@@ -9,7 +9,7 @@ jobs:
   build-win:
     strategy:
       matrix:
-        ue-version: [5.0, 5.1, 5.2, 5.3, 5.4]
+        ue-version: ['5.0', '5.1', '5.2', '5.3', '5.4']
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
     - uses: actions/checkout@v2
