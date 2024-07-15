@@ -111,7 +111,7 @@ jobs:
         path: InworldAI/inworld-ndk/build/Package/lib/iOS
   
 # upload-ndk-android: 
-#   already uploaded in ./.github/workflows/build-android-50.yml
+#   already uploaded in ./.github/workflows/build-sdk-android.yml
 
   package:
     runs-on: ubuntu-latest
