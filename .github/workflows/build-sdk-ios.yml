@@ -7,6 +7,9 @@ on:
 
 jobs:
   build-ios:
+    strategy:
+      matrix:
+        ue-version: ['5.1']
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:
     - uses: actions/checkout@v2
@@ -36,26 +39,26 @@ jobs:
       run: |
         python3 "build-scripts/ndk-util.py" --copy
     - run: mkdir -p TestInworldFPS 
-    - uses: actions/checkout@v2
-      with:
-        ref: 'TestInworldFPS'
-        path: 'TestInworldFPS'
+    - name: Copy Template - First Person
+      shell: pwsh
+      run: |
+          cp -r "/Users/Shared/Epic Games/UE_${{ matrix.ue-version }}/Templates/TP_FirstPerson" "TP_FirstPerson"
     - name: Copy Plugins & Remove Assets
       shell: bash
       run: |
           rm -rf "InworldAI/Content"
-          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldAI"
-          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldMetahuman"
-          rm -rf "TestInworldFPS/TestInworldFPS/Plugins/InworldInnequin"
+          rm -rf "TP_FirstPerson/Plugins/InworldAI"
+          rm -rf "TP_FirstPerson/Plugins/InworldMetahuman"
+          rm -rf "TP_FirstPerson/Plugins/InworldInnequin"
           mkdir "TestInworldFPS/TestInworldFPS/Plugins"
-          cp -r "InworldAI" "TestInworldFPS/TestInworldFPS/Plugins"
-          cp -r "InworldMetahuman" "TestInworldFPS/TestInworldFPS/Plugins"
-          cp -r "InworldInnequin" "TestInworldFPS/TestInworldFPS/Plugins"
+          cp -r "InworldAI" "TP_FirstPerson/Plugins"
+          cp -r "InworldMetahuman" "TP_FirstPerson/Plugins"
+          cp -r "InworldInnequin" "TP_FirstPerson/Plugins"
     
     - name: BuildGame-ios-51
       shell: bash
       run: |
-          sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="$PWD/TestInworldFPS/TestInworldFPS/TestInworldFPS.uproject" -platform=IOS  -notools -configuration=Development+Shipping
+          sh "/Users/Shared/Epic Games/UE_${{ matrix.ue-version }}/Engine/Build/BatchFiles/RunUAT.sh" > BuildGameLog.txt BuildGame -project="$PWD/TP_FirstPerson/TP_FirstPerson.uproject" -platform=IOS  -notools -configuration=Development+Shipping
           cat BuildGameLog.txt
           if (grep -Fxq "BUILD SUCCESSFUL" BuildGameLog.txt)
           then
@@ -65,7 +68,7 @@ jobs:
     - name: BuildPlugin-ios-51
       shell: bash
       run: |
-        sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" > BuildPluginLog.txt BuildPlugin -plugin="$PWD/TestInworldFPS/TestInworldFPS/Plugins/InworldAI/InworldAI.uplugin" -TargetPlatforms=IOS -package="$PWD/PluginBuild"
+        sh "/Users/Shared/Epic Games/UE_${{ matrix.ue-version }}/Engine/Build/BatchFiles/RunUAT.sh" > BuildPluginLog.txt BuildPlugin -plugin="$PWD/TP_FirstPerson/Plugins/InworldAI/InworldAI.uplugin" -TargetPlatforms=IOS -package="$PWD/PluginBuild"
         cat BuildPluginLog.txt
           if (grep -Fxq "BUILD SUCCESSFUL" BuildPluginLog.txt)
           then
