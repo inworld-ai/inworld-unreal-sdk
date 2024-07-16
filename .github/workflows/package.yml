@@ -39,6 +39,7 @@ jobs:
       with:
         path: InworldAI\inworld-ndk\build\Package
         key: ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
+        enableCrossOsArchive: true
         fail-on-cache-miss: true
     - uses: actions/upload-artifact@v3
       with:
@@ -68,6 +69,7 @@ jobs:
       with:
         path: InworldAI/inworld-ndk/build/Package
         key: ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+        enableCrossOsArchive: true
         fail-on-cache-miss: true
     - uses: actions/upload-artifact@v3
       with:
@@ -91,6 +93,7 @@ jobs:
       with:
         path: InworldAI/inworld-ndk/build/Package
         key: ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        enableCrossOsArchive: true
         fail-on-cache-miss: true
     - uses: actions/upload-artifact@v3
       with:
@@ -114,6 +117,7 @@ jobs:
       with:
         path: InworldAI/inworld-ndk/build/Package
         key: ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+        enableCrossOsArchive: true
         fail-on-cache-miss: true
     - uses: actions/upload-artifact@v3
       with:
