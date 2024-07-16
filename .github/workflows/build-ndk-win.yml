@@ -30,6 +30,8 @@ jobs:
       if: steps.ndk-cache-win64.outputs.cache-hit != 'true'
       run: |
         $pythonPath = (Get-Command python.exe).Source
+        Remove-Item -Path "InworldAI\inworld-ndk\build\CMakeCache.txt"
+        $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList build-scripts\ndk-util.py,--clean
         $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList build-scripts\ndk-util.py,--platform=Win64,--clean,--build
         if($process.ExitCode -ne 0)
         {

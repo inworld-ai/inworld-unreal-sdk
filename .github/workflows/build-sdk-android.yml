@@ -17,6 +17,10 @@ jobs:
       run: git submodule update --init --recursive
     - uses: actions/download-artifact@v4
       with:
+        name: NDK-Win
+        path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
+    - uses: actions/download-artifact@v4
+      with:
         name: NDK-Android
         path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
     - name: Copy Template - First Person
