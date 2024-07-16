@@ -20,18 +20,14 @@ jobs:
         $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
         echo $INWORLD_NDK_SHA
         Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
-    - uses: actions/cache/restore@v4
-      id: ndk-cache-android
+    - uses: actions/download-artifact@v3
       with:
-        path: InworldAI\inworld-ndk\build\Package
-        key: ndk-cache-Android-${{ env.INWORLD_NDK_SHA }}
-        enableCrossOsArchive: true
-    - name: check-cache-success
-      shell: pwsh
-      if: steps.ndk-cache-android.outputs.cache-hit != 'true'
-      run: |
-        echo "cache restore failed"
-        exit 1
+        name: NDK-Source
+        path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
+    - uses: actions/download-artifact@v3
+      with:
+        name: Android-NDK-lib
+        path: InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/Android
     - name: Copy NDK
       run: |
           $pythonPath = (Get-Command python.exe).Source

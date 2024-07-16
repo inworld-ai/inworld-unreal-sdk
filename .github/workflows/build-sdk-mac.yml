@@ -20,18 +20,14 @@ jobs:
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
-    - uses: actions/cache/restore@v4
-      id: ndk-cache-mac
+    - uses: actions/download-artifact@v3
       with:
-        path: InworldAI/inworld-ndk/build/Package
-        key: ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
-        fail-on-cache-miss: true
-        enableCrossOsArchive: true
-    - name: check-cache-success
-      if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
-      run: |
-        echo "cache restore failed"
-        exit 1
+        name: NDK-Source
+        path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
+    - uses: actions/download-artifact@v3
+      with:
+        name: Mac-NDK-lib
+        path: InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/Mac
     - name: Copy NDK
       run: |
         python3 "build-scripts/ndk-util.py" --copy

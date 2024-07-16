@@ -1,0 +1,35 @@
+
+name: Upload NDK (Mac)
+
+on:
+  workflow_call:
+
+jobs:
+  upload-ndk-mac:
+    runs-on: macos-13
+    steps:
+    - uses: actions/checkout@v4
+    - name: git-update-dependecies
+      run: git submodule update --init
+    - name: Find NDK SHA
+      run: |
+        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
+        echo $INWORLD_NDK_SHA
+        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
+    - uses: actions/cache/restore@v4
+      id: ndk-cache-mac
+      with:
+        path: InworldAI/inworld-ndk/build/Package
+        key: ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        enableCrossOsArchive: true
+        fail-on-cache-miss: true
+    - uses: actions/upload-artifact@v3
+      with:
+        name: NDK-Source
+        path: |
+          InworldAI\inworld-ndk\build\Package
+          !InworldAI\inworld-ndk\build\Package\lib
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Mac-NDK-lib
+        path: InworldAI/inworld-ndk/build/Package/lib/Mac
