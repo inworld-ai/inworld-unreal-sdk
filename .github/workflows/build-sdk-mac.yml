@@ -19,9 +19,6 @@ jobs:
       with:
         name: NDK-Mac
         path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
-    - name: Copy NDK
-      run: |
-        python3 "build-scripts/ndk-util.py" --copy
     - name: Copy Template - First Person
       shell: bash
       run: |

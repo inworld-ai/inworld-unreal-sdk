@@ -19,14 +19,6 @@ jobs:
       with:
         name: NDK-Android
         path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
-    - name: Copy NDK
-      run: |
-          $pythonPath = (Get-Command python.exe).Source
-          $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList build-scripts\ndk-util.py,--copy
-          if($process.ExitCode -ne 0)
-          {
-            exit 1
-          }
     - name: Copy Template - First Person
       shell: pwsh
       run: |
