@@ -34,13 +34,10 @@ jobs:
     - name: Copy Plugins & Remove Assets
       shell: pwsh
       run: |
-          Remove-Item "InworldAI\Content\*" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "TP_FirstPerson\Plugins\InworldAI" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "TP_FirstPerson\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
-          Remove-Item "TP_FirstPerson\Plugins\InworldInnequin" -Recurse -ErrorAction SilentlyContinue
-          Copy-Item -Path "InworldAI"  -Destination "TP_FirstPerson\Plugins\InworldAI" -Exclude @("inworld-ndk") -Recurse -Force
-          Copy-Item -Path "InworldMetahuman"  -Destination "TP_FirstPerson\Plugins\InworldMetahuman" -Exclude @("inworld-ndk") -Recurse -Force
-          Copy-Item -Path "InworldInnequin"  -Destination "TP_FirstPerson\Plugins\InworldInnequin" -Exclude @("inworld-ndk") -Recurse -Force
+          Remove-Item "InworldAI\Content\*" -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item "InworldAI\inworld-ndk\*" -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item "TP_FirstPerson\Plugins\InworldAI" -Recurse -Force -ErrorAction SilentlyContinue
+          Copy-Item -Path "InworldAI"  -Destination "TP_FirstPerson\Plugins\InworldAI" -Recurse -Force
     - name: BuildEditor-Win-${{ matrix.ue-version }}
       shell: pwsh
       run: |

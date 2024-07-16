@@ -30,13 +30,10 @@ jobs:
       shell: bash
       run: |
           rm -rf "InworldAI/Content"
+          rm -rf "InworldAI/inworld-ndk"
           rm -rf "TP_FirstPerson/Plugins/InworldAI"
-          rm -rf "TP_FirstPerson/Plugins/InworldMetahuman"
-          rm -rf "TP_FirstPerson/Plugins/InworldInnequin"
           mkdir "TP_FirstPerson/Plugins"
           cp -r "InworldAI" "TP_FirstPerson/Plugins"
-          cp -r "InworldMetahuman" "TP_FirstPerson/Plugins"
-          cp -r "InworldInnequin" "TP_FirstPerson/Plugins"
     - name: BuildEditor-Mac-51
       shell: bash
       run: |
