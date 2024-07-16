@@ -22,7 +22,7 @@ jobs:
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/download-artifact@v4
       with:
-        name: Mac-NDK
+        name: NDK-Mac
         path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
     - name: Copy NDK
       run: |

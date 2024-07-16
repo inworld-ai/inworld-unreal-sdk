@@ -22,7 +22,7 @@ jobs:
         Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
     - uses: actions/download-artifact@v4
       with:
-        name: Win-NDK
+        name: NDK-Win
         path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
     - name: Copy NDK
       run: |
