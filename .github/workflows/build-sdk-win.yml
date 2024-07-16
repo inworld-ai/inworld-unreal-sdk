@@ -24,7 +24,7 @@ jobs:
       id: ndk-cache-win64
       with:
         path: InworldAI\inworld-ndk\build\Package
-        key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
         fail-on-cache-miss: true
         enableCrossOsArchive: true
     - name: check-cache-success
