@@ -68,7 +68,7 @@ jobs:
       id: ndk-cache-android
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-Android-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
         fail-on-cache-miss: true
     - uses: actions/upload-artifact@v3

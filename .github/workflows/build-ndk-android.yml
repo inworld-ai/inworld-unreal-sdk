@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-ndk-android:
-    runs-on: macos-13
+    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
@@ -20,12 +20,12 @@ jobs:
       id: ndk-cache-android
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-Android-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
     - name: git-update-dependecies
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: git submodule update --init --recursive
-    - name: Build NDK (android)
+    - name: Build NDK (Android)
       shell: bash
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: |
@@ -36,5 +36,5 @@ jobs:
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-Android-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
