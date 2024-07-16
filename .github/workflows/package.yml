@@ -23,7 +23,7 @@ jobs:
     uses: ./.github/workflows/build-ndk-android.yml
 
   upload-ndk-win:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     needs: [ build-ndk-win ]
     steps:
     - uses: actions/checkout@v2
@@ -31,9 +31,9 @@ jobs:
       run: git submodule update --init
     - name: Find NDK SHA
       run: |
-        $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
+        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
         echo $INWORLD_NDK_SHA
-        Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
+        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/cache/restore@v3
       id: ndk-cache-win64
       with:
@@ -53,7 +53,7 @@ jobs:
         path: InworldAI\inworld-ndk\build\Package\lib\Win64
   
   upload-ndk-android:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     needs: [ build-ndk-android ]
     steps:
     - uses: actions/checkout@v2
@@ -77,7 +77,7 @@ jobs:
         path: InworldAI/inworld-ndk/build/Package/lib/Android
   
   upload-ndk-mac:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     needs: [ build-ndk-mac ]
     steps:
     - uses: actions/checkout@v2
@@ -101,7 +101,7 @@ jobs:
         path: InworldAI/inworld-ndk/build/Package/lib/Mac
   
   upload-ndk-ios:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     needs: [ build-ndk-ios ]
     steps:
     - uses: actions/checkout@v2
