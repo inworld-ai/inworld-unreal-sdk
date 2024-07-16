@@ -23,13 +23,13 @@ jobs:
         key: ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
         fail-on-cache-miss: true
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: NDK-Source
         path: |
           InworldAI\inworld-ndk\build\Package
           !InworldAI\inworld-ndk\build\Package\lib
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: Win-NDK-lib
         path: InworldAI\inworld-ndk\build\Package\lib\Win64

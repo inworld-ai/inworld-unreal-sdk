@@ -16,7 +16,7 @@ jobs:
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
-    - uses: actions/cache/restore@v3
+    - uses: actions/cache/restore@v4
       id: ndk-cache-ios
       with:
         path: InworldAI/inworld-ndk/build/Package
