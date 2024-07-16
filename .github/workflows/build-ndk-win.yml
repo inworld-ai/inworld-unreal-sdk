@@ -8,7 +8,7 @@ jobs:
   build-ndk-win:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: git-update-dependecies
       run: git submodule update --init
     - name: Find NDK SHA

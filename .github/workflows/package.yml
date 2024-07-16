@@ -26,7 +26,7 @@ jobs:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     needs: [ build-ndk-win ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: git-update-dependecies
       run: git submodule update --init
     - name: Find NDK SHA
@@ -56,7 +56,7 @@ jobs:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     needs: [ build-ndk-android ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: git-update-dependecies
       run: git submodule update --init
     - name: Find NDK SHA
@@ -80,7 +80,7 @@ jobs:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     needs: [ build-ndk-mac ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: git-update-dependecies
       run: git submodule update --init
     - name: Find NDK SHA
@@ -104,7 +104,7 @@ jobs:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     needs: [ build-ndk-ios ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: git-update-dependecies
       run: git submodule update --init
     - name: Find NDK SHA
@@ -141,7 +141,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ build-sdk-win, build-sdk-android, build-sdk-mac, build-sdk-ios, upload-ndk-win, upload-ndk-android, upload-ndk-mac, upload-ndk-ios ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: git-update-dependecies
         run: git submodule update --init --recursive
       - uses: actions/download-artifact@v3

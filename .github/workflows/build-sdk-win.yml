@@ -12,7 +12,7 @@ jobs:
         ue-version: ['5.0', '5.1', '5.2', '5.3', '5.4']
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: git-update-dependecies
       run: git submodule update --init --recursive | Write-Host
     - name: Find NDK SHA
