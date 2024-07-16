@@ -36,16 +36,16 @@ jobs:
     uses: ./.github/workflows/upload-ndk-ios.yml
 
   build-sdk-win:
-    needs: [ build-ndk-win ]
+    needs: [ upload-ndk-win ]
     uses: ./.github/workflows/build-sdk-win.yml
   build-sdk-android:
-    needs: [ build-ndk-android ]
+    needs: [ upload-ndk-android ]
     uses: ./.github/workflows/build-sdk-android.yml
   build-sdk-mac:
-    needs: [ build-ndk-mac ]
+    needs: [ upload-ndk-mac ]
     uses: ./.github/workflows/build-sdk-mac.yml
   build-sdk-ios:
-    needs: [ build-ndk-ios ]
+    needs: [ upload-ndk-ios ]
     uses: ./.github/workflows/build-sdk-ios.yml
 
   package:
