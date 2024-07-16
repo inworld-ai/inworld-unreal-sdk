@@ -38,9 +38,9 @@ jobs:
           Remove-Item "TP_FirstPerson\Plugins\InworldAI" -Recurse -ErrorAction SilentlyContinue
           Remove-Item "TP_FirstPerson\Plugins\InworldMetahuman" -Recurse -ErrorAction SilentlyContinue
           Remove-Item "TP_FirstPerson\Plugins\InworldInnequin" -Recurse -ErrorAction SilentlyContinue
-          Copy-Item -Path "InworldAI"  -Destination "TP_FirstPerson\Plugins\InworldAI" -Recurse
-          Copy-Item -Path "InworldMetahuman"  -Destination "TP_FirstPerson\Plugins\InworldMetahuman" -Recurse
-          Copy-Item -Path "InworldInnequin"  -Destination "TP_FirstPerson\Plugins\InworldInnequin" -Recurse
+          Copy-Item -Path "InworldAI"  -Destination "TP_FirstPerson\Plugins\InworldAI" -Exclude @("inworld-ndk") -Recurse -Force
+          Copy-Item -Path "InworldMetahuman"  -Destination "TP_FirstPerson\Plugins\InworldMetahuman" -Exclude @("inworld-ndk") -Recurse -Force
+          Copy-Item -Path "InworldInnequin"  -Destination "TP_FirstPerson\Plugins\InworldInnequin" -Exclude @("inworld-ndk") -Recurse -Force
     - name: BuildEditor-Win-${{ matrix.ue-version }}
       shell: pwsh
       run: |
