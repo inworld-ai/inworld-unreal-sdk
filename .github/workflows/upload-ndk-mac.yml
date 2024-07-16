@@ -8,6 +8,7 @@ jobs:
   upload-ndk-mac:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:
+    - uses: actions/checkout@v4
     - name: Find NDK SHA
       run: |
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)

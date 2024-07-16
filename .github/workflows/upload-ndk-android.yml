@@ -8,6 +8,7 @@ jobs:
   upload-ndk-android:
     runs-on: macos-13
     steps:
+    - uses: actions/checkout@v4
     - name: Find NDK SHA
       run: |
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
