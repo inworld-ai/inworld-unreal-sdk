@@ -8,9 +8,6 @@ jobs:
   upload-ndk-win:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
-    - uses: actions/checkout@v4
-    - name: git-update-dependecies
-      run: git submodule update --init
     - name: Find NDK SHA
       run: |
         $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
