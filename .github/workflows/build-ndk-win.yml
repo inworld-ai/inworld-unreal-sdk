@@ -47,3 +47,8 @@ jobs:
         path: InworldAI\inworld-ndk\build\Package
         key: ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
+    - uses: actions/upload-artifact@v4
+      with:
+        name: NDK-Win
+        path: |
+          InworldAI/inworld-ndk/build/Package
