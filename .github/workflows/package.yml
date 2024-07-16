@@ -50,7 +50,7 @@ jobs:
 
   package:
     runs-on: ubuntu-latest
-    needs: [ upload-ndk-win, upload-ndk-android, upload-ndk-mac, upload-ndk-ios ]
+    needs: [ build-ndk-win, build-ndk-android, build-ndk-mac, build-ndk-ios ]
     steps:
       - uses: actions/checkout@v4
       - name: git-update-dependecies
