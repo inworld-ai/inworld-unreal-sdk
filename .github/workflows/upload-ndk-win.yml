@@ -29,6 +29,7 @@ jobs:
         path: |
           InworldAI\inworld-ndk\build\Package
           !InworldAI\inworld-ndk\build\Package\lib
+        overwrite: true
     - uses: actions/upload-artifact@v4
       with:
         name: Win-NDK-lib
