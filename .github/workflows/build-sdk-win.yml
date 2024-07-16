@@ -22,12 +22,8 @@ jobs:
         Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
     - uses: actions/download-artifact@v4
       with:
-        name: NDK-Source
+        name: Win-NDK
         path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
-    - uses: actions/download-artifact@v4
-      with:
-        name: Win-NDK-lib
-        path: InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/Win64
     - name: Copy NDK
       run: |
           $pythonPath = (Get-Command python.exe).Source

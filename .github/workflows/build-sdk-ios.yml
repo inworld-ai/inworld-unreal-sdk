@@ -22,12 +22,8 @@ jobs:
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/download-artifact@v4
       with:
-        name: NDK-Source
+        name: iOS-NDK
         path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
-    - uses: actions/download-artifact@v4
-      with:
-        name: iOS-NDK-lib
-        path: InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/iOS
     - name: Copy NDK
       run: |
         python3 "build-scripts/ndk-util.py" --copy
