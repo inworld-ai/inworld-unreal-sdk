@@ -29,7 +29,6 @@ jobs:
       shell: bash
       if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
       run: |
-        rm InworldAI/inworld-ndk/build/CMakeCache.txt
         python3 "build-scripts/ndk-util.py" --clean
         sudo xcode-select -s /Applications/Xcode_13_0.app/Contents/Developer
         python3 "build-scripts/ndk-util.py" --platform=iOS --build

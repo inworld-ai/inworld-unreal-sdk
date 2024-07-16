@@ -29,7 +29,6 @@ jobs:
       shell: bash
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: |
-        rm InworldAI/inworld-ndk/build/CMakeCache.txt
         python3 "build-scripts/ndk-util.py" --clean
         python3 "build-scripts/ndk-util.py" --platform=Android --build
         rm InworldAI/inworld-ndk/build/CMakeCache.txt
