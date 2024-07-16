@@ -26,7 +26,7 @@ jobs:
         path: InworldAI/Source/ThirdParty/InworldAINDKLibrary
     - uses: actions/download-artifact@v3
       with:
-        name: Win64-NDK-lib
+        name: Win-NDK-lib
         path: InworldAI/Source/ThirdParty/InworldAINDKLibrary/lib/Win64
     - name: Copy NDK
       run: |
