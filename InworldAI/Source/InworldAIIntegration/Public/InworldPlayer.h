@@ -13,6 +13,7 @@
 #include "UObject/NoExportTypes.h"
 #include "GameFramework/Actor.h"
 #include "InworldEnums.h"
+#include "InworldTypes.h"
 #include "InworldPlayer.generated.h"
 
 class UInworldSession;
@@ -55,7 +56,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
 	void SendTriggerToConversation(const FString& Name, const TMap<FString, FString>& Params);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStartToConversation(EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+	void SendAudioSessionStartToConversation(FAudioSessionStartPayload AudioSessionMode);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStopToConversation();
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
@@ -106,7 +107,7 @@ public:
 	FOnInworldPlayerVoiceDetectionNative& OnVoiceDetection() { return OnVoiceDetectionDelegateNative; }
 
 	bool HasAudioSession() const { return bHasAudioSession; }
-	EInworldMicrophoneMode GetMicMode() const { return MicMode; }
+	EInworldMicrophoneMode GetMicMode() const { return AudioSessionMode.MicrophoneMode; }
 
 	void SetVoiceDetected(bool bVal);
 
@@ -138,7 +139,7 @@ private:
 	FOnInworldPlayerConversationChangedNative OnConversationChangedDelegateNative;
 
 	bool bHasAudioSession = false;
-	EInworldMicrophoneMode MicMode = EInworldMicrophoneMode::UNKNOWN;
+	FAudioSessionStartPayload AudioSessionMode;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)

@@ -369,20 +369,20 @@ void UInworldSession::SendSoundMessageToConversation(UInworldPlayer* Player, con
 	Client->SendSoundMessageToConversation(Player->GetConversationId(), InputData, OutputData);
 }
 
-void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, FAudioSessionStartPayload Payload)
 {
 	NO_CLIENT_RETURN(void())
 	INVALID_CHARACTER_RETURN(void())
 
-	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId, Player, MicrophoneMode);
+	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId, Player, Payload);
 }
 
-void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player, EInworldMicrophoneMode MicrophoneMode/* = EInworldMicrophoneMode::OPEN_MIC*/)
+void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player, FAudioSessionStartPayload Payload)
 {
 	NO_CLIENT_RETURN(void())
 	INVALID_PLAYER_RETURN(void())
 
-	Client->SendAudioSessionStartToConversation(Player->GetConversationId(), Player, MicrophoneMode);
+	Client->SendAudioSessionStartToConversation(Player->GetConversationId(), Player, Payload);
 }
 
 void UInworldSession::SendAudioSessionStop(UInworldCharacter* Character)
