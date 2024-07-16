@@ -7,7 +7,6 @@ on:
 jobs:
   upload-ndk-android:
     runs-on: macos-13
-    needs: [ build-ndk-android ]
     steps:
     - uses: actions/checkout@v4
     - name: git-update-dependecies
