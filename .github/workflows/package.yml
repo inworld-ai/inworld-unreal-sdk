@@ -22,18 +22,18 @@ jobs:
   build-ndk-android:
     uses: ./.github/workflows/build-ndk-android.yml
 
-  upload-sdk-win:
+  upload-ndk-win:
     needs: [ build-ndk-win ]
-    uses: ./.github/workflows/upload-sdk-win.yml
-  upload-sdk-android:
+    uses: ./.github/workflows/upload-ndk-win.yml
+  upload-ndk-android:
     needs: [ build-ndk-android ]
-    uses: ./.github/workflows/upload-sdk-android.yml
-  upload-sdk-mac:
+    uses: ./.github/workflows/upload-ndk-android.yml
+  upload-ndk-mac:
     needs: [ build-ndk-mac ]
-    uses: ./.github/workflows/upload-sdk-mac.yml
-  upload-sdk-ios:
+    uses: ./.github/workflows/upload-ndk-mac.yml
+  upload-ndk-ios:
     needs: [ build-ndk-ios ]
-    uses: ./.github/workflows/upload-sdk-ios.yml
+    uses: ./.github/workflows/upload-ndk-ios.yml
 
   build-sdk-win:
     needs: [ build-ndk-win ]
