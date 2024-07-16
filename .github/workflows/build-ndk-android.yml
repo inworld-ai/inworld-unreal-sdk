@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-ndk-android:
-    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
+    runs-on: macos-13
     steps:
     - uses: actions/checkout@v2
     - name: git-update-dependecies
