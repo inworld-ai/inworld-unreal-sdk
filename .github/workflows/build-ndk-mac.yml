@@ -16,7 +16,7 @@ jobs:
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
-    - uses: actions/cache/restore@v3
+    - uses: actions/cache/restore@v4
       id: ndk-cache-mac
       with:
         path: InworldAI/inworld-ndk/build/Package
@@ -34,7 +34,7 @@ jobs:
         rm InworldAI/inworld-ndk/build/CMakeCache.txt
         python3 "build-scripts/ndk-util.py" --platform=Mac-shared --build
         sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-    - uses: actions/cache/save@v3
+    - uses: actions/cache/save@v4
       if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
       with:
         path: InworldAI/inworld-ndk/build/Package
