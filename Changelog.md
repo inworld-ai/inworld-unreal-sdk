@@ -1,3 +1,11 @@
+# 1.6.1
+- Fix Audio for UE 5.4.3 hotfix
+
+# 1.6.0
+- Runtime YAML warnings
+- Multi-agent (early-access) support
+- push-to-talk mic modes
+
 # 1.5.1
 - Fix for UE 5.4 packaging
 
