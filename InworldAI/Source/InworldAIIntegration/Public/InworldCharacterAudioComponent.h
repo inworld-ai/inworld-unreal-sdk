@@ -37,6 +37,7 @@ private:
 	void OnCharacterUtterance(const FCharacterMessageUtterance& Message);
 	UFUNCTION()
 	void OnCharacterUtteranceInterrupt(const FCharacterMessageUtterance& Message);
+
 	UFUNCTION()
 	void OnCharacterUtterancePause(const FCharacterMessageUtterance& Message);
 	UFUNCTION()
@@ -49,15 +50,20 @@ private:
 	UFUNCTION()
 	void OnSilenceEnd();
 
-	void OnAudioPlaybackPercent(const UAudioComponent* InAudioComponent, const USoundWave* InSoundWave, float Percent);
-	void OnAudioFinished(UAudioComponent* InAudioComponent);
+	void GenerateData(class USoundWaveProcedural* InProceduralWave, int32 SamplesRequired);
+
+	void OnAudioPlaybackPercent();
+	void OnAudioFinished();
 
 	TWeakObjectPtr<class UInworldCharacterComponent> CharacterComponent;
 	FInworldCharacterMessageQueueLockHandle CharacterMessageQueueLockHandle;
 
 protected:
-	FDelegateHandle AudioPlaybackPercentHandle;
-	FDelegateHandle AudioFinishedHandle;
+	mutable FCriticalSection QueueLock;
+	TArray<uint8> SoundData;
+	int32 SoundDataSize;
+	int32 SoundDataPlayed;
+	class USoundWaveProcedural* SoundStreaming;
 
 	float CurrentAudioPlaybackPercent = 0.f;
 	float SoundDuration = 0.f;
