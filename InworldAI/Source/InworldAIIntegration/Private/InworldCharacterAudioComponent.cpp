@@ -9,6 +9,7 @@
 #include "InworldCharacterAudioComponent.h"
 #include "InworldCharacterComponent.h"
 #include "InworldBlueprintFunctionLibrary.h"
+#include "Audio.h"
 #include "Sound/SoundWave.h"
 #include "Sound/SoundWaveProcedural.h"
 #include "TimerManager.h"
