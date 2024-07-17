@@ -13,6 +13,9 @@
 #include "Sound/SoundWaveProcedural.h"
 #include "TimerManager.h"
 
+#include "Async/Async.h"
+#include "Async/TaskGraphInterfaces.h"
+
 #include <GameFramework/Actor.h>
 #include <Engine/World.h>
 
