@@ -22,6 +22,14 @@
 #define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldPlayer, Arg, Return)
 #define NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(Session, Return)
 
+UInworldPlayer::UInworldPlayer()
+	: Super()
+	, PacketVisitor(MakeShared<FInworldPlayerPacketVisitor>(this))
+{}
+
+UInworldPlayer::~UInworldPlayer()
+{}
+
 void UInworldPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -56,6 +64,15 @@ bool UInworldPlayer::CallRemoteFunction(UFunction* Function, void* Parms, FOutPa
 		return true;
 	}
 	return false;
+}
+
+void UInworldPlayer::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
+{
+	auto& Packet = WrappedPacket.Packet;
+	if (Packet.IsValid())
+	{
+		Packet->Accept(*PacketVisitor);
+	}
 }
 
 void UInworldPlayer::SetSession(UInworldSession* InSession)
@@ -245,7 +262,7 @@ void UInworldPlayer::UpdateConversation()
 {
 	NO_SESSION_RETURN(void())
 
-	FString NextConversationId = Session->GetClient()->UpdateConversation(ConversationId, Inworld::CharactersToAgentIds(TargetCharacters), bConversationParticipant);
+	FString NextConversationId = Session->UpdateConversation(this);
 	const bool bHadAudioSession = bHasAudioSession;
 	if (bHasAudioSession)
 	{
@@ -259,6 +276,15 @@ void UInworldPlayer::UpdateConversation()
 	if (bHadAudioSession && !ConversationId.IsEmpty())
 	{
 		SendAudioSessionStartToConversation(AudioSessionMode);
+	}
+}
+
+void UInworldPlayer::FInworldPlayerPacketVisitor::Visit(const FInworldConversationUpdateEvent& Event)
+{
+	if (Event.EventType == EInworldConversationUpdateType::EVICTED)
+	{
+		Player->ConversationId = {};
+		Player->UpdateConversation();
 	}
 }
 
