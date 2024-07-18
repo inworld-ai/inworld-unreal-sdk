@@ -1,9 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "InworldLLMCompleteTextAsyncAction.h"
-
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ *
+ * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
+ * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
+ */
 
 #include "InworldLLMCompleteTextAsyncAction.h"
 #include "HttpModule.h"
@@ -11,7 +11,7 @@
 #include "Json.h"
 #include "Logging/StructuredLog.h"
 
-FInworldLLMApiResponse UInworldLLMCompleteTextAsyncAction::ParseJsonResponse(const FString& JsonString)
+FInworldLLMApiResponse UInworldLLMCompleteTextAsyncAction::ParseJsonResponse(const FString &JsonString)
 {
     FInworldLLMApiResponse Response;
     TSharedPtr<FJsonObject> JsonObject;
@@ -19,13 +19,13 @@ FInworldLLMApiResponse UInworldLLMCompleteTextAsyncAction::ParseJsonResponse(con
 
     if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
     {
-        const TSharedPtr<FJsonObject>* ResultObject;
+        const TSharedPtr<FJsonObject> *ResultObject;
         if (JsonObject->TryGetObjectField(TEXT("result"), ResultObject))
         {
-            const TArray<TSharedPtr<FJsonValue>>* ChoicesArray;
+            const TArray<TSharedPtr<FJsonValue>> *ChoicesArray;
             if ((*ResultObject)->TryGetArrayField(TEXT("choices"), ChoicesArray) && ChoicesArray->Num() > 0)
             {
-                const TSharedPtr<FJsonObject>* FirstChoice;
+                const TSharedPtr<FJsonObject> *FirstChoice;
                 if ((*ChoicesArray)[0]->TryGetObject(FirstChoice))
                 {
                     (*FirstChoice)->TryGetStringField(TEXT("finishReason"), Response.FinishReason);
@@ -39,9 +39,9 @@ FInworldLLMApiResponse UInworldLLMCompleteTextAsyncAction::ParseJsonResponse(con
     return Response;
 }
 
-UInworldLLMCompleteTextAsyncAction* UInworldLLMCompleteTextAsyncAction::CompleteText(const FString& UserMessage, const FString& SystemMessage, const FString& ApiKey, const FString& ModelName)
+UInworldLLMCompleteTextAsyncAction *UInworldLLMCompleteTextAsyncAction::CompleteText(const FString &UserMessage, const FString &SystemMessage, const FString &ApiKey, const FString &ModelName)
 {
-    UInworldLLMCompleteTextAsyncAction* Action = NewObject<UInworldLLMCompleteTextAsyncAction>();
+    UInworldLLMCompleteTextAsyncAction *Action = NewObject<UInworldLLMCompleteTextAsyncAction>();
     Action->UserMessage = UserMessage;
     Action->ApiKey = ApiKey;
     Action->ModelName = ModelName;
@@ -89,10 +89,10 @@ void UInworldLLMCompleteTextAsyncAction::Activate()
     UE_LOG(LogTemp, Log, TEXT("AuthHeader: %s"), *AuthHeader);
     HttpRequest->SetHeader("Authorization", AuthHeader);
     HttpRequest->SetContentAsString(JsonPayload);
-    
+
     // Set up response handling
     HttpRequest->OnProcessRequestComplete().BindUObject(this, &UInworldLLMCompleteTextAsyncAction::HandleResponse);
-    
+
     // Initialize streaming variables
     AccumulatedResponse.Empty();
     bIsStreamingComplete = false;
@@ -118,13 +118,13 @@ void UInworldLLMCompleteTextAsyncAction::HandleResponse(FHttpRequestPtr Request,
     SetReadyToDestroy();
 }
 
-void UInworldLLMCompleteTextAsyncAction::ProcessStreamedResponse(const FString& ResponseChunk)
+void UInworldLLMCompleteTextAsyncAction::ProcessStreamedResponse(const FString &ResponseChunk)
 {
     // Split the accumulated response into lines
     TArray<FString> Lines;
     ResponseChunk.ParseIntoArrayLines(Lines);
 
-    for (const FString& Line : Lines)
+    for (const FString &Line : Lines)
     {
         if (Line.IsEmpty())
         {
@@ -146,7 +146,7 @@ void UInworldLLMCompleteTextAsyncAction::ProcessStreamedResponse(const FString& 
     }
 }
 
-void UInworldLLMCompleteTextAsyncAction::FinishResponse(FString& ResponseChunk)
+void UInworldLLMCompleteTextAsyncAction::FinishResponse(FString &ResponseChunk)
 {
     AccumulatedResponse.Empty();
     ProcessStreamedResponse(ResponseChunk);

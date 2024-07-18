@@ -1,4 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ *
+ * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
+ * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
+ */
 
 #pragma once
 
@@ -7,7 +12,7 @@
 #include "Interfaces/IHttpRequest.h"
 #include "InworldLLMCompletionAsyncActionBase.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInworldLLMApiDelegate, const FString&, PartialResponse, const FString&, FullResponse);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInworldLLMApiDelegate, const FString &, PartialResponse, const FString &, FullResponse);
 
 USTRUCT()
 struct FInworldLLMApiResponse
@@ -38,11 +43,11 @@ public:
 
 protected:
 	virtual void HandleResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess);
-	virtual void ProcessStreamedResponse(const FString& ResponseChunk);
-	virtual void FinishResponse(FString& ResponseChunk);
+	virtual void ProcessStreamedResponse(const FString &ResponseChunk);
+	virtual void FinishResponse(FString &ResponseChunk);
 
-	virtual FInworldLLMApiResponse ParseJsonResponse(const FString& JsonString);
-	
+	virtual FInworldLLMApiResponse ParseJsonResponse(const FString &JsonString);
+
 	FString ApiKey;
 	FString ModelName;
 	FString AccumulatedResponse;
