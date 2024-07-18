@@ -8,9 +8,13 @@
 
 #include "InworldCharacterAudioComponent.h"
 #include "InworldCharacterComponent.h"
-#include "InworldBlueprintFunctionLibrary.h"
+#include "Audio.h"
 #include "Sound/SoundWave.h"
+#include "Sound/SoundWaveProcedural.h"
 #include "TimerManager.h"
+
+#include "Async/Async.h"
+#include "Async/TaskGraphInterfaces.h"
 
 #include <GameFramework/Actor.h>
 #include <Engine/World.h>
@@ -19,12 +23,18 @@ void UInworldCharacterAudioComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	SoundStreaming = NewObject<USoundWaveProcedural>();
+	SoundStreaming->Duration = INDEFINITELY_LOOPING_DURATION;
+	SoundStreaming->SoundGroup = SOUNDGROUP_Voice;
+	SoundStreaming->bLooping = false;
+
+	SoundStreaming->OnSoundWaveProceduralUnderflow = FOnSoundWaveProceduralUnderflow::CreateUObject(this, &UInworldCharacterAudioComponent::GenerateData);
+
+	SetSound(SoundStreaming);
+
 	CharacterComponent = Cast<UInworldCharacterComponent>(GetOwner()->GetComponentByClass(UInworldCharacterComponent::StaticClass()));
 	if (CharacterComponent.IsValid())
 	{
-		AudioPlaybackPercentHandle = OnAudioPlaybackPercentNative.AddUObject(this, &UInworldCharacterAudioComponent::OnAudioPlaybackPercent);
-		AudioFinishedHandle = OnAudioFinishedNative.AddUObject(this, &UInworldCharacterAudioComponent::OnAudioFinished);
-
 		CharacterComponent->OnUtterance.AddDynamic(this, &UInworldCharacterAudioComponent::OnCharacterUtterance);
 		CharacterComponent->OnUtteranceInterrupt.AddDynamic(this, &UInworldCharacterAudioComponent::OnCharacterUtteranceInterrupt);
 		CharacterComponent->OnUtterancePause.AddDynamic(this, &UInworldCharacterAudioComponent::OnCharacterUtterancePause);
@@ -36,39 +46,51 @@ void UInworldCharacterAudioComponent::BeginPlay()
 
 void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessageUtterance& Message)
 {
-	SetSound(nullptr);
-	CurrentAudioPlaybackPercent = 0.f;
-	SoundDuration = 0.f;
-	if (Message.SoundData.Num() > 0 && Message.bAudioFinal)
+	if (!Message.bAudioFinal)
 	{
-		USoundWave* UtteranceSoundWave = UInworldBlueprintFunctionLibrary::DataArrayToSoundWave(Message.SoundData);
-		SoundDuration = UtteranceSoundWave->GetDuration();
-		SetSound(UtteranceSoundWave);
-
-		VisemeInfoPlayback.Empty();
-		VisemeInfoPlayback.Reserve(Message.VisemeInfos.Num());
-
-		CurrentVisemeInfo = FCharacterUtteranceVisemeInfo();
-		PreviousVisemeInfo = FCharacterUtteranceVisemeInfo();
-		VisemeInfoPlayback.Add({ TEXT("STOP"), 0.f });
-		for (const auto& VisemeInfo : Message.VisemeInfos)
-		{
-			if (!VisemeInfo.Code.IsEmpty())
-			{
-				VisemeInfoPlayback.Add(VisemeInfo);
-			}
-		}
-		VisemeInfoPlayback.Add({ TEXT("STOP"), SoundDuration });
-
-		if (bIsPaused)
-		{
-			SetPaused(false);
-		}
-
-		Play();
-
-		CharacterComponent->LockMessageQueue(CharacterMessageQueueLockHandle);
+		return;
 	}
+
+	FWaveModInfo WaveInfo;
+	if (!WaveInfo.ReadWaveInfo(Message.SoundData.GetData(), Message.SoundData.Num()))
+	{
+		return;
+	}
+
+	FScopeLock ScopeLock(&QueueLock);
+	SoundDataSize = Message.SoundData.Num() - 44;
+	SoundDataPlayed = 0;
+	SoundData = TArray<uint8>(Message.SoundData.GetData() + 44, SoundDataSize);
+
+	SoundDuration = *WaveInfo.pWaveDataSize / (*WaveInfo.pChannels * (*WaveInfo.pBitsPerSample / 8.f) * *WaveInfo.pSamplesPerSec);
+	CurrentAudioPlaybackPercent = 0.f;
+
+	SoundStreaming->NumChannels = *WaveInfo.pChannels;
+	SoundStreaming->SetSampleRate(*WaveInfo.pSamplesPerSec);
+
+	VisemeInfoPlayback.Empty();
+	VisemeInfoPlayback.Reserve(Message.VisemeInfos.Num());
+
+	CurrentVisemeInfo = FCharacterUtteranceVisemeInfo();
+	PreviousVisemeInfo = FCharacterUtteranceVisemeInfo();
+	VisemeInfoPlayback.Add({ TEXT("STOP"), 0.f });
+	for (const auto& VisemeInfo : Message.VisemeInfos)
+	{
+		if (!VisemeInfo.Code.IsEmpty())
+		{
+			VisemeInfoPlayback.Add(VisemeInfo);
+		}
+	}
+	VisemeInfoPlayback.Add({ TEXT("STOP"), SoundDuration });
+
+	if (bIsPaused)
+	{
+		SetPaused(false);
+	}
+
+	Play();
+
+	CharacterComponent->LockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
 void UInworldCharacterAudioComponent::OnCharacterUtteranceInterrupt(const FCharacterMessageUtterance& Message)
@@ -106,6 +128,44 @@ void UInworldCharacterAudioComponent::OnSilenceEnd()
 	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
+void UInworldCharacterAudioComponent::GenerateData(USoundWaveProcedural* InProceduralWave, int32 SamplesRequired)
+{
+	FScopeLock ScopeLock(&QueueLock);
+	if (SoundData.Num() == 0)
+	{
+		return;
+	}
+	if (SoundDataPlayed == SoundDataSize)
+	{
+		SoundData = {};
+		SoundDataPlayed = 0;
+		SoundDataSize = 0;
+		SoundStreaming->ResetAudio();
+		AsyncTask(ENamedThreads::GameThread, [this]()
+			{
+				if (!GetOwner()->IsPendingKillPending())
+				{
+					FScopeLock ScopeLock(&QueueLock);
+					OnAudioFinished();
+				}
+			});
+	}
+	else
+	{
+		const int NextSampleCount = FMath::Min(SamplesRequired, SoundDataSize - SoundDataPlayed);
+		InProceduralWave->QueueAudio(SoundData.GetData() + SoundDataPlayed, NextSampleCount);
+		SoundDataPlayed += NextSampleCount;
+		AsyncTask(ENamedThreads::GameThread, [this]()
+			{
+				if (!GetOwner()->IsPendingKillPending())
+				{
+					FScopeLock ScopeLock(&QueueLock);
+					OnAudioPlaybackPercent();
+				}
+			});
+	}
+}
+
 float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() const
 {
 	if (Sound != nullptr || !IsPlaying())
@@ -113,16 +173,17 @@ float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() con
 		return 0.f;
 	}
 
-	return (1.f - CurrentAudioPlaybackPercent) * Sound->Duration;
+	return (1.f - CurrentAudioPlaybackPercent) * SoundDuration;
 }
 
-void UInworldCharacterAudioComponent::OnAudioPlaybackPercent(const UAudioComponent* InAudioComponent, const USoundWave* InSoundWave, float Percent)
+void UInworldCharacterAudioComponent::OnAudioPlaybackPercent()
 {
+	const float Percent = SoundDataSize != 0 ? (float)SoundDataPlayed / (float)SoundDataSize : 0.f;
 	CurrentAudioPlaybackPercent = Percent;
 
 	VisemeBlends = FInworldCharacterVisemeBlends();
 
-	const float CurrentAudioPlaybackTime = SoundDuration * Percent;
+	const float CurrentAudioPlaybackTime = Percent * SoundDuration;
 
 	{
 		const int32 INVALID_INDEX = -1;
@@ -162,7 +223,7 @@ void UInworldCharacterAudioComponent::OnAudioPlaybackPercent(const UAudioCompone
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
 }
 
-void UInworldCharacterAudioComponent::OnAudioFinished(UAudioComponent* InAudioComponent)
+void UInworldCharacterAudioComponent::OnAudioFinished()
 {
 	VisemeBlends = FInworldCharacterVisemeBlends();
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
