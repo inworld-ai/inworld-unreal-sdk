@@ -113,6 +113,8 @@ protected:
     EInworldMicrophoneMode MicMode = EInworldMicrophoneMode::OPEN_MIC;
     bool bIsMicModeDirty = false;
 
+    bool bSessionPendingPause = false;
+
 private:
 	UFUNCTION()
 	void Rep_ServerCapturingVoice();
@@ -125,6 +127,7 @@ private:
     TWeakObjectPtr<UInworldPlayer> InworldPlayer;
     FDelegateHandle OnPlayerConversationChanged;
 
+    FDelegateHandle OnSessionPrePause;
     FDelegateHandle OnSessionConnectionStateChanged;
     FDelegateHandle OnSessionLoaded;
 

@@ -75,6 +75,20 @@ void UInworldSession::Init()
 {
 	Client = NewObject<UInworldClient>(this);
 	OnClientPacketReceivedHandle = Client->OnPacketReceived().AddUObject(this, &UInworldSession::HandlePacket);
+	OnClientPacketReceivedHandle = Client->OnPrePause().AddLambda(
+		[this]()
+		{
+			OnPrePauseDelegateNative.Broadcast();
+			OnPrePauseDelegate.Broadcast();
+		}
+	);
+	OnClientPacketReceivedHandle = Client->OnPreStop().AddLambda(
+		[this]()
+		{
+			OnPreStopDelegateNative.Broadcast();
+			OnPreStopDelegate.Broadcast();
+		}
+	);
 	OnClientConnectionStateChangedHandle = Client->OnConnectionStateChanged().AddLambda(
 		[this](EInworldConnectionState InworldConnectionState) -> void
 		{
@@ -251,8 +265,9 @@ void UInworldSession::StartSession(const FString& SceneId, const FInworldPlayerP
 
 void UInworldSession::StopSession()
 {
-	UnpossessAgents();
 	NO_CLIENT_RETURN(void())
+
+	UnpossessAgents();
 
 	Client->StopSession();
 }
