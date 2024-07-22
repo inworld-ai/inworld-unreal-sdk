@@ -245,7 +245,7 @@ void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, const TArray
     InworldSession->GetClient()->SendSoundMessage(AgentId, InputData, OutputData);
 }
 
-void UInworldApiSubsystem::StartAudioSession(const FString& AgentId, UInworldPlayer* Player, FAudioSessionStartPayload Payload)
+void UInworldApiSubsystem::StartAudioSession(const FString& AgentId, UInworldPlayer* Player, FInworldAudioSessionOptions Payload)
 {
     NO_CLIENT_RETURN(void())
     EMPTY_ARG_RETURN(AgentId, void())

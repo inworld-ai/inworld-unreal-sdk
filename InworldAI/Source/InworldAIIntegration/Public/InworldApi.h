@@ -149,7 +149,7 @@ public:
      * call before sending audio messages
      */
     UFUNCTION(BlueprintCallable, Category = "Audio", meta = (DeprecatedFunction))
-    void StartAudioSession(const FString& AgentId, UInworldPlayer* Player, FAudioSessionStartPayload Payload);
+    void StartAudioSession(const FString& AgentId, UInworldPlayer* Player, FInworldAudioSessionOptions Payload);
 
     /**
      * Stop audio session with agent

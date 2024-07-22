@@ -121,7 +121,7 @@ void UInworldCharacter::SendNarrationEvent(const FString& Content)
 	Session->SendNarrationEvent(this, Content);
 }
 
-void UInworldCharacter::SendAudioSessionStart(UInworldPlayer* Player, FAudioSessionStartPayload Playback)
+void UInworldCharacter::SendAudioSessionStart(UInworldPlayer* Player, FInworldAudioSessionOptions Playback)
 {
 	NO_SESSION_RETURN(void())
 	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())

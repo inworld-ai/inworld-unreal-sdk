@@ -56,7 +56,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
 	void SendTriggerToConversation(const FString& Name, const TMap<FString, FString>& Params);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStartToConversation(FAudioSessionStartPayload AudioSessionMode);
+	void SendAudioSessionStartToConversation(FInworldAudioSessionOptions AudioSessionMode);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStopToConversation();
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
@@ -139,7 +139,7 @@ private:
 	FOnInworldPlayerConversationChangedNative OnConversationChangedDelegateNative;
 
 	bool bHasAudioSession = false;
-	FAudioSessionStartPayload AudioSessionMode;
+	FInworldAudioSessionOptions AudioSessionMode;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)

@@ -91,10 +91,10 @@ public:
 	void ServerSetMicMode(EInworldMicrophoneMode InMicMode);
 
 	UFUNCTION(BlueprintCallable, Category = "Audio")
-	void SetAudioSessionMode(FAudioSessionStartPayload InMode) { ServerSetAudioSessionMode(InMode); }
+	void SetAudioSessionMode(FInworldAudioSessionOptions InMode) { ServerSetAudioSessionMode(InMode); }
 
 	UFUNCTION(Server, Reliable, Category = "Audio")
-	void ServerSetAudioSessionMode(FAudioSessionStartPayload InMode);
+	void ServerSetAudioSessionMode(FInworldAudioSessionOptions InMode);
 
     UFUNCTION(BlueprintCallable, Category = "Devices")
     void SetCaptureDeviceById(const FString& DeviceId);
@@ -117,7 +117,7 @@ protected:
     bool bMuted = false;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
-	FAudioSessionStartPayload AudioSessionMode;
+	FInworldAudioSessionOptions AudioSessionMode;
     bool bIsAudioSessionModeDirty = false;
 
 private:

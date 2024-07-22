@@ -54,7 +54,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Narration")
 	void SendNarrationEvent(const FString& Content);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(UInworldPlayer* Player, FAudioSessionStartPayload Playback);
+	void SendAudioSessionStart(UInworldPlayer* Player, FInworldAudioSessionOptions Playback);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStop();
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")

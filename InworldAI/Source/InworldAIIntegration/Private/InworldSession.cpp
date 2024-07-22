@@ -369,7 +369,7 @@ void UInworldSession::SendSoundMessageToConversation(UInworldPlayer* Player, con
 	Client->SendSoundMessageToConversation(Player->GetConversationId(), InputData, OutputData);
 }
 
-void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, FAudioSessionStartPayload Payload)
+void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, FInworldAudioSessionOptions Payload)
 {
 	NO_CLIENT_RETURN(void())
 	INVALID_CHARACTER_RETURN(void())
@@ -377,7 +377,7 @@ void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, UInwor
 	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId, Player, Payload);
 }
 
-void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player, FAudioSessionStartPayload Payload)
+void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player, FInworldAudioSessionOptions Payload)
 {
 	NO_CLIENT_RETURN(void())
 	INVALID_PLAYER_RETURN(void())

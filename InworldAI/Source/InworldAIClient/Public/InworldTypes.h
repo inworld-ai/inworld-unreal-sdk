@@ -157,7 +157,7 @@ struct FInworldConnectionErrorDetails
 };
 
 USTRUCT(BlueprintType)
-struct FAudioSessionStartPayload
+struct FInworldAudioSessionOptions
 {
 	GENERATED_BODY()
 
@@ -166,10 +166,10 @@ struct FAudioSessionStartPayload
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Audio")
 	EInworldUnderstandingMode UnderstandingMode = EInworldUnderstandingMode::UNKNOWN;
 
-	bool operator==(const FAudioSessionStartPayload& Other) const { return MicrophoneMode == Other.MicrophoneMode && UnderstandingMode == Other.UnderstandingMode; }
-	bool operator!=(const FAudioSessionStartPayload& Other) const { return !(*this == Other); }
+	bool operator==(const FInworldAudioSessionOptions& Other) const { return MicrophoneMode == Other.MicrophoneMode && UnderstandingMode == Other.UnderstandingMode; }
+	bool operator!=(const FInworldAudioSessionOptions& Other) const { return !(*this == Other); }
 
 	void Clear() { MicrophoneMode = EInworldMicrophoneMode::UNKNOWN; UnderstandingMode = EInworldUnderstandingMode::UNKNOWN; }
 
-	static FAudioSessionStartPayload Default() { return { EInworldMicrophoneMode::OPEN_MIC, EInworldUnderstandingMode::FULL }; }
+	static FInworldAudioSessionOptions Default() { return { EInworldMicrophoneMode::OPEN_MIC, EInworldUnderstandingMode::FULL }; }
 };

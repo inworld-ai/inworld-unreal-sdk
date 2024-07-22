@@ -129,9 +129,9 @@ public:
 	void SendSoundMessageToConversation(UInworldPlayer* Player, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, FAudioSessionStartPayload Payload);
+	void SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, FInworldAudioSessionOptions Payload);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStartToConversation(UInworldPlayer* Player, FAudioSessionStartPayload Payload);
+	void SendAudioSessionStartToConversation(UInworldPlayer* Player, FInworldAudioSessionOptions Payload);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStop(UInworldCharacter* Character);

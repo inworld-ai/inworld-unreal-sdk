@@ -491,7 +491,7 @@ void UInworldClient::SendSoundMessageToConversation(const FString& ConversationI
 	}
 }
 
-void UInworldClient::SendAudioSessionStart(const FString& AgentId, UObject* Owner, FAudioSessionStartPayload Payload)
+void UInworldClient::SendAudioSessionStart(const FString& AgentId, UObject* Owner, FInworldAudioSessionOptions Payload)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(AgentId, void())
@@ -504,7 +504,7 @@ void UInworldClient::SendAudioSessionStart(const FString& AgentId, UObject* Owne
 	Inworld::GetClient()->StartAudioSession(TCHAR_TO_UTF8(*AgentId), AudioPayload);
 }
 
-void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, UObject* Owner, FAudioSessionStartPayload Payload)
+void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, UObject* Owner, FInworldAudioSessionOptions Payload)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())

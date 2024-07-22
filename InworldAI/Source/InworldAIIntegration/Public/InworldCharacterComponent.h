@@ -129,7 +129,7 @@ public:
 	void SendNarrationEvent(const FString& Content);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void StartAudioSession(UInworldPlayer* Player, FAudioSessionStartPayload Payload);
+	void StartAudioSession(UInworldPlayer* Player, FInworldAudioSessionOptions Payload);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession();

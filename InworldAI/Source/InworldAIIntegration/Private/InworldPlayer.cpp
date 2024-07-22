@@ -96,7 +96,7 @@ void UInworldPlayer::SendTriggerToConversation(const FString& Name, const TMap<F
 	Session->SendTriggerToConversation(this, Name, Params);
 }
 
-void UInworldPlayer::SendAudioSessionStartToConversation(FAudioSessionStartPayload InAudioSessionMode)
+void UInworldPlayer::SendAudioSessionStartToConversation(FInworldAudioSessionOptions InAudioSessionMode)
 {
 	NO_SESSION_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())

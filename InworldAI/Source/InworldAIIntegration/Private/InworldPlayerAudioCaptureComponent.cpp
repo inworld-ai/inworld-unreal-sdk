@@ -363,7 +363,7 @@ void UInworldPlayerAudioCaptureComponent::ServerSetMicMode_Implementation(EInwor
     }
 }
 
-void UInworldPlayerAudioCaptureComponent::ServerSetAudioSessionMode_Implementation(FAudioSessionStartPayload InMode)
+void UInworldPlayerAudioCaptureComponent::ServerSetAudioSessionMode_Implementation(FInworldAudioSessionOptions InMode)
 {
 	if (AudioSessionMode != InMode)
 	{
