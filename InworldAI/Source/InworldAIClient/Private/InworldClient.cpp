@@ -502,7 +502,7 @@ void UInworldClient::SendSoundMessageToConversation(const FString& ConversationI
 	}
 }
 
-void UInworldClient::SendAudioSessionStart(const FString& AgentId, UObject* Owner, FInworldAudioSessionOptions Payload)
+void UInworldClient::SendAudioSessionStart(const FString& AgentId, UObject* Owner, FInworldAudioSessionOptions SessionOptions)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(AgentId, void())
@@ -510,12 +510,12 @@ void UInworldClient::SendAudioSessionStart(const FString& AgentId, UObject* Owne
 	AudioSessionOwner = Owner;
 
 	Inworld::AudioSessionStartPayload AudioPayload;
-	AudioPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(Payload.MicrophoneMode);
-	AudioPayload.UndMode = static_cast<Inworld::AudioSessionStartPayload::UnderstandingMode>(Payload.UnderstandingMode);
+	AudioPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(SessionOptions.MicrophoneMode);
+	AudioPayload.UndMode = static_cast<Inworld::AudioSessionStartPayload::UnderstandingMode>(SessionOptions.UnderstandingMode);
 	Inworld::GetClient()->StartAudioSession(TCHAR_TO_UTF8(*AgentId), AudioPayload);
 }
 
-void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, UObject* Owner, FInworldAudioSessionOptions Payload)
+void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, UObject* Owner, FInworldAudioSessionOptions SessionOptions)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
@@ -523,8 +523,8 @@ void UInworldClient::SendAudioSessionStartToConversation(const FString& Conversa
 	AudioSessionOwner = Owner;
 
 	Inworld::AudioSessionStartPayload AudioPayload;
-	AudioPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(Payload.MicrophoneMode);
-	AudioPayload.UndMode = static_cast<Inworld::AudioSessionStartPayload::UnderstandingMode>(Payload.UnderstandingMode);
+	AudioPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(SessionOptions.MicrophoneMode);
+	AudioPayload.UndMode = static_cast<Inworld::AudioSessionStartPayload::UnderstandingMode>(SessionOptions.UnderstandingMode);
 	Inworld::GetClient()->StartAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId), AudioPayload);
 }
 
