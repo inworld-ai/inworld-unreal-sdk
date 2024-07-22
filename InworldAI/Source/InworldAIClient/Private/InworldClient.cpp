@@ -160,11 +160,11 @@ UInworldClient::UInworldClient()
 			const std::string DumpPath = TCHAR_TO_UTF8(*CVarSoundDumpPath.GetValueOnGameThread());
 			if (bEnable)
 			{
-				//Inworld::GetClient()->EnableAudioDump(DumpPath);
+				Inworld::GetClient()->EnableAudioDump(DumpPath);
 			}
 			else
 			{
-				//Inworld::GetClient()->DisableAudioDump();
+				Inworld::GetClient()->DisableAudioDump();
 			}
 		};
 	OnAudioDumperCVarChangedHandle = OnAudioDumperCVarChanged.AddLambda(OnAudioDumperCVarChangedCallback);
