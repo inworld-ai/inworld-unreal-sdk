@@ -74,7 +74,6 @@ public class InworldAINDKLibrary : ModuleRules
         if (bVAD)
         {
 	        PublicDefinitions.Add("INWORLD_VAD=1");
-	        //PublicDefinitions.Add("INWORLD_SHOW_ONSCREEN_AUDIO_SEND=1");
         }
 
         PublicDefinitions.Add("INWORLD_LOG=1");

@@ -134,3 +134,10 @@ enum class EInworldUnderstandingMode : uint8
 	FULL = 1,
 	SPEECH_RECOGNITION_ONLY = 2,
 };
+
+UENUM(BlueprintType)
+enum class EInworldPlayerSpeechMode : uint8
+{
+	Default = 0 UMETA(Hidden),
+	VAD = 1,
+};
