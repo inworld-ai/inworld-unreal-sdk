@@ -173,3 +173,21 @@ struct FInworldAudioSessionOptions
 
 	static FInworldAudioSessionOptions Default() { return { EInworldMicrophoneMode::OPEN_MIC, EInworldUnderstandingMode::FULL }; }
 };
+
+USTRUCT(BlueprintType)
+struct FInworldPlayerSpeechOptions
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
+	EInworldPlayerSpeechMode Mode = EInworldPlayerSpeechMode::Default;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
+	float VADProbThreshhold = 0.3f;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
+	uint8 VADPreviousChunks = 5;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
+	uint8 VADSubsequentChunks = 5;
+};

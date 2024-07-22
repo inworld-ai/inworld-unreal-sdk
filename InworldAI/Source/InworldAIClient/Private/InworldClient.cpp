@@ -238,7 +238,20 @@ static void ConvertPlayerProfile(const FInworldPlayerProfile& PlayerProfile, Inw
 	}
 }
 
-void UInworldClient::StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save, const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet)
+static void ConvertSpeechOptions(const FInworldPlayerSpeechOptions& SpeechOptions, Inworld::ClientSpeechOptions& OutSpeechOptions)
+{
+	OutSpeechOptions.VADProbThreshhold = SpeechOptions.VADProbThreshhold;
+	OutSpeechOptions.VADPreviousChunks = SpeechOptions.VADPreviousChunks;
+	OutSpeechOptions.VADSubsequentChunks = SpeechOptions.VADSubsequentChunks;
+	OutSpeechOptions.Mode = static_cast<Inworld::ClientSpeechOptions::SpeechMode>(SpeechOptions.Mode);
+
+	const FString Path = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/InworldAINDKLibrary/resource/silero_vad_10_27_2022.onnx"));
+	const std::string ModelPath = TCHAR_TO_UTF8(*Path);
+	OutSpeechOptions.VADModelPath = ModelPath;
+}
+
+void UInworldClient::StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save,
+	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions)
 {
 	NO_CLIENT_RETURN(void())
 
@@ -259,16 +272,14 @@ void UInworldClient::StartSession(const FString& SceneId, const FInworldPlayerPr
 	Options.ApiSecret = TCHAR_TO_UTF8(*Auth.ApiSecret);
 	Options.ProjectName = TCHAR_TO_UTF8(!PlayerProfile.ProjectName.IsEmpty() ? *PlayerProfile.ProjectName : FApp::GetProjectName());
 
-	const FString Path = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/InworldAINDKLibrary/resource/silero_vad_10_27_2022.onnx"));
-	const std::string ModelPath = TCHAR_TO_UTF8(*Path);
-	Options.SpeechOptions.VADModelPath = ModelPath;
+	ConvertPlayerProfile(PlayerProfile, Options.UserConfig);
+	ConvertCapabilities(CapabilitySet, Options.Capabilities);
+	ConvertSpeechOptions(SpeechOptions, Options.SpeechOptions);
+
 	Options.SpeechOptions.VADCb = [this](bool bVoiceDetected)
 	{
 		OnVADDelegateNative.Broadcast(AudioSessionOwner, bVoiceDetected);
 	};
-
-	ConvertPlayerProfile(PlayerProfile, Options.UserConfig);
-	ConvertCapabilities(CapabilitySet, Options.Capabilities);
 
 	Inworld::SessionInfo Info;
 	Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);
