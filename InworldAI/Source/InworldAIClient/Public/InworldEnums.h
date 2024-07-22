@@ -138,6 +138,6 @@ enum class EInworldUnderstandingMode : uint8
 UENUM(BlueprintType)
 enum class EInworldPlayerSpeechMode : uint8
 {
-	Default = 0 UMETA(Hidden),
+	Default = 0,
 	VAD = 1,
 };
