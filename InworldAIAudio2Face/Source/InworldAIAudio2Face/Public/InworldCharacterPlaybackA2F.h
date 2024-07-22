@@ -1,22 +1,15 @@
-/**
- * Copyright 2022-2024 Theai, Inc. dba Inworld AI
- *
- * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
- * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
- */
+// Copyright 2023 Theai, Inc. (DBA Inworld) All Rights Reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "InworldCharacterPlayback.h"
-#include "InworldIntegrationTypes.h"
+#include "InworldAudio2Face.h"
 #include "InworldA2FTypes.h"
-#include <Components/AudioComponent.h>
 #include "InworldCharacterPlaybackA2F.generated.h"
 
-
 /**
- * 
+ *
  */
 UCLASS()
 class INWORLDAIAUDIO2FACE_API UInworldCharacterPlaybackA2F : public UInworldCharacterPlayback
@@ -36,11 +29,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Audio2Face")
 	FOnInworldAudio2FaceBlendShapeUpdate OnInworldAudio2FaceBlendShapeUpdate;
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldAudio2FaceBlendShapeBackupUpdate, const FInworldCharacterVisemeBlends&, VisemeBlends);
-	UPROPERTY(BlueprintAssignable, Category = "Audio2Face")
-	FOnInworldAudio2FaceBlendShapeBackupUpdate OnInworldAudio2FaceBlendShapeBackupUpdate;
-
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldCharacterUtteranceStarted);
+	//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldCharacterUtteranceStarted);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInworldCharacterUtteranceStarted, const FCharacterMessageUtterance&, Utterance, const AActor*, Owner);
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterUtteranceStarted OnUtteranceStarted;
 
@@ -56,31 +46,21 @@ protected:
 	TWeakObjectPtr<UAudioComponent> AudioComponent;
 	class USoundWaveProcedural* SoundStreaming;
 
-	void OnCharacterMessageUtteranceA2FDataUpdate();
+private:
+	void OnInworldAudio2FaceAnimDataHeader(const FAudio2FaceAnimDataHeader& Header);
+	void OnInworldAudio2FaceAnimDataContent(const FAudio2FaceAnimDataContent& Content);
+
+	void GenerateData(USoundWaveProcedural* InProceduralWave, int32 SamplesRequired);
 
 private:
-	void GenerateData(USoundWaveProcedural* InProceduralWave, int32 SamplesRequired);
-	
+	FInworldAudio2Face InworldAudio2Face;
+	TQueue<TArray<uint8>> AudioToSend;
+
 	mutable FCriticalSection QueueLock;
 	TQueue<TArray<uint8>> AudioToPlay;
 	TQueue<TMap<FName, float>> AnimsToPlay;
-	TQueue<TArray<uint8>> BackupAudioToPlay;
-	TQueue<FInworldCharacterVisemeBlends> BackupAnimsToPlay;
-
-	TArray<uint8> OriginalPCMData;
-	TArray<FCharacterUtteranceVisemeInfo> VisemeInfoPlayback;
-
-	bool bUseFallback = false;
-	float AllowedLatencyDelay = 1.5f;
-	float SoundDuration = 0.f;
-	float SoundSize = 0.f;
-	float TimeToGiveUp = 0.f;
-	int32 ExpectedRemainingAudio = 0;
-	int32 GotPackets = 0;
-	int32 MinPacketsToStart = 20;
-	bool bHasStartedProcessingAudio = false;
+	int32 RemainingAudio = 0;
 	bool bIsActive = false;
-
-	TSharedPtr<FCharacterMessageUtteranceA2FData> A2FData;
-	FDelegateHandle A2FDataUpdateHandle;
+	int32 GotPackets = 0;
+	int32 MinPacketsToStart = 6;
 };

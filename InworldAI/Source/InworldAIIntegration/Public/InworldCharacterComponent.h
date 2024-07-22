@@ -131,15 +131,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void SendAudioMessage(USoundWave* SoundWave) const;
-    
-	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void SendNarrationEvent(const FString& Content);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StartAudioSession(const AActor* Owner) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void CancelCurrentOrNextInteraction();
 
     UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void CancelCurrentInteraction();
@@ -214,6 +214,8 @@ private:
 
 	void VisitAudioOnClient(const FInworldAudioDataEvent& Event);
 
+	void TryCancelNextInteraction();
+
 	UFUNCTION()
 	void OnRep_TargetPlayer(UInworldPlayerComponent* OldPlayer);
 
@@ -254,9 +256,7 @@ private:
 	
 	FString GivenName;
 
-	FString ActiveInteraction;
-
-	TSet<FString> UniqueUtteranceIds;
+	bool bCancelNextInteraction = false;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER
 	friend class FInworldGameplayDebuggerCategory;

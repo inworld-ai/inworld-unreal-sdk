@@ -46,6 +46,14 @@ void UInworldCharacterComponent::InitializeComponent()
 			}
         }
     }
+
+	InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
+	if (InworldSubsystem->A2FPlayback != nullptr)
+	{
+		auto* Pb = NewObject<UInworldCharacterPlayback>(this, InworldSubsystem->A2FPlayback);
+		Pb->SetCharacterComponent(this);
+		Playbacks.Add(Pb);
+	}
 }
 
 void UInworldCharacterComponent::UninitializeComponent()
@@ -231,6 +239,18 @@ bool UInworldCharacterComponent::IsInteractingWithPlayer() const
 	return TargetPlayer != nullptr;
 }
 
+void UInworldCharacterComponent::CancelCurrentOrNextInteraction()
+{
+	TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
+	if (!CurrentMessage.IsValid())
+	{
+		bCancelNextInteraction = true;
+		return;
+	}
+
+	CancelCurrentInteraction();
+}
+
 void UInworldCharacterComponent::CancelCurrentInteraction()
 {
 	TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
@@ -245,8 +265,6 @@ void UInworldCharacterComponent::CancelCurrentInteraction()
 	{
 		InworldSubsystem->CancelResponse(AgentId, CurrentInteractionId, CanceledUtterances);
 	}
-
-	ActiveInteraction = {};
 }
 
 void UInworldCharacterComponent::SendTextMessage(const FString& Text) const
@@ -271,14 +289,6 @@ void UInworldCharacterComponent::SendAudioMessage(USoundWave* SoundWave) const
     {
         InworldSubsystem->SendAudioMessage(AgentId, SoundWave);
     }
-}
-
-void UInworldCharacterComponent::SendNarrationEvent(const FString& Content)
-{
-	if (ensure(!AgentId.IsEmpty()))
-	{
-		InworldSubsystem->SendNarrationEvent(AgentId, Content);
-	}
 }
 
 void UInworldCharacterComponent::StartAudioSession(const AActor* Owner) const
@@ -397,8 +407,6 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 				{
 					CancelCurrentInteraction();
 				}
-
-				ActiveInteraction = Event.PacketId.InteractionId;
 			}
 		};
 
@@ -420,7 +428,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 		MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
 			MessageToUpdate->Text = Event.Text;
 			MessageToUpdate->bTextFinal = Event.Final;
-		});
+			});
 	}
 }
 
@@ -446,6 +454,24 @@ void UInworldCharacterComponent::VisitAudioOnClient(const FInworldAudioDataEvent
 			VisemeInfo_Ref.Code = VisemeInfo.Code;
 		}
 	});
+	TryCancelNextInteraction();
+}
+
+void UInworldCharacterComponent::TryCancelNextInteraction()
+{
+	if (!bCancelNextInteraction)
+	{
+		return;
+	}
+
+	auto CurrentMessage = GetCurrentMessage();
+	if (!CurrentMessage.IsValid())
+	{
+		return;
+	}
+
+	CancelCurrentInteraction();
+	bCancelNextInteraction = false;
 }
 
 void UInworldCharacterComponent::OnRep_TargetPlayer(UInworldPlayerComponent* OldTargetPlayer)
@@ -491,6 +517,7 @@ void UInworldCharacterComponent::Multicast_VisitSilence_Implementation(const FIn
 	MessageQueue->AddOrUpdateMessage<FCharacterMessageSilence>(Event, GetWorld()->GetTimeSeconds(), [Event](auto MessageToUpdate) {
 		MessageToUpdate->Duration = Event.Duration;
 	});
+	TryCancelNextInteraction();
 }
 
 void UInworldCharacterComponent::Multicast_VisitControl_Implementation(const FInworldControlEvent& Event)
@@ -503,6 +530,7 @@ void UInworldCharacterComponent::Multicast_VisitControl_Implementation(const FIn
 	if (Event.Action == EInworldControlEventAction::INTERACTION_END)
 	{
 		MessageQueue->AddOrUpdateMessage<FCharacterMessageInteractionEnd>(Event, GetWorld()->GetTimeSeconds());
+		TryCancelNextInteraction();
 	}
 }
 
@@ -519,6 +547,7 @@ void UInworldCharacterComponent::Multicast_VisitCustom_Implementation(const FInw
 		MessageToUpdate->Name = Event.Name;
 		MessageToUpdate->Params = Event.Params;
 	});
+	TryCancelNextInteraction();
 }
 
 void UInworldCharacterComponent::Multicast_VisitRelation_Implementation(const FInworldRelationEvent& Event)
@@ -540,10 +569,6 @@ void UInworldCharacterComponent::Multicast_VisitRelation_Implementation(const FI
 
 void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FInworldEmotionEvent& Event)
 {
-	if (Event.PacketId.InteractionId != ActiveInteraction)
-	{
-		return;
-	}
 	if (GetNetMode() == NM_DedicatedServer)
 	{
 		return;
@@ -560,23 +585,11 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 
 void UInworldCharacterComponent::Visit(const FInworldTextEvent& Event)
 {
-	if (Event.Routing.Target.Type != EInworldActorType::AGENT)
-	{
-		if (Event.PacketId.InteractionId != ActiveInteraction)
-		{
-			return;
-		}
-	}
-	Multicast_VisitText(Event);
+    Multicast_VisitText(Event);
 }
 
 void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
 {
-	if (Event.PacketId.InteractionId != ActiveInteraction)
-	{
-		return;
-	}
-
 	if (GetNetMode() == NM_Standalone || GetNetMode() == NM_Client)
 	{
 		VisitAudioOnClient(Event);
@@ -602,11 +615,6 @@ void UInworldCharacterComponent::Visit(const FInworldAudioDataEvent& Event)
 
 void UInworldCharacterComponent::Visit(const FInworldA2FAnimationHeaderEvent& Event)
 {
-	if (Event.PacketId.InteractionId != ActiveInteraction)
-	{
-		return;
-	}
-
 	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event, GetWorld()->GetTimeSeconds(), [this, Event](auto MessageToUpdate) {
 		if (Event.ChannelCount == 0)
 		{
@@ -616,16 +624,11 @@ void UInworldCharacterComponent::Visit(const FInworldA2FAnimationHeaderEvent& Ev
 		{
 			MessageToUpdate->A2FData->BlendShapeNames = Event.BlendShapes;
 		}
-	}, true);
+		}, true);
 }
 
 void UInworldCharacterComponent::Visit(const FInworldA2FAnimationContentEvent& Event)
 {
-	if (Event.PacketId.InteractionId != ActiveInteraction)
-	{
-		return;
-	}
-
 	if (Event.AudioInfo.Audio.Num() == 0)
 	{
 		return;
@@ -652,15 +655,11 @@ void UInworldCharacterComponent::Visit(const FInworldA2FAnimationContentEvent& E
 		{
 			MessageToUpdate->A2FData->OnCharacterMessageUtteranceA2FDataUpdate.Broadcast();
 		}
-	}, true);
+		}, true);
 }
 
 void UInworldCharacterComponent::Visit(const FInworldSilenceEvent& Event)
 {
-	if (Event.PacketId.InteractionId != ActiveInteraction)
-	{
-		return;
-	}
     Multicast_VisitSilence(Event);
 }
 
@@ -671,10 +670,6 @@ void UInworldCharacterComponent::Visit(const FInworldControlEvent& Event)
 
 void UInworldCharacterComponent::Visit(const FInworldEmotionEvent& Event)
 {
-	if (Event.PacketId.InteractionId != ActiveInteraction)
-	{
-		return;
-	}
     Multicast_VisitEmotion(Event);
 }
 
@@ -685,10 +680,6 @@ void UInworldCharacterComponent::Visit(const FInworldCustomEvent& Event)
 
 void UInworldCharacterComponent::Visit(const FInworldRelationEvent& Event)
 {
-	if (Event.PacketId.InteractionId != ActiveInteraction)
-	{
-		return;
-	}
 	Multicast_VisitRelation(Event);
 }
 

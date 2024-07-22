@@ -27,23 +27,12 @@
 #include "InworldAIEditorModule.h"
 #include "InworldAIEditorSettings.h"
 #include "Templates/Casts.h"
-#include "Util/InworldEditorNotification.h"
-#include "PluginData/InworldInnequinEditorSettings.h"
-#include "PluginData/InworldMetahumanEditorSettings.h"
+#include "InworldEditorNotification.h"
+#include "Innequin/InnequinPluginDataAsset.h"
 #include "Interfaces/IPluginManager.h"
 #include "UObject/SavePackage.h"
 
 static FString ServerUrl = "api-studio.inworld.ai:443";
-
-FString UInworldEditorApiSubsystem::GetInworldAIPluginVersion()
-{
-	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin("InworldAI");
-	if (Plugin.IsValid())
-	{
-		return Plugin->GetDescriptor().VersionName;
-	}
-	return "";
-}
 
 const FString& UInworldEditorApiSubsystem::GetSavedStudioAccessToken() const
 {
@@ -76,6 +65,68 @@ void UInworldEditorApiSubsystem::CancelRequestStudioData()
 void UInworldEditorApiSubsystem::NotifyRestartRequired()
 {
 	RestartRequiredNotification->OnRestartRequired();
+}
+
+TArray<FString> UInworldEditorApiSubsystem::GetWorldActorNames() const
+{
+	TArray<AActor*> Actors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), Actors);
+
+	TArray<FString> Names;
+	Names.Reserve(Actors.Num());
+	for (auto* Actor : Actors)
+	{
+		Names.Add(Actor->GetName());
+	}
+
+	return Names;
+}
+
+void UInworldEditorApiSubsystem::SetupActor(const FInworldStudioUserCharacterData& Data, const FString& Name, const FString& PreviousName)
+{
+	if ((Name.IsEmpty() && PreviousName.IsEmpty()) || (Name == PreviousName))
+	{
+		UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::SetupActor invalid names '%s', '%s'"), *Name, *PreviousName);
+		return;
+	}
+
+	TArray<AActor*> Actors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), Actors);
+	
+	for (auto* Actor : Actors)
+	{
+		if (Actor->GetName() == PreviousName)
+		{
+			if (auto* Component = Actor->GetComponentByClass(UInworldCharacterComponent::StaticClass()))
+			{
+				Actor->RemoveInstanceComponent(Component);
+				continue;
+			}
+		}
+
+		if (Actor->GetName() == Name)
+		{
+			auto* Component = NewObject<UInworldCharacterComponent>(Actor);
+			if (!Component)
+			{
+				UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::SetupActor couldn't create UInworldCharacterComponent"));
+				continue;
+			}
+
+			Actor->AddInstanceComponent(Component);
+			Component->SetBrainName(Data.Name);
+			Component->RegisterComponent();
+
+			if (GEditor)
+			{
+				FSelectionStateOfLevel SelectionState;
+				GEditor->SetSelectionStateOfLevel(SelectionState);
+
+				SelectionState.SelectedActors.Add(Actor->GetPathName());
+				GEditor->SetSelectionStateOfLevel(SelectionState);
+			}
+		}
+	}
 }
 
 const FInworldStudioUserData& UInworldEditorApiSubsystem::GetCachedStudioData() const
@@ -236,133 +287,9 @@ void UInworldEditorApiSubsystem::SetupBlueprintAsInworldCharacter(UBlueprint* Bl
 	}
 }
 
-bool UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman(const FAssetData& AssetData, bool bLogErrors)
+bool UInworldEditorApiSubsystem::DoesSupportWorldType(EWorldType::Type WorldType) const
 {
-	auto* Object = AssetData.GetAsset();
-	if (!Object)
-	{
-		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman couldn't find Object"));
-		return false;
-	}
-
-	auto* Blueprint = Cast<UBlueprint>(Object);
-	if (!Blueprint || !Blueprint->SimpleConstructionScript)
-	{
-		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman asset should be Blueprint with SimpleConstructionScript"));
-		return false;
-	}
-
-	const UInworldMetahumanEditorSettings* InworldMetahumanEditorSettings = GetDefault<UInworldMetahumanEditorSettings>();
-
-	auto* FaceComponent = Cast<USkeletalMeshComponent>(GetNodeFromBlueprint(Blueprint, "Face"));
-	if (!FaceComponent)
-	{
-		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman asset should contain a Face Skeletal Mesh"));
-		return false;
-	}
-
-	if (InworldMetahumanEditorSettings->MetahumanFaceSkeleton.LoadSynchronous() == nullptr)
-	{
-		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman needs a valid Face Skeleton Asset"));
-		return false;
-	}
-
-	if (InworldMetahumanEditorSettings->MetahumanFaceABP.LoadSynchronous() == nullptr)
-	{
-		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman needs a valid Face Anim Asset"));
-		return false;
-	}
-
-#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 0
-	USkeletalMesh* FaceMesh = FaceComponent->GetSkeletalMeshAsset();
-#else
-	USkeletalMesh* FaceMesh = FaceComponent->SkeletalMesh;
-#endif
-	if (!FaceMesh || FaceMesh->GetSkeleton() != InworldMetahumanEditorSettings->MetahumanFaceSkeleton.LoadSynchronous())
-	{
-		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman face skeleton needs to be Metahuman"));
-		return false;
-	}
-
-	auto* BodyComponent = Cast<USkeletalMeshComponent>(GetNodeFromBlueprint(Blueprint, "Body"));
-	if (!BodyComponent)
-	{
-		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman asset should contain a Body Skeletal Mesh"));
-		return false;
-	}
-
-	if (InworldMetahumanEditorSettings->MetahumanBodySkeleton.LoadSynchronous() == nullptr)
-	{
-		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman needs a valid Body Skeleton Asset"));
-		return false;
-	}
-
-	if (InworldMetahumanEditorSettings->MetahumanBodyABP.LoadSynchronous() == nullptr)
-	{
-		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman needs a valid Body Anim Asset"));
-		return false;
-	}
-
-#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 0
-	USkeletalMesh* BodyMesh = BodyComponent->GetSkeletalMeshAsset();
-#else
-	USkeletalMesh* BodyMesh = BodyComponent->SkeletalMesh;
-#endif
-	if (!BodyMesh || BodyMesh->GetSkeleton() != InworldMetahumanEditorSettings->MetahumanBodySkeleton.LoadSynchronous())
-	{
-		if (bLogErrors) UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman body skeleton needs to be Metahuman"));
-		return false;
-	}
-	return true;
-}
-
-void UInworldEditorApiSubsystem::SetupAssetAsInworldMetahuman(const FAssetData& AssetData)
-{
-	if (!CanSetupAssetAsInworldMetahuman(AssetData, true))
-	{
-		return;
-	}
-
-	auto* Object = AssetData.GetAsset();
-	auto* Blueprint = Cast<UBlueprint>(Object);
-
-	SetupBlueprintAsInworldMetahuman(Blueprint);
-}
-
-void UInworldEditorApiSubsystem::SetupBlueprintAsInworldMetahuman(UBlueprint* Blueprint)
-{
-	const UInworldMetahumanEditorSettings* InworldMetahumanEditorSettings = GetDefault<UInworldMetahumanEditorSettings>();
-
-	SetupBlueprintAsInworldCharacter(Blueprint);
-
-	auto* CharacterComponent = Cast<UInworldCharacterComponent>(GetNodeFromBlueprint(Blueprint, TEXT("InworldCharacterComponent")));
-	if (!CharacterComponent)
-	{
-		UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CreateInnequinActor couldn't find UInworldCharacterComponent"));
-		return;
-	}
-
-	for (TSubclassOf<UInworldCharacterPlayback> CharacterPlaybackClass : InworldMetahumanEditorSettings->CharacterPlaybacks)
-	{
-		CharacterComponent->PlaybackTypes.Add(CharacterPlaybackClass);
-	}
-
-	for (TSubclassOf<UActorComponent> ActorComponentClass : InworldMetahumanEditorSettings->CharacterComponents)
-	{
-		AddNodeToBlueprint(Blueprint, ActorComponentClass, ActorComponentClass->GetName());
-	}
-
-	auto* FaceComponent = Cast<USkeletalMeshComponent>(GetNodeFromBlueprint(Blueprint, "Face"));
-	if (FaceComponent)
-	{
-		FaceComponent->SetAnimInstanceClass(InworldMetahumanEditorSettings->MetahumanFaceABP.LoadSynchronous()->GeneratedClass);
-	}
-
-	auto* BodyComponent = Cast<USkeletalMeshComponent>(GetNodeFromBlueprint(Blueprint, "Body"));
-	if (BodyComponent)
-	{
-		BodyComponent->SetAnimInstanceClass(InworldMetahumanEditorSettings->MetahumanBodyABP.LoadSynchronous()->GeneratedClass);
-	}
+	return WorldType == EWorldType::Editor;
 }
 
 void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -395,17 +322,6 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 		FAssetAction::CreateUObject(this, &UInworldEditorApiSubsystem::SetupAssetAsInworldCharacter),
 		FAssetActionPermission::CreateUObject(this, &UInworldEditorApiSubsystem::CanSetupAssetAsInworldCharacter, false)
 	);
-	if (IPluginManager::Get().FindPlugin("InworldMetahuman").IsValid())
-	{
-		Module.BindMenuAssetAction(
-			FName("Inworld Metahuman"),
-			FName("Character"),
-			FText::FromString("Setup as Inworld Metahuman"),
-			FText::FromString("Setup this Actor as Inworld Metahuman"),
-			FAssetAction::CreateUObject(this, &UInworldEditorApiSubsystem::SetupAssetAsInworldMetahuman),
-			FAssetActionPermission::CreateUObject(this, &UInworldEditorApiSubsystem::CanSetupAssetAsInworldMetahuman, false)
-		);
-	}
 
 	FOnCharacterStudioDataPermission PermissionDelegate;
 	PermissionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CanCreateInnequinActor);
@@ -423,10 +339,6 @@ void UInworldEditorApiSubsystem::Deinitialize()
 	FInworldAIEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FInworldAIEditorModule>("InworldAIEditor");
 	Module.UnbindMenuAssetAction(FName("Inworld Player"));
 	Module.UnbindMenuAssetAction(FName("Inworld Character"));
-	if (IPluginManager::Get().FindPlugin("InworldMetahuman").IsValid())
-	{
-		Module.UnbindMenuAssetAction(FName("Inworld Metahuman"));
-	}
 
 	UnbindActionForCharacterData(FName("Create Inworld Avatar"));
 }
@@ -528,14 +440,25 @@ UBlueprint* UInworldEditorApiSubsystem::CreateCharacterActorBP(const FInworldStu
 bool UInworldEditorApiSubsystem::CanCreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData)
 {
 	TSharedPtr<IPlugin> InworldInnequinPlugin = IPluginManager::Get().FindPlugin("InworldInnequin");
-	return InworldInnequinPlugin.IsValid();
+	if (!InworldInnequinPlugin.IsValid())
+	{
+		return false;
+	}
+	if (InworldInnequinPlugin.Get()->GetDescriptor().VersionName != GetInnequinVersion())
+	{
+		return false;
+	}
+	return true;
 }
 
 void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData)
 {
-	const UInworldInnequinEditorSettings* InworldInnequinEditorSettings = GetDefault<UInworldInnequinEditorSettings>();
+	TSoftObjectPtr<UInnequinPluginDataAsset> InnequinPluginDataAsset(FSoftObjectPath("/InworldInnequin/InnequinPluginDataAsset.InnequinPluginDataAsset"));
+	InnequinPluginDataAsset.LoadSynchronous();
+	UInnequinPluginDataAsset* InnequinPluginData = InnequinPluginDataAsset.Get();
 
 	UBlueprint* Blueprint = CreateCharacterActorBP(CharacterData);
+
 	auto* MeshComponent = Cast<USkeletalMeshComponent>(AddNodeToBlueprint(Blueprint, USkeletalMeshComponent::StaticClass(), TEXT("Mesh")));
 	if (!MeshComponent)
 	{
@@ -543,8 +466,8 @@ void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCha
 		return;
 	}
 
-	MeshComponent->SetSkeletalMesh(InworldInnequinEditorSettings->InnequinMesh.LoadSynchronous());
-	MeshComponent->SetAnimInstanceClass(InworldInnequinEditorSettings->InnequinABP.LoadSynchronous()->GeneratedClass);
+	MeshComponent->SetSkeletalMesh(InnequinPluginData->SkeletalMesh.LoadSynchronous());
+	MeshComponent->SetAnimInstanceClass(InnequinPluginData->AnimBlueprint.LoadSynchronous()->GeneratedClass);
 
 	SetupBlueprintAsInworldCharacter(Blueprint);
 
@@ -555,21 +478,24 @@ void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCha
 		return;
 	}
 
-	CharacterComponent->SetBrainName(CharacterData.Name);
-	for (TSubclassOf<UInworldCharacterPlayback> CharacterPlaybackClass : InworldInnequinEditorSettings->CharacterPlaybacks)
+	for (TSubclassOf<UInworldCharacterPlayback> CharacterPlaybackClass : InnequinPluginData->CharacterPlaybacks)
 	{
 		CharacterComponent->PlaybackTypes.Add(CharacterPlaybackClass);
 	}
 
-	for (TSubclassOf<UActorComponent> ActorComponentClass : InworldInnequinEditorSettings->CharacterComponents)
+	CharacterComponent->SetBrainName(CharacterData.Name);
+
+	AddNodeToBlueprint(Blueprint, InnequinPluginData->InnequinComponent, TEXT("Innequin"));
+
+	auto* EmoteComponent = Cast<USceneComponent>(AddNodeToBlueprint(Blueprint, InnequinPluginData->EmoteComponent, TEXT("Emote")));
+	if (!EmoteComponent)
 	{
-		AddNodeToBlueprint(Blueprint, ActorComponentClass, ActorComponentClass->GetName());
+		UE_LOG(LogInworldAIEditor, Error, TEXT("UInworldEditorApiSubsystem::CreateInnequinActor couldn't create Emote Component"));
+		return;
 	}
 
-	auto* EmoteComponent = Cast<USceneComponent>(GetNodeFromBlueprint(Blueprint, TEXT("PaperSpriteComponent")));
-
 	EmoteComponent->SetupAttachment(MeshComponent, TEXT("EmoteSocket"));
-	if (USCS_Node* SCS_Node = Blueprint->SimpleConstructionScript->FindSCSNode(TEXT("PaperSpriteComponent")))
+	if (USCS_Node* SCS_Node = Blueprint->SimpleConstructionScript->FindSCSNode(TEXT("Emote")))
 	{
 		SCS_Node->Modify();
 		SCS_Node->AttachToName = FName("EmoteSocket");

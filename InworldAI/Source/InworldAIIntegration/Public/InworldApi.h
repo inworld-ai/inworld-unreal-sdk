@@ -42,6 +42,10 @@ class INWORLDAIINTEGRATION_API UInworldApiSubsystem : public UWorldSubsystem, pu
 public:
     UInworldApiSubsystem();
 
+    // Hack
+    TSubclassOf<class UInworldCharacterPlayback> A2FPlayback;
+    // End Hack
+
     /**
      * Start InworldAI session
      * call after all Player/Character components have been registered
@@ -126,10 +130,6 @@ public:
 	void SendTriggerMultiAgent(const TArray<FString>& AgentIds, const FString& Name, const TMap<FString, FString>& Params);
     [[deprecated("UInworldApiSubsystem::SendCustomEvent is deprecated, please use UInworldApiSubsystem::SendTrigger")]]
     void SendCustomEvent(const FString& AgentId, const FString& Name) { SendTrigger(AgentId, Name, {}); }
-
-    /** Send narration to agent */
-	UFUNCTION(BlueprintCallable, Category = "Messages")
-	void SendNarrationEvent(const FString& AgentId, const FString& Content);
 
     /**
      * Send audio to agent
@@ -222,6 +222,9 @@ public:
 
     UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "EventDispatchers")
     FCustomTrigger OnCustomTrigger;
+
+	UFUNCTION(BlueprintCallable)
+	const TMap<FString, FInworldAgentInfo>& GetAgentInfoByBrain() const { return AgentInfoByBrain; }
 
 private:
 	void DispatchPacket(TSharedPtr<FInworldPacket> InworldPacket);

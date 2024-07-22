@@ -39,13 +39,22 @@ struct FInworldCapabilitySet
     bool Animations = false;
 
     UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    bool Text = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
     bool Audio = true;
 
     UPROPERTY(BlueprintReadWrite, Category = "Capability")
     bool Emotions = true;
 
     UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    bool Gestures = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
     bool Interruptions = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Capability")
+    bool Triggers = true;
 
     UPROPERTY(BlueprintReadWrite, Category = "Capability")
     bool EmotionStreaming = true;
@@ -57,16 +66,7 @@ struct FInworldCapabilitySet
     bool PhonemeInfo = true;
 
     UPROPERTY(BlueprintReadWrite, Category = "Capability")
-    bool Continuation = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-    bool TurnBasedSTT = true;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-    bool NarratedActions = false;
-
-    UPROPERTY(BlueprintReadWrite, Category = "Capability")
-    bool Relations = true;
+    bool LoadSceneInSession = true;
 
     UPROPERTY(BlueprintReadWrite, Category = "Capability")
     bool MultiAgent = true;

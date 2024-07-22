@@ -192,16 +192,16 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 	}
 
 	Options.Capabilities.Animations = Capabilities.Animations;
+	Options.Capabilities.Text = Capabilities.Text;
 	Options.Capabilities.Audio = Capabilities.Audio;
 	Options.Capabilities.Emotions = Capabilities.Emotions;
+	Options.Capabilities.Gestures = Capabilities.Gestures;
 	Options.Capabilities.Interruptions = Capabilities.Interruptions;
+	Options.Capabilities.Triggers = Capabilities.Triggers;
 	Options.Capabilities.EmotionStreaming = Capabilities.EmotionStreaming;
 	Options.Capabilities.SilenceEvents = Capabilities.SilenceEvents;
 	Options.Capabilities.PhonemeInfo = Capabilities.PhonemeInfo;
-	Options.Capabilities.Continuation = Capabilities.Continuation;
-	Options.Capabilities.TurnBasedSTT = Capabilities.TurnBasedSTT;
-	Options.Capabilities.NarratedActions = Capabilities.NarratedActions;
-	Options.Capabilities.Relations = Capabilities.Relations;
+	Options.Capabilities.LoadSceneInSession = Capabilities.LoadSceneInSession;
 	Options.Capabilities.Multiagent = Capabilities.MultiAgent;
 	Options.Capabilities.Audio2Face = Capabilities.Audio2Face;
 
@@ -363,7 +363,7 @@ void FInworldClient::SendSoundDataMessageWithEAC(const TArray<FString>& AgentIds
 
 void FInworldClient::StartAudioSession(const TArray<FString>& AgentIds)
 {
-	InworldClient->StartAudioSession(ToStd(AgentIds));
+	InworldClient->StartAudioSession(ToStd(AgentIds), 1);
 }
 
 void FInworldClient::StopAudioSession(const TArray<FString>& AgentIds)
@@ -388,12 +388,7 @@ void FInworldClient::SendCustomEvent(const TArray<FString>& AgentIds, const FStr
 
 void FInworldClient::SendChangeSceneEvent(const FString& SceneName)
 {
-	InworldClient->LoadScene(TCHAR_TO_UTF8(*SceneName), nullptr);
-}
-
-void FInworldClient::SendNarrationEvent(const FString& AgentId, const FString& Content)
-{
-	InworldClient->SendNarrationEvent(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*Content));
+	InworldClient->SendChangeSceneEvent(TCHAR_TO_UTF8(*SceneName));
 }
 
 void FInworldClient::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)

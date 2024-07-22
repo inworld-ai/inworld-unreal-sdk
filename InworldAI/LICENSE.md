@@ -224,7 +224,7 @@ If you have any questions about this Agreement, please contact us at
         partner or licensor with whom Inworld offered certain parts of
         the SDK (such as Third-Party Materials) to you has terminated
         its relationship with Inworld or ceased to offer or license
-        certain parts of the SDK to you; (d)Â Inworld decides to no
+        certain parts of the SDK to you; (d) Inworld decides to no
         longer provide the SDK or certain parts of the SDK to users in
         the country in which you are resident or from which you use the
         service, or the provision of the SDK or certain SDK services to
@@ -364,7 +364,7 @@ If you have any questions about this Agreement, please contact us at
     3. **Federal Arbitration Act**. You and Inworld agree that this
        Agreement affects interstate commerce and that the enforceability of
        this Section 11 will be substantively and procedurally governed by
-       the Federal Arbitration Act, 9 U.S.C. Â§ 1, *et seq*. (the
+       the Federal Arbitration Act, 9 U.S.C. § 1, *et seq*. (the
        "***FAA***"), to the maximum extent permitted by applicable law. As
        limited by the FAA, this Agreement and the JAMS Rules, the
        arbitrator will have exclusive authority to make all procedural and

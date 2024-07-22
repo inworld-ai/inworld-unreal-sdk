@@ -10,9 +10,7 @@
 #include "ContentBrowserModule.h"
 #include "InworldEditorApi.h"
 #include "InworldAIEditorSettings.h"
-#include "PluginData/InworldMetahumanEditorSettings.h"
-#include "PluginData/InworldInnequinEditorSettings.h"
-#include "Style/InworldEditorUIStyle.h"
+#include "InworldEditorUIStyle.h"
 #include "ISettingsModule.h"
 #include "LevelEditor.h"
 #include "WidgetBlueprint.h"
@@ -21,7 +19,6 @@
 #include "Blueprint/WidgetTree.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
-#include "Interfaces/IPluginManager.h"
 
 #define LOCTEXT_NAMESPACE "FInworldAIEditorModule"
 
@@ -41,20 +38,6 @@ void FInworldAIEditorModule::StartupModule()
 		SettingsModule->RegisterSettings("Project", "Plugins", "InworldAIEditorSettings",
 			LOCTEXT("InworldSettingsName", "InworldAI"), LOCTEXT("InworldSettingsDescription", "Inworld AI Editor Settings"),
 			GetMutableDefault<UInworldAIEditorSettings>());
-
-		if (IPluginManager::Get().FindPlugin("InworldMetahuman").IsValid())
-		{
-			SettingsModule->RegisterSettings("Project", "Plugins", "InworldAIMetahumanSettings",
-				LOCTEXT("InworldMetahumanSettingsName", "InworldAI - Metahuman"), LOCTEXT("InworldMetahumanSettingsDescription", "Inworld AI Metahuman Settings"),
-				GetMutableDefault<UInworldMetahumanEditorSettings>());
-		}
-
-		if (IPluginManager::Get().FindPlugin("InworldInnequin").IsValid())
-		{
-			SettingsModule->RegisterSettings("Project", "Plugins", "InworldAIInnequinSettings",
-				LOCTEXT("InworldInnequinSettingsName", "InworldAI - Innequin"), LOCTEXT("InworldInnequinSettingsDescription", "Inworld AI Innequin Settings"),
-				GetMutableDefault<UInworldInnequinEditorSettings>());
-		}
 	}
 	if (FSlateApplication::IsInitialized())
 	{
@@ -74,16 +57,6 @@ void FInworldAIEditorModule::ShutdownModule()
 	if (SettingsModule)
 	{
 		SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAIEditorSettings");
-
-		if (IPluginManager::Get().FindPlugin("InworldMetahuman").IsValid())
-		{
-			SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAIMetahumanSettings");
-		}
-
-		if (IPluginManager::Get().FindPlugin("InworldInnequin").IsValid())
-		{
-			SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAIInnequinSettings");
-		}
 	}
 
 	if (FSlateApplication::IsInitialized())
@@ -259,6 +232,23 @@ TSharedRef<FExtender> FInworldAIEditorModule::OnExtendAssetSelectionMenu(const T
 		FMenuExtensionDelegate::CreateRaw(this, &FInworldAIEditorModule::AssetExtenderFunc, SelectedAssets)
 	);
 	return Extender;
+}
+
+void FInworldAIEditorModule::SetupAssetAsInworldPlayer(const FAssetData& AssetData)
+{
+	if (auto* World = GEditor->GetEditorWorldContext().World())
+	{
+		World->GetSubsystem<UInworldEditorApiSubsystem>()->SetupAssetAsInworldPlayer(AssetData);
+	}
+}
+
+bool FInworldAIEditorModule::CanSetupAssetAsInworldPlayer(const FAssetData& AssetData)
+{
+	if (auto* World = GEditor->GetEditorWorldContext().World())
+	{
+		return World->GetSubsystem<UInworldEditorApiSubsystem>()->CanSetupAssetAsInworldPlayer(AssetData);
+	}
+	return false;
 }
 
 void FInworldAIEditorModule::BindMenuAssetAction(const FName& Name, const FName& Section, FText Label, FText Tooltip, FAssetAction Action, FAssetActionPermission ActionPermission)

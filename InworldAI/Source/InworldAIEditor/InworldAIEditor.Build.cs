@@ -33,7 +33,6 @@ public class InworldAIEditor : ModuleRules
                 "Slate",
                 "SlateCore",
                 "UnrealEd",
-                "EditorSubsystem",
                 "Projects",
                 "HTTP",
                 "Json",

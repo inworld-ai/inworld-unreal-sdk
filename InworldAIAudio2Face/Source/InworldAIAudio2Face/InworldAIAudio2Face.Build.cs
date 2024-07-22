@@ -23,12 +23,14 @@ public class InworldAIAudio2Face : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"CoreUObject",
-				"Engine",
-				"Slate",
-				"SlateCore",
-                "InworldAIIntegration",
+                "CoreUObject",
+                "Engine",
+                "Slate",
+                "SlateCore",
+                "InworldAINDK",
+                "InworldAINDKLibrary",
                 "InworldAIClient",
+                "InworldAIIntegration",
                 "AudioPlatformConfiguration",
             }
 			);

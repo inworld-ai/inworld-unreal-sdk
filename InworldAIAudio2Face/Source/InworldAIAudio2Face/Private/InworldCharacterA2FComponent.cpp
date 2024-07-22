@@ -9,6 +9,7 @@
 #include "InworldCharacterA2FComponent.h"
 #include "InworldCharacterComponent.h"
 #include "InworldBlueprintFunctionLibrary.h"
+#include "InworldAIAudio2FaceModule.h"
 #include "AudioResampler.h"
 #include "Sound/SoundWave.h"
 #include "Sound/SoundWaveProcedural.h"
@@ -22,6 +23,12 @@ UInworldCharacterA2FComponent::UInworldCharacterA2FComponent()
 void UInworldCharacterA2FComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	int32 OutVal;
+	if (FParse::Value(FCommandLine::Get(), TEXT("a2fwaitbuffer="), OutVal))
+	{
+		MinPacketsToStart = OutVal;
+	}
 
 	SoundStreaming = NewObject<USoundWaveProcedural>();
 	SoundStreaming->SetSampleRate(22050);
@@ -56,18 +63,25 @@ void UInworldCharacterA2FComponent::TickComponent(float DeltaTime, enum ELevelTi
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	TimeToGiveUp -= DeltaTime;
-	if (!IsActive())
+	FScopeLock ScopeLock(&QueueLock);
+	if (bIsActive)
 	{
-		Play();
+		if (!IsActive())
+		{
+			Play();
+		}
 	}
 }
 
 void UInworldCharacterA2FComponent::OnCharacterUtterance(const FCharacterMessageUtterance& Message)
 {
+	UtteranceId = Message.UtteranceId;
+	UE_LOG(LogInworldAIAudio2Face, Log, TEXT("A2F OnCharacterUtterance: Processing for %s SoundData: %d"), *Message.UtteranceId, Message.SoundData.Num());
 
 	if (Message.SoundData.Num() > 0 && Message.bAudioFinal)
 	{
+		UE_LOG(LogInworldAIAudio2Face, Log, TEXT("A2F OnCharacterUtterance: %s has locked the Queue"), *Message.UtteranceId);
+
 		A2FData = Message.A2FData;
 		A2FDataUpdateHandle = A2FData->OnCharacterMessageUtteranceA2FDataUpdate.AddUObject(this, &UInworldCharacterA2FComponent::OnCharacterMessageUtteranceA2FDataUpdate);
 
@@ -75,81 +89,22 @@ void UInworldCharacterA2FComponent::OnCharacterUtterance(const FCharacterMessage
 		AudioToPlay.Empty();
 		AnimsToPlay.Empty();
 
-		OriginalPCMData = {};
-		VisemeInfoPlayback = {};
-
-		bUseFallback = false;
-		TimeToGiveUp = AllowedLatencyDelay;
-		ExpectedRemainingAudio = 0;
 		GotPackets = 0;
 		bHasStartedProcessingAudio = false;
 		bIsActive = true;
 
-		FWaveModInfo WaveInfo;
-		if (!WaveInfo.ReadWaveInfo(Message.SoundData.GetData(), Message.SoundData.Num()))
-		{
-			return;
-		}
-
-		TArray<int16> Data = { (int16*)WaveInfo.SampleDataStart, (int32)WaveInfo.SampleDataSize / 2 };
-		Audio::AlignedFloatBuffer InputBuffer;
-		InputBuffer.SetNumUninitialized(Data.Num());
-		for (int32 i = 0; i < Data.Num(); ++i)
-		{
-			InputBuffer[i] = ((float)Data[i]) / 32767.f; // 2^15, int16
-		}
-
-		Audio::FResamplingParameters ResamplerParams = {
-			Audio::EResamplingMethod::Linear,
-			1,
-			(float)*WaveInfo.pSamplesPerSec,
-			22050.f,
-			InputBuffer
-		};
-
-		Audio::FAlignedFloatBuffer OutputBuffer;
-		OutputBuffer.AddUninitialized(Audio::GetOutputBufferSize(ResamplerParams));
-
-		Audio::FResamplerResults ResamplerResults;
-		ResamplerResults.OutBuffer = &OutputBuffer;
-
-		TArray<float> ResampledAudioData;
-		if (Audio::Resample(ResamplerParams, ResamplerResults))
-		{
-			ResampledAudioData = { ResamplerResults.OutBuffer->GetData(), ResamplerResults.OutputFramesGenerated };
-
-			TArray<int16> PCMData;
-			PCMData.AddUninitialized(ResampledAudioData.Num());
-			for (int32 i = 0; i < ResampledAudioData.Num(); ++i)
-			{
-				PCMData[i] = ResampledAudioData[i] * 32767;  // 2^15, int16
-			}
-
-			SoundDuration = UInworldBlueprintFunctionLibrary::DataArrayToSoundWave(Message.SoundData)->GetDuration();
-			SoundSize = PCMData.Num() * 2;
-			ExpectedRemainingAudio = SoundSize;
-			OriginalPCMData = {};
-			OriginalPCMData.SetNumUninitialized(SoundSize);
-			FMemory::Memcpy(OriginalPCMData.GetData(), PCMData.GetData(), SoundSize);
-			VisemeInfoPlayback = {};
-
-			for (const auto& VisemeInfo : Message.VisemeInfos)
-			{
-				if (!VisemeInfo.Code.IsEmpty())
-				{
-					VisemeInfoPlayback.Add(VisemeInfo);
-				}
-			}
-		}
 		OnCharacterMessageUtteranceA2FDataUpdate();
 
 		CharacterComponent->MakeMessageQueueLock(CharacterMessageQueueLockHandle);
 
-		TimeToGiveUp = AllowedLatencyDelay;
 		if (!IsActive())
 		{
 			Play();
 		}
+	}
+	else
+	{
+		UE_LOG(LogInworldAIAudio2Face, Log, TEXT("A2F OnCharacterUtterance: %s SKIP SKIP SKIP"), *Message.UtteranceId);
 	}
 }
 
@@ -165,12 +120,6 @@ void UInworldCharacterA2FComponent::OnCharacterUtteranceInterrupt(const FCharact
 	AudioToPlay.Empty();
 	AnimsToPlay.Empty();
 
-	OriginalPCMData = {};
-	VisemeInfoPlayback = {};
-
-	bUseFallback = false;
-	TimeToGiveUp = 0.f;
-	ExpectedRemainingAudio = 0;
 	GotPackets = 0;
 	bHasStartedProcessingAudio = false;
 	bIsActive = false;
@@ -178,6 +127,8 @@ void UInworldCharacterA2FComponent::OnCharacterUtteranceInterrupt(const FCharact
 	SoundStreaming->ResetAudio();
 	OnUtteranceInterrupted.Broadcast();
 	OnUtteranceStopped.Broadcast();
+	UE_LOG(LogInworldAIAudio2Face, Log, TEXT("A2F OnCharacterUtterance: %s has unlocked the Queue (INTERRUPT)"), *UtteranceId);
+
 	CharacterComponent->ClearMessageQueueLock(CharacterMessageQueueLockHandle);
 }
 
@@ -190,12 +141,6 @@ void UInworldCharacterA2FComponent::OnCharacterMessageUtteranceA2FDataUpdate()
 		TArray<uint8> Audio;
 		A2FData->PendingAudio.Dequeue(Audio);
 		AudioToPlay.Enqueue(Audio);
-		ExpectedRemainingAudio -= Audio.Num();
-		if (ExpectedRemainingAudio > 0)
-		{
-			FMemory::Memcpy(OriginalPCMData.GetData(), OriginalPCMData.GetData() + Audio.Num(), ExpectedRemainingAudio);
-		}
-		OriginalPCMData.SetNum(FMath::Max(0, ExpectedRemainingAudio));
 		GotPackets++;
 	}
 	while (!A2FData->PendingBlendShapeMap.IsEmpty())
@@ -213,126 +158,66 @@ void UInworldCharacterA2FComponent::OnCharacterMessageUtteranceA2FDataUpdate()
 
 void UInworldCharacterA2FComponent::GenerateData(USoundWaveProcedural* InProceduralWave, int32 SamplesRequired)
 {
+	if (A2FData == nullptr)
+	{
+		return;
+	}
 	if (!bIsActive)
 	{
 		return;
 	}
-	if (TimeToGiveUp > 0.f && !bHasStartedProcessingAudio && !A2FData->bIsDone && GotPackets < MinPacketsToStart)
+	if (!bHasStartedProcessingAudio && !A2FData->bIsDone && GotPackets < MinPacketsToStart)
 	{
 		return;
 	}
 
 	FScopeLock ScopeLock(&QueueLock);
-	bHasStartedProcessingAudio = true;
-	if (AudioToPlay.IsEmpty() && OriginalPCMData.Num() > 0)
+	if (!bHasStartedProcessingAudio)
 	{
-		bUseFallback = true;
-		const int32 DataPerFrame = 1066;
-		while (!OriginalPCMData.IsEmpty())
-		{
-			const float CurrentTime = (1.f - (OriginalPCMData.Num() / SoundSize)) * SoundDuration;
-			TArray<uint8> AudioData = OriginalPCMData;
-			AudioData.SetNum(DataPerFrame);
-			ExpectedRemainingAudio -= AudioData.Num();
-			A2FData->bIsDone = true;
-
-			if (ExpectedRemainingAudio > 0)
-			{
-				FMemory::Memcpy(OriginalPCMData.GetData(), OriginalPCMData.GetData() + AudioData.Num(), ExpectedRemainingAudio);
-			}
-			OriginalPCMData.SetNum(FMath::Max(0, ExpectedRemainingAudio));
-			AudioToPlay.Enqueue(AudioData);
-
-			const int32 INVALID_INDEX = -1;
-			int32 Target = INVALID_INDEX;
-			int32 L = 0;
-			int32 R = VisemeInfoPlayback.Num() - 1;
-			while (L <= R)
-			{
-				const int32 Mid = (L + R) >> 1;
-				const FCharacterUtteranceVisemeInfo& Sample = VisemeInfoPlayback[Mid];
-				if (CurrentTime > Sample.Timestamp)
-				{
-					L = Mid + 1;
-				}
-				else
-				{
-					Target = Mid;
-					R = Mid - 1;
-				}
-			}
-
-			FCharacterUtteranceVisemeInfo CurrentVisemeInfo;
-			FCharacterUtteranceVisemeInfo PreviousVisemeInfo;
-
-			if (VisemeInfoPlayback.IsValidIndex(Target))
-			{
-				CurrentVisemeInfo = VisemeInfoPlayback[Target];
-			}
-			if (VisemeInfoPlayback.IsValidIndex(Target - 1))
-			{
-				PreviousVisemeInfo = VisemeInfoPlayback[Target - 1];
-			}
-
-			const float Blend = (CurrentTime - PreviousVisemeInfo.Timestamp) / (CurrentVisemeInfo.Timestamp - PreviousVisemeInfo.Timestamp);
-
-			FInworldCharacterVisemeBlends VisemeBlends;
-			VisemeBlends[PreviousVisemeInfo.Code] = FMath::Clamp(1.f - Blend, 0.f, 1.f);
-			VisemeBlends[CurrentVisemeInfo.Code] = FMath::Clamp(Blend, 0.f, 1.f);
-
-			BackupAnimsToPlay.Enqueue(VisemeBlends);
-		}
+		UE_LOG(LogInworldAIAudio2Face, Log, TEXT("A2F OnCharacterUtterance: %s is starting to play, has gotten %d packets"), *UtteranceId, GotPackets);
 	}
+	bHasStartedProcessingAudio = true;
 
 	TArray<uint8> ToQueue;
 	if (AudioToPlay.Dequeue(ToQueue))
 	{
 		InProceduralWave->QueueAudio(ToQueue.GetData(), ToQueue.Num());
-		if (bUseFallback)
-		{
-			FInworldCharacterVisemeBlends VisemeBlend;
-			BackupAnimsToPlay.Dequeue(VisemeBlend);
-			AsyncTask(ENamedThreads::GameThread, [this, VisemeBlend]()
+		TMap<FName, float> AnimToPlay;
+		AnimsToPlay.Dequeue(AnimToPlay);
+		AsyncTask(ENamedThreads::GameThread, [this, AnimToPlay]()
+			{
+				if (OnUtteranceStarted.IsBound())
 				{
-					OnInworldAudio2FaceBlendShapeBackupUpdate.Broadcast(VisemeBlend);
-				});
-		}
-		else
-		{
-			TMap<FName, float> AnimToPlay;
-			AnimsToPlay.Dequeue(AnimToPlay);
-			AsyncTask(ENamedThreads::GameThread, [this, AnimToPlay]()
-				{
-					FA2FBlendShapeData Data;
-					Data.Map = AnimToPlay;
-					OnInworldAudio2FaceBlendShapeUpdate.Broadcast(Data);
-				});
-		}
+					OnUtteranceStarted.Broadcast();
+				}
+				FA2FBlendShapeData Data;
+				Data.Map = AnimToPlay;
+				OnInworldAudio2FaceBlendShapeUpdate.Broadcast(Data);
+			});
 	}
 	else if (A2FData->bIsDone)
 	{
+		if (A2FData)
+		{
+			A2FData->OnCharacterMessageUtteranceA2FDataUpdate.Remove(A2FDataUpdateHandle);
+		}
+
+		A2FData = nullptr;
+
+		AudioToPlay.Empty();
+		AnimsToPlay.Empty();
+
+		GotPackets = 0;
+		bHasStartedProcessingAudio = false;
+		bIsActive = false;
+		SoundStreaming->ResetAudio();
+
+		UE_LOG(LogInworldAIAudio2Face, Log, TEXT("A2F OnCharacterUtterance: %s has unlocked the Queue (OUT OF DATA, IS DONE)"), *UtteranceId);
+
 		AsyncTask(ENamedThreads::GameThread, [this]()
 			{
 				FScopeLock ScopeLock(&QueueLock);
-				if (A2FData)
-				{
-					A2FData->OnCharacterMessageUtteranceA2FDataUpdate.Remove(A2FDataUpdateHandle);
-				}
-				AudioToPlay.Empty();
-				AnimsToPlay.Empty();
-
-				OriginalPCMData = {};
-				VisemeInfoPlayback = {};
-
-				bUseFallback = false;
-				TimeToGiveUp = 0.f;
-				ExpectedRemainingAudio = 0;
-				GotPackets = 0;
-				bHasStartedProcessingAudio = false;
-				bIsActive = false;
-				SoundStreaming->ResetAudio();
 				OnUtteranceStopped.Broadcast();
-
 				CharacterComponent->ClearMessageQueueLock(CharacterMessageQueueLockHandle);
 			});
 	}

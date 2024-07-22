@@ -8,7 +8,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InworldPackets.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "InworldBlueprintFunctionLibrary.generated.h"
 

@@ -45,7 +45,7 @@ void ConvertAudioToInworldFormat(const float* AudioData, int32 NumFrames, int32 
         int32 DataOffset = 0;
         for (int32 CurrentFrame = 0; CurrentFrame < MutableAudioData.Num(); CurrentFrame++)
         {
-            MutableAudioData[CurrentFrame] = Algo::Accumulate(TArray<float>{ AudioData + DataOffset , NumChannels }, 0.f) / NumChannels;
+            MutableAudioData[CurrentFrame] = Algo::Accumulate(TArray<float>{ AudioData + DataOffset, NumChannels }, 0.f) / NumChannels;
 
             DataOffset += NumChannels;
         }
@@ -176,7 +176,7 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
 
         PrimaryComponentTick.SetTickFunctionEnable(false);
     }
-    
+
     if (IsLocallyControlled())
     {
         auto OnInputCapture = [this](const TArray<uint8>& AudioData)
@@ -248,7 +248,7 @@ void UInworldPlayerAudioCaptureComponent::TickComponent(float DeltaTime, enum EL
 
     EvaluateVoiceCapture();
 
-    {   
+    {
         FScopeLock InputScopedLock(&InputBuffer.CriticalSection);
         FScopeLock OutputScopedLock(&OutputBuffer.CriticalSection);
 
@@ -274,9 +274,9 @@ void UInworldPlayerAudioCaptureComponent::TickComponent(float DeltaTime, enum EL
 
 void UInworldPlayerAudioCaptureComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UInworldPlayerAudioCaptureComponent, bServerCapturingVoice, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UInworldPlayerAudioCaptureComponent, bServerCapturingVoice, COND_OwnerOnly);
 }
 
 void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
@@ -335,9 +335,9 @@ void UInworldPlayerAudioCaptureComponent::SetCaptureDeviceById(const FString& De
     if (!IsInAudioThread())
     {
         FAudioThread::RunCommandOnAudioThread([this, DeviceId]()
-        {
-            SetCaptureDeviceById(DeviceId);
-        });
+            {
+                SetCaptureDeviceById(DeviceId);
+            });
         return;
     }
 
@@ -464,7 +464,7 @@ void UInworldPlayerAudioCaptureComponent::OnPlayerTargetClear(UInworldCharacterC
 void UInworldPlayerAudioCaptureComponent::Rep_ServerCapturingVoice()
 {
     if (bServerCapturingVoice)
-	{
+    {
         StartCapture();
     }
     else
@@ -567,7 +567,7 @@ void FInworldMicrophoneAudioCapture::SetCaptureDeviceById(const FString& DeviceI
             }
             if (CaptureDeviceInfos.ContainsByPredicate([OutInfo](const Audio::FCaptureDeviceInfo& CaptureDeviceInfo) -> bool {
                 return CaptureDeviceInfo.DeviceId == OutInfo.DeviceId;
-            }))
+                }))
             {
                 CaptureDeviceIndex++;
             }

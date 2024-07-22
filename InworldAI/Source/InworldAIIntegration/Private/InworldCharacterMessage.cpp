@@ -54,6 +54,12 @@ void FCharacterMessageQueue::TryToProgress(bool bForce)
 		}
 
 		auto NextQueuedEntry = PendingMessageEntries[0];
+		if (CanceledInteractions.Find(NextQueuedEntry.Message->InteractionId) != INDEX_NONE)
+		{
+			PendingMessageEntries.RemoveAt(0);
+			return;
+		}
+
 		if(!NextQueuedEntry.Message->IsReady() && !bForce)
 		{
 			return;
@@ -61,7 +67,7 @@ void FCharacterMessageQueue::TryToProgress(bool bForce)
 
 		CurrentMessage = NextQueuedEntry.Message;
 		PendingMessageEntries.RemoveAt(0);
-
+		
 		UE_LOG(LogInworldAIIntegration, Log, TEXT("Handle character message '%s::%s'"), *CurrentMessage->InteractionId, *CurrentMessage->UtteranceId);
 
 		CurrentMessage->AcceptHandle(*MessageVisitor);

@@ -146,7 +146,7 @@ void InworldPacketTranslator::TranslateEvent<Inworld::CustomEvent, FInworldCusto
 }
 
 template<>
-void InworldPacketTranslator::TranslateEvent<Inworld::SessionControlResponse_LoadScene, FInworldChangeSceneEvent>(const Inworld::SessionControlResponse_LoadScene& Original, FInworldChangeSceneEvent& New)
+void InworldPacketTranslator::TranslateEvent<Inworld::ChangeSceneEvent, FInworldChangeSceneEvent>(const Inworld::ChangeSceneEvent& Original, FInworldChangeSceneEvent& New)
 {
 	TranslateInworldPacket(Original, New);
 	for (const auto& AgentInfo : Original.GetAgentInfos())
