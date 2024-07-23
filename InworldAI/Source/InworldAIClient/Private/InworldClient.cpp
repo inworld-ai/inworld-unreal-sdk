@@ -63,12 +63,17 @@ FAutoConsoleVariableSink UInworldClient::CVarSink(FConsoleCommandDelegate::Creat
 
 std::vector<std::string> ToStd(const TArray<FString>& Array)
 {
-	std::vector<std::string> Vec;
-	for (auto& Str : Array)
+	std::vector<std::string> StdVec;
+	for (auto& Entry : Array)
 	{
-		Vec.emplace_back(TCHAR_TO_UTF8(*Str));
+		StdVec.emplace_back(TCHAR_TO_UTF8(*Entry));
 	}
-	return Vec;
+	return StdVec;
+}
+
+std::pair<std::string, std::string> ToStd(const TPair<FString, FString>& Pair)
+{
+	return std::make_pair<std::string, std::string>(TCHAR_TO_UTF8(*Pair.Key), TCHAR_TO_UTF8(*Pair.Value));
 }
 
 std::unordered_map<std::string, std::string> ToStd(const TMap<FString, FString>& Map)
@@ -76,7 +81,7 @@ std::unordered_map<std::string, std::string> ToStd(const TMap<FString, FString>&
 	std::unordered_map<std::string, std::string> StdMap;
 	for (const TPair<FString, FString>& Entry : Map)
 	{
-		StdMap.insert(std::make_pair<std::string, std::string>(TCHAR_TO_UTF8(*Entry.Key), TCHAR_TO_UTF8(*Entry.Value)));
+		StdMap.insert(ToStd(Entry));
 	}
 	return StdMap;
 }
@@ -282,7 +287,10 @@ void UInworldClient::StartSession(const FString& SceneId, const FInworldPlayerPr
 	ConvertPlayerProfile(PlayerProfile, Options.UserConfig);
 	ConvertCapabilities(CapabilitySet, Options.Capabilities);
 
-	Options.Metadata = ToStd(Metadata);
+	for (const TPair<FString, FString>& Entry : Metadata)
+	{
+		Options.Metadata.emplace_back(ToStd(Entry));
+	}
 
 	Inworld::SessionInfo Info;
 	Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);
