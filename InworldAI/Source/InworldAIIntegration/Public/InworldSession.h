@@ -119,6 +119,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Load")
 	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
 
+	UFUNCTION(BlueprintCallable, Category = "Conversation")
+	FString UpdateConversation(UInworldPlayer* Player);
+
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
 	void SendTextMessage(UInworldCharacter* Character, const FString& Message);
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
@@ -211,6 +214,7 @@ private:
 	TMap<FString, UInworldCharacter*> AgentIdToCharacter;
 	TMap<FString, FInworldAgentInfo> BrainNameToAgentInfo;
 	TMap<FString, TArray<FString>> ConversationIdToAgentIds;
+	TMap<FString, UInworldPlayer*> ConversationIdToPlayer;
 
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldSessionLoadedNative OnLoadedDelegateNative;

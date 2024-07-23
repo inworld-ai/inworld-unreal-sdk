@@ -14,6 +14,7 @@
 #include "GameFramework/Actor.h"
 #include "InworldEnums.h"
 #include "InworldTypes.h"
+#include "InworldPackets.h"
 #include "InworldPlayer.generated.h"
 
 class UInworldSession;
@@ -37,6 +38,9 @@ class INWORLDAIINTEGRATION_API UInworldPlayer : public UObject
 {
 	GENERATED_BODY()
 public:
+	UInworldPlayer();
+	virtual ~UInworldPlayer();
+
 	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -46,6 +50,9 @@ public:
 	// ~UObject
 
 public:
+	UFUNCTION()
+	void HandlePacket(const FInworldWrappedPacket& WrappedPacket);
+
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SetSession(UInworldSession* InSession);
 	UFUNCTION(BlueprintPure, Category = "Session")
@@ -139,7 +146,7 @@ private:
 	FOnInworldPlayerConversationChangedNative OnConversationChangedDelegateNative;
 
 	bool bHasAudioSession = false;
-	FInworldAudioSessionOptions AudioSessionMode;
+
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)
