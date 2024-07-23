@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include "InworldAudioSender.h"
 #include "InworldEnums.h"
 #include "InworldTypes.h"
 #include "InworldPackets.h"
@@ -38,6 +37,8 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldPerceivedLatencyNative, FString /
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldSessionSavedCallback, FInworldSave, Save, bool, bSuccess);
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldVADNative, UObject*, bool);
+
 UCLASS(BlueprintType)
 class INWORLDAICLIENT_API UInworldClient : public UObject
 {
@@ -48,7 +49,8 @@ public:
 	~UInworldClient();
 
 	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
-	void StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save, const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet);
+	void StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save,
+		const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata);
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
 	UFUNCTION(BlueprintCallable, Category = "Session")
@@ -95,9 +97,9 @@ public:
 	void SendSoundMessageToConversation(const FString& ConversationId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(const FString& AgentId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+	void SendAudioSessionStart(const FString& AgentId, UObject* Owner, FInworldAudioSessionOptions SessionOptions);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStartToConversation(const FString& ConversationId, UObject* Owner, EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC);
+	void SendAudioSessionStartToConversation(const FString& ConversationId, UObject* Owner, FInworldAudioSessionOptions SessionOptions);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStop(const FString& AgentId);
@@ -150,9 +152,6 @@ public:
 	FOnInworldVADNative& OnVAD() { return OnVADDelegateNative; }
 
 private:
-	UPROPERTY()
-	UInworldAudioSender* AudioSender;
-
 	FOnInworldSessionPrePauseNative OnPrePauseDelegateNative;
 	FOnInworldSessionPreStopNative OnPreStopDelegateNative;
 	FOnInworldPacketReceivedNative OnPacketReceivedDelegateNative;
@@ -160,7 +159,8 @@ private:
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
 	FOnInworldVADNative OnVADDelegateNative;
 
-	FDelegateHandle OnVADHandle;
+	UPROPERTY()
+	UObject* AudioSessionOwner = nullptr;
 
 	bool bIsBeingDestroyed = false;
 

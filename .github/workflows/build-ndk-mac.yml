@@ -8,7 +8,7 @@ jobs:
   build-ndk-mac:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: git-update-dependecies
       run: git submodule update --init
     - name: Find NDK SHA
@@ -16,11 +16,11 @@ jobs:
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
-    - uses: actions/cache/restore@v3
+    - uses: actions/cache/restore@v4
       id: ndk-cache-mac
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
     - name: git-update-dependecies
       if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
@@ -29,14 +29,20 @@ jobs:
       shell: bash
       if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
       run: |
+        python3 "build-scripts/ndk-util.py" --clean
         sudo xcode-select -s /Applications/Xcode_13_0.app/Contents/Developer
-        python3 "build-scripts/ndk-util.py" --platform=Mac --clean --build
+        python3 "build-scripts/ndk-util.py" --platform=Mac --build
         rm InworldAI/inworld-ndk/build/CMakeCache.txt
         python3 "build-scripts/ndk-util.py" --platform=Mac-shared --build
         sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-    - uses: actions/cache/save@v3
+    - uses: actions/cache/save@v4
       if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-Mac-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
+    - uses: actions/upload-artifact@v4
+      with:
+        name: NDK-Mac
+        path: |
+          InworldAI/inworld-ndk/build/Package
