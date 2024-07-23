@@ -94,6 +94,9 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
 	FInworldAuth Auth;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
+	FInworldPlayerSpeechOptions SpeechOptions;
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")
 	FInworldCapabilitySet CapabilitySet;
 

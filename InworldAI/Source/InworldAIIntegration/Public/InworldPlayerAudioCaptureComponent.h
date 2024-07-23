@@ -11,6 +11,7 @@
 #include "AudioCaptureCore.h"
 #include "AudioDevice.h"
 #include "InworldEnums.h"
+#include "InworldTypes.h"
 #include "Containers/ContainerAllocationPolicies.h"
 
 #include "InworldPlayerAudioCaptureComponent.generated.h"
@@ -83,11 +84,17 @@ public:
     UFUNCTION(Server, Reliable, Category = "Audio")
     void ServerSetMuted(bool bInMuted);
 
-    UFUNCTION(BlueprintCallable, Category = "Audio")
-    void SetMicMode(EInworldMicrophoneMode InMicMode) { ServerSetMicMode(MicMode); }
+    UFUNCTION(BlueprintCallable, Category = "Audio", meta=(DeprecatedFunction, DeprecationMessage="SetMicMode is deprecated, use SetAudioSessionMode instead."))
+    void SetMicMode(EInworldMicrophoneMode InMicMode) { ServerSetMicMode(InMicMode); }
 
     UFUNCTION(Server, Reliable, Category = "Audio")
-    void ServerSetMicMode(EInworldMicrophoneMode InMicMode);
+	void ServerSetMicMode(EInworldMicrophoneMode InMicMode);
+
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	void SetAudioSessionMode(FInworldAudioSessionOptions InMode) { ServerSetAudioSessionMode(InMode); }
+
+	UFUNCTION(Server, Reliable, Category = "Audio")
+	void ServerSetAudioSessionMode(FInworldAudioSessionOptions InMode);
 
     UFUNCTION(BlueprintCallable, Category = "Devices")
     void SetCaptureDeviceById(const FString& DeviceId);
@@ -110,8 +117,8 @@ protected:
     bool bMuted = false;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
-    EInworldMicrophoneMode MicMode = EInworldMicrophoneMode::OPEN_MIC;
-    bool bIsMicModeDirty = false;
+	FInworldAudioSessionOptions AudioSessionMode;
+    bool bIsAudioSessionModeDirty = false;
 
 private:
 	UFUNCTION()
