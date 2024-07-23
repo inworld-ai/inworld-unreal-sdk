@@ -145,8 +145,27 @@ private:
 	FString ConversationId;
 	FOnInworldPlayerConversationChangedNative OnConversationChangedDelegateNative;
 
+	FInworldAudioSessionOptions AudioSessionMode;
 	bool bHasAudioSession = false;
 
+	class FInworldPlayerPacketVisitor : public TSharedFromThis<FInworldPlayerPacketVisitor>, public InworldPacketVisitor
+	{
+	public:
+		FInworldPlayerPacketVisitor()
+			: FInworldPlayerPacketVisitor(nullptr)
+		{}
+		FInworldPlayerPacketVisitor(class UInworldPlayer* InPlayer)
+			: Player(InPlayer)
+		{}
+		virtual ~FInworldPlayerPacketVisitor() = default;
+
+		virtual void Visit(const FInworldConversationUpdateEvent& Event) override;
+
+	private:
+		UInworldPlayer* Player;
+	};
+
+	TSharedRef<FInworldPlayerPacketVisitor> PacketVisitor;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)
