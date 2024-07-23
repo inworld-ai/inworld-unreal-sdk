@@ -8,7 +8,7 @@ jobs:
   build-ndk-win:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: git-update-dependecies
       run: git submodule update --init
     - name: Find NDK SHA
@@ -16,11 +16,11 @@ jobs:
         $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
         echo $INWORLD_NDK_SHA
         Add-Content -Path ${env:GITHUB_ENV} -Value "INWORLD_NDK_SHA=$INWORLD_NDK_SHA"
-    - uses: actions/cache/restore@v3
+    - uses: actions/cache/restore@v4
       id: ndk-cache-win64
       with:
         path: InworldAI\inworld-ndk\build\Package
-        key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
     - name: git-update-dependecies
       if: steps.ndk-cache-win64.outputs.cache-hit != 'true'
@@ -30,7 +30,8 @@ jobs:
       if: steps.ndk-cache-win64.outputs.cache-hit != 'true'
       run: |
         $pythonPath = (Get-Command python.exe).Source
-        $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList build-scripts\ndk-util.py,--platform=Win64,--clean,--build
+        $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList build-scripts\ndk-util.py,--clean
+        $process = Start-Process -FilePath $pythonPath -Wait -NoNewWindow -PassThru -ArgumentList build-scripts\ndk-util.py,--platform=Win64,--build
         if($process.ExitCode -ne 0)
         {
           exit 1
@@ -41,9 +42,14 @@ jobs:
         {
           exit 1
         }
-    - uses: actions/cache/save@v3
+    - uses: actions/cache/save@v4
       if: steps.ndk-cache-win64.outputs.cache-hit != 'true'
       with:
         path: InworldAI\inworld-ndk\build\Package
-        key: ${{ runner.OS }}-ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-Win64-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
+    - uses: actions/upload-artifact@v4
+      with:
+        name: NDK-Win
+        path: |
+          InworldAI/inworld-ndk/build/Package

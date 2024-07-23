@@ -194,7 +194,7 @@ void UInworldPlayerComponent::StartAudioSessionWithTarget()
 {
     NO_PLAYER_RETURN(void())
 
-    InworldPlayer->SendAudioSessionStartToConversation();
+    InworldPlayer->SendAudioSessionStartToConversation(FInworldAudioSessionOptions::Default());
 }
 
 void UInworldPlayerComponent::StopAudioSessionWithTarget()

@@ -1,2 +1,0 @@
-sh "/Users/Shared/Epic Games/UE_5.1/Engine/Build/BatchFiles/RunUAT.sh" BuildPlugin -plugin="$PWD/TestInworldFPS/TestInworldFPS/Plugins/InworldAI/InworldAI.uplugin" -TargetPlatforms=Mac -package="$PWD/PluginBuild"
-echo build-finished
