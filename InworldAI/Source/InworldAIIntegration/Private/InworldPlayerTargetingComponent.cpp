@@ -50,6 +50,12 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
         return;
     }
 
+    UInworldSession* InworldSession = InworldPlayer->GetSession();
+    if (!InworldSession || (InworldSession->GetConnectionState() != EInworldConnectionState::Connected && InworldSession->GetConnectionState() != EInworldConnectionState::Reconnecting))
+    {
+        return;
+    }
+
     // clear all targets if just switched from multiple targeting
     TArray<UInworldCharacter*> TargetCharacters = InworldPlayer->GetTargetCharacters();
     if (!bMultipleTargets && TargetCharacters.Num() > 1)
@@ -75,11 +81,6 @@ void UInworldPlayerTargetingComponent::UpdateTargetCharacters()
         }
     }
 
-    UInworldSession* InworldSession = InworldPlayer->GetSession();
-    if (!InworldSession)
-    {
-        return;
-    }
     const TArray<UInworldCharacter*>& Characters = InworldSession->GetRegisteredCharacters();
     UInworldCharacter* BestTarget = nullptr;
     float BestTargetDot = -1.f;

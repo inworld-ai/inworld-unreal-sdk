@@ -309,6 +309,9 @@ void UInworldClient::StopSession()
 {
 	NO_CLIENT_RETURN(void())
 
+	OnPreStopDelegateNative.Broadcast();
+	OnPreStopDelegate.Broadcast();
+
 	AudioSessionOwner = nullptr;
 	Inworld::GetClient()->StopClient();
 }
@@ -316,6 +319,9 @@ void UInworldClient::StopSession()
 void UInworldClient::PauseSession()
 {
 	NO_CLIENT_RETURN(void())
+
+	OnPrePauseDelegateNative.Broadcast();
+	OnPrePauseDelegate.Broadcast();
 
 	Inworld::GetClient()->PauseClient();
 }
