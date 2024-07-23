@@ -243,11 +243,11 @@ void UInworldSession::UnregisterPlayer(UInworldPlayer* Player)
 }
 
 void UInworldSession::StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save,
-	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions)
+	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata)
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->StartSession(SceneId, PlayerProfile, Auth, Save, SessionToken, CapabilitySet, SpeechOptions);
+	Client->StartSession(SceneId, PlayerProfile, Auth, Save, SessionToken, CapabilitySet, SpeechOptions, Metadata);
 }
 
 void UInworldSession::StopSession()

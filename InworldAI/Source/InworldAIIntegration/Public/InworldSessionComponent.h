@@ -100,6 +100,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")
 	FInworldCapabilitySet CapabilitySet;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")
+	TMap<FString, FString> Metadata;
+
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Config|Internal")
 	FInworldEnvironment Environment;
 
