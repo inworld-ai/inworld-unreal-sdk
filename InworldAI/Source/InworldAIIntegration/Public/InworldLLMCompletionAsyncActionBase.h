@@ -14,8 +14,25 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInworldLLMApiDelegate, const FString &, PartialResponse, const FString &, FullResponse);
 
-USTRUCT()
-struct FInworldLLMApiResponse
+USTRUCT(BlueprintType)
+struct FInworldLLMTextGenerationConfig
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float PresencePenalty = 0.8;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float RepetitionPenalty = 1.2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bStream = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaxTokens = 150;
+};
+
+USTRUCT() struct FInworldLLMApiResponse
 {
 	GENERATED_BODY()
 
@@ -27,7 +44,7 @@ struct FInworldLLMApiResponse
 };
 
 UCLASS()
-class INWORLDDEMO_API UInworldLLMCompletionAsyncActionBase : public UBlueprintAsyncActionBase
+class INWORLDAIINTEGRATION_API UInworldLLMCompletionAsyncActionBase : public UBlueprintAsyncActionBase
 {
 	GENERATED_BODY()
 
@@ -52,4 +69,5 @@ protected:
 	FString ModelName;
 	FString AccumulatedResponse;
 	bool bIsStreamingComplete;
+	FInworldLLMTextGenerationConfig TextGenerationConfig;
 };

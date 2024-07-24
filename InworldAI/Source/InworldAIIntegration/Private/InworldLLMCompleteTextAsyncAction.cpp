@@ -39,12 +39,13 @@ FInworldLLMApiResponse UInworldLLMCompleteTextAsyncAction::ParseJsonResponse(con
     return Response;
 }
 
-UInworldLLMCompleteTextAsyncAction *UInworldLLMCompleteTextAsyncAction::CompleteText(const FString &UserMessage, const FString &SystemMessage, const FString &ApiKey, const FString &ModelName)
+UInworldLLMCompleteTextAsyncAction *UInworldLLMCompleteTextAsyncAction::CompleteText(const FString &UserMessage, const FString &ApiKey, const FString &ModelName, const FInworldLLMTextGenerationConfig &TextGenerationConfig)
 {
     UInworldLLMCompleteTextAsyncAction *Action = NewObject<UInworldLLMCompleteTextAsyncAction>();
     Action->UserMessage = UserMessage;
     Action->ApiKey = ApiKey;
     Action->ModelName = ModelName;
+    Action->TextGenerationConfig = TextGenerationConfig;
     return Action;
 }
 
@@ -66,12 +67,12 @@ void UInworldLLMCompleteTextAsyncAction::Activate()
     Prompt->SetStringField("text", UserMessage);
     RootObject->SetObjectField("prompt", Prompt);
 
-    TSharedPtr<FJsonObject> TextGenerationConfig = MakeShared<FJsonObject>();
-    TextGenerationConfig->SetNumberField("presence_penalty", 0.8);
-    TextGenerationConfig->SetNumberField("repetition_penalty", 1.2);
-    TextGenerationConfig->SetBoolField("stream", false);
-    TextGenerationConfig->SetNumberField("max_tokens", 150);
-    RootObject->SetObjectField("text_generation_config", TextGenerationConfig);
+    TSharedPtr<FJsonObject> TextGenConfigJsonObject = MakeShared<FJsonObject>();
+    TextGenConfigJsonObject->SetNumberField("presence_penalty", TextGenerationConfig.PresencePenalty);
+    TextGenConfigJsonObject->SetNumberField("repetition_penalty", TextGenerationConfig.RepetitionPenalty);
+    TextGenConfigJsonObject->SetBoolField("stream", TextGenerationConfig.bStream);
+    TextGenConfigJsonObject->SetNumberField("max_tokens", TextGenerationConfig.MaxTokens);
+    RootObject->SetObjectField("text_generation_config", TextGenConfigJsonObject);
 
     // Convert JSON to string
     FString JsonPayload;
@@ -99,56 +100,4 @@ void UInworldLLMCompleteTextAsyncAction::Activate()
 
     // Send the request
     HttpRequest->ProcessRequest();
-}
-
-void UInworldLLMCompleteTextAsyncAction::HandleResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)
-{
-    if (bSuccess && Response.IsValid())
-    {
-        bIsStreamingComplete = true;
-        FString ResponseChunk = Response->GetContentAsString();
-        FinishResponse(ResponseChunk);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Request failed"));
-        OnFailure.Broadcast(FString(), FString());
-    }
-
-    SetReadyToDestroy();
-}
-
-void UInworldLLMCompleteTextAsyncAction::ProcessStreamedResponse(const FString &ResponseChunk)
-{
-    // Split the accumulated response into lines
-    TArray<FString> Lines;
-    ResponseChunk.ParseIntoArrayLines(Lines);
-
-    for (const FString &Line : Lines)
-    {
-        if (Line.IsEmpty())
-        {
-            continue;
-        }
-
-        FInworldLLMApiResponse Response = ParseJsonResponse(Line);
-
-        if (Response.bSuccess)
-        {
-            OnProgress.Broadcast(Response.Content, FString());
-            AccumulatedResponse += Response.Content;
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("Failed to parse JSON %s"), *Line);
-            OnFailure.Broadcast(FString(), FString());
-        }
-    }
-}
-
-void UInworldLLMCompleteTextAsyncAction::FinishResponse(FString &ResponseChunk)
-{
-    AccumulatedResponse.Empty();
-    ProcessStreamedResponse(ResponseChunk);
-    OnComplete.Broadcast(FString(), AccumulatedResponse);
 }
