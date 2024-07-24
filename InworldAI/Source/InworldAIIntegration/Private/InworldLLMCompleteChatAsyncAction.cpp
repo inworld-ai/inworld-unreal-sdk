@@ -9,7 +9,6 @@
 #include "HttpModule.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Json.h"
-#include "Logging/StructuredLog.h"
 
 FInworldLLMApiResponse UInworldLLMCompleteChatAsyncAction::ParseJsonResponse(const FString &JsonString)
 {
