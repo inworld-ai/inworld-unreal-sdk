@@ -9,6 +9,7 @@
 
 
 #include "CoreMinimal.h"
+#include "InworldEnums.h"
 
 #include "InworldTypes.generated.h"
 
@@ -154,4 +155,40 @@ struct FInworldConnectionErrorDetails
 
     UPROPERTY(BlueprintReadOnly, Category = "Agent")
     int32 MaxRetries = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldAudioSessionOptions
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Audio")
+	EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::UNKNOWN;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Audio")
+	EInworldUnderstandingMode UnderstandingMode = EInworldUnderstandingMode::UNKNOWN;
+
+	bool operator==(const FInworldAudioSessionOptions& Other) const { return MicrophoneMode == Other.MicrophoneMode && UnderstandingMode == Other.UnderstandingMode; }
+	bool operator!=(const FInworldAudioSessionOptions& Other) const { return !(*this == Other); }
+
+	void Clear() { MicrophoneMode = EInworldMicrophoneMode::UNKNOWN; UnderstandingMode = EInworldUnderstandingMode::UNKNOWN; }
+
+	static FInworldAudioSessionOptions Default() { return { EInworldMicrophoneMode::OPEN_MIC, EInworldUnderstandingMode::FULL }; }
+};
+
+USTRUCT(BlueprintType)
+struct FInworldPlayerSpeechOptions
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
+	EInworldPlayerSpeechMode Mode = EInworldPlayerSpeechMode::Default;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
+	float VADProbThreshhold = 0.3f;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
+	uint8 VADPreviousChunks = 5;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
+	uint8 VADSubsequentChunks = 5;
 };

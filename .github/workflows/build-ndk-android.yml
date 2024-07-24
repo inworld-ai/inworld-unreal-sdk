@@ -8,7 +8,7 @@ jobs:
   build-ndk-android:
     runs-on: macos-13
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: git-update-dependecies
       run: git submodule update --init
     - name: Find NDK SHA
@@ -16,25 +16,31 @@ jobs:
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
-    - uses: actions/cache/restore@v3
+    - uses: actions/cache/restore@v4
       id: ndk-cache-android
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-Android-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
     - name: git-update-dependecies
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: git submodule update --init --recursive
-    - name: Build NDK (android)
+    - name: Build NDK (Android)
       shell: bash
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: |
-        python3 "build-scripts/ndk-util.py" --platform=Android --clean --build
+        python3 "build-scripts/ndk-util.py" --clean
+        python3 "build-scripts/ndk-util.py" --platform=Android --build
         rm InworldAI/inworld-ndk/build/CMakeCache.txt
         python3 "build-scripts/ndk-util.py" --platform=Android-shared --build
-    - uses: actions/cache/save@v3
+    - uses: actions/cache/save@v4
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ${{ runner.OS }}-ndk-cache-android-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-Android-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
+    - uses: actions/upload-artifact@v4
+      with:
+        name: NDK-Android
+        path: |
+          InworldAI/inworld-ndk/build/Package

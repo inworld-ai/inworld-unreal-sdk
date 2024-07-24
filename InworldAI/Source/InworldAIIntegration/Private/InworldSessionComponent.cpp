@@ -99,7 +99,8 @@ void UInworldSessionComponent::StartSession()
 	NO_CLIENT_RETURN(void())
 
 	InworldSession->GetClient()->SetEnvironment(Environment);
-	InworldSession->StartSession(SceneId, PlayerProfile, Auth, {}, {}, CapabilitySet);
+	InworldSession->StartSession(SceneId, PlayerProfile, Auth, {}, {}, CapabilitySet, SpeechOptions, Metadata);
+
 }
 
 void UInworldSessionComponent::StartSessionFromSave(const FInworldSave& Save)
@@ -107,7 +108,7 @@ void UInworldSessionComponent::StartSessionFromSave(const FInworldSave& Save)
 	NO_CLIENT_RETURN(void())
 
 	InworldSession->GetClient()->SetEnvironment(Environment);
-	InworldSession->StartSession(SceneId, PlayerProfile, Auth, Save, {}, CapabilitySet);
+	InworldSession->StartSession(SceneId, PlayerProfile, Auth, Save, {}, CapabilitySet, SpeechOptions, Metadata);
 }
 
 void UInworldSessionComponent::StartSessionFromToken(const FInworldSessionToken& Token)
@@ -115,7 +116,7 @@ void UInworldSessionComponent::StartSessionFromToken(const FInworldSessionToken&
 	NO_CLIENT_RETURN(void())
 
 	InworldSession->GetClient()->SetEnvironment(Environment);
-	InworldSession->StartSession(SceneId, PlayerProfile, Auth, {}, Token, CapabilitySet);
+	InworldSession->StartSession(SceneId, PlayerProfile, Auth, {}, Token, CapabilitySet, SpeechOptions, Metadata);
 }
 
 void UInworldSessionComponent::StopSession()

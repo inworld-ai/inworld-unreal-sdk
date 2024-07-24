@@ -94,8 +94,14 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
 	FInworldAuth Auth;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
+	FInworldPlayerSpeechOptions SpeechOptions;
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")
 	FInworldCapabilitySet CapabilitySet;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")
+	TMap<FString, FString> Metadata;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Config|Internal")
 	FInworldEnvironment Environment;
