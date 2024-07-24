@@ -19,20 +19,21 @@ struct FInworldLLMTextGenerationConfig
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LLMService")
 	float PresencePenalty = 0.8;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LLMService")
 	float RepetitionPenalty = 1.2;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LLMService")
 	bool bStream = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LLMService")
 	int32 MaxTokens = 150;
 };
 
-USTRUCT() struct FInworldLLMApiResponse
+USTRUCT()
+struct FInworldLLMApiResponse
 {
 	GENERATED_BODY()
 
@@ -49,13 +50,13 @@ class INWORLDAIINTEGRATION_API UInworldLLMCompletionAsyncActionBase : public UBl
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "LLMService")
 	FInworldLLMApiDelegate OnProgress;
 
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "LLMService")
 	FInworldLLMApiDelegate OnComplete;
 
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "LLMService")
 	FInworldLLMApiDelegate OnFailure;
 
 protected:
