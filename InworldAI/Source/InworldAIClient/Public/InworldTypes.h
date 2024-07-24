@@ -124,6 +124,9 @@ struct FInworldEnvironment
 
     UPROPERTY(BlueprintReadWrite, Category = "Environment")
     FString TargetUrl = "";
+
+    UPROPERTY(BlueprintReadWrite, Category = "Environment")
+    bool Auth = true;
 };
 
 USTRUCT(BlueprintType)

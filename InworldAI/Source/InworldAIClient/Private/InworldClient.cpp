@@ -162,10 +162,11 @@ void FInworldClient::Destroy()
 	InworldClient.Reset();
 }
 
-void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldSave& Save, const FInworldEnvironment& Environment)
+void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldSave& Save, const FInworldEnvironment& Environment, const TMap<FString, FString>& Metadata)
 {
 	Inworld::ClientOptions Options;
 	Options.ServerUrl = TCHAR_TO_UTF8(*(!Environment.TargetUrl.IsEmpty() ? Environment.TargetUrl : DefaultTargetUrl));
+	Inworld::g_RequireAuth = Environment.Auth;
 	// Use first segment of scene for resource
 	// 'workspaces/sample-workspace'
 	TArray<FString> Split;
@@ -204,6 +205,11 @@ void FInworldClient::Start(const FString& SceneName, const FInworldPlayerProfile
 	Options.Capabilities.LoadSceneInSession = Capabilities.LoadSceneInSession;
 	Options.Capabilities.Multiagent = Capabilities.MultiAgent;
 	Options.Capabilities.Audio2Face = Capabilities.Audio2Face;
+
+	for (const auto& Data : Metadata)
+	{
+		Options.Metadata[TCHAR_TO_UTF8(*Data.Key)] = TCHAR_TO_UTF8(*Data.Value);
+	}
 
 	Inworld::SessionInfo Info;
 	Info.Token = TCHAR_TO_UTF8(*SessionToken.Token);
