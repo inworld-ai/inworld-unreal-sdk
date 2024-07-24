@@ -18,7 +18,7 @@ class INWORLDAIINTEGRATION_API UInworldLLMCompleteTextAsyncAction : public UInwo
 
 public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"), Category = "LLMService")
-	static UInworldLLMCompleteTextAsyncAction *CompleteText(const FString &UserMessage, const FString &ApiKey, const FString &ModelName = FString("inworld-dragon"), const FInworldLLMTextGenerationConfig &TextGenerationConfig = FInworldLLMTextGenerationConfig());
+	static UInworldLLMCompleteTextAsyncAction *CompleteText(const FString &UserMessage, const FString &ApiKey, const FString &ModelName = FString("inworld-dragon"), const FInworldLLMTextGenerationConfig TextGenerationConfig = FInworldLLMTextGenerationConfig());
 
 	virtual void Activate() override;
 

@@ -39,7 +39,7 @@ FInworldLLMApiResponse UInworldLLMCompleteChatAsyncAction::ParseJsonResponse(con
     return Response;
 }
 
-UInworldLLMCompleteChatAsyncAction *UInworldLLMCompleteChatAsyncAction::CompleteChat(const FString &UserMessage, const FString &SystemMessage, const FString &ApiKey, const FString &ModelName, const FInworldLLMTextGenerationConfig &TextGenerationConfig)
+UInworldLLMCompleteChatAsyncAction *UInworldLLMCompleteChatAsyncAction::CompleteChat(const FString &UserMessage, const FString &SystemMessage, const FString &ApiKey, const FString &ModelName, const FInworldLLMTextGenerationConfig TextGenerationConfig)
 {
     UInworldLLMCompleteChatAsyncAction *Action = NewObject<UInworldLLMCompleteChatAsyncAction>();
     Action->UserMessage = UserMessage;

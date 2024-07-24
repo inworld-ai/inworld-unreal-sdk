@@ -39,7 +39,7 @@ FInworldLLMApiResponse UInworldLLMCompleteTextAsyncAction::ParseJsonResponse(con
     return Response;
 }
 
-UInworldLLMCompleteTextAsyncAction *UInworldLLMCompleteTextAsyncAction::CompleteText(const FString &UserMessage, const FString &ApiKey, const FString &ModelName, const FInworldLLMTextGenerationConfig &TextGenerationConfig)
+UInworldLLMCompleteTextAsyncAction *UInworldLLMCompleteTextAsyncAction::CompleteText(const FString &UserMessage, const FString &ApiKey, const FString &ModelName, const FInworldLLMTextGenerationConfig TextGenerationConfig)
 {
     UInworldLLMCompleteTextAsyncAction *Action = NewObject<UInworldLLMCompleteTextAsyncAction>();
     Action->UserMessage = UserMessage;

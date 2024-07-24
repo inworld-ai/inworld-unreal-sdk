@@ -19,7 +19,7 @@ class INWORLDAIINTEGRATION_API UInworldLLMCompleteChatAsyncAction : public UInwo
 
 public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"), Category = "LLMService")
-	static UInworldLLMCompleteChatAsyncAction *CompleteChat(const FString &UserMessage, const FString &SystemMessage, const FString &ApiKey, const FString &ModelName = FString("inworld-dragon"), const FInworldLLMTextGenerationConfig &TextGenerationConfig = FInworldLLMTextGenerationConfig());
+	static UInworldLLMCompleteChatAsyncAction *CompleteChat(const FString &UserMessage, const FString &SystemMessage, const FString &ApiKey, const FString &ModelName = FString("inworld-dragon"), const FInworldLLMTextGenerationConfig TextGenerationConfig = FInworldLLMTextGenerationConfig());
 
 	virtual void Activate() override;
 
