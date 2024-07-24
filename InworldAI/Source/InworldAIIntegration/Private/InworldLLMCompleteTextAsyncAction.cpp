@@ -86,7 +86,6 @@ void UInworldLLMCompleteTextAsyncAction::Activate()
 
     // Set up Basic Auth
     FString AuthHeader = "Basic " + ApiKey;
-    UE_LOG(LogTemp, Log, TEXT("AuthHeader: %s"), *AuthHeader);
     HttpRequest->SetHeader("Authorization", AuthHeader);
     HttpRequest->SetContentAsString(JsonPayload);
 
