@@ -235,6 +235,15 @@ void FInworldConversationUpdateEvent::AppendDebugString(FString& Str) const
 	}
 }
 
+void FInworldCurrentSceneStatusEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("CurrentSceneStatus"));
+	for (auto& Agent : AgentInfos)
+	{
+		AppendToDebugString(Str, Agent.GivenName);
+	}
+}
+
 void FInworldEmotionEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Emotion"));
@@ -254,20 +263,6 @@ void FInworldCustomEvent::AppendDebugString(FString& Str) const
 	{
 		AppendToDebugString(Str, Param.Key + ":" + Param.Value);
 	}
-}
-
-void FInworldLoadCharactersEvent::AppendDebugString(FString& Str) const
-{
-	AppendToDebugString(Str, TEXT("LoadCharacters"));
-	for (auto& Agent : AgentInfos)
-	{
-		AppendToDebugString(Str, Agent.GivenName);
-	}
-}
-
-void FInworldChangeSceneEvent::AppendDebugString(FString& Str) const
-{
-	AppendToDebugString(Str, TEXT("ChangeScene"));
 }
 
 void FInworldRelationEvent::AppendDebugString(FString& Str) const

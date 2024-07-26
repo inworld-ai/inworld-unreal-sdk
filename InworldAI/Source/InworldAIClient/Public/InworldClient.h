@@ -43,7 +43,7 @@ public:
 	~UInworldClient();
 
 	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
-	void StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save,
+	void StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
 		const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata);
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
@@ -69,13 +69,6 @@ public:
 	void UnloadCharacter(const FString& Id) { UnloadCharacters({ Id }); }
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void UnloadCharacters(const TArray<FString>& Ids);
-
-	UFUNCTION(BlueprintCallable, Category = "Load")
-	void LoadSavedState(const FInworldSave& Save);
-	UFUNCTION(BlueprintCallable, Category = "Load")
-	void LoadCapabilities(const FInworldCapabilitySet& CapabilitySet);
-	UFUNCTION(BlueprintCallable, Category = "Load")
-	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
 
 	UFUNCTION(BlueprintCallable, Category = "Conversation")
 	FString UpdateConversation(const FString& ConversationId, const TArray<FString>& AgentIds, bool bIncludePlayer);
