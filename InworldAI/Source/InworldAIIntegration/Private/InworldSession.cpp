@@ -18,6 +18,7 @@
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Engine/NetDriver.h"
 #include "Engine/Engine.h"
+#include "Algo/Transform.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -299,15 +300,19 @@ void UInworldSession::LoadCharacters(const TArray<UInworldCharacter*>& Character
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(Characters, void())
 
-	Client->LoadCharacters(Inworld::CharactersToAgentIds(Characters));
+	TArray<FString> Names;
+	Algo::Transform(Characters, Names, [](const UInworldCharacter* C) { return C->GetAgentInfo().BrainName; });
+	Client->LoadCharacters(Names);
 }
 
 void UInworldSession::UnloadCharacters(const TArray<UInworldCharacter*>& Characters)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(Characters, void())
-
-	Client->UnloadCharacters(Inworld::CharactersToAgentIds(Characters));
+	
+	TArray<FString> Names;
+	Algo::Transform(Characters, Names, [](const UInworldCharacter* C) { return C->GetAgentInfo().BrainName; });
+	Client->UnloadCharacters(Names);
 }
 
 void UInworldSession::LoadSavedState(const FInworldSave& Save)
@@ -342,7 +347,9 @@ FString UInworldSession::UpdateConversation(UInworldPlayer* Player)
 		ConversationIdToPlayer.Remove(PreviousConversationId);
 	}
 
-	const FString NextConversationId = Client->UpdateConversation(Player->GetConversationId(), Inworld::CharactersToAgentIds(Player->GetTargetCharacters()), Player->IsConversationParticipant());
+	TArray<FString> AgentIds;
+	Algo::Transform(Player->GetTargetCharacters(), AgentIds, [](const UInworldCharacter* C) { return C->GetAgentInfo().AgentId; });
+	const FString NextConversationId = Client->UpdateConversation(Player->GetConversationId(), AgentIds, Player->IsConversationParticipant());
 	if (!NextConversationId.IsEmpty())
 	{
 		ConversationIdToPlayer.Add(NextConversationId, Player);
