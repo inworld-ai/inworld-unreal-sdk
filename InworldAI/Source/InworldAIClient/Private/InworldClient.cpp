@@ -162,6 +162,15 @@ UInworldClient::UInworldClient()
 #if !UE_BUILD_SHIPPING
 	auto OnAudioDumperCVarChangedCallback = [this](bool bEnable, FString Path)
 		{
+			if (!Inworld::GetClient())
+			{
+				return;
+			}
+			if (Inworld::GetClient()->GetConnectionState() == Inworld::Client::ConnectionState::Idle)
+			{
+				return;
+			}
+		
 			const std::string DumpPath = TCHAR_TO_UTF8(*CVarSoundDumpPath.GetValueOnGameThread());
 			if (bEnable)
 			{
