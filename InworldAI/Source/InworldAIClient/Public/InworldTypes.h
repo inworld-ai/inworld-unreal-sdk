@@ -187,8 +187,8 @@ struct FInworldPlayerSpeechOptions
 	float VADProbThreshhold = 0.3f;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
-	uint8 VADPreviousChunks = 5;
+	uint8 VADBufferChunksNum = 5;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
-	uint8 VADSubsequentChunks = 5;
+	uint8 VADSilenceChunksNum = 5;
 };

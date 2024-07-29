@@ -255,8 +255,8 @@ static void ConvertPlayerProfile(const FInworldPlayerProfile& PlayerProfile, Inw
 static void ConvertSpeechOptions(const FInworldPlayerSpeechOptions& SpeechOptions, Inworld::ClientSpeechOptions& OutSpeechOptions)
 {
 	OutSpeechOptions.VADProbThreshhold = SpeechOptions.VADProbThreshhold;
-	OutSpeechOptions.VADPreviousChunks = SpeechOptions.VADPreviousChunks;
-	OutSpeechOptions.VADSubsequentChunks = SpeechOptions.VADSubsequentChunks;
+	OutSpeechOptions.VADBufferChunksNum = SpeechOptions.VADBufferChunksNum;
+	OutSpeechOptions.VADSilenceChunksNum = SpeechOptions.VADSilenceChunksNum;
 	OutSpeechOptions.Mode = static_cast<Inworld::ClientSpeechOptions::SpeechMode>(SpeechOptions.Mode);
 
 	const FString Path = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/InworldAINDKLibrary/resource/silero_vad_10_27_2022.onnx"));
