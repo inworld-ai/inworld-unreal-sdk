@@ -331,7 +331,7 @@ void UInworldClient::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
 	NO_CLIENT_RETURN(void())
 
-	Inworld::GetClient()->SaveSessionStateAsync([Callback](std::string Data, bool bSuccess)
+	Inworld::GetClient()->SaveSessionStateAsync([Callback](const std::string& Data, bool bSuccess)
 		{
 			FInworldSave Save;
 			if (bSuccess)
