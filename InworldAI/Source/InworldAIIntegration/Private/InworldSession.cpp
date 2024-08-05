@@ -243,12 +243,12 @@ void UInworldSession::UnregisterPlayer(UInworldPlayer* Player)
 	RegisteredPlayers.Remove(Player);
 }
 
-void UInworldSession::StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save,
+void UInworldSession::StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
 	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata)
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->StartSession(SceneId, PlayerProfile, Auth, Save, SessionToken, CapabilitySet, SpeechOptions, Metadata);
+	Client->StartSession(PlayerProfile, Auth, SceneId, Save, SessionToken, CapabilitySet, SpeechOptions, Metadata);
 }
 
 void UInworldSession::StopSession()
@@ -313,27 +313,6 @@ void UInworldSession::UnloadCharacters(const TArray<UInworldCharacter*>& Charact
 	TArray<FString> Names;
 	Algo::Transform(Characters, Names, [](const UInworldCharacter* C) { return C->GetAgentInfo().BrainName; });
 	Client->UnloadCharacters(Names);
-}
-
-void UInworldSession::LoadSavedState(const FInworldSave& Save)
-{
-	NO_CLIENT_RETURN(void())
-
-	Client->LoadSavedState(Save);
-}
-
-void UInworldSession::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet)
-{
-	NO_CLIENT_RETURN(void())
-
-	Client->LoadCapabilities(CapabilitySet);
-}
-
-void UInworldSession::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
-{
-	NO_CLIENT_RETURN(void())
-
-	Client->LoadPlayerProfile(PlayerProfile);
 }
 
 FString UInworldSession::UpdateConversation(UInworldPlayer* Player)
@@ -589,14 +568,8 @@ void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldConversa
 	}
 }
 
-void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldLoadCharactersEvent& Event)
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldCurrentSceneStatusEvent& Event)
 {
-	Session->PossessAgents(Event.AgentInfos);
-}
-
-void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldChangeSceneEvent& Event)
-{
-	Session->UnpossessAgents();
 	Session->PossessAgents(Event.AgentInfos);
 }
 

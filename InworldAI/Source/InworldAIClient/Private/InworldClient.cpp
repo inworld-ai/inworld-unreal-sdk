@@ -255,7 +255,7 @@ static void ConvertSpeechOptions(const FInworldPlayerSpeechOptions& SpeechOption
 	OutSpeechOptions.VADModelPath = ModelPath;
 }
 
-void UInworldClient::StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save,
+void UInworldClient::StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
 	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata)
 {
 	NO_CLIENT_RETURN(void())
@@ -377,32 +377,6 @@ void UInworldClient::UnloadCharacters(const TArray<FString>& Ids)
 	EMPTY_ARG_RETURN(Ids, void())
 
 	Inworld::GetClient()->UnloadCharacters(ToStd(Ids));
-}
-
-void UInworldClient::LoadSavedState(const FInworldSave& Save)
-{
-	NO_CLIENT_RETURN(void())
-
-	std::string Data((char*)Save.Data.GetData(), Save.Data.Num());
-	Inworld::GetClient()->LoadSavedState(Data);
-}
-
-void UInworldClient::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet)
-{
-	NO_CLIENT_RETURN(void())
-
-	Inworld::Capabilities Capabilities;
-	ConvertCapabilities(CapabilitySet, Capabilities);
-	Inworld::GetClient()->LoadCapabilities(Capabilities);
-}
-
-void UInworldClient::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
-{
-	NO_CLIENT_RETURN(void())
-
-	Inworld::UserConfiguration UserConfig;
-	ConvertPlayerProfile(PlayerProfile, UserConfig);
-	Inworld::GetClient()->LoadUserConfiguration(UserConfig);
 }
 
 FString UInworldClient::UpdateConversation(const FString& ConversationId, const TArray<FString>& AgentIds, bool bIncludePlayer)
