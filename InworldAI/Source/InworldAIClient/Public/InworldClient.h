@@ -15,6 +15,8 @@
 #include "HAL/IConsoleManager.h"
 #endif
 
+#include <memory>
+
 #include "InworldClient.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPacketReceived, const FInworldWrappedPacket&, WrappedPacket);
@@ -32,6 +34,20 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldPerceivedLatencyNative, FString /
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldSessionSavedCallback, FInworldSave, Save, bool, bSuccess);
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldVADNative, UObject*, bool);
+
+namespace Inworld
+{
+	class Client;
+}
+
+class NDKClient
+{
+public:
+	NDKClient() = default;
+	virtual ~NDKClient() = default;
+
+	virtual Inworld::Client& Get() const = 0;
+};
 
 UCLASS(BlueprintType)
 class INWORLDAICLIENT_API UInworldClient : public UObject
@@ -150,4 +166,6 @@ private:
 #endif
 
 	FInworldEnvironment Environment;
+
+	TUniquePtr<NDKClient> Client;
 };

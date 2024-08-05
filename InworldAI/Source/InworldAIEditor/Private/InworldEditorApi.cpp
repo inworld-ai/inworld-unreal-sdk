@@ -57,10 +57,10 @@ void UInworldEditorApiSubsystem::RequestStudioData(const FString& ExchangeToken)
 	Options.ExchangeToken = ExchangeToken;
 	EditorClient.RequestFirebaseToken(Options, [this](const FString& FirebaseToken)
 		{
-			Studio.RequestStudioUserData(FirebaseToken, ServerUrl, [this](bool bSuccess) 
+			StudioClient->RequestStudioUserData(FirebaseToken, ServerUrl, [this](bool bSuccess) 
 				{
-					CacheStudioData(Studio.GetStudioUserData());
-					OnLogin.Broadcast(bSuccess, Studio.GetStudioUserData());
+					CacheStudioData(StudioClient->GetStudioUserData());
+					OnLogin.Broadcast(bSuccess, StudioClient->GetStudioUserData());
 				}
 			);
 		});
@@ -69,12 +69,33 @@ void UInworldEditorApiSubsystem::RequestStudioData(const FString& ExchangeToken)
 void UInworldEditorApiSubsystem::CancelRequestStudioData()
 {
 	EditorClient.CancelRequests();
-	Studio.CancelRequests();
+	StudioClient->CancelRequests();
 }
 
 void UInworldEditorApiSubsystem::NotifyRestartRequired()
 {
 	RestartRequiredNotification->OnRestartRequired();
+}
+
+bool UInworldEditorApiSubsystem::IsRequestInProgress() const
+{
+	return EditorClient.IsRequestInProgress() || (StudioClient && StudioClient->IsRequestInProgress());
+}
+
+FString UInworldEditorApiSubsystem::GetError()
+{
+	if (!EditorClient.GetError().IsEmpty())
+	{
+		return EditorClient.GetError();
+	}
+	else if (StudioClient && !StudioClient->GetError().IsEmpty())
+	{
+		return StudioClient->GetError();
+	}
+	else
+	{
+		return {};
+	}
 }
 
 const FInworldStudioUserData& UInworldEditorApiSubsystem::GetCachedStudioData() const
@@ -396,6 +417,8 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 		}
 	));
 
+	StudioClient = NewObject<UInworldStudioClient>(this);
+
 	EditorClient.Init();
 
 	FInworldAIEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FInworldAIEditorModule>("InworldAIEditor");
@@ -440,6 +463,8 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 void UInworldEditorApiSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
+
+	StudioClient = nullptr;
 
 	EditorClient.Destroy();
 

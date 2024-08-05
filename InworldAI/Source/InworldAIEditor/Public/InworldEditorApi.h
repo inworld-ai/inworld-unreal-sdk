@@ -12,7 +12,7 @@
 
 #include "EditorSubsystem.h"
 #include "TickableEditorObject.h"
-#include "InworldStudio.h"
+#include "InworldStudioClient.h"
 #include "InworldStudioTypes.h"
 #include "InworldEditorClient.h"
 #include "InworldEditorApi.generated.h"
@@ -47,10 +47,10 @@ public:
 	void NotifyRestartRequired();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inworld")
-	bool IsRequestInProgress() const { return EditorClient.IsRequestInProgress() || Studio.IsRequestInProgress(); }
+	bool IsRequestInProgress() const;
 
 	UFUNCTION(BlueprintPure, Category = "Inworld")
-	FString GetError() { return !EditorClient.GetError().IsEmpty() ? EditorClient.GetError() : Studio.GetError(); }
+	FString GetError();
 
 	UFUNCTION(BlueprintPure, Category = "Inworld")
 	const FInworldStudioUserData& GetCachedStudioData() const;
@@ -99,7 +99,8 @@ public:
 
 private:
 	FInworldEditorClient EditorClient;
-	FInworldStudio Studio;
+	UPROPERTY()
+	UInworldStudioClient* StudioClient;
 
 	void CacheStudioData(const FInworldStudioUserData& Data);
 
