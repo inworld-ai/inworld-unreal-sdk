@@ -94,12 +94,12 @@ bool UInworldSessionComponent::GetIsLoaded() const
 	return InworldSession->IsLoaded();
 }
 
-void UInworldSessionComponent::StartSession()
+void UInworldSessionComponent::StartSessionFromSceneId(const FString& SceneId)
 {
 	NO_CLIENT_RETURN(void())
 
 	InworldSession->GetClient()->SetEnvironment(Environment);
-	InworldSession->StartSession(SceneId, PlayerProfile, Auth, {}, {}, CapabilitySet, SpeechOptions, Metadata);
+	InworldSession->StartSession(PlayerProfile, Auth, SceneId, {}, {}, CapabilitySet, SpeechOptions, Metadata);
 
 }
 
@@ -108,7 +108,7 @@ void UInworldSessionComponent::StartSessionFromSave(const FInworldSave& Save)
 	NO_CLIENT_RETURN(void())
 
 	InworldSession->GetClient()->SetEnvironment(Environment);
-	InworldSession->StartSession(SceneId, PlayerProfile, Auth, Save, {}, CapabilitySet, SpeechOptions, Metadata);
+	InworldSession->StartSession(PlayerProfile, Auth, {}, Save, {}, CapabilitySet, SpeechOptions, Metadata);
 }
 
 void UInworldSessionComponent::StartSessionFromToken(const FInworldSessionToken& Token)
@@ -116,7 +116,7 @@ void UInworldSessionComponent::StartSessionFromToken(const FInworldSessionToken&
 	NO_CLIENT_RETURN(void())
 
 	InworldSession->GetClient()->SetEnvironment(Environment);
-	InworldSession->StartSession(SceneId, PlayerProfile, Auth, {}, Token, CapabilitySet, SpeechOptions, Metadata);
+	InworldSession->StartSession(PlayerProfile, Auth, {}, {}, Token, CapabilitySet, SpeechOptions, Metadata);
 }
 
 void UInworldSessionComponent::StopSession()
@@ -174,54 +174,6 @@ void UInworldSessionComponent::GetConnectionError(FString& OutErrorMessage, int3
 	NO_SESSION_RETURN(void())
 
 	return InworldSession->GetConnectionError(OutErrorMessage, OutErrorCode, OutErrorDetails);
-}
-
-void UInworldSessionComponent::SetSceneId(const FString& InSceneId)
-{
-	SceneId = InSceneId;
-
-	UWorld* World = GetWorld();
-	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
-	{
-		NO_SESSION_RETURN(void())
-
-		if (GetConnectionState() == EInworldConnectionState::Connected)
-		{
-			InworldSession->SendChangeSceneEvent(InSceneId);
-		}
-	}
-}
-
-void UInworldSessionComponent::SetPlayerProfile(const FInworldPlayerProfile& InPlayerProfile)
-{
-	PlayerProfile = InPlayerProfile;
-
-	UWorld* World = GetWorld();
-	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
-	{
-		NO_SESSION_RETURN(void())
-
-		if (GetConnectionState() == EInworldConnectionState::Connected)
-		{
-			InworldSession->LoadPlayerProfile(InPlayerProfile);
-		}
-	}
-}
-
-void UInworldSessionComponent::SetCapabilities(const FInworldCapabilitySet& InCapabilitySet)
-{
-	CapabilitySet = InCapabilitySet;
-
-	UWorld* World = GetWorld();
-	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
-	{
-		NO_SESSION_RETURN(void())
-
-		if (GetConnectionState() == EInworldConnectionState::Connected)
-		{
-			InworldSession->LoadCapabilities(InCapabilitySet);
-		}
-	}
 }
 
 void UInworldSessionComponent::OnRep_InworldSession()

@@ -94,7 +94,7 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     Environment.AuthUrl = AuthUrlOverride;
     Environment.TargetUrl = TargetUrlOverride;
 
-    InworldSession->GetClient()->StartSession(SceneName, PlayerProfile, Auth, FInworldSave(), SessionToken, {}, {}, {});
+    InworldSession->GetClient()->StartSession(PlayerProfile, Auth, SceneName, FInworldSave(), SessionToken, {}, {}, {});
 }
 
 void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride, FInworldSave SavedSessionState)
@@ -112,7 +112,7 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
         UE_LOG(LogInworldAIIntegration, Warning, TEXT("Start Session, please provide unique PlayerProfile.ProjectName for possible troubleshooting"));
     }
 
-    InworldSession->GetClient()->StartSession(SceneName, PlayerProfile, Auth, SavedSessionState, SessionToken, Capabilities, {}, {});
+    InworldSession->GetClient()->StartSession(PlayerProfile, Auth, SceneName, SavedSessionState, SessionToken, Capabilities, {}, {});
 }
 
 void UInworldApiSubsystem::PauseSession()
@@ -187,27 +187,6 @@ void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
         }
     }
 	InworldSession->UnloadCharacters(Characters);
-}
-
-void UInworldApiSubsystem::LoadSavedState(const FInworldSave& SavedState)
-{
-    NO_CLIENT_RETURN(void())
-
-    InworldSession->GetClient()->LoadSavedState(SavedState);
-}
-
-void UInworldApiSubsystem::LoadCapabilities(const FInworldCapabilitySet& Capabilities)
-{
-    NO_CLIENT_RETURN(void())
-
-    InworldSession->GetClient()->LoadCapabilities(Capabilities);
-}
-
-void UInworldApiSubsystem::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
-{
-    NO_CLIENT_RETURN(void())
-
-    InworldSession->GetClient()->LoadPlayerProfile(PlayerProfile);
 }
 
 void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)

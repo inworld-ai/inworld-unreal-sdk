@@ -296,16 +296,5 @@ void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldCust
 	Character->OnInworldCustomEventDelegate.Broadcast(Event);
 }
 
-TArray<FString> Inworld::CharactersToAgentIds(const TArray<UInworldCharacter*>& InworldCharacters)
-{
-	TArray<FString> AgentIds = {};
-	AgentIds.Reserve(InworldCharacters.Num());
-	for (const UInworldCharacter* Character : InworldCharacters)
-	{
-		AgentIds.Add(Character->GetAgentInfo().AgentId);
-	}
-	return AgentIds;
-}
-
 #undef EMPTY_ARG_RETURN
 #undef NO_SESSION_RETURN
