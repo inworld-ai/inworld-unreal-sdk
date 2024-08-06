@@ -45,7 +45,7 @@ public:
 	FOnInworldSessionLoadedNative& OnLoaded() { return OnSessionLoadedDelegateNative; }
 
 	UFUNCTION(BlueprintCallable, Category = "Session")
-	void StartSession();
+	void StartSessionFromSceneId(const FString& SceneId);
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StartSessionFromSave(const FInworldSave& Save);
 	UFUNCTION(BlueprintCallable, Category = "Session")
@@ -75,20 +75,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const;
 
-	UFUNCTION(BlueprintCallable, Category = "Scene")
-	void SetSceneId(const FString& InSceneId);
-
-	UFUNCTION(BlueprintCallable, Category = "Player Profile")
-	void SetPlayerProfile(const FInworldPlayerProfile& InPlayerProfile);
-
-	UFUNCTION(BlueprintCallable, Category = "Capabilities")
-	void SetCapabilities(const FInworldCapabilitySet& InCapabilitySet);
-
 protected:
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")
-	FString SceneId;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
 	FInworldPlayerProfile PlayerProfile;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")

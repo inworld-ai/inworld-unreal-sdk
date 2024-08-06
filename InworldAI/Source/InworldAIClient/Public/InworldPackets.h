@@ -143,8 +143,6 @@ struct FInworldCancelResponseEvent;
 struct FInworldSimpleGestureEvent;
 struct FInworldCustomGestureEvent;
 struct FInworldCustomEvent;
-struct FInworldLoadCharactersEvent;
-struct FInworldChangeSceneEvent;
 struct FInworldRelationEvent;
 
 class InworldPacketVisitor
@@ -156,13 +154,12 @@ public:
 	virtual void Visit(const FInworldSilenceEvent& Event) {  }
 	virtual void Visit(const FInworldControlEvent& Event) {  }
 	virtual void Visit(const FInworldConversationUpdateEvent& Event) {  }
+	virtual void Visit(const FInworldCurrentSceneStatusEvent& Event) {  }
 	virtual void Visit(const FInworldEmotionEvent& Event) {  }
 	virtual void Visit(const FInworldCancelResponseEvent& Event) {  }
 	virtual void Visit(const FInworldSimpleGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomEvent& Event) {  }
-	virtual void Visit(const FInworldLoadCharactersEvent& Event) {  }
-	virtual void Visit(const FInworldChangeSceneEvent& Event) {  }
 	virtual void Visit(const FInworldRelationEvent& Event) {  }
 };
 
@@ -337,6 +334,22 @@ protected:
 	virtual void AppendDebugString(FString& Str) const override;
 };
 
+USTRUCT()
+struct INWORLDAICLIENT_API FInworldCurrentSceneStatusEvent : public FInworldControlEvent
+{
+	GENERATED_BODY()
+
+	FInworldCurrentSceneStatusEvent() = default;
+	virtual ~FInworldCurrentSceneStatusEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	TArray<FInworldAgentInfo> AgentInfos;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const override;
+};
+
 USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldEmotionEvent : public FInworldPacket
 {
@@ -372,36 +385,6 @@ struct INWORLDAICLIENT_API FInworldCustomEvent : public FInworldPacket
 	UPROPERTY()
 	FInworldReplicatedMapStruct Params;
 	
-protected:
-	virtual void AppendDebugString(FString& Str) const override;
-};
-
-USTRUCT(BlueprintType)
-struct INWORLDAICLIENT_API FInworldLoadCharactersEvent : public FInworldPacket
-{
-	GENERATED_BODY()
-
-	FInworldLoadCharactersEvent() = default;
-	virtual ~FInworldLoadCharactersEvent() = default;
-
-	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
-
-	TArray<FInworldAgentInfo> AgentInfos;
-
-protected:
-	virtual void AppendDebugString(FString& Str) const override;
-};
-
-USTRUCT(BlueprintType)
-struct INWORLDAICLIENT_API FInworldChangeSceneEvent : public FInworldLoadCharactersEvent
-{
-	GENERATED_BODY()
-
-	FInworldChangeSceneEvent() = default;
-	virtual ~FInworldChangeSceneEvent() = default;
-
-	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
-
 protected:
 	virtual void AppendDebugString(FString& Str) const override;
 };
