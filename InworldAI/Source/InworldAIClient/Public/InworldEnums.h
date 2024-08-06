@@ -138,6 +138,10 @@ enum class EInworldUnderstandingMode : uint8
 UENUM(BlueprintType)
 enum class EInworldPlayerSpeechMode : uint8
 {
+	// no VAD
 	Default = 0,
-	VAD = 1,
+	// detect voice to send callbacks, but send all player audio
+	VAD_DetectOnly = 1,
+	// detect voice to send callbacks and send only voice audio
+	VAD_DetectAndSendAudio = 2,
 };

@@ -85,7 +85,7 @@ public:
 	const TArray<UInworldPlayer*>& GetRegisteredPlayers() const { return RegisteredPlayers; }
 
 	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
-	void StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save,
+	void StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
 		const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata);
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
@@ -111,13 +111,6 @@ public:
 	void UnloadCharacter(UInworldCharacter* Character) { UnloadCharacters({ Character }); }
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void UnloadCharacters(const TArray<UInworldCharacter*>& Characters);
-
-	UFUNCTION(BlueprintCallable, Category = "Load")
-	void LoadSavedState(const FInworldSave& Save);
-	UFUNCTION(BlueprintCallable, Category = "Load")
-	void LoadCapabilities(const FInworldCapabilitySet& CapabilitySet);
-	UFUNCTION(BlueprintCallable, Category = "Load")
-	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
 
 	UFUNCTION(BlueprintCallable, Category = "Conversation")
 	FString UpdateConversation(UInworldPlayer* Player);
@@ -234,8 +227,7 @@ private:
 
 		virtual void Visit(const FInworldControlEvent& Event) override;
 		virtual void Visit(const FInworldConversationUpdateEvent& Event) override;
-		virtual void Visit(const FInworldLoadCharactersEvent& Event) override;
-		virtual void Visit(const FInworldChangeSceneEvent& Event) override;
+		virtual void Visit(const FInworldCurrentSceneStatusEvent& Event) override;
 
 	private:
 		UInworldSession* Session;
