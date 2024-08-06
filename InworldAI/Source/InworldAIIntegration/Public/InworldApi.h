@@ -102,24 +102,6 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void UnloadCharacters(const TArray<FString>& Names);
 
-    /**
-     * Load saved state
-     */
-    UFUNCTION(BlueprintCallable, Category = "Inworld")
-    void LoadSavedState(const FInworldSave& SavedState);
-
-	/**
-	 * Load capabilities
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Inworld")
-	void LoadCapabilities(const FInworldCapabilitySet& Capabilities);
-
-	/**
-	 * Load player profile
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Inworld")
-	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
-
 public:
     /** Send text to agent */
 	UFUNCTION(BlueprintCallable, Category = "Messages")

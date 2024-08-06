@@ -179,8 +179,3 @@ public:
 
 	virtual void HandleTargetPlayerVoiceDetection(bool bVoiceDetected) {}
 };
-
-namespace Inworld
-{
-	TArray<FString> CharactersToAgentIds(const TArray<UInworldCharacter*>& InworldCharacters);
-}
