@@ -180,6 +180,15 @@ UInworldClient::UInworldClient()
 #if !UE_BUILD_SHIPPING
 	auto OnAudioDumperCVarChangedCallback = [this](bool bEnable, FString Path)
 		{
+			if (!Inworld::GetClient())
+			{
+				return;
+			}
+			if (Inworld::GetClient()->GetConnectionState() == Inworld::Client::ConnectionState::Idle)
+			{
+				return;
+			}
+		
 			const std::string DumpPath = TCHAR_TO_UTF8(*CVarSoundDumpPath.GetValueOnGameThread());
 			if (bEnable)
 			{
@@ -264,10 +273,8 @@ static void ConvertPlayerProfile(const FInworldPlayerProfile& PlayerProfile, Inw
 static void ConvertSpeechOptions(const FInworldPlayerSpeechOptions& SpeechOptions, Inworld::ClientSpeechOptions& OutSpeechOptions)
 {
 	OutSpeechOptions.VADProbThreshhold = SpeechOptions.VADProbThreshhold;
-	// RESOLVE NDK / SDK CONFLICT -- WHEN MERGING REPLACE THIS COMMENTED OUT SECTION WITH NEWER VERSION
-	//OutSpeechOptions.VADPreviousChunks = SpeechOptions.VADPreviousChunks;
-	//OutSpeechOptions.VADSubsequentChunks = SpeechOptions.VADSubsequentChunks;
-	// RESOLVE NDK / SDK CONFLICT -- WHEN MERGING REPLACE THIS COMMENTED OUT SECTION WITH NEWER VERSION
+	OutSpeechOptions.VADBufferChunksNum = SpeechOptions.VADBufferChunksNum;
+	OutSpeechOptions.VADSilenceChunksNum = SpeechOptions.VADSilenceChunksNum;
 	OutSpeechOptions.Mode = static_cast<Inworld::ClientSpeechOptions::SpeechMode>(SpeechOptions.Mode);
 
 	const FString Path = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/InworldAINDKLibrary/resource/silero_vad_10_27_2022.onnx"));
@@ -351,7 +358,7 @@ void UInworldClient::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->Get().SaveSessionStateAsync([Callback](std::string Data, bool bSuccess)
+	Client->Get().SaveSessionStateAsync([Callback](const std::string& Data, bool bSuccess)
 		{
 			FInworldSave Save;
 			if (bSuccess)
