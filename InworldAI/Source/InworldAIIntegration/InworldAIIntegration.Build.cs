@@ -37,9 +37,11 @@ public class InworldAIIntegration : ModuleRules
                 "InworldAIPlatform",
                 "Networking",
                 "Sockets",
-                "Projects"
-            }
-            );
+                "Projects",
+                "HTTP",
+                "Json",
+                "JsonUtilities"
+            });
 
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Linux)
         {
