@@ -242,7 +242,7 @@ void UInworldCharacterAudioComponent::UpdateBlendShapes()
 	ensure(UtteranceDataA2F);
 
 	const float ElapsedTime = GetElapsedTimeForCurrentUtterance();
-	const float CurrentFrame = ElapsedTime * (1.f / 30.f);
+	const float CurrentFrame = ElapsedTime / (1.f / 30.f);
 	const int32 PrevFrameIndex = FMath::Clamp<int32>(FMath::FloorToInt(CurrentFrame), 0, UtteranceDataA2F->BlendShapeMaps.Num() - 1);
 	const int32 NextFrameIndex = FMath::Clamp<int32>(FMath::CeilToInt(CurrentFrame), 0, UtteranceDataA2F->BlendShapeMaps.Num() - 1);
 	double tmp;
@@ -257,7 +257,7 @@ void UInworldCharacterAudioComponent::UpdateBlendShapes()
 	{
 		BlendShapes.Add(BlendShapeName, (PrevFrame[BlendShapeName] * PrevFrameWeight) + (NextFrame[BlendShapeName] * NextFrameWeight));
 	}
-	OnBlendShapesUpdated.Broadcast({BlendShapes});
+	OnBlendShapesUpdated.Broadcast({ BlendShapes });
 }
 
 void UInworldCharacterAudioComponent::OnAudioFinished()
