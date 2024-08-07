@@ -180,11 +180,8 @@ UInworldClient::UInworldClient()
 #if !UE_BUILD_SHIPPING
 	auto OnAudioDumperCVarChangedCallback = [this](bool bEnable, FString Path)
 		{
-			if (!Inworld::GetClient())
-			{
-				return;
-			}
-			if (Inworld::GetClient()->GetConnectionState() == Inworld::Client::ConnectionState::Idle)
+			NO_CLIENT_RETURN(void())
+			if (Client->Get().GetConnectionState() == Inworld::Client::ConnectionState::Idle)
 			{
 				return;
 			}
