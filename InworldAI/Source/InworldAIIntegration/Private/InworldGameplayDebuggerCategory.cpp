@@ -149,9 +149,8 @@ void FInworldGameplayDebuggerCategory::DrawData(APlayerController* OwnerPC, FGam
 	{
 		{ 0, "UNSPECIFIED" },
 		{ 1, "WEAK" },
-		{ 2, "CONTEMPT" },
-		{ 3, "STRONG" },
-		{ 4, "NORMAL" },
+		{ 2, "STRONG" },
+		{ 3, "NORMAL" },
 	};
 
 	FGameplayDebuggerCanvasContext OverheadContext(CanvasContext);
