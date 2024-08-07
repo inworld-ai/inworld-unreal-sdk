@@ -45,12 +45,22 @@ void operator<<(FCharacterMessageUtterance& Message, const FInworldAudioDataEven
 	UtteranceData->bAudioFinal = Event.bFinal;
 
 	auto& InworldVisemeInfos = Event.VisemeInfos;
-	UtteranceData->VisemeInfos.Reserve(InworldVisemeInfos.Num());
+	UtteranceData->VisemeInfos.Reserve(UtteranceData->VisemeInfos.Num() + InworldVisemeInfos.Num());
+	if (UtteranceData->VisemeInfos.Num() == 0)
+	{
+		UtteranceData->VisemeInfos.Add({ TEXT("STOP"), 0.f });
+	}
 	for (auto& VisemeInfo : InworldVisemeInfos)
 	{
-		FCharacterUtteranceVisemeInfo& VisemeInfo_Ref = UtteranceData->VisemeInfos.AddDefaulted_GetRef();
-		VisemeInfo_Ref.Timestamp = VisemeInfo.Timestamp;
-		VisemeInfo_Ref.Code = VisemeInfo.Code;
+		if (!VisemeInfo.Code.IsEmpty())
+		{
+			UtteranceData->VisemeInfos.Add({ VisemeInfo.Code, VisemeInfo.Timestamp });
+		}
+	}
+	if (UtteranceData->bAudioFinal)
+	{
+		const float Duration = *WaveInfo.pWaveDataSize / (*WaveInfo.pChannels * (*WaveInfo.pBitsPerSample / 8.f) * *WaveInfo.pSamplesPerSec);
+		UtteranceData->VisemeInfos.Add({ TEXT("STOP"), Duration });
 	}
 }
 

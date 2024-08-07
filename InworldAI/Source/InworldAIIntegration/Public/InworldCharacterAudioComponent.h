@@ -58,7 +58,8 @@ private:
 
 	void GenerateData(class USoundWaveProcedural* InProceduralWave, int32 SamplesRequired);
 
-	void OnAudioPlaybackPercent();
+	void UpdateVisemeBlends();
+	void UpdateBlendShapes();
 	void OnAudioFinished();
 
 	TWeakObjectPtr<class UInworldCharacterComponent> CharacterComponent;
@@ -69,12 +70,6 @@ protected:
 	TSharedPtr<FCharacterMessageUtteranceData> UtteranceData;
 	int32 SoundDataPlayed;
 	class USoundWaveProcedural* SoundStreaming;
-
-	TArray<FCharacterUtteranceVisemeInfo> VisemeInfoPlayback;
-	FCharacterUtteranceVisemeInfo CurrentVisemeInfo;
-	FCharacterUtteranceVisemeInfo PreviousVisemeInfo;
-
-	FInworldCharacterVisemeBlends VisemeBlends;
 
 	FTimerHandle SilenceTimerHandle;
 };

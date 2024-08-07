@@ -55,29 +55,6 @@ void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessa
 	SoundStreaming->NumChannels = UtteranceData->ChannelCount;
 	SoundStreaming->SetSampleRate(UtteranceData->SamplesPerSecond);
 
-	if (UtteranceData->IsType<FCharacterMessageUtteranceDataInworld>())
-	{
-		TSharedPtr<FCharacterMessageUtteranceDataInworld> UtteranceDataInworld = StaticCastSharedPtr<FCharacterMessageUtteranceDataInworld>(UtteranceData);
-		VisemeInfoPlayback.Empty();
-		VisemeInfoPlayback.Reserve(UtteranceDataInworld->VisemeInfos.Num());
-
-		CurrentVisemeInfo = FCharacterUtteranceVisemeInfo();
-		PreviousVisemeInfo = FCharacterUtteranceVisemeInfo();
-		VisemeInfoPlayback.Add({ TEXT("STOP"), 0.f });
-		for (const auto& VisemeInfo : UtteranceDataInworld->VisemeInfos)
-		{
-			if (!VisemeInfo.Code.IsEmpty())
-			{
-				VisemeInfoPlayback.Add(VisemeInfo);
-			}
-		}
-		VisemeInfoPlayback.Add({ TEXT("STOP"), GetAudioDuration() });
-	}
-	else if (UtteranceData->IsType<FCharacterMessageUtteranceDataA2F>())
-	{
-
-	}
-
 	if (bIsPaused)
 	{
 		SetPaused(false);
@@ -92,8 +69,7 @@ void UInworldCharacterAudioComponent::OnCharacterUtteranceInterrupt(const FChara
 {
 	Stop();
 	UtteranceData = nullptr;
-	VisemeBlends = {};
-	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
+	OnVisemeBlendsUpdated.Broadcast({});
 	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
@@ -154,7 +130,18 @@ void UInworldCharacterAudioComponent::GenerateData(USoundWaveProcedural* InProce
 				if (!GetOwner()->IsPendingKillPending())
 				{
 					FScopeLock ScopeLock(&QueueLock);
-					OnAudioPlaybackPercent();
+					if(!UtteranceData)
+					{
+						return;
+					}
+					if (UtteranceData->IsType<FCharacterMessageUtteranceDataInworld>())
+					{
+						UpdateVisemeBlends();
+					}
+					else if (UtteranceData->IsType<FCharacterMessageUtteranceDataA2F>())
+					{
+						UpdateBlendShapes();
+					}
 				}
 			});
 	}
@@ -193,21 +180,29 @@ float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() con
 	return (1.f - GetAudioPlaybackPercent()) * GetAudioDuration();
 }
 
-void UInworldCharacterAudioComponent::OnAudioPlaybackPercent()
+void UInworldCharacterAudioComponent::UpdateVisemeBlends()
 {
-	VisemeBlends = {};
+	TSharedPtr<FCharacterMessageUtteranceDataInworld> UtteranceDataInworld = StaticCastSharedPtr<FCharacterMessageUtteranceDataInworld>(UtteranceData);
+	ensure(UtteranceDataInworld);
+
+	TArray<FCharacterUtteranceVisemeInfo>& VisemeInfos = UtteranceDataInworld->VisemeInfos;
+
+	FInworldCharacterVisemeBlends VisemeBlends = {};
 
 	const float CurrentAudioPlaybackTime = GetAudioPlaybackPercent() * GetAudioDuration();
+
+	FCharacterUtteranceVisemeInfo CurrentVisemeInfo = {};
+	FCharacterUtteranceVisemeInfo PreviousVisemeInfo = {};
 
 	{
 		const int32 INVALID_INDEX = -1;
 		int32 Target = INVALID_INDEX;
 		int32 L = 0;
-		int32 R = VisemeInfoPlayback.Num() - 1;
+		int32 R = VisemeInfos.Num() - 1;
 		while (L <= R)
 		{
 			const int32 Mid = (L + R) >> 1;
-			const FCharacterUtteranceVisemeInfo& Sample = VisemeInfoPlayback[Mid];
+			const FCharacterUtteranceVisemeInfo& Sample = VisemeInfos[Mid];
 			if (CurrentAudioPlaybackTime > Sample.Timestamp)
 			{
 				L = Mid + 1;
@@ -218,13 +213,13 @@ void UInworldCharacterAudioComponent::OnAudioPlaybackPercent()
 				R = Mid - 1;
 			}
 		}
-		if (VisemeInfoPlayback.IsValidIndex(Target))
+		if (VisemeInfos.IsValidIndex(Target))
 		{
-			CurrentVisemeInfo = VisemeInfoPlayback[Target];
+			CurrentVisemeInfo = VisemeInfos[Target];
 		}
-		if (VisemeInfoPlayback.IsValidIndex(Target - 1))
+		if (VisemeInfos.IsValidIndex(Target - 1))
 		{
-			PreviousVisemeInfo = VisemeInfoPlayback[Target - 1];
+			PreviousVisemeInfo = VisemeInfos[Target - 1];
 		}
 	}
 
@@ -237,10 +232,14 @@ void UInworldCharacterAudioComponent::OnAudioPlaybackPercent()
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
 }
 
+void UInworldCharacterAudioComponent::UpdateBlendShapes()
+{
+
+}
+
 void UInworldCharacterAudioComponent::OnAudioFinished()
 {
 	UtteranceData = nullptr;
-	VisemeBlends = {};
-	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
+	OnVisemeBlendsUpdated.Broadcast({});
 	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
