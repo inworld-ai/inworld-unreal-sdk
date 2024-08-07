@@ -50,7 +50,7 @@ void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessa
 
 	UtteranceData = Message.UtteranceData;
 
-	SoundDataPlayed = 44;
+	NumSoundDataBytesPlayed = 44;
 
 	SoundStreaming->NumChannels = UtteranceData->ChannelCount;
 	SoundStreaming->SetSampleRate(UtteranceData->SamplesPerSecond);
@@ -107,9 +107,9 @@ void UInworldCharacterAudioComponent::GenerateData(USoundWaveProcedural* InProce
 	{
 		return;
 	}
-	if (SoundDataPlayed == UtteranceData->SoundData.Num() && UtteranceData->bAudioFinal)
+	if (NumSoundDataBytesPlayed == UtteranceData->SoundData.Num() && UtteranceData->bAudioFinal)
 	{
-		SoundDataPlayed = 44;
+		NumSoundDataBytesPlayed = 44;
 		SoundStreaming->ResetAudio();
 		AsyncTask(ENamedThreads::GameThread, [this]()
 			{
@@ -122,9 +122,9 @@ void UInworldCharacterAudioComponent::GenerateData(USoundWaveProcedural* InProce
 	}
 	else
 	{
-		const int NextSampleCount = FMath::Min(SamplesRequired, UtteranceData->SoundData.Num() - SoundDataPlayed);
-		InProceduralWave->QueueAudio(UtteranceData->SoundData.GetData() + SoundDataPlayed, NextSampleCount);
-		SoundDataPlayed += NextSampleCount;
+		const int NextSampleCount = FMath::Min(SamplesRequired, UtteranceData->SoundData.Num() - NumSoundDataBytesPlayed);
+		InProceduralWave->QueueAudio(UtteranceData->SoundData.GetData() + NumSoundDataBytesPlayed, NextSampleCount);
+		NumSoundDataBytesPlayed += NextSampleCount;
 		AsyncTask(ENamedThreads::GameThread, [this]()
 			{
 				if (!GetOwner()->IsPendingKillPending())
@@ -162,22 +162,26 @@ float UInworldCharacterAudioComponent::GetAudioDuration() const
 
 float UInworldCharacterAudioComponent::GetAudioPlaybackPercent() const
 {
+	const float AudioDuration = GetAudioDuration();
+	return AudioDuration > 0.f ? GetElapsedTimeForCurrentUtterance() / AudioDuration : 0.f;
+}
+
+float UInworldCharacterAudioComponent::GetElapsedTimeForCurrentUtterance() const
+{
 	if (!UtteranceData)
 	{
 		return 0.f;
 	}
-	const int32 SoundDataSize = UtteranceData->SoundData.Num();
-	return SoundDataSize != 0 ? (float)SoundDataPlayed / (float)SoundDataSize : 0.f;
+	const int32 SoundDataSize = NumSoundDataBytesPlayed - 44;
+	const int32 ChannelCount = UtteranceData->ChannelCount;
+	const int32 BitsPerSample = UtteranceData->BitsPerSample;
+	const int32 SamplesPerSecond = UtteranceData->SamplesPerSecond;
+	return (float)SoundDataSize / ((float)ChannelCount * ((float)BitsPerSample / 8.f) * (float)SamplesPerSecond);
 }
 
 float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() const
 {
-	if (Sound != nullptr || !IsPlaying())
-	{
-		return 0.f;
-	}
-
-	return (1.f - GetAudioPlaybackPercent()) * GetAudioDuration();
+	return GetAudioDuration() - GetElapsedTimeForCurrentUtterance();
 }
 
 void UInworldCharacterAudioComponent::UpdateVisemeBlends()
@@ -234,7 +238,26 @@ void UInworldCharacterAudioComponent::UpdateVisemeBlends()
 
 void UInworldCharacterAudioComponent::UpdateBlendShapes()
 {
+	TSharedPtr<FCharacterMessageUtteranceDataA2F> UtteranceDataA2F = StaticCastSharedPtr<FCharacterMessageUtteranceDataA2F>(UtteranceData);
+	ensure(UtteranceDataA2F);
 
+	const float ElapsedTime = GetElapsedTimeForCurrentUtterance();
+	const float CurrentFrame = ElapsedTime * (1.f / 30.f);
+	const int32 PrevFrameIndex = FMath::Clamp<int32>(FMath::FloorToInt(CurrentFrame), 0, UtteranceDataA2F->BlendShapeMaps.Num() - 1);
+	const int32 NextFrameIndex = FMath::Clamp<int32>(FMath::CeilToInt(CurrentFrame), 0, UtteranceDataA2F->BlendShapeMaps.Num() - 1);
+	double tmp;
+	const float NextFrameWeight = FMath::Modf(CurrentFrame, &tmp);
+	const float PrevFrameWeight = 1.f - NextFrameWeight;
+
+	TMap<FName, float> PrevFrame = UtteranceDataA2F->BlendShapeMaps[PrevFrameIndex];
+	TMap<FName, float> NextFrame = UtteranceDataA2F->BlendShapeMaps[NextFrameIndex];
+
+	TMap<FName, float> BlendShapes;
+	for (const FName& BlendShapeName : UtteranceDataA2F->BlendShapeNames)
+	{
+		BlendShapes.Add(BlendShapeName, (PrevFrame[BlendShapeName] * PrevFrameWeight) + (NextFrame[BlendShapeName] * NextFrameWeight));
+	}
+	OnBlendShapesUpdated.Broadcast({BlendShapes});
 }
 
 void UInworldCharacterAudioComponent::OnAudioFinished()

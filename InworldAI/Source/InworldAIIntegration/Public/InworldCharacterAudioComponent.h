@@ -25,15 +25,22 @@ class INWORLDAIINTEGRATION_API UInworldCharacterAudioComponent : public UAudioCo
 public:
 	virtual void BeginPlay() override;
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterVisemeBlendsUpdated, FInworldCharacterVisemeBlends, VisemeBlends);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterVisemeBlendsUpdated, const FInworldCharacterVisemeBlends&, VisemeBlends);
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterVisemeBlendsUpdated OnVisemeBlendsUpdated;
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterBlendShapesUpdated, const FA2FBlendShapeData&, BlendShapes);
+	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
+	FOnInworldCharacterBlendShapesUpdated OnBlendShapesUpdated;
 
 	UFUNCTION(BlueprintPure, Category = "Sound")
 	float GetAudioDuration() const;
 
 	UFUNCTION(BlueprintPure, Category = "Sound")
 	float GetAudioPlaybackPercent() const;
+
+	UFUNCTION(BlueprintPure, Category = "Sound")
+	float GetElapsedTimeForCurrentUtterance() const;
 
 	UFUNCTION(BlueprintPure, Category = "Sound")
 	float GetRemainingTimeForCurrentUtterance() const;
@@ -60,6 +67,7 @@ private:
 
 	void UpdateVisemeBlends();
 	void UpdateBlendShapes();
+
 	void OnAudioFinished();
 
 	TWeakObjectPtr<class UInworldCharacterComponent> CharacterComponent;
@@ -68,7 +76,7 @@ private:
 protected:
 	mutable FCriticalSection QueueLock;
 	TSharedPtr<FCharacterMessageUtteranceData> UtteranceData;
-	int32 SoundDataPlayed;
+	int32 NumSoundDataBytesPlayed;
 	class USoundWaveProcedural* SoundStreaming;
 
 	FTimerHandle SilenceTimerHandle;

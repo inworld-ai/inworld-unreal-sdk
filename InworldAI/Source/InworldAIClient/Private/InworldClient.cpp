@@ -455,7 +455,7 @@ FInworldCapabilitySet UInworldClient::GetCapabilities() const
 	NO_CLIENT_RETURN({})
 
 	FInworldCapabilitySet ToReturn;
-	ConvertCapabilities(Inworld::GetClient()->GetOptions().Capabilities, ToReturn);
+	ConvertCapabilities(Client->Get().GetOptions().Capabilities, ToReturn);
 	return ToReturn;
 }
 
