@@ -136,11 +136,11 @@ void UInworldCharacterAudioComponent::GenerateData(USoundWaveProcedural* InProce
 					}
 					if (UtteranceData->IsType<FCharacterMessageUtteranceDataInworld>())
 					{
-						UpdateVisemeBlends();
+						UpdateInworldVisemeBlends();
 					}
 					else if (UtteranceData->IsType<FCharacterMessageUtteranceDataA2F>())
 					{
-						UpdateBlendShapes();
+						UpdateA2FBlendShapes();
 					}
 				}
 			});
@@ -184,7 +184,7 @@ float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() con
 	return GetAudioDuration() - GetElapsedTimeForCurrentUtterance();
 }
 
-void UInworldCharacterAudioComponent::UpdateVisemeBlends()
+void UInworldCharacterAudioComponent::UpdateInworldVisemeBlends()
 {
 	TSharedPtr<FCharacterMessageUtteranceDataInworld> UtteranceDataInworld = StaticCastSharedPtr<FCharacterMessageUtteranceDataInworld>(UtteranceData);
 	ensure(UtteranceDataInworld);
@@ -236,7 +236,7 @@ void UInworldCharacterAudioComponent::UpdateVisemeBlends()
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
 }
 
-void UInworldCharacterAudioComponent::UpdateBlendShapes()
+void UInworldCharacterAudioComponent::UpdateA2FBlendShapes()
 {
 	TSharedPtr<FCharacterMessageUtteranceDataA2F> UtteranceDataA2F = StaticCastSharedPtr<FCharacterMessageUtteranceDataA2F>(UtteranceData);
 	ensure(UtteranceDataA2F);

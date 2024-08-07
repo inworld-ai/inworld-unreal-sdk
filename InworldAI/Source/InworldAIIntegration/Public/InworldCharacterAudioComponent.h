@@ -65,8 +65,8 @@ private:
 
 	void GenerateData(class USoundWaveProcedural* InProceduralWave, int32 SamplesRequired);
 
-	void UpdateVisemeBlends();
-	void UpdateBlendShapes();
+	void UpdateInworldVisemeBlends();
+	void UpdateA2FBlendShapes();
 
 	void OnAudioFinished();
 

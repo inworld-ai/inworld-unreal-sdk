@@ -73,6 +73,6 @@ struct INWORLDAIINTEGRATION_API FA2FBlendShapeData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadOnly, Category = "A2F")
 	TMap<FName, float> Map;
 };
