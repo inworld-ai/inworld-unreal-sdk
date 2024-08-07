@@ -5,7 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
-#include "InworldStudio.h"
+#include "InworldStudioClient.h"
 #include "InworldAIClientModule.h"
 
 #include "Async/Async.h"
@@ -23,6 +23,26 @@ THIRD_PARTY_INCLUDES_START
 THIRD_PARTY_INCLUDES_END
 
 #include <string>
+#include <memory>
+
+TUniquePtr<NDKStudioClient> StudioClient;
+
+class NDKStudioClientImpl : public NDKStudioClient
+{
+public:
+	NDKStudioClientImpl()
+	{
+		_StudioClient = Inworld::CreateStudioClient();
+	}
+	virtual ~NDKStudioClientImpl()
+	{
+		Inworld::DestroyStudioClient(std::move(_StudioClient));
+	}
+
+	virtual Inworld::StudioClient& Get() const { return *_StudioClient; }
+private:
+	std::unique_ptr<Inworld::StudioClient> _StudioClient;
+};
 
 FInworldStudioUserData ConvertStudioUserData(const Inworld::StudioUserData& Data)
 {
@@ -74,29 +94,29 @@ FInworldStudioUserData ConvertStudioUserData(const Inworld::StudioUserData& Data
 	return D;
 }
 
-FInworldStudio::FInworldStudio()
+UInworldStudioClient::UInworldStudioClient()
 {
-	Inworld::CreateStudioClient();
+	StudioClient = MakeUnique<NDKStudioClientImpl>();
 }
 
-FInworldStudio::~FInworldStudio()
+UInworldStudioClient::~UInworldStudioClient()
 {
-	Inworld::DestroyStudioClient();
+	StudioClient.Reset();
 }
 
-void FInworldStudio::CancelRequests()
+void UInworldStudioClient::CancelRequests()
 {
-	Inworld::GetStudioClient()->CancelRequests();
+	StudioClient->Get().CancelRequests();
 }
 
-bool FInworldStudio::IsRequestInProgress() const
+bool UInworldStudioClient::IsRequestInProgress() const
 {
-	return Inworld::GetStudioClient()->IsRequestInProgress();
+	return StudioClient->Get().IsRequestInProgress();
 }
 
-void FInworldStudio::RequestStudioUserData(const FString& Token, const FString& ServerUrl, TFunction<void(bool bSuccess)> InCallback)
+void UInworldStudioClient::RequestStudioUserData(const FString& Token, const FString& ServerUrl, TFunction<void(bool bSuccess)> InCallback)
 {
-	Inworld::GetStudioClient()->RequestStudioUserDataAsync(TCHAR_TO_UTF8(*Token), TCHAR_TO_UTF8(*ServerUrl), [InCallback](bool bSuccess)
+	StudioClient->Get().RequestStudioUserDataAsync(TCHAR_TO_UTF8(*Token), TCHAR_TO_UTF8(*ServerUrl), [InCallback](bool bSuccess)
 		{
 			AsyncTask(ENamedThreads::GameThread, [InCallback, bSuccess]()
 				{
@@ -105,16 +125,16 @@ void FInworldStudio::RequestStudioUserData(const FString& Token, const FString& 
 		});	
 }
 
-FString FInworldStudio::GetError() const
+FString UInworldStudioClient::GetError() const
 {
-	return UTF8_TO_TCHAR(Inworld::GetStudioClient()->GetError().c_str());
+	return UTF8_TO_TCHAR(StudioClient->Get().GetError().c_str());
 }
 
-FInworldStudioUserData FInworldStudio::GetStudioUserData() const
+FInworldStudioUserData UInworldStudioClient::GetStudioUserData() const
 {
 	if (Data.Workspaces.Num() == 0)
 	{
-		Data = ConvertStudioUserData(Inworld::GetStudioClient()->GetStudioUserData());
+		Data = ConvertStudioUserData(StudioClient->Get().GetStudioUserData());
 	}
 	return Data;
 }
