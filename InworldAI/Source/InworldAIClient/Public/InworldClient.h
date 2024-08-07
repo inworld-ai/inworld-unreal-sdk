@@ -55,6 +55,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;
 
+	UFUNCTION(BlueprintPure, Category = "Session")
+	FInworldCapabilitySet GetCapabilities() const;
+
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
 

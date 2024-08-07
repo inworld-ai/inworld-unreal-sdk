@@ -30,6 +30,12 @@ public:
 	FOnInworldCharacterVisemeBlendsUpdated OnVisemeBlendsUpdated;
 
 	UFUNCTION(BlueprintPure, Category = "Sound")
+	float GetAudioDuration() const;
+
+	UFUNCTION(BlueprintPure, Category = "Sound")
+	float GetAudioPlaybackPercent() const;
+
+	UFUNCTION(BlueprintPure, Category = "Sound")
 	float GetRemainingTimeForCurrentUtterance() const;
 
 private:
@@ -60,13 +66,9 @@ private:
 
 protected:
 	mutable FCriticalSection QueueLock;
-	TArray<uint8> SoundData;
-	int32 SoundDataSize;
+	TSharedPtr<FCharacterMessageUtteranceData> UtteranceData;
 	int32 SoundDataPlayed;
 	class USoundWaveProcedural* SoundStreaming;
-
-	float CurrentAudioPlaybackPercent = 0.f;
-	float SoundDuration = 0.f;
 
 	TArray<FCharacterUtteranceVisemeInfo> VisemeInfoPlayback;
 	FCharacterUtteranceVisemeInfo CurrentVisemeInfo;
