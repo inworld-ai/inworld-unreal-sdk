@@ -204,6 +204,14 @@ void FInworldVisemeInfo::Serialize(FMemoryArchive& Ar)
 	SerializeValue<float>(Ar, Timestamp);
 }
 
+void FInworldA2FHeaderEvent::AppendDebugString(FString& Str) const
+{
+}
+
+void FInworldA2FContentEvent::AppendDebugString(FString& Str) const
+{
+}
+
 void FInworldTextEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Text"));

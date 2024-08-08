@@ -67,3 +67,12 @@ public:
 	float& operator[](const FString& Code);
 	float& operator[](const FName& Code);
 };
+
+USTRUCT(BlueprintType)
+struct INWORLDAIINTEGRATION_API FA2FBlendShapeData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "A2F")
+	TMap<FName, float> Map;
+};

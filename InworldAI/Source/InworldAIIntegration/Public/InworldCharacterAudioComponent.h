@@ -25,9 +25,22 @@ class INWORLDAIINTEGRATION_API UInworldCharacterAudioComponent : public UAudioCo
 public:
 	virtual void BeginPlay() override;
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterVisemeBlendsUpdated, FInworldCharacterVisemeBlends, VisemeBlends);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterVisemeBlendsUpdated, const FInworldCharacterVisemeBlends&, VisemeBlends);
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterVisemeBlendsUpdated OnVisemeBlendsUpdated;
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterBlendShapesUpdated, const FA2FBlendShapeData&, BlendShapes);
+	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
+	FOnInworldCharacterBlendShapesUpdated OnBlendShapesUpdated;
+
+	UFUNCTION(BlueprintPure, Category = "Sound")
+	float GetAudioDuration() const;
+
+	UFUNCTION(BlueprintPure, Category = "Sound")
+	float GetAudioPlaybackPercent() const;
+
+	UFUNCTION(BlueprintPure, Category = "Sound")
+	float GetElapsedTimeForCurrentUtterance() const;
 
 	UFUNCTION(BlueprintPure, Category = "Sound")
 	float GetRemainingTimeForCurrentUtterance() const;
@@ -52,7 +65,9 @@ private:
 
 	void GenerateData(class USoundWaveProcedural* InProceduralWave, int32 SamplesRequired);
 
-	void OnAudioPlaybackPercent();
+	void UpdateInworldVisemeBlends();
+	void UpdateA2FBlendShapes();
+
 	void OnAudioFinished();
 
 	TWeakObjectPtr<class UInworldCharacterComponent> CharacterComponent;
@@ -60,19 +75,9 @@ private:
 
 protected:
 	mutable FCriticalSection QueueLock;
-	TArray<uint8> SoundData;
-	int32 SoundDataSize;
-	int32 SoundDataPlayed;
+	TSharedPtr<FCharacterMessageUtteranceData> UtteranceData;
+	int32 NumSoundDataBytesPlayed;
 	class USoundWaveProcedural* SoundStreaming;
-
-	float CurrentAudioPlaybackPercent = 0.f;
-	float SoundDuration = 0.f;
-
-	TArray<FCharacterUtteranceVisemeInfo> VisemeInfoPlayback;
-	FCharacterUtteranceVisemeInfo CurrentVisemeInfo;
-	FCharacterUtteranceVisemeInfo PreviousVisemeInfo;
-
-	FInworldCharacterVisemeBlends VisemeBlends;
 
 	FTimerHandle SilenceTimerHandle;
 };

@@ -102,6 +102,12 @@ public:
 	FOnInworldAudioEvent OnInworldAudioEventDelegate;
 	FOnInworldAudioEventNative& OnInworldAudioEvent() { return OnInworldAudioEventDelegateNative; }
 	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldA2FHeaderEvent OnInworldA2FHeaderEventDelegate;
+	FOnInworldA2FHeaderEventNative& OnInworldA2FHeaderEvent() { return OnInworldA2FHeaderEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldA2FContentEvent OnInworldA2FContentEventDelegate;
+	FOnInworldA2FContentEventNative& OnInworldA2FContentEvent() { return OnInworldA2FContentEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
 	FOnInworldSilenceEvent OnInworldSilenceEventDelegate;
 	FOnInworldSilenceEventNative& OnInworldSilenceEvent() { return OnInworldSilenceEventDelegateNative; }
 	UPROPERTY(BlueprintAssignable, Category = "Event")
@@ -131,6 +137,8 @@ private:
 
 	FOnInworldTextEventNative OnInworldTextEventDelegateNative;
 	FOnInworldAudioEventNative OnInworldAudioEventDelegateNative;
+	FOnInworldA2FHeaderEventNative OnInworldA2FHeaderEventDelegateNative;
+	FOnInworldA2FContentEventNative OnInworldA2FContentEventDelegateNative;
 	FOnInworldSilenceEventNative OnInworldSilenceEventDelegateNative;
 	FOnInworldControlEventNative OnInworldControlEventDelegateNative;
 	FOnInworldEmotionEventNative OnInworldEmotionEventDelegateNative;
@@ -151,6 +159,8 @@ private:
 
 		virtual void Visit(const FInworldTextEvent& Event) override;
 		virtual void Visit(const FInworldAudioDataEvent& Event) override;
+		virtual void Visit(const FInworldA2FHeaderEvent& Event) override;
+		virtual void Visit(const FInworldA2FContentEvent& Event) override;
 		virtual void Visit(const FInworldSilenceEvent& Event) override;
 		virtual void Visit(const FInworldControlEvent& Event) override;
 		virtual void Visit(const FInworldEmotionEvent& Event) override;

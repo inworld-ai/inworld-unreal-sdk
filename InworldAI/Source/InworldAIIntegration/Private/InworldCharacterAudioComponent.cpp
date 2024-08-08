@@ -8,7 +8,7 @@
 
 #include "InworldCharacterAudioComponent.h"
 #include "InworldCharacterComponent.h"
-#include "Audio.h"
+
 #include "Sound/SoundWave.h"
 #include "Sound/SoundWaveProcedural.h"
 #include "TimerManager.h"
@@ -46,42 +46,14 @@ void UInworldCharacterAudioComponent::BeginPlay()
 
 void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessageUtterance& Message)
 {
-	if (!Message.bAudioFinal)
-	{
-		return;
-	}
-
-	FWaveModInfo WaveInfo;
-	if (!WaveInfo.ReadWaveInfo(Message.SoundData.GetData(), Message.SoundData.Num()))
-	{
-		return;
-	}
-
 	FScopeLock ScopeLock(&QueueLock);
-	SoundDataSize = Message.SoundData.Num() - 44;
-	SoundDataPlayed = 0;
-	SoundData = TArray<uint8>(Message.SoundData.GetData() + 44, SoundDataSize);
 
-	SoundDuration = *WaveInfo.pWaveDataSize / (*WaveInfo.pChannels * (*WaveInfo.pBitsPerSample / 8.f) * *WaveInfo.pSamplesPerSec);
-	CurrentAudioPlaybackPercent = 0.f;
+	UtteranceData = Message.UtteranceData;
 
-	SoundStreaming->NumChannels = *WaveInfo.pChannels;
-	SoundStreaming->SetSampleRate(*WaveInfo.pSamplesPerSec);
+	NumSoundDataBytesPlayed = 44;
 
-	VisemeInfoPlayback.Empty();
-	VisemeInfoPlayback.Reserve(Message.VisemeInfos.Num());
-
-	CurrentVisemeInfo = FCharacterUtteranceVisemeInfo();
-	PreviousVisemeInfo = FCharacterUtteranceVisemeInfo();
-	VisemeInfoPlayback.Add({ TEXT("STOP"), 0.f });
-	for (const auto& VisemeInfo : Message.VisemeInfos)
-	{
-		if (!VisemeInfo.Code.IsEmpty())
-		{
-			VisemeInfoPlayback.Add(VisemeInfo);
-		}
-	}
-	VisemeInfoPlayback.Add({ TEXT("STOP"), SoundDuration });
+	SoundStreaming->NumChannels = UtteranceData->ChannelCount;
+	SoundStreaming->SetSampleRate(UtteranceData->SamplesPerSecond);
 
 	if (bIsPaused)
 	{
@@ -96,8 +68,8 @@ void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessa
 void UInworldCharacterAudioComponent::OnCharacterUtteranceInterrupt(const FCharacterMessageUtterance& Message)
 {
 	Stop();
-	VisemeBlends = FInworldCharacterVisemeBlends();
-	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
+	UtteranceData = nullptr;
+	OnVisemeBlendsUpdated.Broadcast({});
 	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
 
@@ -131,15 +103,13 @@ void UInworldCharacterAudioComponent::OnSilenceEnd()
 void UInworldCharacterAudioComponent::GenerateData(USoundWaveProcedural* InProceduralWave, int32 SamplesRequired)
 {
 	FScopeLock ScopeLock(&QueueLock);
-	if (SoundData.Num() == 0)
+	if (UtteranceData == nullptr || UtteranceData->SoundData.Num() == 0)
 	{
 		return;
 	}
-	if (SoundDataPlayed == SoundDataSize)
+	if (NumSoundDataBytesPlayed == UtteranceData->SoundData.Num() && UtteranceData->bAudioFinal)
 	{
-		SoundData = {};
-		SoundDataPlayed = 0;
-		SoundDataSize = 0;
+		NumSoundDataBytesPlayed = 44;
 		SoundStreaming->ResetAudio();
 		AsyncTask(ENamedThreads::GameThread, [this]()
 			{
@@ -152,48 +122,91 @@ void UInworldCharacterAudioComponent::GenerateData(USoundWaveProcedural* InProce
 	}
 	else
 	{
-		const int NextSampleCount = FMath::Min(SamplesRequired, SoundDataSize - SoundDataPlayed);
-		InProceduralWave->QueueAudio(SoundData.GetData() + SoundDataPlayed, NextSampleCount);
-		SoundDataPlayed += NextSampleCount;
+		const int NextSampleCount = FMath::Min(SamplesRequired, UtteranceData->SoundData.Num() - NumSoundDataBytesPlayed);
+		InProceduralWave->QueueAudio(UtteranceData->SoundData.GetData() + NumSoundDataBytesPlayed, NextSampleCount);
+		NumSoundDataBytesPlayed += NextSampleCount;
 		AsyncTask(ENamedThreads::GameThread, [this]()
 			{
 				if (!GetOwner()->IsPendingKillPending())
 				{
 					FScopeLock ScopeLock(&QueueLock);
-					OnAudioPlaybackPercent();
+					if(!UtteranceData)
+					{
+						return;
+					}
+					if (UtteranceData->IsType<FCharacterMessageUtteranceDataInworld>())
+					{
+						UpdateInworldVisemeBlends();
+					}
+					else if (UtteranceData->IsType<FCharacterMessageUtteranceDataA2F>())
+					{
+						UpdateA2FBlendShapes();
+					}
 				}
 			});
 	}
 }
 
-float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() const
+float UInworldCharacterAudioComponent::GetAudioDuration() const
 {
-	if (Sound != nullptr || !IsPlaying())
+	if (!UtteranceData)
 	{
 		return 0.f;
 	}
-
-	return (1.f - CurrentAudioPlaybackPercent) * SoundDuration;
+	const int32 SoundDataSize = UtteranceData->SoundData.Num();
+	const int32 ChannelCount = UtteranceData->ChannelCount;
+	const int32 BitsPerSample = UtteranceData->BitsPerSample;
+	const int32 SamplesPerSecond = UtteranceData->SamplesPerSecond;
+	return (float)SoundDataSize / ((float)ChannelCount * ((float)BitsPerSample / 8.f) * (float)SamplesPerSecond);
 }
 
-void UInworldCharacterAudioComponent::OnAudioPlaybackPercent()
+float UInworldCharacterAudioComponent::GetAudioPlaybackPercent() const
 {
-	const float Percent = SoundDataSize != 0 ? (float)SoundDataPlayed / (float)SoundDataSize : 0.f;
-	CurrentAudioPlaybackPercent = Percent;
+	const float AudioDuration = GetAudioDuration();
+	return AudioDuration > 0.f ? GetElapsedTimeForCurrentUtterance() / AudioDuration : 0.f;
+}
 
-	VisemeBlends = FInworldCharacterVisemeBlends();
+float UInworldCharacterAudioComponent::GetElapsedTimeForCurrentUtterance() const
+{
+	if (!UtteranceData)
+	{
+		return 0.f;
+	}
+	const int32 SoundDataSize = NumSoundDataBytesPlayed - 44;
+	const int32 ChannelCount = UtteranceData->ChannelCount;
+	const int32 BitsPerSample = UtteranceData->BitsPerSample;
+	const int32 SamplesPerSecond = UtteranceData->SamplesPerSecond;
+	return (float)SoundDataSize / ((float)ChannelCount * ((float)BitsPerSample / 8.f) * (float)SamplesPerSecond);
+}
 
-	const float CurrentAudioPlaybackTime = Percent * SoundDuration;
+float UInworldCharacterAudioComponent::GetRemainingTimeForCurrentUtterance() const
+{
+	return GetAudioDuration() - GetElapsedTimeForCurrentUtterance();
+}
+
+void UInworldCharacterAudioComponent::UpdateInworldVisemeBlends()
+{
+	TSharedPtr<FCharacterMessageUtteranceDataInworld> UtteranceDataInworld = StaticCastSharedPtr<FCharacterMessageUtteranceDataInworld>(UtteranceData);
+	ensure(UtteranceDataInworld);
+
+	TArray<FCharacterUtteranceVisemeInfo>& VisemeInfos = UtteranceDataInworld->VisemeInfos;
+
+	FInworldCharacterVisemeBlends VisemeBlends = {};
+
+	const float CurrentAudioPlaybackTime = GetAudioPlaybackPercent() * GetAudioDuration();
+
+	FCharacterUtteranceVisemeInfo CurrentVisemeInfo = {};
+	FCharacterUtteranceVisemeInfo PreviousVisemeInfo = {};
 
 	{
 		const int32 INVALID_INDEX = -1;
 		int32 Target = INVALID_INDEX;
 		int32 L = 0;
-		int32 R = VisemeInfoPlayback.Num() - 1;
+		int32 R = VisemeInfos.Num() - 1;
 		while (L <= R)
 		{
 			const int32 Mid = (L + R) >> 1;
-			const FCharacterUtteranceVisemeInfo& Sample = VisemeInfoPlayback[Mid];
+			const FCharacterUtteranceVisemeInfo& Sample = VisemeInfos[Mid];
 			if (CurrentAudioPlaybackTime > Sample.Timestamp)
 			{
 				L = Mid + 1;
@@ -204,13 +217,13 @@ void UInworldCharacterAudioComponent::OnAudioPlaybackPercent()
 				R = Mid - 1;
 			}
 		}
-		if (VisemeInfoPlayback.IsValidIndex(Target))
+		if (VisemeInfos.IsValidIndex(Target))
 		{
-			CurrentVisemeInfo = VisemeInfoPlayback[Target];
+			CurrentVisemeInfo = VisemeInfos[Target];
 		}
-		if (VisemeInfoPlayback.IsValidIndex(Target - 1))
+		if (VisemeInfos.IsValidIndex(Target - 1))
 		{
-			PreviousVisemeInfo = VisemeInfoPlayback[Target - 1];
+			PreviousVisemeInfo = VisemeInfos[Target - 1];
 		}
 	}
 
@@ -223,9 +236,33 @@ void UInworldCharacterAudioComponent::OnAudioPlaybackPercent()
 	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
 }
 
+void UInworldCharacterAudioComponent::UpdateA2FBlendShapes()
+{
+	TSharedPtr<FCharacterMessageUtteranceDataA2F> UtteranceDataA2F = StaticCastSharedPtr<FCharacterMessageUtteranceDataA2F>(UtteranceData);
+	ensure(UtteranceDataA2F);
+
+	const float ElapsedTime = GetElapsedTimeForCurrentUtterance();
+	const float CurrentFrame = ElapsedTime / (1.f / 30.f);
+	const int32 PrevFrameIndex = FMath::Clamp<int32>(FMath::FloorToInt(CurrentFrame), 0, UtteranceDataA2F->BlendShapeMaps.Num() - 1);
+	const int32 NextFrameIndex = FMath::Clamp<int32>(FMath::CeilToInt(CurrentFrame), 0, UtteranceDataA2F->BlendShapeMaps.Num() - 1);
+	double tmp;
+	const float NextFrameWeight = FMath::Modf(CurrentFrame, &tmp);
+	const float PrevFrameWeight = 1.f - NextFrameWeight;
+
+	TMap<FName, float> PrevFrame = UtteranceDataA2F->BlendShapeMaps[PrevFrameIndex];
+	TMap<FName, float> NextFrame = UtteranceDataA2F->BlendShapeMaps[NextFrameIndex];
+
+	TMap<FName, float> BlendShapes;
+	for (const FName& BlendShapeName : UtteranceDataA2F->BlendShapeNames)
+	{
+		BlendShapes.Add(BlendShapeName, (PrevFrame[BlendShapeName] * PrevFrameWeight) + (NextFrame[BlendShapeName] * NextFrameWeight));
+	}
+	OnBlendShapesUpdated.Broadcast({ BlendShapes });
+}
+
 void UInworldCharacterAudioComponent::OnAudioFinished()
 {
-	VisemeBlends = FInworldCharacterVisemeBlends();
-	OnVisemeBlendsUpdated.Broadcast(VisemeBlends);
+	UtteranceData = nullptr;
+	OnVisemeBlendsUpdated.Broadcast({});
 	CharacterComponent->UnlockMessageQueue(CharacterMessageQueueLockHandle);
 }
