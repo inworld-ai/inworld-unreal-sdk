@@ -7,6 +7,8 @@
 
 #include "InworldCharacterMessage.h"
 
+#include "Audio.h"
+
 void operator<<(FCharacterMessage& Message, const FInworldPacket& Packet)
 {
 	Message.UtteranceId = Packet.PacketId.UtteranceId;
