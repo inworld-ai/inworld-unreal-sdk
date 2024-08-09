@@ -156,6 +156,7 @@ TArray<UInworldCharacterComponent*> UInworldPlayerComponent::GetTargetInworldCha
 void UInworldPlayerComponent::AddTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
     NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(Character, void())
 
     InworldPlayer->AddTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
 }
@@ -163,6 +164,7 @@ void UInworldPlayerComponent::AddTargetInworldCharacter(UInworldCharacterCompone
 void UInworldPlayerComponent::RemoveTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
     NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(Character, void())
 
     InworldPlayer->RemoveTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
 }
