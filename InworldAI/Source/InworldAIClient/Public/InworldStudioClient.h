@@ -9,21 +9,30 @@
 
 #include "InworldStudioTypes.h"
 
-#include "InworldStudio.generated.h"
+#include "InworldStudioClient.generated.h"
 
 namespace Inworld
 {
-	class FStudio;
+	class StudioClient;
 }
 
-USTRUCT()
-struct INWORLDAICLIENT_API FInworldStudio
+class NDKStudioClient
+{
+public:
+	NDKStudioClient() = default;
+	virtual ~NDKStudioClient() = default;
+
+	virtual Inworld::StudioClient& Get() const = 0;
+};
+
+UCLASS()
+class INWORLDAICLIENT_API UInworldStudioClient : public UObject
 {
 public:
 	GENERATED_BODY()
 
-	FInworldStudio();
-	~FInworldStudio();
+	UInworldStudioClient();
+	~UInworldStudioClient();
 
 	void RequestStudioUserData(const FString& Token, const FString& ServerUrl, TFunction<void(bool bSuccess)> InCallback);
 
@@ -35,4 +44,5 @@ public:
 
 private:
 	mutable FInworldStudioUserData Data;
+	TUniquePtr<NDKStudioClient> StudioClient;
 };

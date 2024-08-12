@@ -37,6 +37,18 @@ void InworldPacketTranslator::TranslateInworldPacket(const Inworld::Packet& Orig
 	TranslateInworldRouting(Original._Routing, New.Routing);
 }
 
+template<typename TOriginal, typename TNew>
+void TranslateAgents(const TOriginal& Original, TNew& New)
+{
+	for (const auto& AgentInfo : Original.GetAgentInfos())
+	{
+		auto& AgentInfoRef = New.AgentInfos.AddDefaulted_GetRef();
+		AgentInfoRef.BrainName = UTF8_TO_TCHAR(AgentInfo.BrainName.c_str());
+		AgentInfoRef.AgentId = UTF8_TO_TCHAR(AgentInfo.AgentId.c_str());
+		AgentInfoRef.GivenName = UTF8_TO_TCHAR(AgentInfo.GivenName.c_str());
+	}
+}
+
 template<>
 void InworldPacketTranslator::TranslateEvent<Inworld::TextEvent, FInworldTextEvent>(const Inworld::TextEvent& Original, FInworldTextEvent& New)
 {
@@ -97,6 +109,13 @@ void InworldPacketTranslator::TranslateEvent<>(const Inworld::ControlEventConver
 	}
 }
 
+template <>
+void InworldPacketTranslator::TranslateEvent<>(const Inworld::ControlEventCurrentSceneStatus& Original, FInworldCurrentSceneStatusEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+	TranslateAgents(Original, New);
+}
+
 template<>
 void InworldPacketTranslator::TranslateEvent<Inworld::EmotionEvent, FInworldEmotionEvent>(const Inworld::EmotionEvent& Original, FInworldEmotionEvent& New)
 {
@@ -114,32 +133,6 @@ void InworldPacketTranslator::TranslateEvent<Inworld::CustomEvent, FInworldCusto
 	{
 		New.Params.RepMap.Add(UTF8_TO_TCHAR(Param.first.c_str()), UTF8_TO_TCHAR(Param.second.c_str()));
 	}
-}
-
-template<typename TOriginal, typename TNew>
-void TranslateAgents(const TOriginal& Original, TNew& New)
-{
-	for (const auto& AgentInfo : Original.GetAgentInfos())
-	{
-		auto& AgentInfoRef = New.AgentInfos.AddDefaulted_GetRef();
-		AgentInfoRef.BrainName = UTF8_TO_TCHAR(AgentInfo.BrainName.c_str());
-		AgentInfoRef.AgentId = UTF8_TO_TCHAR(AgentInfo.AgentId.c_str());
-		AgentInfoRef.GivenName = UTF8_TO_TCHAR(AgentInfo.GivenName.c_str());
-	}
-}
-
-template<>
-void InworldPacketTranslator::TranslateEvent<Inworld::SessionControlResponse_LoadCharacters, FInworldLoadCharactersEvent>(const Inworld::SessionControlResponse_LoadCharacters& Original, FInworldLoadCharactersEvent& New)
-{
-	TranslateInworldPacket(Original, New);
-	TranslateAgents(Original, New);
-}
-
-template<>
-void InworldPacketTranslator::TranslateEvent<Inworld::SessionControlResponse_LoadScene, FInworldChangeSceneEvent>(const Inworld::SessionControlResponse_LoadScene& Original, FInworldChangeSceneEvent& New)
-{
-	TranslateInworldPacket(Original, New);
-	TranslateAgents(Original, New);
 }
 
 template<>

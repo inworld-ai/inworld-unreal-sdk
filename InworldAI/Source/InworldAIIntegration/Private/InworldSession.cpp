@@ -18,6 +18,7 @@
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Engine/NetDriver.h"
 #include "Engine/Engine.h"
+#include "Algo/Transform.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -256,12 +257,12 @@ void UInworldSession::UnregisterPlayer(UInworldPlayer* Player)
 	RegisteredPlayers.Remove(Player);
 }
 
-void UInworldSession::StartSession(const FString& SceneId, const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FInworldSave& Save,
+void UInworldSession::StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
 	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata)
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->StartSession(SceneId, PlayerProfile, Auth, Save, SessionToken, CapabilitySet, SpeechOptions, Metadata);
+	Client->StartSession(PlayerProfile, Auth, SceneId, Save, SessionToken, CapabilitySet, SpeechOptions, Metadata);
 }
 
 void UInworldSession::StopSession()
@@ -314,36 +315,19 @@ void UInworldSession::LoadCharacters(const TArray<UInworldCharacter*>& Character
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(Characters, void())
 
-	Client->LoadCharacters(Inworld::CharactersToAgentIds(Characters));
+	TArray<FString> Names;
+	Algo::Transform(Characters, Names, [](const UInworldCharacter* C) { return C->GetAgentInfo().BrainName; });
+	Client->LoadCharacters(Names);
 }
 
 void UInworldSession::UnloadCharacters(const TArray<UInworldCharacter*>& Characters)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(Characters, void())
-
-	Client->UnloadCharacters(Inworld::CharactersToAgentIds(Characters));
-}
-
-void UInworldSession::LoadSavedState(const FInworldSave& Save)
-{
-	NO_CLIENT_RETURN(void())
-
-	Client->LoadSavedState(Save);
-}
-
-void UInworldSession::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet)
-{
-	NO_CLIENT_RETURN(void())
-
-	Client->LoadCapabilities(CapabilitySet);
-}
-
-void UInworldSession::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
-{
-	NO_CLIENT_RETURN(void())
-
-	Client->LoadPlayerProfile(PlayerProfile);
+	
+	TArray<FString> Names;
+	Algo::Transform(Characters, Names, [](const UInworldCharacter* C) { return C->GetAgentInfo().BrainName; });
+	Client->UnloadCharacters(Names);
 }
 
 FString UInworldSession::UpdateConversation(UInworldPlayer* Player)
@@ -357,7 +341,9 @@ FString UInworldSession::UpdateConversation(UInworldPlayer* Player)
 		ConversationIdToPlayer.Remove(PreviousConversationId);
 	}
 
-	const FString NextConversationId = Client->UpdateConversation(Player->GetConversationId(), Inworld::CharactersToAgentIds(Player->GetTargetCharacters()), Player->IsConversationParticipant());
+	TArray<FString> AgentIds;
+	Algo::Transform(Player->GetTargetCharacters(), AgentIds, [](const UInworldCharacter* C) { return C->GetAgentInfo().AgentId; });
+	const FString NextConversationId = Client->UpdateConversation(Player->GetConversationId(), AgentIds, Player->IsConversationParticipant());
 	if (!NextConversationId.IsEmpty())
 	{
 		ConversationIdToPlayer.Add(NextConversationId, Player);
@@ -597,14 +583,8 @@ void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldConversa
 	}
 }
 
-void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldLoadCharactersEvent& Event)
+void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldCurrentSceneStatusEvent& Event)
 {
-	Session->PossessAgents(Event.AgentInfos);
-}
-
-void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldChangeSceneEvent& Event)
-{
-	Session->UnpossessAgents();
 	Session->PossessAgents(Event.AgentInfos);
 }
 

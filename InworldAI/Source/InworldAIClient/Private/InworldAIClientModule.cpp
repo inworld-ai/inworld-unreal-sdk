@@ -19,29 +19,25 @@ DEFINE_LOG_CATEGORY(LogInworldAINDK);
 
 void FInworldAIClientModule::StartupModule()
 {
-	Inworld::LogSetLoggerCallback([](const char* message, int severity)
+	Inworld::SetLogCallbacks(
+		[](const char* message)
 		{
-			switch (severity)
-			{
-			case 0:
-				UE_LOG(LogInworldAINDK, Log, TEXT("%s"), UTF8_TO_TCHAR(message));
-				break;
-			case 1:
-				UE_LOG(LogInworldAINDK, Warning, TEXT("%s"), UTF8_TO_TCHAR(message));
-				break;
-			case 2:
-				UE_LOG(LogInworldAINDK, Error, TEXT("%s"), UTF8_TO_TCHAR(message));
-				break;
-			default:
-				UE_LOG(LogInworldAINDK, Warning, TEXT("Message with unknown severity, treating as warning: %s"), UTF8_TO_TCHAR(message));
-			}
+			UE_LOG(LogInworldAINDK, Log, TEXT("%s"), UTF8_TO_TCHAR(message));
+		},
+		[](const char* message)
+		{
+			UE_LOG(LogInworldAINDK, Warning, TEXT("%s"), UTF8_TO_TCHAR(message));
+		},
+		[](const char* message)
+		{
+			UE_LOG(LogInworldAINDK, Error, TEXT("%s"), UTF8_TO_TCHAR(message));
 		}
 	);
 }
 
 void FInworldAIClientModule::ShutdownModule()
 {
-	Inworld::LogClearLoggerCallback();
+	Inworld::ClearLogCallbacks();
 }
 
 #undef LOCTEXT_NAMESPACE
