@@ -23,13 +23,19 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPacketReceived, const FInw
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnInworldPacketReceivedCallback, const FInworldWrappedPacket&, WrappedPacket);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPacketReceivedNative, const FInworldWrappedPacket& /*WrappedPacket*/);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldSessionPrePause);
+DECLARE_MULTICAST_DELEGATE(FOnInworldSessionPrePauseNative);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldSessionPreStop);
+DECLARE_MULTICAST_DELEGATE(FOnInworldSessionPreStopNative);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldConnectionStateChanged, EInworldConnectionState, ConnectionState);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnInworldConnectionStateChangedCallback, EInworldConnectionState, ConnectionState);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldConnectionStateChangedNative, EInworldConnectionState /*ConnectionState*/);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInworldPerceivedLatency, FString, InteractionId, int32, LatencyMs);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldPerceivedLatencyCallback, FString, InteractionId, int32, LatencyMs);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldPerceivedLatencyNative, FString /*InteractionId*/, int32 /*ms*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldPerceivedLatencyNative, FString /*InteractionId*/, int32 /*LatencyMs*/);
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldSessionSavedCallback, FInworldSave, Save, bool, bSuccess);
 
@@ -127,6 +133,14 @@ public:
 	FOnInworldPacketReceived OnPacketReceivedDelegate;
 	FOnInworldPacketReceivedNative& OnPacketReceived() { return OnPacketReceivedDelegateNative; }
 
+	UPROPERTY(BlueprintAssignable, Category = "Connection")
+	FOnInworldSessionPrePause OnPrePauseDelegate;
+	FOnInworldSessionPrePauseNative& OnPrePause() { return OnPrePauseDelegateNative; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Connection")
+	FOnInworldSessionPreStop OnPreStopDelegate;
+	FOnInworldSessionPreStopNative& OnPreStop() { return OnPreStopDelegateNative; }
+
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	EInworldConnectionState GetConnectionState() const;
 	UFUNCTION(BlueprintPure, Category = "Connection")
@@ -147,6 +161,8 @@ public:
 	FOnInworldVADNative& OnVAD() { return OnVADDelegateNative; }
 
 private:
+	FOnInworldSessionPrePauseNative OnPrePauseDelegateNative;
+	FOnInworldSessionPreStopNative OnPreStopDelegateNative;
 	FOnInworldPacketReceivedNative OnPacketReceivedDelegateNative;
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
