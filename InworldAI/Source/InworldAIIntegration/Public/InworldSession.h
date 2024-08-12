@@ -149,6 +149,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void CancelResponse(UInworldCharacter* Character, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
+	UPROPERTY(BlueprintAssignable, Category = "Connection")
+	FOnInworldSessionPrePause OnPrePauseDelegate;
+	FOnInworldSessionPrePauseNative& OnPrePause() { return OnPrePauseDelegateNative; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Connection")
+	FOnInworldSessionPreStop OnPreStopDelegate;
+	FOnInworldSessionPreStopNative& OnPreStop() { return OnPreStopDelegateNative; }
+
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	EInworldConnectionState GetConnectionState() const;
 	UFUNCTION(BlueprintPure, Category = "Connection")
@@ -209,6 +217,8 @@ private:
 	TMap<FString, TArray<FString>> ConversationIdToAgentIds;
 	TMap<FString, UInworldPlayer*> ConversationIdToPlayer;
 
+	FOnInworldSessionPrePauseNative OnPrePauseDelegateNative;
+	FOnInworldSessionPreStopNative OnPreStopDelegateNative;
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldSessionLoadedNative OnLoadedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
