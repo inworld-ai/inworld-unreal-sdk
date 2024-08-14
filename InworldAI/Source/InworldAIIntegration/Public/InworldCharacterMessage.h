@@ -8,6 +8,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Containers/Union.h"
 
 #include "InworldPackets.h"
 
@@ -67,6 +68,64 @@ struct FCharacterUtteranceVisemeInfo
 	float Timestamp = 0.f;
 };
 
+enum class ECharacterMessageUtteranceDataType
+{
+	UNKNOWN,
+	INWORLD,
+	A2F,
+};
+
+struct FCharacterMessageUtteranceData : public TSharedFromThis<FCharacterMessageUtteranceData>
+{
+public:
+	FCharacterMessageUtteranceData()
+		: FCharacterMessageUtteranceData(ECharacterMessageUtteranceDataType::UNKNOWN)
+	{}
+
+private:
+	const ECharacterMessageUtteranceDataType Type;
+
+protected:
+	FCharacterMessageUtteranceData(ECharacterMessageUtteranceDataType InType)
+		: Type(InType)
+	{}
+
+public:
+	TArray<uint8> SoundData;
+	int32 ChannelCount = 0;
+	int32 SamplesPerSecond = 0;
+	int32 BitsPerSample = 0;
+	bool bAudioFinal = false;
+
+	template<class T>
+	bool IsType() { return false; }
+};
+
+struct FCharacterMessageUtteranceDataInworld : public FCharacterMessageUtteranceData
+{
+	FCharacterMessageUtteranceDataInworld()
+		: FCharacterMessageUtteranceData(ECharacterMessageUtteranceDataType::INWORLD)
+	{}
+
+	TArray<FCharacterUtteranceVisemeInfo> VisemeInfos;
+};
+
+struct FCharacterMessageUtteranceDataA2F : public FCharacterMessageUtteranceData
+{
+	FCharacterMessageUtteranceDataA2F()
+		: FCharacterMessageUtteranceData(ECharacterMessageUtteranceDataType::A2F)
+	{}
+
+	bool bRecvEnd = false;
+	TArray<FName> BlendShapeNames;
+	TArray<TMap<FName, float>> BlendShapeMaps;
+};
+
+template<>
+bool FCharacterMessageUtteranceData::IsType<FCharacterMessageUtteranceDataInworld>();
+template<>
+bool FCharacterMessageUtteranceData::IsType<FCharacterMessageUtteranceDataA2F>();
+
 USTRUCT(BlueprintType)
 struct FCharacterMessageUtterance : public FCharacterMessage
 {
@@ -76,16 +135,9 @@ struct FCharacterMessageUtterance : public FCharacterMessage
 	FString Text;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
-	TArray<FCharacterUtteranceVisemeInfo> VisemeInfos;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	bool bTextFinal = false;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Message")
-	bool bAudioFinal = false;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Message")
-	TArray<uint8> SoundData;
+	TSharedPtr<FCharacterMessageUtteranceData> UtteranceData;
 
 	virtual FString ToDebugString() const override { return FString::Printf(TEXT("Utterance. Text: %s"), *Text); }
 };
@@ -140,6 +192,8 @@ struct FCharacterMessageInteractionEnd : public FCharacterMessage
 void operator<<(FCharacterMessage& Message, const FInworldPacket& Packet);
 void operator<<(FCharacterMessageUtterance& Message, const FInworldTextEvent& Event);
 void operator<<(FCharacterMessageUtterance& Message, const FInworldAudioDataEvent& Event);
+void operator<<(FCharacterMessageUtterance& Message, const FInworldA2FHeaderEvent& Event);
+void operator<<(FCharacterMessageUtterance& Message, const FInworldA2FContentEvent& Event);
 void operator<<(FCharacterMessagePlayerTalk& Message, const FInworldTextEvent& Event);
 void operator<<(FCharacterMessageSilence& Message, const FInworldSilenceEvent& Event);
 void operator<<(FCharacterMessageTrigger& Message, const FInworldCustomEvent& Event);
