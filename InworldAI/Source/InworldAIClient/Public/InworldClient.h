@@ -129,6 +129,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void CreateOrUpdateItems(const TArray<FInworldEntityItem>& Items, const TArray<FString>& AddToEntities);
+
 	UPROPERTY(BlueprintAssignable, Category = "Packet")
 	FOnInworldPacketReceived OnPacketReceivedDelegate;
 	FOnInworldPacketReceivedNative& OnPacketReceived() { return OnPacketReceivedDelegateNative; }
