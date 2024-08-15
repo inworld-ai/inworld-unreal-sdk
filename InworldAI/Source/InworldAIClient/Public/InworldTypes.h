@@ -9,6 +9,7 @@
 
 
 #include "CoreMinimal.h"
+#include "InworldEnums.h"
 
 #include "InworldTypes.generated.h"
 
@@ -70,6 +71,9 @@ struct FInworldCapabilitySet
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     bool MultiAgent = true;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    bool MultiModalActionPlanning = false;
 };
 
 USTRUCT(BlueprintType)
@@ -154,4 +158,22 @@ struct FInworldConnectionErrorDetails
 
     UPROPERTY(BlueprintReadOnly, Category = "Agent")
     int32 MaxRetries = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldEntityItem
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    FString Id;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    FString DisplayName;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    FString Description;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    TMap<FString, FString> Properties;
 };

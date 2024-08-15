@@ -112,6 +112,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void CreateOrUpdateItems(const TArray<FInworldEntityItem>& Items, const TArray<FString>& AddToEntities);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void RemoveItems(const TArray<FString>& ItemIds);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void AddItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void RemoveItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void ReplaceItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames);
+
 	UPROPERTY(BlueprintAssignable, Category = "Packet")
 	FOnInworldPacketReceived OnPacketReceivedDelegate;
 	FOnInworldPacketReceivedNative& OnPacketReceived() { return OnPacketReceivedDelegateNative; }

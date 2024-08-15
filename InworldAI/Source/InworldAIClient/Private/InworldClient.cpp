@@ -214,6 +214,7 @@ static void ConvertCapabilities(const FInworldCapabilitySet& Capabilities, Inwor
 	OutCapabilities.NarratedActions = Capabilities.NarratedActions;
 	OutCapabilities.Relations = Capabilities.Relations;
 	OutCapabilities.Multiagent = Capabilities.MultiAgent;
+	OutCapabilities.MultiModalActionPlanning = Capabilities.MultiModalActionPlanning;
 }
 
 static FString GenerateUserId()
@@ -584,6 +585,61 @@ void UInworldClient::CancelResponse(const FString& AgentId, const FString& Inter
 	}
 
 	Inworld::GetClient()->CancelResponse(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*InteractionId), utteranceIds);
+}
+
+void UInworldClient::CreateOrUpdateItems(const TArray<FInworldEntityItem>& Items, const TArray<FString>& AddToEntities)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(Items, void())
+	EMPTY_ARG_RETURN(AddToEntities, void())
+
+	std::vector<Inworld::CreateOrUpdateItemsOperationEvent::EntityItem> items;
+	items.reserve(Items.Num());
+	for (const FInworldEntityItem& Item : Items)
+	{
+		Inworld::CreateOrUpdateItemsOperationEvent::EntityItem& item = items.emplace_back();
+		item.Id = TCHAR_TO_UTF8(*Item.Id);
+		item.Description = TCHAR_TO_UTF8(*Item.Description);
+		item.DisplayName = TCHAR_TO_UTF8(*Item.DisplayName);
+		item.Properties = ToStd(Item.Properties);
+	}
+
+	Inworld::GetClient()->CreateOrUpdateItems(items, ToStd(AddToEntities));
+}
+
+void UInworldClient::RemoveItems(const TArray<FString>& ItemIds)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(ItemIds, void())
+
+	Inworld::GetClient()->RemoveItems(ToStd(ItemIds));
+}
+
+void UInworldClient::AddItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(ItemIds, void())
+	EMPTY_ARG_RETURN(EntityNames, void())
+
+	Inworld::GetClient()->AddItemsInEntities(ToStd(ItemIds), ToStd(EntityNames));
+}
+
+void UInworldClient::RemoveItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(ItemIds, void())
+	EMPTY_ARG_RETURN(EntityNames, void())
+
+	Inworld::GetClient()->RemoveItemsInEntities(ToStd(ItemIds), ToStd(EntityNames));
+}
+
+void UInworldClient::ReplaceItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(ItemIds, void())
+	EMPTY_ARG_RETURN(EntityNames, void())
+
+	Inworld::GetClient()->ReplaceItemsInEntities(ToStd(ItemIds), ToStd(EntityNames));
 }
 
 #if !UE_BUILD_SHIPPING

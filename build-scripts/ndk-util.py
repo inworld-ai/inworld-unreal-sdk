@@ -37,6 +37,10 @@ build_configurations = {
         ['cmake .. -G "Visual Studio 16 2019" -DINWORLD_SHARED=True -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target inworld-ndk --config Release']
     ),
+    'Win64-test': BuildConfiguration(
+        ['cmake .. -DINWORLD_SHARED=True -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake --build . --target inworld-ndk --config Release']
+    ),
     'Mac': BuildConfiguration(
         ['cmake .. -DINWORLD_SHARED=False -DAEC=True -DMAC=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target inworld-ndk --config Release']
