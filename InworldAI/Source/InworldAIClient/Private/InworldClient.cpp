@@ -224,7 +224,7 @@ static void ConvertCapabilities(const T& Capabilities, U& OutCapabilities)
 	OutCapabilities.TurnBasedSTT = Capabilities.TurnBasedSTT;
 	OutCapabilities.NarratedActions = Capabilities.NarratedActions;
 	OutCapabilities.Relations = Capabilities.Relations;
-	OutCapabilities.Multiagent = Capabilities.MultiAgent;
+	OutCapabilities.MultiAgent = Capabilities.MultiAgent;
 	OutCapabilities.Audio2Face = Capabilities.Audio2Face;
 	OutCapabilities.MultiModalActionPlanning = Capabilities.MultiModalActionPlanning;
 }
