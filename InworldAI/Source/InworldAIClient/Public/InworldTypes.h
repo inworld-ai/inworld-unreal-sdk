@@ -76,7 +76,7 @@ struct FInworldCapabilitySet
     bool Audio2Face = false;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
-    bool MultiModalActionPlanning = true;
+    bool MultiModalActionPlanning = false;
 };
 
 USTRUCT(BlueprintType)
