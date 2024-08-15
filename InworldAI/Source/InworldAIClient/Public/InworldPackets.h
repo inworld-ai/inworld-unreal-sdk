@@ -402,6 +402,10 @@ struct INWORLDAICLIENT_API FInworldCurrentSceneStatusEvent : public FInworldCont
 
 	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
 
+	FString SceneName;
+	FString SceneDescription;
+	FString SceneDisplayName;
+
 	TArray<FInworldAgentInfo> AgentInfos;
 
 protected:

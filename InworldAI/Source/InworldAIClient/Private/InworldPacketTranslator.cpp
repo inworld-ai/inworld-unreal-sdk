@@ -151,6 +151,9 @@ template <>
 void InworldPacketTranslator::TranslateEvent<>(const Inworld::ControlEventCurrentSceneStatus& Original, FInworldCurrentSceneStatusEvent& New)
 {
 	TranslateInworldPacket(Original, New);
+	New.SceneName = UTF8_TO_TCHAR(Original.GetSceneName().c_str());
+	New.SceneDescription = UTF8_TO_TCHAR(Original.GetSceneDescription().c_str());
+	New.SceneDisplayName = UTF8_TO_TCHAR(Original.GetSceneDisplayName().c_str());
 	TranslateAgents(Original, New);
 }
 

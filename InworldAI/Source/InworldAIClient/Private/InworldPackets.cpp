@@ -246,6 +246,9 @@ void FInworldConversationUpdateEvent::AppendDebugString(FString& Str) const
 void FInworldCurrentSceneStatusEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("CurrentSceneStatus"));
+	AppendToDebugString(Str, SceneName);
+	AppendToDebugString(Str, SceneDescription);
+	AppendToDebugString(Str, SceneDisplayName);
 	for (auto& Agent : AgentInfos)
 	{
 		AppendToDebugString(Str, Agent.GivenName);

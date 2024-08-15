@@ -193,6 +193,8 @@ private:
 	UPROPERTY()
 	UInworldClient* Client;
 
+	FString Workspace;
+
 	UFUNCTION()
 	void OnRep_IsLoaded();
 
