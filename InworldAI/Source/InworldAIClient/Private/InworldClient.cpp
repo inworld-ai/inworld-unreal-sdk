@@ -644,6 +644,41 @@ void UInworldClient::CreateOrUpdateItems(const TArray<FInworldEntityItem>& Items
 	Client->Get().CreateOrUpdateItems(items, ToStd(AddToEntities));
 }
 
+void UInworldClient::RemoveItems(const TArray<FString>& ItemIds)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(ItemIds, void())
+
+	Client->Get().RemoveItems(ToStd(ItemIds));
+}
+
+void UInworldClient::AddItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(ItemIds, void())
+	EMPTY_ARG_RETURN(EntityNames, void())
+
+	Client->Get().AddItemsInEntities(ToStd(ItemIds), ToStd(EntityNames));
+}
+
+void UInworldClient::RemoveItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(ItemIds, void())
+	EMPTY_ARG_RETURN(EntityNames, void())
+
+	Client->Get().RemoveItemsInEntities(ToStd(ItemIds), ToStd(EntityNames));
+}
+
+void UInworldClient::ReplaceItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames)
+{
+	NO_CLIENT_RETURN(void())
+	EMPTY_ARG_RETURN(ItemIds, void())
+	EMPTY_ARG_RETURN(EntityNames, void())
+
+	Client->Get().ReplaceItemsInEntities(ToStd(ItemIds), ToStd(EntityNames));
+}
+
 #if !UE_BUILD_SHIPPING
 void UInworldClient::OnCVarsChanged()
 {
