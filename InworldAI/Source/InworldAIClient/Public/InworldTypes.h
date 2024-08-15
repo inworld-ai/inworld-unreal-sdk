@@ -73,6 +73,9 @@ struct FInworldCapabilitySet
     bool MultiAgent = true;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    bool Audio2Face = false;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     bool MultiModalActionPlanning = true;
 };
 

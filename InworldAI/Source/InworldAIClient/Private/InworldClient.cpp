@@ -210,7 +210,8 @@ UInworldClient::~UInworldClient()
 	Client.Reset();
 }
 
-static void ConvertCapabilities(const FInworldCapabilitySet& Capabilities, Inworld::Capabilities& OutCapabilities)
+template<class T, class U>
+static void ConvertCapabilities(const T& Capabilities, U& OutCapabilities)
 {
 	OutCapabilities.Animations = Capabilities.Animations;
 	OutCapabilities.Audio = Capabilities.Audio;
@@ -224,6 +225,7 @@ static void ConvertCapabilities(const FInworldCapabilitySet& Capabilities, Inwor
 	OutCapabilities.NarratedActions = Capabilities.NarratedActions;
 	OutCapabilities.Relations = Capabilities.Relations;
 	OutCapabilities.Multiagent = Capabilities.MultiAgent;
+	OutCapabilities.Audio2Face = Capabilities.Audio2Face;
 	OutCapabilities.MultiModalActionPlanning = Capabilities.MultiModalActionPlanning;
 }
 
@@ -453,6 +455,15 @@ FString UInworldClient::GetSessionId() const
 	NO_CLIENT_RETURN({})
 
 	return UTF8_TO_TCHAR(Client->Get().GetSessionInfo().SessionId.c_str());
+}
+
+FInworldCapabilitySet UInworldClient::GetCapabilities() const
+{
+	NO_CLIENT_RETURN({})
+
+	FInworldCapabilitySet ToReturn;
+	ConvertCapabilities(Client->Get().GetOptions().Capabilities, ToReturn);
+	return ToReturn;
 }
 
 FInworldWrappedPacket UInworldClient::SendTextMessage(const FString& AgentId, const FString& Text)

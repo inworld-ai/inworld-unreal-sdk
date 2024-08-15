@@ -135,6 +135,8 @@ struct INWORLDAICLIENT_API FInworldPacketId
 struct FInworldTextEvent;
 struct FInworldDataEvent;
 struct FInworldAudioDataEvent;
+struct FInworldA2FHeaderEvent;
+struct FInworldA2FContentEvent;
 struct FInworldSilenceEvent;
 struct FInworldControlEvent;
 struct FInworldConversationUpdateEvent;
@@ -151,6 +153,8 @@ public:
 	virtual void Visit(const FInworldTextEvent& Event) {  }
 	virtual void Visit(const FInworldDataEvent& Event) {  }
 	virtual void Visit(const FInworldAudioDataEvent& Event) {  }
+	virtual void Visit(const FInworldA2FHeaderEvent& Event) {  }
+	virtual void Visit(const FInworldA2FContentEvent& Event) {  }
 	virtual void Visit(const FInworldSilenceEvent& Event) {  }
 	virtual void Visit(const FInworldControlEvent& Event) {  }
 	virtual void Visit(const FInworldConversationUpdateEvent& Event) {  }
@@ -277,6 +281,60 @@ protected:
 };
 
 USTRUCT(BlueprintType)
+struct INWORLDAICLIENT_API FInworldA2FHeaderEvent : public FInworldPacket
+{
+	GENERATED_BODY()
+
+	FInworldA2FHeaderEvent() = default;
+	virtual ~FInworldA2FHeaderEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	int32 ChannelCount = 0;
+	int32 SamplesPerSecond = 0;
+	int32 BitsPerSample = 0;
+	TArray<FName> BlendShapes;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const override;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldA2FAudioInfo
+{
+	GENERATED_BODY()
+
+	double TimeCode;
+	TArray<uint8> Audio;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldA2FBlendShapeWeights
+{
+	GENERATED_BODY()
+
+	double TimeCode;
+	TArray<float> Values;
+};
+
+USTRUCT(BlueprintType)
+struct INWORLDAICLIENT_API FInworldA2FContentEvent : public FInworldPacket
+{
+	GENERATED_BODY()
+
+	FInworldA2FContentEvent() = default;
+	virtual ~FInworldA2FContentEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	FInworldA2FAudioInfo AudioInfo;
+	FInworldA2FBlendShapeWeights BlendShapeWeights;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const override;
+};
+
+USTRUCT(BlueprintType)
 struct INWORLDAICLIENT_API FInworldSilenceEvent : public FInworldPacket
 {
 	GENERATED_BODY()
@@ -343,6 +401,10 @@ struct INWORLDAICLIENT_API FInworldCurrentSceneStatusEvent : public FInworldCont
 	virtual ~FInworldCurrentSceneStatusEvent() = default;
 
 	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	FString SceneName;
+	FString SceneDescription;
+	FString SceneDisplayName;
 
 	TArray<FInworldAgentInfo> AgentInfos;
 
