@@ -40,5 +40,5 @@ private:
 
 	TMap<FString, TUniquePtr<Inworld::FSocketBase>> AudioSockets;
 
-	int32 Port = 51274;
+	int32 Port = 0;
 };

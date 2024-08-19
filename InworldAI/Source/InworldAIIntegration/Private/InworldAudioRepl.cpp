@@ -19,6 +19,8 @@
 #include <Engine/NetConnection.h>
 #include <Engine/World.h>
 
+#include "InworldAIIntegrationModule.h"
+
 void UInworldAudioRepl::PostLoad()
 {
 	Super::PostLoad();
@@ -119,7 +121,7 @@ Inworld::FSocketBase& UInworldAudioRepl::GetAudioSocket(const FInternetAddr& IpA
 
 	Inworld::FSocketSettings Settings;
 	Settings.IpAddr = IpAddr.ToString(false);
-	Settings.Port = Port;
+	Settings.Port = Port != 0 ? Port : FMath::Clamp(IpAddr.GetPort() - 1000, 0, 64 * 1024);
 	Settings.BufferSize = 2 * 1024 * 1024;
 	Settings.Name = FString::Printf(TEXT("Inworld %s"), *IpAddrStr);
 
@@ -127,10 +129,12 @@ Inworld::FSocketBase& UInworldAudioRepl::GetAudioSocket(const FInternetAddr& IpA
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
 		Socket = MakeUnique<Inworld::FSocketReceive>();
+		UE_LOG(LogInworldAIIntegration, Log, TEXT("UInworldAudioRepl: receive socket created %s:%d"), *Settings.IpAddr, Settings.Port);
 	}
 	else
 	{
 		Socket = MakeUnique<Inworld::FSocketSend>();
+		UE_LOG(LogInworldAIIntegration, Log, TEXT("UInworldAudioRepl: send socket created %s:%d"), *Settings.IpAddr, Settings.Port);
 	}
 
 	Socket->Initialize(Settings);

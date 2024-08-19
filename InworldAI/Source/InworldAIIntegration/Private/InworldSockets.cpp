@@ -29,11 +29,18 @@ bool Inworld::FSocketSend::Initialize(const FSocketSettings& Settings)
 		return false;
 	}
 
-	Socket = FUdpSocketBuilder(*Settings.Name).AsReusable().WithBroadcast().AsNonBlocking().Build();
+	Socket = FUdpSocketBuilder(*Settings.Name)
+		.AsReusable()
+		.WithBroadcast()
+		.AsNonBlocking()
+		.WithSendBufferSize(Settings.BufferSize)
+		.Build();
 
-	int32 SendSize, ReceiveSize;
-	Socket->SetSendBufferSize(Settings.BufferSize, SendSize);
-	Socket->SetReceiveBufferSize(Settings.BufferSize, ReceiveSize);
+	if (!Socket)
+	{
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::Initialize couldn't build a socket"));
+		return false;
+	}
 
 	if (!Socket->Connect(*Addr))
 	{
