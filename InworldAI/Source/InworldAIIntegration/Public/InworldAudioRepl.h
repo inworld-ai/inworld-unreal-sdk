@@ -15,6 +15,7 @@
 #include "InworldAudioRepl.generated.h"
 
 struct FInworldAudioDataEvent;
+class UNetConnection;
 namespace Inworld { class FSocketBase; }
 
 UCLASS()
@@ -36,9 +37,9 @@ public:
 
 private:
 	void ListenAudioSocket();
-	int32 GetPort(const FInternetAddr& IpAddr);
+	TSharedPtr<FInternetAddr> CreateIpAddr(const TSharedPtr<FInternetAddr>& IpAddr);
 
-	Inworld::FSocketBase& GetAudioSocket(const TSharedPtr<FInternetAddr>& LocalAddr, const TSharedPtr<FInternetAddr>& RemoteAddr);
+	Inworld::FSocketBase& GetAudioSocket(const UNetConnection& Connection);
 
 	TMap<FString, TUniquePtr<Inworld::FSocketBase>> AudioSockets;
 

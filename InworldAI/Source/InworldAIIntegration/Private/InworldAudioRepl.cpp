@@ -65,36 +65,29 @@ void UInworldAudioRepl::ReplicateAudioEvent(FInworldAudioDataEvent& Event)
 
 	for (; It; ++It)
 	{
-		if (UNetConnection* Connection = It->Get()->GetNetConnection())
+		if (const UNetConnection* Connection = It->Get()->GetNetConnection())
 		{
-			GetAudioSocket(Connection->GetDriver()->LocalAddr, Connection->RemoteAddr).ProcessData(Data);
+			GetAudioSocket(*Connection).ProcessData(Data);
 		}
 	}
 }
 
 void UInworldAudioRepl::ListenAudioSocket()
 {
-	auto* Ctrl = GetWorld()->GetFirstPlayerController();
+	const auto* Ctrl = GetWorld()->GetFirstPlayerController();
 	if (!Ctrl)
 	{
 		return;
 	}
 
-	auto* Connection = Ctrl->GetNetConnection();
+	const auto* Connection = Ctrl->GetNetConnection();
 	if (!Connection)
 	{
 		return;
 	}
 
-	auto* Driver = Connection->GetDriver();
-	if (!Driver)
-	{
-		return;
-	}
-
-
 	TArray<uint8> Data;
-	if (!GetAudioSocket(Driver->GetLocalAddr(), Connection->RemoteAddr).ProcessData(Data))
+	if (!GetAudioSocket(*Ctrl->GetNetConnection()).ProcessData(Data))
 	{
 		return;
 	}
@@ -111,13 +104,19 @@ void UInworldAudioRepl::ListenAudioSocket()
 	}
 }
 
-int32 UInworldAudioRepl::GetPort(const FInternetAddr& IpAddr)
+TSharedPtr<FInternetAddr> UInworldAudioRepl::CreateIpAddr(const TSharedPtr<FInternetAddr>& IpAddr)
 {
-	return Port != 0 ? Port : FMath::Clamp(IpAddr.GetPort() - 1000, 0, 64 * 1024);
+	const int32 NewPort = Port != 0 ? Port :
+		FMath::Clamp(IpAddr->GetPort() - 1000, 0, 64 * 1024);
+	auto NewAddr = IpAddr->Clone();
+	NewAddr->SetPort(NewPort);
+	return NewAddr;
 }
 
-Inworld::FSocketBase& UInworldAudioRepl::GetAudioSocket(const TSharedPtr<FInternetAddr>& LocalAddr, const TSharedPtr<FInternetAddr>& RemoteAddr)
+Inworld::FSocketBase& UInworldAudioRepl::GetAudioSocket(const UNetConnection& Connection)
 {
+	const auto LocalAddr = CreateIpAddr(Connection.GetDriver()->LocalAddr);
+	const auto RemoteAddr = CreateIpAddr(Connection.RemoteAddr);
 	const FString Key = FString::Printf(TEXT("%s-%s"),
 		*LocalAddr->ToString(true), *RemoteAddr->ToString(true));
 	if (const auto* Socket = AudioSockets.Find(Key))
