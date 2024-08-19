@@ -119,7 +119,7 @@ Inworld::FSocketBase& UInworldAudioRepl::GetAudioSocket(const FInternetAddr& IpA
 
 	Inworld::FSocketSettings Settings;
 	Settings.IpAddr = IpAddr.ToString(false);
-	Settings.Port = FMath::Clamp(IpAddr.GetPort() - 1000, 0, 64 * 1024);
+	Settings.Port = 51274;
 	Settings.BufferSize = 2 * 1024 * 1024;
 	Settings.Name = FString::Printf(TEXT("Inworld %s"), *IpAddrStr);
 

@@ -31,10 +31,14 @@ public:
 	
 	void ReplicateAudioEvent(FInworldAudioDataEvent& Event);
 
+	void SetPort(int32 InPort) { Port = InPort; }
+
 private:
 	void ListenAudioSocket();
 
 	Inworld::FSocketBase& GetAudioSocket(const FInternetAddr& IpAddr);
 
 	TMap<FString, TUniquePtr<Inworld::FSocketBase>> AudioSockets;
+
+	int32 Port = 51274;
 };
