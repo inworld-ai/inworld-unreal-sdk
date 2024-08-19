@@ -10,7 +10,6 @@
 #include "IPAddress.h"
 #include "Common/UdpSocketBuilder.h"
 #include "Common/UdpSocketReceiver.h"
-#include "Common/UdpSocketSender.h"
 
 #include "InworldAIIntegrationModule.h"
 
