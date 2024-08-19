@@ -121,7 +121,10 @@ struct FInworldEnvironment
     FString AuthUrl = "";
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
-    FString TargetUrl = "";
+	FString TargetUrl = "";
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Multiplayer")
+	int32 AudioPort = 51274;
 };
 
 USTRUCT(BlueprintType)

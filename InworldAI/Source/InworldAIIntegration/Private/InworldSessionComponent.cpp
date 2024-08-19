@@ -178,6 +178,8 @@ void UInworldSessionComponent::GetConnectionError(FString& OutErrorMessage, int3
 
 void UInworldSessionComponent::OnRep_InworldSession()
 {
+	InworldSession->InitAudioReplication(Environment.AudioPort);
+	
 	GetWorld()->GetSubsystem<UInworldApiSubsystem>()->SetInworldSession(InworldSession);
 	OnSessionCreatedDelegateNative.Broadcast();
 	OnSessionCreatedDelegate.Broadcast();

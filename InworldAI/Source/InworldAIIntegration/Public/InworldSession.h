@@ -20,6 +20,7 @@
 class UInworldPlayer;
 class UInworldCharacter;
 class UInworldClient;
+class UInworldAudioRepl;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldTextEvent, const FInworldTextEvent&, TextEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldTextEventNative, const FInworldTextEvent& /*TextEvent*/);
@@ -181,6 +182,10 @@ public:
 	FOnInworldVAD OnVADDelegate;
 	FOnInworldVADNative& OnVAD() { return OnVADDelegateNative; }
 
+	void InitAudioReplication(int32 Port);
+	void ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet);
+	void HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet);
+
 private:
 	void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
 	void UnpossessAgents();
@@ -244,6 +249,9 @@ private:
 	};
 
 	TSharedRef<FInworldSessionPacketVisitor> PacketVisitor;
+
+	UPROPERTY()
+	UInworldAudioRepl* AudioRepl;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)

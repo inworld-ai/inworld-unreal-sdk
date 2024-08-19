@@ -13,6 +13,7 @@
 #include "InworldMacros.h"
 
 #include "InworldAIIntegrationModule.h"
+#include "InworldAudioRepl.h"
 
 #include "Runtime/Launch/Resources/Version.h"
 #include "Engine/BlueprintGeneratedClass.h"
@@ -116,6 +117,12 @@ void UInworldSession::Init()
 			OnVADDelegateNative.Broadcast(Player, bVoiceDetected);
 		}
 	);
+
+	if (GetWorld()->GetNetMode() != NM_Standalone)
+	{
+		AudioRepl = NewObject<UInworldAudioRepl>(GetWorld(), TEXT("InworldAudioRepl"));
+	}
+	
 }
 
 void UInworldSession::Destroy()
@@ -140,6 +147,18 @@ void UInworldSession::Destroy()
 		Client->OnVAD().Remove(OnVADHandle);
 	}
 	Client = nullptr;
+
+	if (IsValid(AudioRepl))
+	{
+#if ENGINE_MAJOR_VERSION == 5
+		AudioRepl->MarkAsGarbage();
+#endif
+
+#if ENGINE_MAJOR_VERSION == 4
+		AudioRepl->MarkPendingKill();
+#endif
+	}
+	AudioRepl = nullptr;
 }
 
 void UInworldSession::HandlePacket(const FInworldWrappedPacket& WrappedPacket)
@@ -553,6 +572,39 @@ void UInworldSession::OnRep_ConnectionState()
 {
 	OnConnectionStateChangedDelegateNative.Broadcast(ConnectionState);
 	OnConnectionStateChangedDelegate.Broadcast(ConnectionState);
+}
+
+void UInworldSession::ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet)
+{
+	if (AudioRepl)
+	{
+		AudioRepl->ReplicateAudioEvent(Packet);
+	}
+}
+
+void UInworldSession::HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet)
+{
+	EMPTY_ARG_RETURN(Packet, void())
+
+	UInworldCharacter* const* InworldCharacter = GetRegisteredCharacters().FindByPredicate(
+			[Packet](UInworldCharacter* InworldCharacter) -> bool
+			{
+				return InworldCharacter && InworldCharacter->GetAgentInfo().AgentId == Packet->Routing.Source.Name;
+			}
+	);
+	if (InworldCharacter != nullptr)
+	{
+		(*InworldCharacter)->HandlePacket(FInworldWrappedPacket(Packet));
+	}
+}
+
+void UInworldSession::InitAudioReplication(int32 Port)
+{
+	if (!AudioRepl && GetWorld()->GetNetMode() != NM_Standalone)
+	{
+		AudioRepl = NewObject<UInworldAudioRepl>(GetWorld(), TEXT("InworldAudioRepl"));
+		AudioRepl->SetPort(Port);
+	}
 }
 
 void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldControlEvent& Event)

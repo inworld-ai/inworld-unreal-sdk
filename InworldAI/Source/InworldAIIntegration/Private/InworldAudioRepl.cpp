@@ -105,7 +105,7 @@ void UInworldAudioRepl::ListenAudioSocket()
 	auto* InworldApi = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
 	if (ensure(InworldApi))
 	{
-		InworldApi->HandleAudioEventOnClient(Event);
+		InworldApi->GetInworldSession()->HandleAudioEventOnClient(Event);
 	}
 }
 
@@ -119,7 +119,7 @@ Inworld::FSocketBase& UInworldAudioRepl::GetAudioSocket(const FInternetAddr& IpA
 
 	Inworld::FSocketSettings Settings;
 	Settings.IpAddr = IpAddr.ToString(false);
-	Settings.Port = 51274;
+	Settings.Port = Port;
 	Settings.BufferSize = 2 * 1024 * 1024;
 	Settings.Name = FString::Printf(TEXT("Inworld %s"), *IpAddrStr);
 
