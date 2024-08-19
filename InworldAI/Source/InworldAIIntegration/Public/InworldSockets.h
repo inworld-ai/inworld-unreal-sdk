@@ -18,9 +18,9 @@ namespace Inworld
 {
 	struct INWORLDAIINTEGRATION_API FSocketSettings
 	{
-		FString IpAddr;
+		TSharedPtr<FInternetAddr> RemoteAddr;
+		TSharedPtr<FInternetAddr> LocalAddr;
 		FString Name;
-		uint32 Port;
 		uint32 BufferSize;
 	};
 

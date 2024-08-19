@@ -16,18 +16,6 @@
 
 bool Inworld::FSocketSend::Initialize(const FSocketSettings& Settings)
 {
-	TSharedRef<FInternetAddr> Addr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
-
-	bool bIsValid;
-	Addr->SetIp(*Settings.IpAddr, bIsValid);
-	Addr->SetPort(Settings.Port);
-
-	if (!bIsValid)
-	{
-		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::Initialize Address is invalid '%s:%d'"), *Settings.IpAddr, Settings.Port);
-		return false;
-	}
-
 	Socket = FUdpSocketBuilder(*Settings.Name)
 		.AsReusable()
 		.WithBroadcast()
@@ -41,11 +29,14 @@ bool Inworld::FSocketSend::Initialize(const FSocketSettings& Settings)
 		return false;
 	}
 
-	if (!Socket->Connect(*Addr))
+	if (!Socket->Connect(*Settings.RemoteAddr))
 	{
 		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::Initialize couldn't connect"));
 		return false;
 	}
+
+	UE_LOG(LogInworldAIIntegration, Log, TEXT("FSocketSend: created local %s, remote %s"),
+		*Settings.LocalAddr->ToString(true), *Settings.RemoteAddr->ToString(true));
 
 	return true;
 }
@@ -76,11 +67,7 @@ bool Inworld::FSocketSend::ProcessData(TArray<uint8>& Data)
 
 bool Inworld::FSocketReceive::Initialize(const FSocketSettings& Settings)
 {
-	FIPv4Address Addr;
-	FIPv4Address::Parse(Settings.IpAddr, Addr);
-
-	FIPv4Endpoint Endpoint(Addr, Settings.Port);
-
+	const FIPv4Endpoint Endpoint(Settings.LocalAddr);
 	Socket = FUdpSocketBuilder(*Settings.Name)
 		.AsNonBlocking()
 		.AsReusable()
@@ -94,8 +81,22 @@ bool Inworld::FSocketReceive::Initialize(const FSocketSettings& Settings)
 		return false;
 	}
 
-	Receiver = new FUdpSocketReceiver(Socket, FTimespan::FromMilliseconds(100), *Settings.Name);
+	// potential NAT punchthrough
+	if (!Socket->Connect(*Settings.RemoteAddr))
+	{
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::FSocketReceive couldn't connect"));
+		return false;
+	}
+	const char* Data = "hello";
+	int32 BytesSent;
+	Socket->Send((uint8*)Data, 6, BytesSent);
+	if (BytesSent != 6)
+	{
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::FSocketReceive couldn't send"));
+		return false;
+	}
 
+	Receiver = new FUdpSocketReceiver(Socket, FTimespan::FromMilliseconds(100), *Settings.Name);
 	Receiver->OnDataReceived().BindLambda([this](const FArrayReaderPtr& DataPtr, const FIPv4Endpoint& Endpoint)
 		{
 			TArray<uint8> NewData;
@@ -105,6 +106,9 @@ bool Inworld::FSocketReceive::Initialize(const FSocketSettings& Settings)
 		});
 
 	Receiver->Start();
+
+	UE_LOG(LogInworldAIIntegration, Log, TEXT("FSocketReceive: created local %s, remote %s"),
+		*Settings.LocalAddr->ToString(true), *Settings.RemoteAddr->ToString(true));
 
 	return true;
 }

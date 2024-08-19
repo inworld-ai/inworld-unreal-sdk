@@ -67,7 +67,7 @@ void UInworldAudioRepl::ReplicateAudioEvent(FInworldAudioDataEvent& Event)
 	{
 		if (UNetConnection* Connection = It->Get()->GetNetConnection())
 		{
-			GetAudioSocket(*Connection->RemoteAddr.Get()).ProcessData(Data);
+			GetAudioSocket(Connection->GetDriver()->LocalAddr, Connection->RemoteAddr).ProcessData(Data);
 		}
 	}
 }
@@ -94,7 +94,7 @@ void UInworldAudioRepl::ListenAudioSocket()
 
 
 	TArray<uint8> Data;
-	if (!GetAudioSocket(*Driver->GetLocalAddr().Get()).ProcessData(Data))
+	if (!GetAudioSocket(Driver->GetLocalAddr(), Connection->RemoteAddr).ProcessData(Data))
 	{
 		return;
 	}
@@ -111,34 +111,38 @@ void UInworldAudioRepl::ListenAudioSocket()
 	}
 }
 
-Inworld::FSocketBase& UInworldAudioRepl::GetAudioSocket(const FInternetAddr& IpAddr)
+int32 UInworldAudioRepl::GetPort(const FInternetAddr& IpAddr)
 {
-	const FString IpAddrStr = IpAddr.ToString(true);
-	if (auto* Socket = AudioSockets.Find(IpAddrStr))
+	return Port != 0 ? Port : FMath::Clamp(IpAddr.GetPort() - 1000, 0, 64 * 1024);
+}
+
+Inworld::FSocketBase& UInworldAudioRepl::GetAudioSocket(const TSharedPtr<FInternetAddr>& LocalAddr, const TSharedPtr<FInternetAddr>& RemoteAddr)
+{
+	const FString Key = FString::Printf(TEXT("%s-%s"),
+		*LocalAddr->ToString(true), *RemoteAddr->ToString(true));
+	if (const auto* Socket = AudioSockets.Find(Key))
 	{
 		return *Socket->Get();
 	}
 
 	Inworld::FSocketSettings Settings;
-	Settings.IpAddr = IpAddr.ToString(false);
-	Settings.Port = Port != 0 ? Port : FMath::Clamp(IpAddr.GetPort() - 1000, 0, 64 * 1024);
+	Settings.LocalAddr = LocalAddr;
+	Settings.RemoteAddr = RemoteAddr;
 	Settings.BufferSize = 2 * 1024 * 1024;
-	Settings.Name = FString::Printf(TEXT("Inworld %s"), *IpAddrStr);
+	Settings.Name = FString::Printf(TEXT("Inworld %s"), *Key);
 
 	TUniquePtr<Inworld::FSocketBase> Socket;
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
 		Socket = MakeUnique<Inworld::FSocketReceive>();
-		UE_LOG(LogInworldAIIntegration, Log, TEXT("UInworldAudioRepl: receive socket created %s:%d"), *Settings.IpAddr, Settings.Port);
 	}
 	else
 	{
 		Socket = MakeUnique<Inworld::FSocketSend>();
-		UE_LOG(LogInworldAIIntegration, Log, TEXT("UInworldAudioRepl: send socket created %s:%d"), *Settings.IpAddr, Settings.Port);
 	}
 
 	Socket->Initialize(Settings);
-	AudioSockets.Add(IpAddrStr, MoveTemp(Socket));
+	AudioSockets.Add(Key, MoveTemp(Socket));
 
-	return *AudioSockets.Find(IpAddrStr)->Get();
+	return *AudioSockets.Find(Key)->Get();
 }

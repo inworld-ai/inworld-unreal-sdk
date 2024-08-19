@@ -31,12 +31,14 @@ public:
 	
 	void ReplicateAudioEvent(FInworldAudioDataEvent& Event);
 
+	// Specify port for port forwarding
 	void SetPort(int32 InPort) { Port = InPort; }
 
 private:
 	void ListenAudioSocket();
+	int32 GetPort(const FInternetAddr& IpAddr);
 
-	Inworld::FSocketBase& GetAudioSocket(const FInternetAddr& IpAddr);
+	Inworld::FSocketBase& GetAudioSocket(const TSharedPtr<FInternetAddr>& LocalAddr, const TSharedPtr<FInternetAddr>& RemoteAddr);
 
 	TMap<FString, TUniquePtr<Inworld::FSocketBase>> AudioSockets;
 
