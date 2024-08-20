@@ -13,6 +13,7 @@
 
 class FSocket;
 class FUdpSocketReceiver;
+class FInternetAddr;
 
 namespace Inworld
 {
