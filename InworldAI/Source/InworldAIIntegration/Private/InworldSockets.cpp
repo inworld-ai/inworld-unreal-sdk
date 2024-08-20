@@ -81,21 +81,6 @@ Inworld::FSocketReceive::FSocketReceive(const FSocketSettings& Settings)
 		return;
 	}
 
-	// potential NAT punchthrough
-	/*if (!Socket->Connect(*Settings.RemoteAddr))
-	{
-		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::FSocketReceive couldn't connect"));
-		return;
-	}
-	const char* Data = "hello";
-	int32 BytesSent;
-	Socket->Send((uint8*)Data, 6, BytesSent);
-	if (BytesSent != 6)
-	{
-		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::FSocketReceive couldn't send"));
-		return;
-	}*/
-
 	Receiver = new FUdpSocketReceiver(Socket, FTimespan::FromMilliseconds(100), *Settings.Name);
 	Receiver->OnDataReceived().BindLambda([this](const FArrayReaderPtr& DataPtr, const FIPv4Endpoint& Endpoint)
 		{
