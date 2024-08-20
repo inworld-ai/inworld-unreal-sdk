@@ -24,13 +24,10 @@ class INWORLDAIINTEGRATION_API UInworldAudioRepl : public UObject, public FTicka
 	GENERATED_BODY()
 	
 public:
-	virtual void PostLoad() override;
-	virtual void BeginDestroy() override;
-
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	
-	void ReplicateAudioEvent(FInworldAudioDataEvent& Event);
+	void ReplicateAudioEvent(const FInworldAudioDataEvent& Event);
 
 	// Specify port for port forwarding
 	void SetPort(int32 InPort) { Port = InPort; }

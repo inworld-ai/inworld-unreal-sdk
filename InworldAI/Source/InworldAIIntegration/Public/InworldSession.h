@@ -183,8 +183,8 @@ public:
 	FOnInworldVADNative& OnVAD() { return OnVADDelegateNative; }
 
 	void InitAudioReplication(int32 Port);
-	void ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet);
-	void HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet);
+	void ReplicateAudioEventFromServer(const FInworldAudioDataEvent& Packet);
+	void HandleAudioEventOnClient(const TSharedPtr<FInworldAudioDataEvent>& Packet);
 
 private:
 	void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);

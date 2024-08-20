@@ -21,23 +21,6 @@
 
 #include "InworldAIIntegrationModule.h"
 
-void UInworldAudioRepl::PostLoad()
-{
-	Super::PostLoad();
-}
-
-void UInworldAudioRepl::BeginDestroy()
-{
-	for (auto& Socket : AudioSockets)
-	{
-		Socket.Value->Deinitialize();
-		Socket.Value.Reset();
-	}
-	AudioSockets.Empty();
-	
-	Super::BeginDestroy();
-}
-
 void UInworldAudioRepl::Tick(float DeltaTime)
 {
 	if (GetWorld() && GetWorld()->GetNetMode() == NM_Client)
@@ -51,7 +34,7 @@ TStatId UInworldAudioRepl::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UInworldAudioRepl, STATGROUP_Tickables);
 }
 
-void UInworldAudioRepl::ReplicateAudioEvent(FInworldAudioDataEvent& Event)
+void UInworldAudioRepl::ReplicateAudioEvent(const FInworldAudioDataEvent& Event)
 {
 	auto It = GetWorld()->GetControllerIterator();
 	if (!It)
@@ -61,13 +44,22 @@ void UInworldAudioRepl::ReplicateAudioEvent(FInworldAudioDataEvent& Event)
 
 	TArray<uint8> Data;
 	FMemoryWriter Ar(Data);
-	Event.Serialize(Ar);
-
+	FDateTime Time = FDateTime::UtcNow();
+	Ar << Time;
+	const_cast<FInworldAudioDataEvent&>(Event).Serialize(Ar);
 	for (; It; ++It)
 	{
 		if (const UNetConnection* Connection = It->Get()->GetNetConnection())
 		{
-			GetAudioSocket(*Connection).ProcessData(Data);
+			auto& Socket = GetAudioSocket(*Connection);
+			Socket.ProcessData(Data);
+
+			if (Event.bFinal)
+			{
+				const auto& Settings = Socket.GetSettings();
+				UE_LOG(LogInworldAIIntegration, Log, TEXT("UInworldAudioRepl::ReplicateAudioEvent sent final audio chunk from %s to %s."),
+						*Settings.LocalAddr->ToString(true), *Settings.RemoteAddr->ToString(true));
+			}
 		}
 	}
 }
@@ -87,15 +79,27 @@ void UInworldAudioRepl::ListenAudioSocket()
 	}
 
 	TArray<uint8> Data;
-	if (!GetAudioSocket(*Ctrl->GetNetConnection()).ProcessData(Data))
+	auto& Socket = GetAudioSocket(*Connection);
+	if (!Socket.ProcessData(Data))
 	{
 		return;
 	}
 
-	FMemoryReader Ar(Data);
-
 	TSharedPtr<FInworldAudioDataEvent> Event = MakeShared<FInworldAudioDataEvent>();
+	FMemoryReader Ar(Data);
+	FDateTime Time;
+	Ar << Time;
 	Event->Serialize(Ar);
+
+	if (Event->bFinal)
+	{
+		const auto Latency = FDateTime::UtcNow() - Time;
+		const auto& Settings = Socket.GetSettings();
+		UE_LOG(LogInworldAIIntegration, Log, TEXT("UInworldAudioRepl::ListenAudioSocket received final audio chunk from %s on %s."),
+				*Settings.RemoteAddr->ToString(true), *Settings.LocalAddr->ToString(true));
+		UE_LOG(LogInworldAIIntegration, Log, TEXT("UInworldAudioRepl::ListenAudioSocket latency: %d ms."),
+		       static_cast<int32>(Latency.GetTotalMilliseconds()));
+	}
 
 	auto* InworldApi = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
 	if (ensure(InworldApi))
@@ -133,14 +137,13 @@ Inworld::FSocketBase& UInworldAudioRepl::GetAudioSocket(const UNetConnection& Co
 	TUniquePtr<Inworld::FSocketBase> Socket;
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
-		Socket = MakeUnique<Inworld::FSocketReceive>();
+		Socket = MakeUnique<Inworld::FSocketReceive>(Settings);
 	}
 	else
 	{
-		Socket = MakeUnique<Inworld::FSocketSend>();
+		Socket = MakeUnique<Inworld::FSocketSend>(Settings);
 	}
 
-	Socket->Initialize(Settings);
 	AudioSockets.Add(Key, MoveTemp(Socket));
 
 	return *AudioSockets.Find(Key)->Get();

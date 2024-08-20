@@ -574,7 +574,7 @@ void UInworldSession::OnRep_ConnectionState()
 	OnConnectionStateChangedDelegate.Broadcast(ConnectionState);
 }
 
-void UInworldSession::ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet)
+void UInworldSession::ReplicateAudioEventFromServer(const FInworldAudioDataEvent& Packet)
 {
 	if (AudioRepl)
 	{
@@ -582,7 +582,7 @@ void UInworldSession::ReplicateAudioEventFromServer(FInworldAudioDataEvent& Pack
 	}
 }
 
-void UInworldSession::HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet)
+void UInworldSession::HandleAudioEventOnClient(const TSharedPtr<FInworldAudioDataEvent>& Packet)
 {
 	EMPTY_ARG_RETURN(Packet, void())
 

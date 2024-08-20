@@ -14,7 +14,18 @@
 #include "InworldAIIntegrationModule.h"
 
 
-bool Inworld::FSocketSend::Initialize(const FSocketSettings& Settings)
+Inworld::FSocketBase::~FSocketBase()
+{
+	if (Socket)
+	{
+		Socket->Close();
+		ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Socket);
+		Socket = nullptr;
+	}
+}
+
+Inworld::FSocketSend::FSocketSend(const FSocketSettings& Settings)
+	: FSocketBase(Settings)
 {
 	Socket = FUdpSocketBuilder(*Settings.Name)
 		.AsReusable()
@@ -25,33 +36,18 @@ bool Inworld::FSocketSend::Initialize(const FSocketSettings& Settings)
 
 	if (!Socket)
 	{
-		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::Initialize couldn't build a socket"));
-		return false;
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::FSocketSend couldn't build a socket"));
+		return;
 	}
 
 	if (!Socket->Connect(*Settings.RemoteAddr))
 	{
-		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::Initialize couldn't connect"));
-		return false;
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::FSocketSend couldn't connect"));
+		return;
 	}
 
 	UE_LOG(LogInworldAIIntegration, Log, TEXT("FSocketSend: created local %s, remote %s"),
 		*Settings.LocalAddr->ToString(true), *Settings.RemoteAddr->ToString(true));
-
-	return true;
-}
-
-bool Inworld::FSocketSend::Deinitialize()
-{
-	if (!Socket)
-	{
-		return true;
-	}
-
-	const bool bSuccess = Socket->Close();
-	ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Socket);
-	
-	return bSuccess;
 }
 
 bool Inworld::FSocketSend::ProcessData(TArray<uint8>& Data)
@@ -59,13 +55,17 @@ bool Inworld::FSocketSend::ProcessData(TArray<uint8>& Data)
 	int32 BytesSent;
 	if (!Socket->Send(Data.GetData(), Data.Num(), BytesSent))
 	{
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::ProcessData couldn't send %d bytes from %s to %s."),
+			Data.Num(), *Settings.LocalAddr->ToString(true), *Settings.RemoteAddr->ToString(true));
 		return false;
 	}
 
 	return Data.Num() == BytesSent;
 }
 
-bool Inworld::FSocketReceive::Initialize(const FSocketSettings& Settings)
+Inworld::FSocketReceive::FSocketReceive(const FSocketSettings& Settings)
+	: FSocketBase(Settings)
+	, Receiver(nullptr)
 {
 	const FIPv4Endpoint Endpoint(Settings.LocalAddr);
 	Socket = FUdpSocketBuilder(*Settings.Name)
@@ -78,14 +78,14 @@ bool Inworld::FSocketReceive::Initialize(const FSocketSettings& Settings)
 	if (!Socket)
 	{
 		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketReceive::Initialize couldn't build a socket"));
-		return false;
+		return;
 	}
 
 	// potential NAT punchthrough
-	if (!Socket->Connect(*Settings.RemoteAddr))
+	/*if (!Socket->Connect(*Settings.RemoteAddr))
 	{
 		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::FSocketReceive couldn't connect"));
-		return false;
+		return;
 	}
 	const char* Data = "hello";
 	int32 BytesSent;
@@ -93,8 +93,8 @@ bool Inworld::FSocketReceive::Initialize(const FSocketSettings& Settings)
 	if (BytesSent != 6)
 	{
 		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::FSocketReceive couldn't send"));
-		return false;
-	}
+		return;
+	}*/
 
 	Receiver = new FUdpSocketReceiver(Socket, FTimespan::FromMilliseconds(100), *Settings.Name);
 	Receiver->OnDataReceived().BindLambda([this](const FArrayReaderPtr& DataPtr, const FIPv4Endpoint& Endpoint)
@@ -109,11 +109,9 @@ bool Inworld::FSocketReceive::Initialize(const FSocketSettings& Settings)
 
 	UE_LOG(LogInworldAIIntegration, Log, TEXT("FSocketReceive: created local %s, remote %s"),
 		*Settings.LocalAddr->ToString(true), *Settings.RemoteAddr->ToString(true));
-
-	return true;
 }
 
-bool Inworld::FSocketReceive::Deinitialize()
+Inworld::FSocketReceive::~FSocketReceive()
 {
 	if (Receiver)
 	{
@@ -121,17 +119,6 @@ bool Inworld::FSocketReceive::Deinitialize()
 		delete Receiver;
 		Receiver = nullptr;
 	}
-
-	if (!Socket)
-	{
-		return true;
-	}
-
-	const bool bSuccess = Socket->Close();
-	ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Socket);
-	Socket = nullptr;
-
-	return true;
 }
 
 bool Inworld::FSocketReceive::ProcessData(TArray<uint8>& Data)

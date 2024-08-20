@@ -27,38 +27,38 @@ namespace Inworld
 	class INWORLDAIINTEGRATION_API FSocketBase
 	{
 	public:
-		virtual ~FSocketBase() = default;
+		FSocketBase(const FSocketSettings& Settings)
+			: Socket(nullptr)
+			, Settings(Settings)
+		{}
+		virtual ~FSocketBase();
 
-		virtual bool Initialize(const FSocketSettings& Settings) = 0;
-		virtual bool Deinitialize() = 0;
 		virtual bool ProcessData(TArray<uint8>& Data) = 0;
+		const FSocketSettings& GetSettings() const { return Settings; }
 
 	protected:
 		FSocket* Socket;
+		FSocketSettings Settings;
 	}; 
 	
 	class INWORLDAIINTEGRATION_API FSocketSend : public FSocketBase
 	{
 	public:
-		virtual ~FSocketSend() = default;
+		FSocketSend(const FSocketSettings& Settings);
 
-		virtual bool Initialize(const FSocketSettings& Settings) override;
-		virtual bool Deinitialize() override;
 		virtual bool ProcessData(TArray<uint8>& Data) override;
 	};
 
 	class INWORLDAIINTEGRATION_API FSocketReceive : public FSocketBase
 	{
 	public:
-		virtual ~FSocketReceive() = default;
-
-		virtual bool Initialize(const FSocketSettings& Settings) override;
-		virtual bool Deinitialize() override;
+		FSocketReceive(const FSocketSettings& Settings);
+		virtual ~FSocketReceive() override;
+		
 		virtual bool ProcessData(TArray<uint8>& Data) override;
 
 	private:
 		FUdpSocketReceiver* Receiver;
-		
 		TQueue<TArray<uint8>> DataQueue;
 	};
 }
