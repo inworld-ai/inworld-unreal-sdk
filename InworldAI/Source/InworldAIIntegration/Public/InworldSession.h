@@ -25,6 +25,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldTextEvent, const FInworldT
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldTextEventNative, const FInworldTextEvent& /*TextEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldAudioEvent, const FInworldAudioDataEvent&, AudioEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldAudioEventNative, const FInworldAudioDataEvent& /*AudioEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldA2FHeaderEvent, const FInworldA2FHeaderEvent&, A2FHeaderEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FHeaderEventNative, const FInworldA2FHeaderEvent& /*A2FHeaderEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldA2FContentEvent, const FInworldA2FContentEvent&, A2FContentEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FContentEventNative, const FInworldA2FContentEvent& /*A2FContentEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSilenceEvent, const FInworldSilenceEvent&, SilenceEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSilenceEventNative, const FInworldSilenceEvent& /*SilenceEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldControlEvent, const FInworldControlEvent&, ControlEvent);
@@ -188,6 +192,8 @@ private:
 private:
 	UPROPERTY()
 	UInworldClient* Client;
+
+	FString Workspace;
 
 	UFUNCTION()
 	void OnRep_IsLoaded();

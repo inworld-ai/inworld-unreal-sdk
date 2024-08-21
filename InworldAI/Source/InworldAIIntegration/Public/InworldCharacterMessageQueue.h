@@ -29,6 +29,7 @@ struct FCharacterMessageQueueEntryBase
 	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) = 0;
 
 	virtual bool IsReady() const = 0;
+	virtual bool IsFinished() const = 0;
 	virtual bool IsEnd() const = 0;
 };
 
@@ -50,6 +51,7 @@ struct FCharacterMessageQueueEntry : FCharacterMessageQueueEntryBase
 	virtual void AcceptResume(ICharacterMessageVisitor& Visitor) override;
 	virtual void AcceptCancel(ICharacterMessageVisitor& Visitor) override;
 	virtual bool IsReady() const override;
+	virtual bool IsFinished() const override;
 	virtual bool IsEnd() const override;
 };
 
@@ -66,10 +68,20 @@ void FCharacterMessageQueueEntry<T>::AcceptCancel(ICharacterMessageVisitor& Visi
 template<class T>
 bool FCharacterMessageQueueEntry<T>::IsReady() const { return true; }
 template<class T>
+bool FCharacterMessageQueueEntry<T>::IsFinished() const { return true; }
+template<class T>
 bool FCharacterMessageQueueEntry<T>::IsEnd() const { return false; }
 
 template<>
-inline bool FCharacterMessageQueueEntry<FCharacterMessageUtterance>::IsReady() const { return Message->bTextFinal && Message->bAudioFinal; }
+inline bool FCharacterMessageQueueEntry<FCharacterMessageUtterance>::IsReady() const
+{
+	return Message->bTextFinal && Message->UtteranceData && !Message->UtteranceData->SoundData.IsEmpty();
+}
+template<>
+inline bool FCharacterMessageQueueEntry<FCharacterMessageUtterance>::IsFinished() const
+{
+	return Message->bTextFinal && Message->UtteranceData && Message->UtteranceData->bAudioFinal;
+}
 
 template<>
 inline bool FCharacterMessageQueueEntry<FCharacterMessageSilence>::IsReady() const { return Message->Duration != 0; }
@@ -120,21 +132,30 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 
 		TSharedPtr<FCharacterMessageQueueEntryBase> MessageQueueEntry = nullptr;
 		TSharedPtr<U> Message = nullptr;
-		const auto Index = PendingMessageQueueEntries.FindLastByPredicate([&InteractionId, &UtteranceId](const TSharedPtr<FCharacterMessageQueueEntryBase> MessageQueueEntry)
-			{
-				return MessageQueueEntry->GetCharacterMessage()->InteractionId == InteractionId && MessageQueueEntry->GetCharacterMessage()->UtteranceId == UtteranceId;
-			}
-		);
-		if (Index != INDEX_NONE)
+		if (CurrentMessageQueueEntry.IsValid() && CurrentMessageQueueEntry->GetCharacterMessage()->InteractionId == InteractionId && CurrentMessageQueueEntry->GetCharacterMessage()->UtteranceId == UtteranceId)
 		{
-			MessageQueueEntry = PendingMessageQueueEntries[Index];
-			Message = StaticCastSharedPtr<U>(MessageQueueEntry->GetCharacterMessage());
+			MessageQueueEntry = CurrentMessageQueueEntry;
+			Message = StaticCastSharedPtr<U>(CurrentMessageQueueEntry->GetCharacterMessage());
+		}
+		else
+		{
+			const auto Index = PendingMessageQueueEntries.FindLastByPredicate([&InteractionId, &UtteranceId](const TSharedPtr<FCharacterMessageQueueEntryBase> MessageQueueEntry)
+				{
+					return MessageQueueEntry->GetCharacterMessage()->InteractionId == InteractionId && MessageQueueEntry->GetCharacterMessage()->UtteranceId == UtteranceId;
+				}
+			);
+			if (Index != INDEX_NONE)
+			{
+				MessageQueueEntry = PendingMessageQueueEntries[Index];
+				Message = StaticCastSharedPtr<U>(MessageQueueEntry->GetCharacterMessage());
+			}
 		}
 
-		if (!MessageQueueEntry.IsValid() || MessageQueueEntry->IsReady())
+		if (!MessageQueueEntry.IsValid() || MessageQueueEntry->IsFinished())
 		{
-			Message = MakeShared<U>();
-			PendingMessageQueueEntries.Emplace(MakeShared<FCharacterMessageQueueEntry<U>>(Message));
+			MessageQueueEntry = MakeShared<FCharacterMessageQueueEntry<U>>(MakeShared<U>());
+			Message = StaticCastSharedPtr<U>(MessageQueueEntry->GetCharacterMessage());
+			PendingMessageQueueEntries.Emplace(MessageQueueEntry);
 		}
 
 		(*Message) << Event;
