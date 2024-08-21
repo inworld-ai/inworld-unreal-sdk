@@ -74,6 +74,9 @@ struct FInworldCapabilitySet
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     bool Audio2Face = false;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    bool MultiModalActionPlanning = false;
 };
 
 USTRUCT(BlueprintType)
@@ -194,4 +197,22 @@ struct FInworldPlayerSpeechOptions
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
 	uint8 VADSilenceChunksNum = 5;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldEntityItem
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    FString Id;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    FString DisplayName;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    FString Description;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    TMap<FString, FString> Properties;
 };
