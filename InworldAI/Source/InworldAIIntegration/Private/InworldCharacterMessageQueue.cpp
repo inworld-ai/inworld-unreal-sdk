@@ -34,7 +34,7 @@ void FCharacterMessageQueue::TryToResume()
 
 void FCharacterMessageQueue::TryToInterrupt(const FString& InterruptingInteractionId)
 {
-	if (InterruptingInteractionId == NextInterruptingInteractionId)
+	if (!InterruptingInteractionId.IsEmpty() && InterruptingInteractionId == NextInterruptingInteractionId)
 	{
 		return;
 	}
@@ -196,9 +196,12 @@ void FCharacterMessageQueue::OnUpdated(const FCharacterMessageInteractionEnd& Me
 
 void FCharacterMessageQueue::EndInteraction(const FString& InteractionId)
 {
-	if (InteractionId == NextInterruptingInteractionId)
+	if (NextInterruptingInteractionId.IsSet())
 	{
-		NextInterruptingInteractionId.Reset();
+		if (InteractionId == NextInterruptingInteractionId || NextInterruptingInteractionId.GetValue().IsEmpty())
+		{
+			NextInterruptingInteractionId.Reset();
+		}
 	}
 	if (!InteractionInterruptibleState[InteractionId])
 	{
