@@ -90,18 +90,6 @@ void UInworldSession::Init()
 			OnPerceivedLatencyDelegate.Broadcast(InteractionId, LatencyMs);
 		}
 	);
-	OnVADHandle = Client->OnVAD().AddLambda(
-		[this](UObject* SessionOwner, bool bVoiceDetected) -> void
-		{
-			UInworldPlayer* Player = Cast<UInworldPlayer>(SessionOwner);
-			if (Player)
-			{
-				Player->SetVoiceDetected(bVoiceDetected);
-			}
-			OnVADDelegate.Broadcast(Player, bVoiceDetected);
-			OnVADDelegateNative.Broadcast(Player, bVoiceDetected);
-		}
-	);
 }
 
 void UInworldSession::Destroy()
@@ -123,7 +111,6 @@ void UInworldSession::Destroy()
 		Client->OnPacketReceived().Remove(OnClientPacketReceivedHandle);
 		Client->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
 		Client->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
-		Client->OnVAD().Remove(OnVADHandle);
 	}
 	Client = nullptr;
 }
@@ -244,11 +231,11 @@ void UInworldSession::UnregisterPlayer(UInworldPlayer* Player)
 }
 
 void UInworldSession::StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
-	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata)
+	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata)
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->StartSession(PlayerProfile, Auth, SceneId, Save, SessionToken, CapabilitySet, SpeechOptions, Metadata);
+	Client->StartSession(PlayerProfile, Auth, SceneId, Save, SessionToken, CapabilitySet, Metadata);
 }
 
 void UInworldSession::StopSession()
@@ -362,6 +349,13 @@ void UInworldSession::SendTextMessageToConversation(UInworldPlayer* Player, cons
 	}
 }
 
+void UInworldSession::InitSpeechProcessor(EInworldPlayerSpeechMode Mode, const FInworldPlayerSpeechOptions& SpeechOptions)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->InitSpeechProcessor(Mode, SpeechOptions);
+}
+
 void UInworldSession::SendSoundMessage(UInworldCharacter* Character, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
 	NO_CLIENT_RETURN(void())
@@ -380,12 +374,12 @@ void UInworldSession::SendSoundMessageToConversation(UInworldPlayer* Player, con
 	Client->SendSoundMessageToConversation(Player->GetConversationId(), InputData, OutputData);
 }
 
-void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions)
+void UInworldSession::SendAudioSessionStart(UInworldCharacter* Character, FInworldAudioSessionOptions SessionOptions)
 {
 	NO_CLIENT_RETURN(void())
 	INVALID_CHARACTER_RETURN(void())
 
-	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId, Player, SessionOptions);
+	Client->SendAudioSessionStart(Character->GetAgentInfo().AgentId, SessionOptions);
 }
 
 void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions)
@@ -393,7 +387,7 @@ void UInworldSession::SendAudioSessionStartToConversation(UInworldPlayer* Player
 	NO_CLIENT_RETURN(void())
 	INVALID_PLAYER_RETURN(void())
 
-	Client->SendAudioSessionStartToConversation(Player->GetConversationId(), Player, SessionOptions);
+	Client->SendAudioSessionStartToConversation(Player->GetConversationId(), SessionOptions);
 }
 
 void UInworldSession::SendAudioSessionStop(UInworldCharacter* Character)

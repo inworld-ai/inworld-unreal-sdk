@@ -120,6 +120,12 @@ protected:
 	FInworldAudioSessionOptions AudioSessionMode;
     bool bIsAudioSessionModeDirty = false;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+    EInworldPlayerSpeechMode PlayerSpeechMode;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio", meta = (EditCondition = "PlayerSpeechMode != EInworldPlayerSpeechMode::Default", EditConditionHides))
+    FInworldPlayerSpeechOptions PlayerSpeechOptions;
+
 private:
 	UFUNCTION()
 	void Rep_ServerCapturingVoice();

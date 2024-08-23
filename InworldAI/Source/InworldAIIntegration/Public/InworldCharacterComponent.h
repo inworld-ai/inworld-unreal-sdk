@@ -37,7 +37,6 @@ public:
 
 	// IInworldCharacterOwnerInterface
 	virtual UInworldCharacter* GetInworldCharacter_Implementation() const override { return InworldCharacter; }
-	virtual void HandleTargetPlayerVoiceDetection(bool bVoiceDetected) override;
 	// ~IInworldCharacterOwnerInterface
 
 	virtual void OnRegister() override;
@@ -133,10 +132,12 @@ public:
 	void SendNarrationEvent(const FString& Content);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void StartAudioSession(UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions);
+	void StartAudioSession(FInworldAudioSessionOptions SessionOptions);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession();
+	
+	void HandleTargetPlayerVoiceDetection(bool bVoiceDetected);
 
 	UFUNCTION(BlueprintPure, Category = "Interaction")
 	FVector GetTargetPlayerCameraLocation();
@@ -179,6 +180,8 @@ private:
 	UFUNCTION()
 	void OnInworldTextEvent(const FInworldTextEvent& Event);
 	UFUNCTION()
+	void OnInworldVADEvent(const FInworldVADEvent& Event);
+	UFUNCTION()
 	void OnInworldAudioEvent(const FInworldAudioDataEvent& Event);
 	UFUNCTION()
 	void OnInworldSilenceEvent(const FInworldSilenceEvent& Event);
@@ -193,6 +196,8 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitText(const FInworldTextEvent& Event);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_VisitVAD(const FInworldVADEvent& Event);
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitSilence(const FInworldSilenceEvent& Event);
 	UFUNCTION(NetMulticast, Reliable)

@@ -159,6 +159,8 @@ public:
 
 UInworldPlayerAudioCaptureComponent::UInworldPlayerAudioCaptureComponent(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
+    , AudioSessionMode{ EInworldMicrophoneMode::OPEN_MIC, EInworldUnderstandingMode::FULL }
+    //, PlayerSpeechOptions{ EInworldPlayerSpeechMode::VAD_DetectAndSendAudio }
 {
     PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.bTickEvenWhenPaused = true;
@@ -182,18 +184,20 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
                 }
             );
 
-            OnSessionConnectionStateChanged = InworldPlayer->GetSession()->OnConnectionStateChanged().AddLambda(
+            UInworldSession* InworldSession = InworldPlayer->GetSession();
+            OnSessionConnectionStateChanged = InworldSession->OnConnectionStateChanged().AddLambda(
                 [this](EInworldConnectionState ConnectionState) -> void
                 {
                     EvaluateVoiceCapture();
                 }
             );
-            OnSessionLoaded = InworldPlayer->GetSession()->OnLoaded().AddLambda(
+            OnSessionLoaded = InworldSession->OnLoaded().AddLambda(
                 [this](bool bLoaded) -> void
                 {
                     EvaluateVoiceCapture();
                 }
             );
+            InworldSession->InitSpeechProcessor(PlayerSpeechMode, PlayerSpeechOptions);
         }
 
         PrimaryComponentTick.SetTickFunctionEnable(false);

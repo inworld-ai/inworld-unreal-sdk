@@ -19,6 +19,7 @@ public:
 	virtual ~InworldPacketTranslator() = default;
 
 	virtual void Visit(const Inworld::TextEvent& Event) override { MakePacket<Inworld::TextEvent, FInworldTextEvent>(Event); }
+	virtual void Visit(const Inworld::VADEvent& Event) override { MakePacket<Inworld::VADEvent, FInworldVADEvent>(Event); }
 	virtual void Visit(const Inworld::DataEvent& Event) override { MakePacket<Inworld::DataEvent, FInworldDataEvent>(Event); }
 	virtual void Visit(const Inworld::AudioDataEvent& Event) override { MakePacket<Inworld::AudioDataEvent, FInworldAudioDataEvent>(Event); }
 	virtual void Visit(const Inworld::SilenceEvent& Event) override { MakePacket<Inworld::SilenceEvent, FInworldSilenceEvent>(Event); }
