@@ -50,72 +50,9 @@ const FString& UInworldEditorApiSubsystem::GetSavedStudioAccessToken() const
 	return InworldAIEditorSettings->StudioAccessToken;
 }
 
-void UInworldEditorApiSubsystem::RequestStudioData(const FString& ExchangeToken)
-{
-	FInworldEditorClientOptions Options;
-	Options.ServerUrl = ServerUrl;
-	Options.ExchangeToken = ExchangeToken;
-	EditorClient.RequestFirebaseToken(Options, [this](const FString& FirebaseToken)
-		{
-			StudioClient->RequestStudioUserData(FirebaseToken, ServerUrl, [this](bool bSuccess) 
-				{
-					CacheStudioData(StudioClient->GetStudioUserData());
-					OnLogin.Broadcast(bSuccess, StudioClient->GetStudioUserData());
-				}
-			);
-		});
-}
-
-void UInworldEditorApiSubsystem::CancelRequestStudioData()
-{
-	EditorClient.CancelRequests();
-	StudioClient->CancelRequests();
-}
-
 void UInworldEditorApiSubsystem::NotifyRestartRequired()
 {
 	RestartRequiredNotification->OnRestartRequired();
-}
-
-bool UInworldEditorApiSubsystem::IsRequestInProgress() const
-{
-	return EditorClient.IsRequestInProgress() || (StudioClient && StudioClient->IsRequestInProgress());
-}
-
-FString UInworldEditorApiSubsystem::GetError()
-{
-	if (!EditorClient.GetError().IsEmpty())
-	{
-		return EditorClient.GetError();
-	}
-	else if (StudioClient && !StudioClient->GetError().IsEmpty())
-	{
-		return StudioClient->GetError();
-	}
-	else
-	{
-		return {};
-	}
-}
-
-const FInworldStudioUserData& UInworldEditorApiSubsystem::GetCachedStudioData() const
-{
-	FInworldAIEditorModule* Module = static_cast<FInworldAIEditorModule*>(FModuleManager::Get().GetModule("InworldAIEditor"));
-	if (ensure(Module))
-	{
-		return Module->GetStudioData();
-	}
-	static FInworldStudioUserData Data;
-	return Data;
-}
-
-void UInworldEditorApiSubsystem::CacheStudioData(const FInworldStudioUserData& Data)
-{
-	FInworldAIEditorModule* Module = static_cast<FInworldAIEditorModule*>(FModuleManager::Get().GetModule("InworldAIEditor"));
-	if (ensure(Module))
-	{
-		Module->SetStudioData(Data);
-	}
 }
 
 void UInworldEditorApiSubsystem::BindActionForCharacterData(const FName& Name, FOnCharacterStudioDataPermission Permission, FOnCharacterStudioDataAction Action)
@@ -137,7 +74,7 @@ void UInworldEditorApiSubsystem::GetCharacterDataActions(TArray<FName>& OutKeys)
 	OutKeys.Sort(FNameLexicalLess());
 }
 
-bool UInworldEditorApiSubsystem::CanExecuteCharacterDataAction(const FName& Name, const FInworldStudioUserCharacterData& CharacterStudioData)
+bool UInworldEditorApiSubsystem::CanExecuteCharacterDataAction(const FName& Name, const FInworldStudioCharacter& CharacterStudioData)
 {
 	if (ensure(CharacterStudioDataFunctionMap.Contains(Name)))
 	{
@@ -146,7 +83,7 @@ bool UInworldEditorApiSubsystem::CanExecuteCharacterDataAction(const FName& Name
 	return false;
 }
 
-void UInworldEditorApiSubsystem::ExecuteCharacterDataAction(const FName& Name, const FInworldStudioUserCharacterData& CharacterStudioData)
+void UInworldEditorApiSubsystem::ExecuteCharacterDataAction(const FName& Name, const FInworldStudioCharacter& CharacterStudioData)
 {
 	if (ensure(CharacterStudioDataFunctionMap.Contains(Name)) && CanExecuteCharacterDataAction(Name, CharacterStudioData))
 	{
@@ -417,10 +354,6 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 		}
 	));
 
-	StudioClient = NewObject<UInworldStudioClient>(this);
-
-	EditorClient.Init();
-
 	FInworldAIEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FInworldAIEditorModule>("InworldAIEditor");
 	Module.BindMenuAssetAction(
 		FName("Inworld Player"),
@@ -464,10 +397,6 @@ void UInworldEditorApiSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
 
-	StudioClient = nullptr;
-
-	EditorClient.Destroy();
-
 	FInworldAIEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FInworldAIEditorModule>("InworldAIEditor");
 	Module.UnbindMenuAssetAction(FName("Inworld Player"));
 	Module.UnbindMenuAssetAction(FName("Inworld Character"));
@@ -479,12 +408,12 @@ void UInworldEditorApiSubsystem::Deinitialize()
 	UnbindActionForCharacterData(FName("Create Inworld Avatar"));
 }
 
-void UInworldEditorApiSubsystem::SavePackageToCharacterFolder(UObject* Object, const FInworldStudioUserCharacterData& CharacterData, const FString& NamePrefix, FString NameSuffix)
+void UInworldEditorApiSubsystem::SavePackageToCharacterFolder(UObject* Object, const FInworldStudioCharacter& CharacterData, const FString& NamePrefix, FString NameSuffix)
 {
 	FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
 
 	FString Name, PackageName;
-	const FString Path = FString::Printf(TEXT("/Game/Inworld/%s/%s_%s%s"), *CharacterData.Name, *NamePrefix, *CharacterData.ShortName, *NameSuffix);
+	const FString Path = FString::Printf(TEXT("/Game/Inworld/%s/%s_%s%s"), *CharacterData.name, *NamePrefix, *CharacterData.defaultCharacterDescription.givenName, *NameSuffix);
 	AssetToolsModule.Get().CreateUniqueAssetName(Path, TEXT(""), PackageName, Name);
 	const FString PackagePath = FPackageName::GetLongPackagePath(PackageName);
 
@@ -528,7 +457,7 @@ UObject* UInworldEditorApiSubsystem::GetNodeFromBlueprint(UBlueprint* Blueprint,
 	return nullptr;
 }
 
-UBlueprint* UInworldEditorApiSubsystem::CreateCharacterActorBP(const FInworldStudioUserCharacterData& CharacterData)
+UBlueprint* UInworldEditorApiSubsystem::CreateCharacterActorBP(const FInworldStudioCharacter& CharacterData)
 {
 	FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
 	FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
@@ -536,7 +465,7 @@ UBlueprint* UInworldEditorApiSubsystem::CreateCharacterActorBP(const FInworldStu
 	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
 
 	FString Name, PackageName;
-	const FString Path = FString::Printf(TEXT("/Game/Inworld/%s/BP_%s"), *CharacterData.Name, *CharacterData.ShortName);
+	const FString Path = FString::Printf(TEXT("/Game/Inworld/%s/BP_%s"), *CharacterData.name, *CharacterData.defaultCharacterDescription.givenName);
 	AssetToolsModule.Get().CreateUniqueAssetName(Path, TEXT(""), PackageName, Name);
 	const FString PackagePath = FPackageName::GetLongPackagePath(PackageName);
 
@@ -564,13 +493,13 @@ UBlueprint* UInworldEditorApiSubsystem::CreateCharacterActorBP(const FInworldStu
 	return Cast<UBlueprint>(Object);
 }
 
-bool UInworldEditorApiSubsystem::CanCreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData)
+bool UInworldEditorApiSubsystem::CanCreateInnequinActor(const FInworldStudioCharacter& CharacterData)
 {
 	TSharedPtr<IPlugin> InworldInnequinPlugin = IPluginManager::Get().FindPlugin("InworldInnequin");
 	return InworldInnequinPlugin.IsValid();
 }
 
-void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData)
+void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioCharacter& CharacterData)
 {
 	const UInworldInnequinEditorSettings* InworldInnequinEditorSettings = GetDefault<UInworldInnequinEditorSettings>();
 
@@ -607,7 +536,7 @@ void UInworldEditorApiSubsystem::CreateInnequinActor(const FInworldStudioUserCha
 		return;
 	}
 
-	CharacterComponent->SetBrainName(CharacterData.Name);
+	CharacterComponent->SetBrainName(CharacterData.name);
 	for (TSubclassOf<UInworldCharacterPlayback> CharacterPlaybackClass : InworldInnequinEditorSettings->CharacterPlaybacks)
 	{
 		CharacterComponent->PlaybackTypes.Add(CharacterPlaybackClass);

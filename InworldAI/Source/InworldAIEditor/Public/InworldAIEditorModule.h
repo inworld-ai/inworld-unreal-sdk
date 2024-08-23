@@ -10,7 +10,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 #include "ContentBrowserDelegates.h"
-#include "InworldStudioTypes.h"
+#include "Studio/InworldStudioTypes.h"
 #include "UnrealEdMisc.h"
 #include "Blueprint/UserWidget.h"
 #include "Studio/InworldStudioWidget.h"
@@ -27,16 +27,6 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-
-	void SetStudioData(const FInworldStudioUserData& Data) 
-	{
-		StudioData = Data;
-	}
-
-	const FInworldStudioUserData& GetStudioData() const
-	{
-		return StudioData;
-	}
 
 	void SetStudioWidgetState(const FInworldStudioWidgetState& Data)
 	{
@@ -56,7 +46,6 @@ private:
 	void AssetExtenderFunc(FMenuBuilder& MenuBuilder, const TArray<FAssetData> SelectedAssets);
 	TSharedRef<FExtender> OnExtendAssetSelectionMenu(const TArray<FAssetData>& SelectedAssets);
 
-	FInworldStudioUserData StudioData;
 	FInworldStudioWidgetState StudioWidgetState;
 
 public:

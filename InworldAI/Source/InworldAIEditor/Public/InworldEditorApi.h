@@ -12,16 +12,12 @@
 
 #include "EditorSubsystem.h"
 #include "TickableEditorObject.h"
-#include "InworldStudioClient.h"
-#include "InworldStudioTypes.h"
-#include "InworldEditorClient.h"
+#include "Studio/InworldStudioTypes.h"
 #include "InworldEditorApi.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInworldEditorApiSubsystemOnLogin, bool, bSuccess, FInworldStudioUserData, Data);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnCharacterStudioDataAction, const FInworldStudioCharacter&, CharacterStudioData);
 
-DECLARE_DYNAMIC_DELEGATE_OneParam(FOnCharacterStudioDataAction, const FInworldStudioUserCharacterData&, CharacterStudioData);
-
-DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnCharacterStudioDataPermission, const FInworldStudioUserCharacterData&, CharacterStudioData);
+DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnCharacterStudioDataPermission, const FInworldStudioCharacter&, CharacterStudioData);
 
 UCLASS(BlueprintType, Config = InworldAI)
 class INWORLDAIEDITOR_API UInworldEditorApiSubsystem : public UEditorSubsystem
@@ -32,28 +28,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Plugin")
 	static FString GetInworldAIPluginVersion();
 
-	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
-	FInworldEditorApiSubsystemOnLogin OnLogin;
-
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	const FString& GetSavedStudioAccessToken() const;
 
-    UFUNCTION(BlueprintCallable, Category = "Inworld")
-	void RequestStudioData(const FString& ExchangeToken);
-
-	UFUNCTION(BlueprintCallable, Category = "Inworld")
-	void CancelRequestStudioData();
-
 	void NotifyRestartRequired();
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inworld")
-	bool IsRequestInProgress() const;
-
-	UFUNCTION(BlueprintPure, Category = "Inworld")
-	FString GetError();
-
-	UFUNCTION(BlueprintPure, Category = "Inworld")
-	const FInworldStudioUserData& GetCachedStudioData() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AutoCreateRefTerm = "Name"))
 	void BindActionForCharacterData(const FName& Name, FOnCharacterStudioDataPermission Permission, FOnCharacterStudioDataAction Action);
@@ -65,9 +43,9 @@ public:
 	void GetCharacterDataActions(TArray<FName>& OutKeys) const;
 
 	UFUNCTION(BlueprintPure, Category = "Inworld", meta = (AutoCreateRefTerm = "Name"))
-	bool CanExecuteCharacterDataAction(const FName& Name, const FInworldStudioUserCharacterData& CharacterStudioData);
+	bool CanExecuteCharacterDataAction(const FName& Name, const FInworldStudioCharacter& CharacterStudioData);
 	UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AutoCreateRefTerm = "Name"))
-	void ExecuteCharacterDataAction(const FName& Name, const FInworldStudioUserCharacterData& CharacterStudioData);
+	void ExecuteCharacterDataAction(const FName& Name, const FInworldStudioCharacter& CharacterStudioData);
 
 	bool CanSetupAssetAsInworldPlayer(const FAssetData& AssetData, bool bLogErrors = false);
 	void SetupAssetAsInworldPlayer(const FAssetData& AssetData);
@@ -85,24 +63,19 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	UBlueprint* CreateCharacterActorBP(const FInworldStudioUserCharacterData& CharacterData);
-	void SavePackageToCharacterFolder(UObject* Object, const FInworldStudioUserCharacterData& CharacterData, const FString& NamePrefix, FString NameSuffix = "");
+	UBlueprint* CreateCharacterActorBP(const FInworldStudioCharacter& CharacterData);
+	void SavePackageToCharacterFolder(UObject* Object, const FInworldStudioCharacter& CharacterData, const FString& NamePrefix, FString NameSuffix = "");
 
 	UObject* AddNodeToBlueprint(UBlueprint* Blueprint, UClass* Class, const FString& NodeName);
 	UObject* AddNodeToBlueprintNode(UBlueprint* Blueprint, const FString& ParentNodeName, UClass* Class, const FString& NodeName);
 	UObject* GetNodeFromBlueprint(UBlueprint* Blueprint, const FString& NodeName);
 
 	UFUNCTION()
-	bool CanCreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData);
+	bool CanCreateInnequinActor(const FInworldStudioCharacter& CharacterData);
 	UFUNCTION()
-	void CreateInnequinActor(const FInworldStudioUserCharacterData& CharacterData);
+	void CreateInnequinActor(const FInworldStudioCharacter& CharacterData);
 
 private:
-	FInworldEditorClient EditorClient;
-	UPROPERTY()
-	UInworldStudioClient* StudioClient;
-
-	void CacheStudioData(const FInworldStudioUserData& Data);
 
 	struct FCharacterStudioDataFunctions
 	{

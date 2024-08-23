@@ -15,6 +15,11 @@
 #include "InworldPlayer.h"
 #include "InworldPlayerComponent.h"
 
+#include "HttpModule.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
+#include "JsonObjectConverter.h"
+
 #include "Audio.h"
 #include "Sound/SoundWave.h"
 
@@ -31,6 +36,50 @@ UInworldCharacter* UInworldBlueprintFunctionLibrary::Conv_InworldCharacterCompon
 UInworldPlayer* UInworldBlueprintFunctionLibrary::Conv_InworldPlayerComponentToPlayer(UInworldPlayerComponent* PlayerComponent)
 {
     return PlayerComponent ? IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(PlayerComponent) : nullptr;
+}
+
+template<typename T, typename U>
+void GetInworldStudioResource(const U& Callback, const FString& URL, const FString& Auth)
+{
+    FHttpRequestPtr HttpRequest = FHttpModule::Get().CreateRequest();
+    HttpRequest->SetURL(URL);
+    HttpRequest->SetVerb("GET");
+    HttpRequest->SetHeader("Content-Type", "application/json");
+    HttpRequest->SetHeader("Authorization", "Basic " + Auth);
+    HttpRequest->SetHeader("Grpc-Metadata-X-Authorization-Bearer-Type", "studio_api");
+    HttpRequest->OnProcessRequestComplete().BindLambda(
+        [Callback](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)
+        {
+            T Resource;
+            bool bValid = false;
+            if (bSuccess && Response.IsValid() && FJsonObjectConverter::JsonObjectStringToUStruct(Response->GetContentAsString(), &Resource))
+            {
+                bValid = true;
+            }
+            Callback.ExecuteIfBound(Resource, bValid);
+        }
+    );
+    HttpRequest->ProcessRequest();
+}
+
+void UInworldBlueprintFunctionLibrary::GetInworldStudioWorkspaces(const FOnInworldStudioWorkspaces& Callback, const FString& StudioApiKeyOverride)
+{
+    GetInworldStudioResource<FInworldStudioWorkspaces>(Callback, FString("https://api.inworld.ai/studio/v1/workspaces"), StudioApiKeyOverride);
+}
+
+void UInworldBlueprintFunctionLibrary::GetInworldStudioApiKeys(const FOnInworldStudioApiKeys& Callback, const FString& Workspace, const FString& StudioApiKeyOverride)
+{
+    GetInworldStudioResource<FInworldStudioApiKeys>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/apikeys"), { Workspace }), StudioApiKeyOverride);
+}
+
+void UInworldBlueprintFunctionLibrary::GetInworldStudioCharacters(const FOnInworldStudioCharacters& Callback, const FString& Workspace, const FString& StudioApiKeyOverride)
+{
+    GetInworldStudioResource<FInworldStudioCharacters>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/characters"), { Workspace }), StudioApiKeyOverride);
+}
+
+void UInworldBlueprintFunctionLibrary::GetInworldStudioScenes(const FOnInworldStudioScenes& Callback, const FString& Workspace, const FString& StudioApiKeyOverride)
+{
+    GetInworldStudioResource<FInworldStudioScenes>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/scenes"), { Workspace }), StudioApiKeyOverride);
 }
 
 bool UInworldBlueprintFunctionLibrary::SoundWaveToDataArray(USoundWave* SoundWave, TArray<uint8>& OutDataArray)
