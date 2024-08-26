@@ -152,7 +152,7 @@ UInworldClient::UInworldClient()
 			{
 				return;
 			}
-			AsyncTask(ENamedThreads::GameThread, [this, Packet = Packet]()
+			AsyncTask(ENamedThreads::GameThread, [this, Packet]()
 				{
 					if (bIsBeingDestroyed)
 					{
