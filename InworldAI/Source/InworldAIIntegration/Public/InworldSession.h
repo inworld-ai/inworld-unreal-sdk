@@ -27,6 +27,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldVADEvent, const FInworldVA
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldVADEventNative, const FInworldVADEvent& /*VADEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldAudioEvent, const FInworldAudioDataEvent&, AudioEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldAudioEventNative, const FInworldAudioDataEvent& /*AudioEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldA2FHeaderEvent, const FInworldA2FHeaderEvent&, A2FHeaderEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FHeaderEventNative, const FInworldA2FHeaderEvent& /*A2FHeaderEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldA2FContentEvent, const FInworldA2FContentEvent&, A2FContentEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FContentEventNative, const FInworldA2FContentEvent& /*A2FContentEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSilenceEvent, const FInworldSilenceEvent&, SilenceEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSilenceEventNative, const FInworldSilenceEvent& /*SilenceEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldControlEvent, const FInworldControlEvent&, ControlEvent);
@@ -153,6 +157,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void CancelResponse(UInworldCharacter* Character, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
+	UPROPERTY(BlueprintAssignable, Category = "Connection")
+	FOnInworldSessionPrePause OnPrePauseDelegate;
+	FOnInworldSessionPrePauseNative& OnPrePause() { return OnPrePauseDelegateNative; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Connection")
+	FOnInworldSessionPreStop OnPreStopDelegate;
+	FOnInworldSessionPreStopNative& OnPreStop() { return OnPreStopDelegateNative; }
+
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	EInworldConnectionState GetConnectionState() const;
 	UFUNCTION(BlueprintPure, Category = "Connection")
@@ -181,6 +193,8 @@ private:
 	UPROPERTY()
 	UInworldClient* Client;
 
+	FString Workspace;
+
 	UFUNCTION()
 	void OnRep_IsLoaded();
 
@@ -208,6 +222,8 @@ private:
 	TMap<FString, TArray<FString>> ConversationIdToAgentIds;
 	TMap<FString, UInworldPlayer*> ConversationIdToPlayer;
 
+	FOnInworldSessionPrePauseNative OnPrePauseDelegateNative;
+	FOnInworldSessionPreStopNative OnPreStopDelegateNative;
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldSessionLoadedNative OnLoadedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;

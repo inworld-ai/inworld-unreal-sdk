@@ -138,8 +138,10 @@ private:
     TWeakObjectPtr<UInworldPlayer> InworldPlayer;
     FDelegateHandle OnPlayerConversationChanged;
 
+    FDelegateHandle OnSessionPrePause;
     FDelegateHandle OnSessionConnectionStateChanged;
     FDelegateHandle OnSessionLoaded;
+	bool bSessionPendingPause = false;
 
     TSharedPtr<FInworldAudioCapture> InputAudioCapture;
     TSharedPtr<FInworldAudioCapture> OutputAudioCapture;

@@ -217,6 +217,14 @@ void FInworldVisemeInfo::Serialize(FMemoryArchive& Ar)
 	SerializeValue<float>(Ar, Timestamp);
 }
 
+void FInworldA2FHeaderEvent::AppendDebugString(FString& Str) const
+{
+}
+
+void FInworldA2FContentEvent::AppendDebugString(FString& Str) const
+{
+}
+
 void FInworldSilenceEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("Silence"));
@@ -244,6 +252,9 @@ void FInworldConversationUpdateEvent::AppendDebugString(FString& Str) const
 void FInworldCurrentSceneStatusEvent::AppendDebugString(FString& Str) const
 {
 	AppendToDebugString(Str, TEXT("CurrentSceneStatus"));
+	AppendToDebugString(Str, SceneName);
+	AppendToDebugString(Str, SceneDescription);
+	AppendToDebugString(Str, SceneDisplayName);
 	for (auto& Agent : AgentInfos)
 	{
 		AppendToDebugString(Str, Agent.GivenName);

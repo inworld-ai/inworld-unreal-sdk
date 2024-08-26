@@ -185,9 +185,18 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
             );
 
             UInworldSession* InworldSession = InworldPlayer->GetSession();
+
+            OnSessionPrePause = InworldSession->OnPrePause().AddLambda(
+                [this]()
+                {
+                    bSessionPendingPause = true;
+                    EvaluateVoiceCapture();
+                }
+            );
             OnSessionConnectionStateChanged = InworldSession->OnConnectionStateChanged().AddLambda(
                 [this](EInworldConnectionState ConnectionState) -> void
                 {
+                    bSessionPendingPause = false;
                     EvaluateVoiceCapture();
                 }
             );
@@ -311,7 +320,7 @@ void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
         const bool bHasConversation = !InworldPlayer->GetConversationId().IsEmpty();
         UInworldSession* InworldSession = InworldPlayer->GetSession();
         const EInworldConnectionState ConnectionState = InworldSession ? InworldSession->GetConnectionState() : EInworldConnectionState::Idle;
-        const bool bHasActiveInworldSession = InworldSession && InworldSession->IsLoaded() && (ConnectionState == EInworldConnectionState::Connected || ConnectionState == EInworldConnectionState::Reconnecting);
+        const bool bHasActiveInworldSession = InworldSession && InworldSession->IsLoaded() && !bSessionPendingPause && (ConnectionState == EInworldConnectionState::Connected || ConnectionState == EInworldConnectionState::Reconnecting);
 
         const bool bShouldCaptureVoice = bIsMicHot && bIsWorldPlaying && bIsParticipating && bHasConversation && bHasActiveInworldSession;
 

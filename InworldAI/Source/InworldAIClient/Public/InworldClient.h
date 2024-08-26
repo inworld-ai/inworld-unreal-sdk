@@ -23,13 +23,19 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPacketReceived, const FInw
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnInworldPacketReceivedCallback, const FInworldWrappedPacket&, WrappedPacket);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPacketReceivedNative, const FInworldWrappedPacket& /*WrappedPacket*/);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldSessionPrePause);
+DECLARE_MULTICAST_DELEGATE(FOnInworldSessionPrePauseNative);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldSessionPreStop);
+DECLARE_MULTICAST_DELEGATE(FOnInworldSessionPreStopNative);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldConnectionStateChanged, EInworldConnectionState, ConnectionState);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnInworldConnectionStateChangedCallback, EInworldConnectionState, ConnectionState);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldConnectionStateChangedNative, EInworldConnectionState /*ConnectionState*/);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInworldPerceivedLatency, FString, InteractionId, int32, LatencyMs);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldPerceivedLatencyCallback, FString, InteractionId, int32, LatencyMs);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldPerceivedLatencyNative, FString /*InteractionId*/, int32 /*ms*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldPerceivedLatencyNative, FString /*InteractionId*/, int32 /*LatencyMs*/);
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldSessionSavedCallback, FInworldSave, Save, bool, bSuccess);
 
@@ -68,6 +74,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;
+
+	UFUNCTION(BlueprintPure, Category = "Session")
+	FInworldCapabilitySet GetCapabilities() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
@@ -124,9 +133,32 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void CreateOrUpdateItems(const TArray<FInworldEntityItem>& Items, const TArray<FString>& AddToEntities);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void RemoveItems(const TArray<FString>& ItemIds);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void AddItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void RemoveItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void ReplaceItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames);
+
 	UPROPERTY(BlueprintAssignable, Category = "Packet")
 	FOnInworldPacketReceived OnPacketReceivedDelegate;
 	FOnInworldPacketReceivedNative& OnPacketReceived() { return OnPacketReceivedDelegateNative; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Connection")
+	FOnInworldSessionPrePause OnPrePauseDelegate;
+	FOnInworldSessionPrePauseNative& OnPrePause() { return OnPrePauseDelegateNative; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Connection")
+	FOnInworldSessionPreStop OnPreStopDelegate;
+	FOnInworldSessionPreStopNative& OnPreStop() { return OnPreStopDelegateNative; }
 
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	EInworldConnectionState GetConnectionState() const;
@@ -146,6 +178,8 @@ public:
 	void SetEnvironment(const FInworldEnvironment& InEnvironment) { Environment = InEnvironment; }
 
 private:
+	FOnInworldSessionPrePauseNative OnPrePauseDelegateNative;
+	FOnInworldSessionPreStopNative OnPreStopDelegateNative;
 	FOnInworldPacketReceivedNative OnPacketReceivedDelegateNative;
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;

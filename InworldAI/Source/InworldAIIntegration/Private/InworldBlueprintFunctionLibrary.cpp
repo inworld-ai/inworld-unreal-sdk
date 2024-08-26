@@ -20,17 +20,17 @@
 
 UInworldSession* UInworldBlueprintFunctionLibrary::Conv_InworldSessionComponentToSession(UInworldSessionComponent* SessionComponent)
 {
-    return IInworldSessionOwnerInterface::Execute_GetInworldSession(SessionComponent);
+    return SessionComponent ? IInworldSessionOwnerInterface::Execute_GetInworldSession(SessionComponent) : nullptr;
 }
 
 UInworldCharacter* UInworldBlueprintFunctionLibrary::Conv_InworldCharacterComponentToCharacter(UInworldCharacterComponent* CharacterComponent)
 {
-    return IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(CharacterComponent);
+    return CharacterComponent ? IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(CharacterComponent) : nullptr;
 }
 
 UInworldPlayer* UInworldBlueprintFunctionLibrary::Conv_InworldPlayerComponentToPlayer(UInworldPlayerComponent* PlayerComponent)
 {
-    return IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(PlayerComponent);
+    return PlayerComponent ? IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(PlayerComponent) : nullptr;
 }
 
 bool UInworldBlueprintFunctionLibrary::SoundWaveToDataArray(USoundWave* SoundWave, TArray<uint8>& OutDataArray)

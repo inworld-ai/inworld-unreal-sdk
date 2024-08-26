@@ -184,6 +184,10 @@ private:
 	UFUNCTION()
 	void OnInworldAudioEvent(const FInworldAudioDataEvent& Event);
 	UFUNCTION()
+	void OnInworldA2FHeaderEvent(const FInworldA2FHeaderEvent& Event);
+	UFUNCTION()
+	void OnInworldA2FContentEvent(const FInworldA2FContentEvent& Event);
+	UFUNCTION()
 	void OnInworldSilenceEvent(const FInworldSilenceEvent& Event);
 	UFUNCTION()
 	void OnInworldControlEvent(const FInworldControlEvent& Event);

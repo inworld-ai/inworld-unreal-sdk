@@ -450,8 +450,22 @@ void UInworldCharacterComponent::OnInworldVADEvent(const FInworldVADEvent& Event
 	Multicast_VisitVAD(Event);
 }
 
+bool IsA2FEnabled(UInworldSession* InworldSession)
+{
+	EMPTY_ARG_RETURN(InworldSession, false)
+	UInworldClient* InworldClient = InworldSession->GetClient();
+	EMPTY_ARG_RETURN(InworldClient, false)
+	return InworldClient->GetCapabilities().Audio2Face;
+}
+
 void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEvent& Event)
 {
+	// TODO: Support Networked A2F
+	if (IsA2FEnabled(InworldCharacter->GetSession()))
+	{
+		return;
+	}
+
 	if (GetNetMode() == NM_Standalone || GetNetMode() == NM_Client)
 	{
 		VisitAudioOnClient(Event);
@@ -474,6 +488,18 @@ void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEven
 			InworldSubsystem->ReplicateAudioEventFromServer(E);
 		}
 	}
+}
+
+void UInworldCharacterComponent::OnInworldA2FHeaderEvent(const FInworldA2FHeaderEvent& Event)
+{
+	// TODO: Support Networked A2F
+	MessageQueue->AddOrUpdateMessage<FInworldA2FHeaderEvent, FCharacterMessageUtterance>(Event);
+}
+
+void UInworldCharacterComponent::OnInworldA2FContentEvent(const FInworldA2FContentEvent& Event)
+{
+	// TODO: Support Networked A2F
+	MessageQueue->AddOrUpdateMessage<FInworldA2FContentEvent, FCharacterMessageUtterance>(Event);
 }
 
 void UInworldCharacterComponent::OnInworldSilenceEvent(const FInworldSilenceEvent& Event)
@@ -568,6 +594,8 @@ void UInworldCharacterComponent::OnRep_InworldCharacter()
 		InworldCharacter->OnInworldTextEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldTextEvent);
 		InworldCharacter->OnInworldVADEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldVADEvent);
 		InworldCharacter->OnInworldAudioEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldAudioEvent);
+		InworldCharacter->OnInworldA2FHeaderEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldA2FHeaderEvent);
+		InworldCharacter->OnInworldA2FContentEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldA2FContentEvent);
 		InworldCharacter->OnInworldSilenceEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldSilenceEvent);
 		InworldCharacter->OnInworldControlEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldControlEvent);
 		InworldCharacter->OnInworldEmotionEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldEmotionEvent);

@@ -27,6 +27,28 @@
 #define INVALID_CHARACTER_RETURN(Return) EMPTY_ARG_RETURN(Character, Return) EMPTY_ARG_RETURN(Character->GetAgentInfo().AgentId, Return)
 #define INVALID_PLAYER_RETURN(Return) EMPTY_ARG_RETURN(Player, Return) EMPTY_ARG_RETURN(Player->GetConversationId(), Return)
 
+FString ToShortBrainName(const FString& BrainName)
+{
+	TArray<FString> Split;
+	BrainName.ParseIntoArray(Split, TEXT("/"));
+	if (Split.Num() == 4)
+	{
+		return Split[3];
+	}
+	return BrainName;
+}
+
+FString ToLongBrainName(const FString& BrainName, const FString& WorkspaceName)
+{
+	TArray<FString> Split;
+	BrainName.ParseIntoArray(Split, TEXT("/"));
+	if (Split.Num() == 1)
+	{
+		return FString::Format(TEXT("workspaces/{0}/characters/{1}"), {WorkspaceName, BrainName});
+	}
+	return BrainName;
+}
+
 UInworldSession::UInworldSession()
 	: Client(nullptr)
 	, bIsLoaded(false)
@@ -76,6 +98,20 @@ void UInworldSession::Init()
 {
 	Client = NewObject<UInworldClient>(this);
 	OnClientPacketReceivedHandle = Client->OnPacketReceived().AddUObject(this, &UInworldSession::HandlePacket);
+	OnClientPacketReceivedHandle = Client->OnPrePause().AddLambda(
+		[this]()
+		{
+			OnPrePauseDelegateNative.Broadcast();
+			OnPrePauseDelegate.Broadcast();
+		}
+	);
+	OnClientPacketReceivedHandle = Client->OnPreStop().AddLambda(
+		[this]()
+		{
+			OnPreStopDelegateNative.Broadcast();
+			OnPreStopDelegate.Broadcast();
+		}
+	);
 	OnClientConnectionStateChangedHandle = Client->OnConnectionStateChanged().AddLambda(
 		[this](EInworldConnectionState InworldConnectionState) -> void
 		{
@@ -169,7 +205,7 @@ void UInworldSession::RegisterCharacter(UInworldCharacter* Character)
 {
 	EMPTY_ARG_RETURN(Character, void())
 
-	const FString& BrainName = Character->GetAgentInfo().BrainName;
+	const FString BrainName = ToShortBrainName(Character->GetAgentInfo().BrainName);
 
 	EMPTY_ARG_RETURN(BrainName, void())
 
@@ -191,7 +227,7 @@ void UInworldSession::RegisterCharacter(UInworldCharacter* Character)
 		}
 		else
 		{
-			Client->LoadCharacter(BrainName);
+			Client->LoadCharacter(ToLongBrainName(BrainName, Workspace));
 		}
 	}
 }
@@ -200,7 +236,7 @@ void UInworldSession::UnregisterCharacter(UInworldCharacter* Character)
 {
 	EMPTY_ARG_RETURN(Character, void())
 
-	const FString& BrainName = Character->GetAgentInfo().BrainName;
+	const FString BrainName = ToShortBrainName(Character->GetAgentInfo().BrainName);
 
 	EMPTY_ARG_RETURN(BrainName, void())
 
@@ -212,7 +248,7 @@ void UInworldSession::UnregisterCharacter(UInworldCharacter* Character)
 	AgentIdToCharacter.Remove(Character->GetAgentInfo().AgentId);
 	BrainNameToCharacter.Remove(BrainName);
 	RegisteredCharacters.Remove(Character);
-	Client->UnloadCharacter(BrainName);
+	Client->UnloadCharacter(ToLongBrainName(BrainName, Workspace));
 	Character->Unpossess();
 }
 
@@ -240,8 +276,9 @@ void UInworldSession::StartSession(const FInworldPlayerProfile& PlayerProfile, c
 
 void UInworldSession::StopSession()
 {
-	UnpossessAgents();
 	NO_CLIENT_RETURN(void())
+
+	UnpossessAgents();
 
 	Client->StopSession();
 }
@@ -468,7 +505,7 @@ void UInworldSession::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
 {
 	for (const auto& AgentInfo : AgentInfos)
 	{
-		const FString& BrainName = AgentInfo.BrainName;
+		const FString& BrainName = ToShortBrainName(AgentInfo.BrainName);
 		BrainNameToAgentInfo.Add(BrainName, AgentInfo);
 		if (BrainNameToCharacter.Contains(BrainName))
 		{
@@ -488,10 +525,10 @@ void UInworldSession::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
 	TArray<FString> BrainNames;
 	for (UInworldCharacter* Character : RegisteredCharacters)
 	{
-		const FString& BrainName = Character->GetAgentInfo().BrainName;
+		const FString BrainName = ToShortBrainName(Character->GetAgentInfo().BrainName);
 		if (!BrainNameToAgentInfo.Contains(BrainName))
 		{
-			BrainNames.Add(BrainName);
+			BrainNames.Add(ToLongBrainName(BrainName, Workspace));
 		}
 	}
 
@@ -564,6 +601,12 @@ void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldConversa
 
 void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldCurrentSceneStatusEvent& Event)
 {
+	TArray<FString> Split;
+	Event.SceneName.ParseIntoArray(Split, TEXT("/"));
+	if (Split.Num() >= 2)
+	{
+		Session->Workspace = Split[1];
+	}
 	Session->PossessAgents(Event.AgentInfos);
 }
 

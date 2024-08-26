@@ -265,6 +265,18 @@ void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldAudi
 	Character->OnInworldAudioEventDelegate.Broadcast(Event);
 }
 
+void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldA2FHeaderEvent& Event)
+{
+	Character->OnInworldA2FHeaderEventDelegateNative.Broadcast(Event);
+	Character->OnInworldA2FHeaderEventDelegate.Broadcast(Event);
+}
+
+void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldA2FContentEvent& Event)
+{
+	Character->OnInworldA2FContentEventDelegateNative.Broadcast(Event);
+	Character->OnInworldA2FContentEventDelegate.Broadcast(Event);
+}
+
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldSilenceEvent& Event)
 {
 	Character->OnInworldSilenceEventDelegateNative.Broadcast(Event);
