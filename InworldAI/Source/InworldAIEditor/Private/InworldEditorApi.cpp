@@ -32,8 +32,6 @@
 #include "UObject/SavePackage.h"
 #include "Runtime/Launch/Resources/Version.h"
 
-static FString ServerUrl = "api-studio.inworld.ai:443";
-
 FString UInworldEditorApiSubsystem::GetInworldAIPluginVersion()
 {
 	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin("InworldAI");
