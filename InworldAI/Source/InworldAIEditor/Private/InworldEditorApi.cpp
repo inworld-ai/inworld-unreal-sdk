@@ -34,22 +34,6 @@
 
 static FString ServerUrl = "api-studio.inworld.ai:443";
 
-FString UInworldEditorApiSubsystem::GetInworldAIPluginVersion()
-{
-	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin("InworldAI");
-	if (Plugin.IsValid())
-	{
-		return Plugin->GetDescriptor().VersionName;
-	}
-	return "";
-}
-
-const FString& UInworldEditorApiSubsystem::GetSavedStudioAccessToken() const
-{
-	const UInworldAIEditorSettings* InworldAIEditorSettings = GetDefault<UInworldAIEditorSettings>();
-	return InworldAIEditorSettings->StudioAccessToken;
-}
-
 void UInworldEditorApiSubsystem::NotifyRestartRequired()
 {
 	RestartRequiredNotification->OnRestartRequired();

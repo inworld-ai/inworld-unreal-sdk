@@ -8,6 +8,8 @@
 
 #include "InworldBlueprintFunctionLibrary.h"
 
+#include "InworldAIIntegrationSettings.h"
+
 #include "InworldSession.h"
 #include "InworldSessionComponent.h"
 #include "InworldCharacter.h"
@@ -19,6 +21,8 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 #include "JsonObjectConverter.h"
+
+#include "Interfaces/IPluginManager.h"
 
 #include "Audio.h"
 #include "Sound/SoundWave.h"
@@ -38,6 +42,22 @@ UInworldPlayer* UInworldBlueprintFunctionLibrary::Conv_InworldPlayerComponentToP
     return PlayerComponent ? IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(PlayerComponent) : nullptr;
 }
 
+FString UInworldBlueprintFunctionLibrary::GetInworldAIPluginVersion()
+{
+    TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin("InworldAI");
+    if (Plugin.IsValid())
+    {
+        return Plugin->GetDescriptor().VersionName;
+    }
+    return "";
+}
+
+FString UInworldBlueprintFunctionLibrary::GetStudioApiKey()
+{
+    const UInworldAIIntegrationSettings* InworldAIIntegrationSettings = GetDefault<UInworldAIIntegrationSettings>();
+    return InworldAIIntegrationSettings->StudioApiKey;
+}
+
 template<typename T, typename U>
 void GetInworldStudioResource(const U& Callback, const FString& URL, const FString& Auth)
 {
@@ -50,13 +70,28 @@ void GetInworldStudioResource(const U& Callback, const FString& URL, const FStri
     HttpRequest->OnProcessRequestComplete().BindLambda(
         [Callback](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)
         {
+            const int32 ResponseCode = Response->GetResponseCode();
+            const FString ResponseString = Response->GetContentAsString();
+
             T Resource;
             bool bValid = false;
-            if (bSuccess && Response.IsValid() && FJsonObjectConverter::JsonObjectStringToUStruct(Response->GetContentAsString(), &Resource))
+            FString Error;
+            if (EHttpResponseCodes::IsOk(Response->GetResponseCode()))
             {
-                bValid = true;
+                if (FJsonObjectConverter::JsonObjectStringToUStruct(Response->GetContentAsString(), &Resource))
+                {
+                    bValid = true;
+                }
+                else
+                {
+                    Error = FString::Format(TEXT("Invalid Inworld Studio response. json={0}"), { ResponseString });
+                }
             }
-            Callback.ExecuteIfBound(Resource, bValid);
+            else
+            {
+                Error = FString::Format(TEXT("Invalid Inworld Studio response. code={0} error={1}"), { FString::FromInt(ResponseCode), ResponseString });
+            }
+            Callback.ExecuteIfBound(Resource, bValid, Error);
         }
     );
     HttpRequest->ProcessRequest();
@@ -64,22 +99,26 @@ void GetInworldStudioResource(const U& Callback, const FString& URL, const FStri
 
 void UInworldBlueprintFunctionLibrary::GetInworldStudioWorkspaces(const FOnInworldStudioWorkspaces& Callback, const FString& StudioApiKeyOverride)
 {
-    GetInworldStudioResource<FInworldStudioWorkspaces>(Callback, FString("https://api.inworld.ai/studio/v1/workspaces"), StudioApiKeyOverride);
+    const FString InworldStudioApiKey = StudioApiKeyOverride.IsEmpty() ? GetStudioApiKey() : StudioApiKeyOverride;
+    GetInworldStudioResource<FInworldStudioWorkspaces>(Callback, FString("https://api.inworld.ai/studio/v1/workspaces"), InworldStudioApiKey);
 }
 
 void UInworldBlueprintFunctionLibrary::GetInworldStudioApiKeys(const FOnInworldStudioApiKeys& Callback, const FString& Workspace, const FString& StudioApiKeyOverride)
 {
-    GetInworldStudioResource<FInworldStudioApiKeys>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/apikeys"), { Workspace }), StudioApiKeyOverride);
+    const FString InworldStudioApiKey = StudioApiKeyOverride.IsEmpty() ? GetStudioApiKey() : StudioApiKeyOverride;
+    GetInworldStudioResource<FInworldStudioApiKeys>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/apikeys"), { Workspace }), InworldStudioApiKey);
 }
 
 void UInworldBlueprintFunctionLibrary::GetInworldStudioCharacters(const FOnInworldStudioCharacters& Callback, const FString& Workspace, const FString& StudioApiKeyOverride)
 {
-    GetInworldStudioResource<FInworldStudioCharacters>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/characters"), { Workspace }), StudioApiKeyOverride);
+    const FString InworldStudioApiKey = StudioApiKeyOverride.IsEmpty() ? GetStudioApiKey() : StudioApiKeyOverride;
+    GetInworldStudioResource<FInworldStudioCharacters>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/characters"), { Workspace }), InworldStudioApiKey);
 }
 
 void UInworldBlueprintFunctionLibrary::GetInworldStudioScenes(const FOnInworldStudioScenes& Callback, const FString& Workspace, const FString& StudioApiKeyOverride)
 {
-    GetInworldStudioResource<FInworldStudioScenes>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/scenes"), { Workspace }), StudioApiKeyOverride);
+    const FString InworldStudioApiKey = StudioApiKeyOverride.IsEmpty() ? GetStudioApiKey() : StudioApiKeyOverride;
+    GetInworldStudioResource<FInworldStudioScenes>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/scenes"), { Workspace }), InworldStudioApiKey);
 }
 
 bool UInworldBlueprintFunctionLibrary::SoundWaveToDataArray(USoundWave* SoundWave, TArray<uint8>& OutDataArray)

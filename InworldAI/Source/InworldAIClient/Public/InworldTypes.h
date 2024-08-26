@@ -84,14 +84,50 @@ struct FInworldAuth
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
-	FString Base64Signature = "";
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    FString Base64Signature;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
-    FString ApiKey = "";
+    FString ApiKey;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
-    FString ApiSecret = "";
+    FString ApiSecret;
+};
+
+USTRUCT(BlueprintType)
+struct FTestRedir
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Studio")
+    FString Name;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Studio")
+    FString Key;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Studio")
+    FString Secret;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Studio")
+    bool IsActive = false;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioUserApiKeyData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Studio")
+    FString Name;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Studio")
+    FString Key;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Studio")
+    FString Secret;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Studio")
+    bool IsActive = false;
 };
 
 USTRUCT(BlueprintType)

@@ -8,7 +8,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Studio/InworldStudioTypes.h"
+#include "InworldStudioTypes.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "InworldBlueprintFunctionLibrary.generated.h"
 
@@ -32,19 +32,25 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Inworld|Component", meta = (BlueprintAutocast, DisplayName = "To Inworld Player (Inworld Player Component)", CompactNodeTitle = "->"))
 	static UInworldPlayer* Conv_InworldPlayerComponentToPlayer(UInworldPlayerComponent* PlayerComponent);
 
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldStudioWorkspaces, const FInworldStudioWorkspaces&, Workspaces, bool, bSuccess);
+	UFUNCTION(BlueprintPure, Category = "Inworld|Component", meta = (DisplayName = "Get Inworld AI Plugin Version"))
+	static FString GetInworldAIPluginVersion();
+
+	UFUNCTION(BlueprintPure, Category = "Inworld|Component")
+	static FString GetStudioApiKey();
+
+	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnInworldStudioWorkspaces, const FInworldStudioWorkspaces&, Workspaces, bool, bSuccess, const FString&, Error);
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Studio", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "StudioApiKeyOverride"))
 	static void GetInworldStudioWorkspaces(const FOnInworldStudioWorkspaces& Callback, const FString& StudioApiKeyOverride);
 
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldStudioApiKeys, const FInworldStudioApiKeys&, ApiKeys, bool, bSuccess);
+	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnInworldStudioApiKeys, const FInworldStudioApiKeys&, ApiKeys, bool, bSuccess, const FString&, Error);
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Studio", meta = (AdvancedDisplay = "2", AutoCreateRefTerm = "StudioApiKeyOverride"))
 	static void GetInworldStudioApiKeys(const FOnInworldStudioApiKeys& Callback, const FString& Workspace, const FString& StudioApiKeyOverride);
 
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldStudioCharacters, const FInworldStudioCharacters&, Characters, bool, bSuccess);
+	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnInworldStudioCharacters, const FInworldStudioCharacters&, Characters, bool, bSuccess, const FString&, Error);
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Studio", meta = (AdvancedDisplay = "2", AutoCreateRefTerm = "StudioApiKeyOverride"))
 	static void GetInworldStudioCharacters(const FOnInworldStudioCharacters& Callback, const FString& Workspace, const FString& StudioApiKeyOverride);
 
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldStudioScenes, const FInworldStudioScenes&, Scenes, bool, bSuccess);
+	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnInworldStudioScenes, const FInworldStudioScenes&, Scenes, bool, bSuccess, const FString&, Error);
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Studio", meta = (AdvancedDisplay = "2", AutoCreateRefTerm = "StudioApiKeyOverride"))
 	static void GetInworldStudioScenes(const FOnInworldStudioScenes& Callback, const FString& Workspace, const FString& StudioApiKeyOverride);
 

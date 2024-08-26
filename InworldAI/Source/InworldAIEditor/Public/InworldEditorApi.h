@@ -12,7 +12,7 @@
 
 #include "EditorSubsystem.h"
 #include "TickableEditorObject.h"
-#include "Studio/InworldStudioTypes.h"
+#include "InworldStudioTypes.h"
 #include "InworldEditorApi.generated.h"
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnCharacterStudioDataAction, const FInworldStudioCharacter&, CharacterStudioData);
@@ -25,12 +25,6 @@ class INWORLDAIEDITOR_API UInworldEditorApiSubsystem : public UEditorSubsystem
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintPure, Category = "Plugin")
-	static FString GetInworldAIPluginVersion();
-
-	UFUNCTION(BlueprintCallable, Category = "Inworld")
-	const FString& GetSavedStudioAccessToken() const;
-
 	void NotifyRestartRequired();
 
 	UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AutoCreateRefTerm = "Name"))
@@ -89,21 +83,58 @@ private:
 	TSharedPtr<class FInworldEditorRestartRequiredNotification> RestartRequiredNotification;
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "Inworld|Studio API")
+	void SetStudioApiWidgetData(const FString& StudioApiKey, const FString& Workspace, const FString& RuntimeApiKey, const FString& Scene)
+	{
+		CacheStudioWidgetStudioApiKey = StudioApiKey;
+		CacheStudioWidgetWorkspace = Workspace;
+		CacheStudioWidgetRuntimeApiKey = RuntimeApiKey;
+		CacheStudioWidgetScene = Scene;
+		SaveConfig();
+	}
+
+	UFUNCTION(BlueprintPure, Category = "Inworld|Studio Api")
+	void GetStudioApiWidgetData(FString& StudioApiKey, FString& Workspace, FString& RuntimeApiKey, FString& Scene)
+	{
+		StudioApiKey = CacheStudioWidgetStudioApiKey;
+		Workspace = CacheStudioWidgetWorkspace;
+		RuntimeApiKey = CacheStudioWidgetRuntimeApiKey;
+		Scene = CacheStudioWidgetScene;
+	}
+
+private:
+	UPROPERTY(config)
+	FString CacheStudioWidgetStudioApiKey;
+
+	UPROPERTY(config)
+	FString CacheStudioWidgetWorkspace;
+
+	UPROPERTY(config)
+	FString CacheStudioWidgetRuntimeApiKey;
+
+	UPROPERTY(config)
+	FString CacheStudioWidgetScene;
+
+public:
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Dialogue Map")
-	void SetDialogueMapCharacterData(const FString& BrainName, const FString& DisplayName, const FString& ImageURI, const FString& Token)
+	void SetDialogueMapCharacterData(const FString& BrainName, const FString& DisplayName, const FString& ImageURI, const FString& ApiKey, const FString& ApiSecret)
 	{
 		DialogueMapCharacterBrainName = BrainName;
 		DialogueMapCharacterDisplayName = DisplayName;
 		DialogueMapCharacterImageURI = ImageURI;
+		DialogueMapCharacterApiKey = ApiKey;
+		DialogueMapCharacterApiSecret = ApiSecret;
 		SaveConfig();
 	}
 
 	UFUNCTION(BlueprintPure, Category = "Inworld|Dialogue Map")
-	void GetDialogueMapCharacterData(FString& BrainName, FString& DisplayName, FString& ImageURI)
+	void GetDialogueMapCharacterData(FString& BrainName, FString& DisplayName, FString& ImageURI, FString& ApiKey, FString& ApiSecret)
 	{
 		BrainName = DialogueMapCharacterBrainName;
 		DisplayName = DialogueMapCharacterDisplayName;
 		ImageURI = DialogueMapCharacterImageURI;
+		ApiKey = DialogueMapCharacterApiKey;
+		ApiSecret = DialogueMapCharacterApiSecret;
 	}
 
 private:
@@ -115,4 +146,10 @@ private:
 
 	UPROPERTY(config)
 	FString DialogueMapCharacterImageURI;
+
+	UPROPERTY(config)
+	FString DialogueMapCharacterApiKey;
+
+	UPROPERTY(config)
+	FString DialogueMapCharacterApiSecret;
 };
