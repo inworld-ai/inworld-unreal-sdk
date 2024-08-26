@@ -111,6 +111,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Scene|Character", meta = (DisplayName = "Name"))
 	FString character;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scene|Character", meta = (DisplayName = "Display Name"))
+	FString displayTitle;
 };
 
 USTRUCT(BlueprintType)
@@ -138,4 +141,3 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Scene", meta = (DisplayName = "Scenes"))
 	TArray<FInworldStudioScene> scenes;
 };
-
