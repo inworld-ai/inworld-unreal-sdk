@@ -141,7 +141,7 @@ enum class EInworldPlayerSpeechMode : uint8
 	// no VAD
 	Default = 0,
 	// detect voice to send callbacks, but send all player audio
-	VAD_DetectOnly = 1,
+	VAD_DetectOnly = 1 UMETA(DisplayName="VAD Continious Audio Send"),
 	// detect voice to send callbacks and send only voice audio
-	VAD_DetectAndSendAudio = 2,
+	VAD_DetectAndSendAudio = 2 UMETA(DisplayName="VAD Conditional Audio Send"),
 };
