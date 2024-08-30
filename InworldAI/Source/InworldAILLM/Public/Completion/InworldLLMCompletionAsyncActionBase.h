@@ -8,9 +8,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "Kismet/BlueprintAsyncActionBase.h"
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
+#include "Dom/JsonObject.h"
 #include "Completion/InworldLLMCompletionTypes.h"
 #include "InworldLLMCompletionAsyncActionBase.generated.h"
 
