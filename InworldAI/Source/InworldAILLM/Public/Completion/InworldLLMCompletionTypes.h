@@ -41,7 +41,7 @@ struct INWORLDAILLM_API FInworldLLMTextGenerationConfig
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService", meta = (DisplayName = "Max Tokens"))
-	int32 max_tokens = 100;
+	int32 max_tokens = 150;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService", meta = (DisplayName = "Temperature"))
 	float temperature = 0.5f;
