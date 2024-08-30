@@ -50,7 +50,11 @@ protected:
 	virtual void HandleComplete(bool bSuccess) PURE_VIRTUAL(UInworldLLMCompletionAsyncActionBase::HandleComplete)
 
 private:
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 3
 	void HandleOnRequestProgress64(FHttpRequestPtr Request, uint64 BytesSent, uint64 BytesReceived);
+#else
+	void HandleOnRequestProgress(FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived);
+#endif
 	void HandleOnProcessRequestComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess);
 	void HandleNextResponseChunk(FHttpResponsePtr Response);
 

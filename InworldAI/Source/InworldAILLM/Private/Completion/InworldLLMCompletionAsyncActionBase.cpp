@@ -37,7 +37,11 @@ void UInworldLLMCompletionAsyncActionBase::Activate()
     {
         HttpRequest->SetContentAsString(JsonString);
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 3
         HttpRequest->OnRequestProgress64().BindUObject(this, &UInworldLLMCompletionAsyncActionBase::HandleOnRequestProgress64);
+#else
+        HttpRequest->OnRequestProgress().BindUObject(this, &UInworldLLMCompletionAsyncActionBase::HandleOnRequestProgress);
+#endif
         HttpRequest->OnProcessRequestComplete().BindUObject(this, &UInworldLLMCompletionAsyncActionBase::HandleOnProcessRequestComplete);
 
         HttpRequest->ProcessRequest();
@@ -49,7 +53,11 @@ void UInworldLLMCompletionAsyncActionBase::Activate()
     }
 }
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION > 3
 void UInworldLLMCompletionAsyncActionBase::HandleOnRequestProgress64(FHttpRequestPtr Request, uint64 BytesSent, uint64 BytesReceived)
+#else
+void UInworldLLMCompletionAsyncActionBase::HandleOnRequestProgress(FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived)
+#endif
 {
     FHttpResponsePtr Response = Request->GetResponse();
     if (!Response.IsValid())
