@@ -7,6 +7,9 @@
 
 #include "Completion/InworldLLMCompletionAsyncActionBase.h"
 #include "HttpModule.h"
+#include "Serialization/JsonWriter.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 #include "InworldAILLMModule.h"
 #include "InworldAILLMSettings.h"
 
