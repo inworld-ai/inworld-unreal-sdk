@@ -27,10 +27,10 @@ struct INWORLDAILLM_API FInworldLLMCompleteChatMessage
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inworld LLM")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService")
 	EInworldLLMCompleteChatAuthorRole Role = EInworldLLMCompleteChatAuthorRole::USER;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inworld LLM")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService")
 	FString Content;
 };
 

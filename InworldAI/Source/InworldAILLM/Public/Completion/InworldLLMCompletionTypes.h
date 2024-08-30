@@ -40,25 +40,25 @@ struct INWORLDAILLM_API FInworldLLMTextGenerationConfig
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (DisplayName = "Max Tokens"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService", meta = (DisplayName = "Max Tokens"))
 	int32 max_tokens = 100;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (DisplayName = "Temperature"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService", meta = (DisplayName = "Temperature"))
 	float temperature = 0.5f;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (DisplayName = "Presence Penalty"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService", meta = (DisplayName = "Presence Penalty"))
 	float presence_penalty = 0.f;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (DisplayName = "Repetition Penalty"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService", meta = (DisplayName = "Repetition Penalty"))
 	float repetition_penalty = 1.f;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (DisplayName = "Frequency Penalty"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService", meta = (DisplayName = "Frequency Penalty"))
 	float frequency_penalty = 0.f;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (DisplayName = "Top P"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService", meta = (DisplayName = "Top P"))
 	float top_p = 1.f;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (DisplayName = "Stream"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService", meta = (DisplayName = "Stream"))
 	bool stream = false;
 };
 
