@@ -50,6 +50,17 @@
 			]
 		},
 		{
+			"Name": "InworldAILLM",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64",
+				"Mac",
+				"Android",
+				"IOS"
+			]
+		},
+		{
 			"Name": "InworldAIPlatform",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",

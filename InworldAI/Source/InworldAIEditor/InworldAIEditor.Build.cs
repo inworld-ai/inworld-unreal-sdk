@@ -40,6 +40,7 @@ public class InworldAIEditor : ModuleRules
                 "JsonUtilities",
                 "InworldAIClient",
                 "InworldAIIntegration",
+                "InworldAILLM",
                 "InworldAINDKLibrary",
                 "EditorStyle",
                 "UMGEditor",
