@@ -485,16 +485,23 @@ void UInworldClient::InitSpeechProcessor(EInworldPlayerSpeechMode Mode, const FI
 
 	switch (Mode)
 	{
-	case EInworldPlayerSpeechMode::Default:
+	case EInworldPlayerSpeechMode::DEFAULT:
 		Client->Get().InitSpeechProcessor(Inworld::ClientSpeechOptions_Default{});
 		break;
-	case EInworldPlayerSpeechMode::VAD_DetectOnly:
+	case EInworldPlayerSpeechMode::VAD_DETECT_ONLY:
 		Client->Get().InitSpeechProcessor(Inworld::ClientSpeechOptions_VAD_DetectOnly{ Options_VAD });
 		break;
-	case EInworldPlayerSpeechMode::VAD_DetectAndSendAudio:
-		Client->Get().InitSpeechProcessor(Inworld::ClientSpeechOptions_VAD_DetectAndSendAudio{ Options_VAD });
+	case EInworldPlayerSpeechMode::VAD_DETECT_AND_FILTER:
+		Client->Get().InitSpeechProcessor(Inworld::ClientSpeechOptions_VAD_DetectAndFilterAudio{ Options_VAD });
 		break;
 	}
+}
+
+void UInworldClient::DestroySpeechProcessor()
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->Get().DestroySpeechProcessor();
 }
 
 void UInworldClient::SendSoundMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)

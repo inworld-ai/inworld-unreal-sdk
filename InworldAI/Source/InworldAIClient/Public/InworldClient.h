@@ -103,6 +103,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void InitSpeechProcessor(EInworldPlayerSpeechMode Mode, const FInworldPlayerSpeechOptions& SpeechOptions);
+	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
+	void DestroySpeechProcessor();
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendSoundMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);

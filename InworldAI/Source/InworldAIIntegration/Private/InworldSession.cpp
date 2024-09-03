@@ -393,6 +393,13 @@ void UInworldSession::InitSpeechProcessor(EInworldPlayerSpeechMode Mode, const F
 	Client->InitSpeechProcessor(Mode, SpeechOptions);
 }
 
+void UInworldSession::DestroySpeechProcessor()
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->DestroySpeechProcessor();
+}
+
 void UInworldSession::SendSoundMessage(UInworldCharacter* Character, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
 	NO_CLIENT_RETURN(void())

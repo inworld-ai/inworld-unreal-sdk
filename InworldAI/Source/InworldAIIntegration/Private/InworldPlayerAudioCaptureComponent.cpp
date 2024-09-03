@@ -160,7 +160,7 @@ public:
 UInworldPlayerAudioCaptureComponent::UInworldPlayerAudioCaptureComponent(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
     , AudioSessionMode{ EInworldMicrophoneMode::OPEN_MIC, EInworldUnderstandingMode::FULL }
-    , PlayerSpeechMode{ EInworldPlayerSpeechMode::Default }
+    , PlayerSpeechMode{ EInworldPlayerSpeechMode::VAD_DETECT_ONLY }
 {
     PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.bTickEvenWhenPaused = true;
@@ -266,10 +266,17 @@ void UInworldPlayerAudioCaptureComponent::EndPlay(const EEndPlayReason::Type End
 
     if (GetOwnerRole() == ROLE_Authority)
     {
-        InworldPlayer->OnConversationChanged().Remove(OnPlayerConversationChanged);
+        if (InworldPlayer.IsValid())
+        {
+            InworldPlayer->OnConversationChanged().Remove(OnPlayerConversationChanged);
 
-        InworldPlayer->GetSession()->OnConnectionStateChanged().Remove(OnSessionConnectionStateChanged);
-        InworldPlayer->GetSession()->OnLoaded().Remove(OnSessionLoaded);
+            UInworldSession* InworldSession = InworldPlayer->GetSession();
+
+            InworldSession->OnConnectionStateChanged().Remove(OnSessionConnectionStateChanged);
+            InworldSession->OnLoaded().Remove(OnSessionLoaded);
+
+            InworldSession->DestroySpeechProcessor();
+        }
     }
 
     Super::EndPlay(EndPlayReason);
