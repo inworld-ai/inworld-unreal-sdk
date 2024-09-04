@@ -136,8 +136,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession();
-	
-	void HandleTargetPlayerVoiceDetection(bool bVoiceDetected);
 
 	UFUNCTION(BlueprintPure, Category = "Interaction")
 	FVector GetTargetPlayerCameraLocation();
