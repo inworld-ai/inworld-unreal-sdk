@@ -44,6 +44,7 @@ void UInworldCharacterComponent::OnRegister()
 	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
 	{
 		InworldCharacter = NewObject<UInworldCharacter>(this);
+		InworldCharacter->SetBrainName(BrainName);
 		OnRep_InworldCharacter();
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
 		AddReplicatedSubObject(InworldCharacter);
@@ -73,17 +74,25 @@ void UInworldCharacterComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 	UWorld* World = GetWorld();
-	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
-	{
-		InworldCharacter->SetSession(World->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession());
-	}
 
 #if WITH_EDITOR
-	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
+	if (World == nullptr || !World->IsPlayInEditor())
 	{
 		return;
 	}
 #endif
+
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	{
+		if (InworldSessionOwner)
+		{
+			InworldCharacter->SetSession(IInworldSessionOwnerInterface::Execute_GetInworldSession(InworldSessionOwner));
+		}
+		else if (bFindSession)
+		{
+			InworldCharacter->SetSession(World->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession());
+		}
+	}
 
     if (GetNetMode() != NM_DedicatedServer)
     {
@@ -104,17 +113,18 @@ void UInworldCharacterComponent::UninitializeComponent()
 	Super::UninitializeComponent();
 
 	UWorld* World = GetWorld();
-	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
-	{
-		InworldCharacter->SetSession(nullptr);
-	}
 
 #if WITH_EDITOR
-	if (GetWorld() == nullptr || !GetWorld()->IsPlayInEditor())
+	if (World == nullptr || !World->IsPlayInEditor())
 	{
 		return;
 	}
 #endif
+
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	{
+		InworldCharacter->SetSession(nullptr);
+	}
 
 	if (GetNetMode() != NM_DedicatedServer)
 	{
@@ -125,11 +135,6 @@ void UInworldCharacterComponent::UninitializeComponent()
 void UInworldCharacterComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (GetOwnerRole() == ROLE_Authority)
-	{
-		InworldCharacter->SetBrainName(BrainName);
-	}
 
     for (auto* Pb : Playbacks)
     {

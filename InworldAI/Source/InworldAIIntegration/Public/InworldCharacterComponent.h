@@ -136,8 +136,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession();
-	
-	void HandleTargetPlayerVoiceDetection(bool bVoiceDetected);
 
 	UFUNCTION(BlueprintPure, Category = "Interaction")
 	FVector GetTargetPlayerCameraLocation();
@@ -172,6 +170,11 @@ public:
 	TArray<TSubclassOf<UInworldCharacterPlayback>> PlaybackTypes;
 
 protected:
+	UPROPERTY(EditInstanceOnly, Category = "Inworld")
+	bool bFindSession = true;
+
+	UPROPERTY(EditInstanceOnly, Category = "Inworld", meta = (EditCondition = "!bFindSession", EditConditionHides, MustImplement = "/Script/InworldAIIntegration.InworldSessionOwnerInterface"))
+	AActor* InworldSessionOwner;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	FString UiName = "Character";

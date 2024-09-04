@@ -52,6 +52,7 @@ void UInworldSessionComponent::OnUnregister()
 
 	if (IsValid(InworldSession))
 	{
+		InworldSession->Destroy();
 #if ENGINE_MAJOR_VERSION == 5
 		InworldSession->MarkAsGarbage();
 #endif
