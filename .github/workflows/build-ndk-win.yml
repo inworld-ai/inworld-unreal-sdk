@@ -6,11 +6,9 @@ on:
 
 jobs:
   build-ndk-win:
-    runs-on: [ self-hosted, Windows, X64, w10-1344 ]
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
     - name: git-update-dependecies
       run: git submodule update --init
     - name: Find NDK SHA
