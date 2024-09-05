@@ -246,6 +246,11 @@ bool UInworldCharacterComponent::IsInteractingWithPlayer() const
 	return InworldCharacter != nullptr && InworldCharacter->GetTargetPlayer() != nullptr;
 }
 
+void UInworldCharacterComponent::Interrupt()
+{
+	MessageQueue->TryToInterrupt({});
+}
+
 void UInworldCharacterComponent::Interrupt(const FString& InterruptingInteractionId)
 {
 	EMPTY_ARG_RETURN(InterruptingInteractionId, void())
