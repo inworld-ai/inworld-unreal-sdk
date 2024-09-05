@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-ndk-win:
-    runs-on: [ self-hosted, Windows, X64, w10-1344 ]
+    runs-on: windows-2019
     steps:
     - uses: actions/checkout@v4
     - name: git-update-dependecies
