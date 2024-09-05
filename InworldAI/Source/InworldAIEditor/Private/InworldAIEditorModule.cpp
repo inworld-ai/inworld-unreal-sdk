@@ -11,6 +11,7 @@
 #include "InworldEditorApi.h"
 #include "InworldAIIntegrationSettings.h"
 #include "InworldAIEditorSettings.h"
+#include "InworldAILLMSettings.h"
 #include "PluginData/InworldMetahumanEditorSettings.h"
 #include "PluginData/InworldInnequinEditorSettings.h"
 #include "Style/InworldEditorUIStyle.h"
@@ -48,6 +49,10 @@ void FInworldAIEditorModule::StartupModule()
 			LOCTEXT("InworldSettingsName", "InworldAI - Editor"), LOCTEXT("InworldSettingsDescription", "Inworld AI Editor Settings"),
 			GetMutableDefault<UInworldAIEditorSettings>());
 
+		SettingsModule->RegisterSettings("Project", "Plugins", "InworldAIELLMSettings",
+			LOCTEXT("InworldLLMSettingsName", "InworldAI - LLM"), LOCTEXT("InworldSettingsDescription", "Inworld AI LLM Settings"),
+			GetMutableDefault<UInworldAILLMSettings>());
+
 		if (IPluginManager::Get().FindPlugin("InworldMetahuman").IsValid())
 		{
 			SettingsModule->RegisterSettings("Project", "Plugins", "InworldAIMetahumanSettings",
@@ -82,6 +87,7 @@ void FInworldAIEditorModule::ShutdownModule()
 		SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAIIntegrationSettings");
 
 		SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAIEditorSettings");
+		SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAILLMSettings");
 
 		if (IPluginManager::Get().FindPlugin("InworldMetahuman").IsValid())
 		{
