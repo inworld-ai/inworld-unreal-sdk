@@ -9,6 +9,7 @@
 #include "IAssetTools.h"
 #include "ContentBrowserModule.h"
 #include "InworldEditorApi.h"
+#include "InworldAIClientSettings.h"
 #include "InworldAIEditorSettings.h"
 #include "InworldAILLMSettings.h"
 #include "PluginData/InworldMetahumanEditorSettings.h"
@@ -39,12 +40,16 @@ void FInworldAIEditorModule::StartupModule()
 	ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 	if (SettingsModule)
 	{
+		SettingsModule->RegisterSettings("Project", "Plugins", "InworldAIClientSettings",
+			LOCTEXT("InworldClientSettingsName", "InworldAI - Client"), LOCTEXT("InworldClientSettingsDescription", "Inworld AI Client Settings"),
+			GetMutableDefault<UInworldAIClientSettings>());
+
 		SettingsModule->RegisterSettings("Project", "Plugins", "InworldAIEditorSettings",
-			LOCTEXT("InworldSettingsName", "InworldAI"), LOCTEXT("InworldSettingsDescription", "Inworld AI Editor Settings"),
+			LOCTEXT("InworldEditorSettingsName", "InworldAI - Editor"), LOCTEXT("InworldEditorSettingsDescription", "Inworld AI Editor Settings"),
 			GetMutableDefault<UInworldAIEditorSettings>());
 
-		SettingsModule->RegisterSettings("Project", "Plugins", "InworldAIELLMSettings",
-			LOCTEXT("InworldLLMSettingsName", "InworldAI - LLM"), LOCTEXT("InworldSettingsDescription", "Inworld AI LLM Settings"),
+		SettingsModule->RegisterSettings("Project", "Plugins", "InworldAILLMSettings",
+			LOCTEXT("InworldLLMSettingsName", "InworldAI - LLM"), LOCTEXT("InworldLLMSettingsDescription", "Inworld AI LLM Settings"),
 			GetMutableDefault<UInworldAILLMSettings>());
 
 		if (IPluginManager::Get().FindPlugin("InworldMetahuman").IsValid())
@@ -78,6 +83,7 @@ void FInworldAIEditorModule::ShutdownModule()
 	ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 	if (SettingsModule)
 	{
+		SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAIClientSettings");
 		SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAIEditorSettings");
 		SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAILLMSettings");
 

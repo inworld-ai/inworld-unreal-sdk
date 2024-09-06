@@ -110,6 +110,18 @@ struct FInworldSessionToken
 };
 
 USTRUCT(BlueprintType)
+struct FInworldScene
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Scene")
+    EInworldSceneType Type = EInworldSceneType::SCENE;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Scene")
+    FString Name = "";
+};
+
+USTRUCT(BlueprintType)
 struct FInworldSave
 {
 	GENERATED_BODY()
@@ -122,9 +134,6 @@ USTRUCT(BlueprintType)
 struct FInworldEnvironment
 {
     GENERATED_BODY()
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
-    FString AuthUrl = "";
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
     FString TargetUrl = "";

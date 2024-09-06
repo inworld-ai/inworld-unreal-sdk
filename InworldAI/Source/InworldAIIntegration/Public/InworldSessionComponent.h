@@ -45,7 +45,7 @@ public:
 	FOnInworldSessionLoadedNative& OnLoaded() { return OnSessionLoadedDelegateNative; }
 
 	UFUNCTION(BlueprintCallable, Category = "Session")
-	void StartSessionFromSceneId(const FString& SceneId);
+	void StartSessionFromScene(const FInworldScene& Scene);
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StartSessionFromSave(const FInworldSave& Save);
 	UFUNCTION(BlueprintCallable, Category = "Session")
@@ -90,9 +90,6 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")
 	TMap<FString, FString> Metadata;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Config|Internal")
-	FInworldEnvironment Environment;
 
 	FTimerHandle RetryConnectionTimerHandle;
 

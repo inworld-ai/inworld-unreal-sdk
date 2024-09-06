@@ -64,9 +64,13 @@ public:
 	UInworldClient();
 	~UInworldClient();
 
-	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
-	void StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
-		const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata);
+	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, AuthOverride"))
+	void StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FInworldAuth& AuthOverride);
+	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, AuthOverride"))
+	void StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FInworldAuth& AuthOverride);
+	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, AuthOverride"))
+	void StartSessionFromToken(const FInworldSessionToken& SessionToken, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FInworldAuth& AuthOverride);
+
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
 	UFUNCTION(BlueprintCallable, Category = "Session")
@@ -172,10 +176,6 @@ public:
 	FOnInworldPerceivedLatency OnPerceivedLatencyDelegate;
 	FOnInworldPerceivedLatencyNative& OnPerceivedLatency() { return OnPerceivedLatencyDelegateNative; }
 
-	// Used for internal Inworld SDK testing - not documented, do not use.
-	UFUNCTION(BlueprintCallable, Category = "Inworld Development")
-	void SetEnvironment(const FInworldEnvironment& InEnvironment) { Environment = InEnvironment; }
-
 	FOnInworldVADNative& OnVAD() { return OnVADDelegateNative; }
 
 private:
@@ -198,8 +198,6 @@ private:
 	static FAutoConsoleVariableSink CVarSink;
 	static void OnCVarsChanged();
 #endif
-
-	FInworldEnvironment Environment;
 
 	TUniquePtr<NDKClient> Client;
 };

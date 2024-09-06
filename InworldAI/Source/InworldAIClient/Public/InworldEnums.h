@@ -97,6 +97,14 @@ enum class EInworldActorType : uint8
 };
 
 UENUM(BlueprintType)
+enum class EInworldSceneType : uint8
+{
+	UNKNOWN = 0 UMETA(Hidden),
+	SCENE = 1,
+	CHARACTER = 2,
+};
+
+UENUM(BlueprintType)
 enum class EInworldControlEventAction : uint8
 {
 	UNKNOWN = 0,

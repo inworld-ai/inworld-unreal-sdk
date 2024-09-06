@@ -72,11 +72,9 @@ UInworldSession* UInworldApiSubsystem::GetInworldSession()
     return InworldSession;
 }
 
-void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride, const FString& TargetUrlOverride, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)
+void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& Token, int64 TokenExpirationTime, const FString& SessionId)
 {
     NO_CLIENT_RETURN(void())
-    EMPTY_ARG_RETURN(ApiKey, void())
-    EMPTY_ARG_RETURN(ApiSecret, void())
 
     FInworldPlayerProfile PlayerProfile;
     PlayerProfile.Name = PlayerName;
@@ -90,29 +88,32 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     SessionToken.ExpirationTime = TokenExpirationTime;
     SessionToken.SessionId = SessionId;
 
-    FInworldEnvironment Environment;
-    Environment.AuthUrl = AuthUrlOverride;
-    Environment.TargetUrl = TargetUrlOverride;
-
-    InworldSession->GetClient()->StartSession(PlayerProfile, Auth, SceneName, FInworldSave(), SessionToken, {}, {}, {});
+    StartSession_V2(SceneName, PlayerProfile, {}, Auth, SessionToken, {}, {});
 }
 
-void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride, FInworldSave SavedSessionState)
+void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, FString UniqueUserIdOverride, FInworldSave SavedSessionState)
 {
     NO_CLIENT_RETURN(void())
 
-    const bool bValidAuth = !Auth.Base64Signature.IsEmpty() || (!Auth.ApiKey.IsEmpty() && !Auth.ApiSecret.IsEmpty());
-    if (!bValidAuth)
-    {
-        UE_LOG(LogInworldAIIntegration, Error, TEXT("Can't Start Session, either Base64Signature or both ApiKey and ApiSecret need to be not empty"));
-        return;
-    }
     if (PlayerProfile.ProjectName.IsEmpty())
     {
         UE_LOG(LogInworldAIIntegration, Warning, TEXT("Start Session, please provide unique PlayerProfile.ProjectName for possible troubleshooting"));
     }
 
-    InworldSession->GetClient()->StartSession(PlayerProfile, Auth, SceneName, SavedSessionState, SessionToken, Capabilities, {}, {});
+    if (!SavedSessionState.Data.IsEmpty())
+    {
+        InworldSession->GetClient()->StartSessionFromSave(SavedSessionState, PlayerProfile, Capabilities, {}, Auth);
+    }
+    else if (!SessionToken.Token.IsEmpty())
+    {
+        InworldSession->GetClient()->StartSessionFromToken(SessionToken, PlayerProfile, Capabilities, {}, Auth);
+    }
+    else
+    {
+        FInworldScene Scene;
+        Scene.Name = SceneName;
+        InworldSession->GetClient()->StartSessionFromScene(Scene, PlayerProfile, Capabilities, {}, Auth);
+    }
 }
 
 void UInworldApiSubsystem::PauseSession()

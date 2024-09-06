@@ -279,12 +279,25 @@ void UInworldSession::UnregisterPlayer(UInworldPlayer* Player)
 	RegisteredPlayers.Remove(Player);
 }
 
-void UInworldSession::StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
-	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata)
+void UInworldSession::StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FInworldAuth& AuthOverride)
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->StartSession(PlayerProfile, Auth, SceneId, Save, SessionToken, CapabilitySet, SpeechOptions, Metadata);
+	Client->StartSessionFromScene(Scene, PlayerProfile, CapabilitySet, Metadata, AuthOverride);
+}
+
+void UInworldSession::StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FInworldAuth& AuthOverride)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->StartSessionFromSave(Save, PlayerProfile, CapabilitySet, Metadata, AuthOverride);
+}
+
+void UInworldSession::StartSessionFromToken(const FInworldSessionToken& SessionToken, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FInworldAuth& AuthOverride)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->StartSessionFromToken(SessionToken, PlayerProfile, CapabilitySet, Metadata, AuthOverride);
 }
 
 void UInworldSession::StopSession()
