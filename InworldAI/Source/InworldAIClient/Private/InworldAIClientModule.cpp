@@ -7,37 +7,16 @@
 
 #include "InworldAIClientModule.h"
 
-THIRD_PARTY_INCLUDES_START
-#include "Utils/Log.h"
-THIRD_PARTY_INCLUDES_END
-
 #define LOCTEXT_NAMESPACE "FInworldAIClientModule"
 
 DEFINE_LOG_CATEGORY(LogInworldAIClient);
 
-DEFINE_LOG_CATEGORY(LogInworldAINDK);
-
 void FInworldAIClientModule::StartupModule()
 {
-	Inworld::SetLogCallbacks(
-		[](const char* message)
-		{
-			UE_LOG(LogInworldAINDK, Log, TEXT("%s"), UTF8_TO_TCHAR(message));
-		},
-		[](const char* message)
-		{
-			UE_LOG(LogInworldAINDK, Warning, TEXT("%s"), UTF8_TO_TCHAR(message));
-		},
-		[](const char* message)
-		{
-			UE_LOG(LogInworldAINDK, Error, TEXT("%s"), UTF8_TO_TCHAR(message));
-		}
-	);
 }
 
 void FInworldAIClientModule::ShutdownModule()
 {
-	Inworld::ClearLogCallbacks();
 }
 
 #undef LOCTEXT_NAMESPACE
