@@ -36,6 +36,7 @@ header:
     - '.mvn'
     - 'apm-protocol/apm-network/src/main/proto/.gitignore'
     - 'codeStyle.xml'
+    - '**/.clang-format'
     - 'docker/.env'
     - 'dist'
     - 'licenses'
