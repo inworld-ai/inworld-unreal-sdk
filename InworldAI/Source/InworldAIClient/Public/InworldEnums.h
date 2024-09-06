@@ -100,8 +100,8 @@ UENUM(BlueprintType)
 enum class EInworldSceneType : uint8
 {
 	UNKNOWN = 0 UMETA(Hidden),
-	SCENE = 1,
-	CHARACTER = 2,
+	SCENE = 1 UMETA(DisplayName = "Scene"),
+	CHARACTER = 2 UMETA(DisplayName = "Character"),
 };
 
 UENUM(BlueprintType)
