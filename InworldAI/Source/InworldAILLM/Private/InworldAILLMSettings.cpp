@@ -11,5 +11,6 @@
 UInworldAILLMSettings::UInworldAILLMSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	Model = "inworld-dragon";
+	URL = { "api.inworld.ai" };
+	Model = { "inworld-dragon" };
 }
