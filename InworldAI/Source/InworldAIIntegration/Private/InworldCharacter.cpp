@@ -121,12 +121,12 @@ void UInworldCharacter::SendNarrationEvent(const FString& Content)
 	Session->SendNarrationEvent(this, Content);
 }
 
-void UInworldCharacter::SendAudioSessionStart(UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions)
+void UInworldCharacter::SendAudioSessionStart(FInworldAudioSessionOptions SessionOptions)
 {
 	NO_SESSION_RETURN(void())
 	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
 
-	Session->SendAudioSessionStart(this, Player, SessionOptions);
+	Session->SendAudioSessionStart(this, SessionOptions);
 }
 
 void UInworldCharacter::SendAudioSessionStop()
@@ -245,25 +245,18 @@ void UInworldCharacter::OnRep_TargetPlayer(UInworldPlayer* OldTargetPlayer)
 {
 	OnTargetPlayerChangedDelegateNative.Broadcast();
 	OnTargetPlayerChangedDelegate.Broadcast();
-
-	if (OldTargetPlayer && OnVADHandle.IsValid())
-	{
-		OldTargetPlayer->OnVoiceDetection().Remove(OnVADHandle);
-	}
-	if (TargetPlayer)
-	{
-		OnVADHandle = TargetPlayer->OnVoiceDetection().AddLambda(
-			[this](bool bVoiceDetected) -> void
-		{
-			GetInworldCharacterOwner()->HandleTargetPlayerVoiceDetection(bVoiceDetected);
-		});
-	}
 }
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldTextEvent& Event)
 {
 	Character->OnInworldTextEventDelegateNative.Broadcast(Event);
 	Character->OnInworldTextEventDelegate.Broadcast(Event);
+}
+
+void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldVADEvent& Event)
+{
+	Character->OnInworldVADEventDelegateNative.Broadcast(Event);
+	Character->OnInworldVADEventDelegate.Broadcast(Event);
 }
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldAudioDataEvent& Event)

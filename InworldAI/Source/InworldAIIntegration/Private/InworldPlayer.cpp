@@ -242,13 +242,6 @@ void UInworldPlayer::ClearAllTargetCharacters()
 	}
 }
 
-void UInworldPlayer::SetVoiceDetected(bool bVal)
-{
-	const bool bOldValue = bVoiceDetected;
-	bVoiceDetected = bVal;
-	OnRep_VoiceDetected(bOldValue);
-}
-
 void UInworldPlayer::OnRep_VoiceDetected(bool bOldValue)
 {
 	if (bVoiceDetected != bOldValue)
@@ -277,6 +270,13 @@ void UInworldPlayer::UpdateConversation()
 	{
 		SendAudioSessionStartToConversation(AudioSessionMode);
 	}
+}
+
+void UInworldPlayer::FInworldPlayerPacketVisitor::Visit(const FInworldVADEvent& Event)
+{
+	const bool bOldValue = Player->bVoiceDetected;
+	Player->bVoiceDetected = Event.VoiceDetected;
+	Player->OnRep_VoiceDetected(bOldValue);
 }
 
 void UInworldPlayer::FInworldPlayerPacketVisitor::Visit(const FInworldConversationUpdateEvent& Event)
