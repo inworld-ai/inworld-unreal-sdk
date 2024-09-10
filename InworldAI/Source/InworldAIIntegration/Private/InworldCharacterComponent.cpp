@@ -362,7 +362,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 		OnPlayerTalk.Broadcast(PlayerTalk);
 
 		TSharedPtr<FCharacterMessage> CurrentMessage = GetCurrentMessage();
-		if (CurrentMessage.IsValid() && CurrentMessage->InteractionId != Event.PacketId.InteractionId)
+		if (!CurrentMessage.IsValid() || CurrentMessage->InteractionId != Event.PacketId.InteractionId)
 		{
 			Interrupt(Event.PacketId.InteractionId);
 		}
