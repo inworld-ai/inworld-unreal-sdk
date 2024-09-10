@@ -54,7 +54,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Narration")
 	void SendNarrationEvent(const FString& Content);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions);
+	void SendAudioSessionStart(FInworldAudioSessionOptions SessionOptions);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStop();
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
@@ -99,6 +99,9 @@ public:
 	FOnInworldTextEvent OnInworldTextEventDelegate;
 	FOnInworldTextEventNative& OnInworldTextEvent() { return OnInworldTextEventDelegateNative; }
 	UPROPERTY(BlueprintAssignable, Category = "Event")
+	FOnInworldVADEvent OnInworldVADEventDelegate;
+	FOnInworldVADEventNative& OnInworldVADEvent() { return OnInworldVADEventDelegateNative; }
+	UPROPERTY(BlueprintAssignable, Category = "Event")
 	FOnInworldAudioEvent OnInworldAudioEventDelegate;
 	FOnInworldAudioEventNative& OnInworldAudioEvent() { return OnInworldAudioEventDelegateNative; }
 	UPROPERTY(BlueprintAssignable, Category = "Event")
@@ -136,6 +139,7 @@ private:
 	FOnInworldCharacterTargetPlayerChangedNative OnTargetPlayerChangedDelegateNative;
 
 	FOnInworldTextEventNative OnInworldTextEventDelegateNative;
+	FOnInworldVADEventNative OnInworldVADEventDelegateNative;
 	FOnInworldAudioEventNative OnInworldAudioEventDelegateNative;
 	FOnInworldA2FHeaderEventNative OnInworldA2FHeaderEventDelegateNative;
 	FOnInworldA2FContentEventNative OnInworldA2FContentEventDelegateNative;
@@ -143,8 +147,6 @@ private:
 	FOnInworldControlEventNative OnInworldControlEventDelegateNative;
 	FOnInworldEmotionEventNative OnInworldEmotionEventDelegateNative;
 	FOnInworldCustomEventNative OnInworldCustomEventDelegateNative;
-
-	FDelegateHandle OnVADHandle;
 
 	class FInworldCharacterPacketVisitor : public TSharedFromThis<FInworldCharacterPacketVisitor>, public InworldPacketVisitor
 	{
@@ -158,6 +160,7 @@ private:
 		virtual ~FInworldCharacterPacketVisitor() = default;
 
 		virtual void Visit(const FInworldTextEvent& Event) override;
+		virtual void Visit(const FInworldVADEvent& Event) override;
 		virtual void Visit(const FInworldAudioDataEvent& Event) override;
 		virtual void Visit(const FInworldA2FHeaderEvent& Event) override;
 		virtual void Visit(const FInworldA2FContentEvent& Event) override;
@@ -186,6 +189,4 @@ class INWORLDAIINTEGRATION_API IInworldCharacterOwnerInterface
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
 	UInworldCharacter* GetInworldCharacter() const;
-
-	virtual void HandleTargetPlayerVoiceDetection(bool bVoiceDetected) {}
 };

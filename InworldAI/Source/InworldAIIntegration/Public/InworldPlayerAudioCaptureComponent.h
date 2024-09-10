@@ -120,7 +120,11 @@ protected:
 	FInworldAudioSessionOptions AudioSessionMode;
     bool bIsAudioSessionModeDirty = false;
 
-    bool bSessionPendingPause = false;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+    EInworldPlayerSpeechMode PlayerSpeechMode;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio", meta = (EditCondition = "PlayerSpeechMode != EInworldPlayerSpeechMode::Default", EditConditionHides))
+    FInworldPlayerSpeechOptions PlayerSpeechOptions;
 
 private:
 	UFUNCTION()
@@ -137,6 +141,7 @@ private:
     FDelegateHandle OnSessionPrePause;
     FDelegateHandle OnSessionConnectionStateChanged;
     FDelegateHandle OnSessionLoaded;
+	bool bSessionPendingPause = false;
 
     TSharedPtr<FInworldAudioCapture> InputAudioCapture;
     TSharedPtr<FInworldAudioCapture> OutputAudioCapture;

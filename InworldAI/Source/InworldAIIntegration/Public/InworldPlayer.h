@@ -116,8 +116,6 @@ public:
 	bool HasAudioSession() const { return bHasAudioSession; }
 	EInworldMicrophoneMode GetMicMode() const { return AudioSessionMode.MicrophoneMode; }
 
-	void SetVoiceDetected(bool bVal);
-
 private:
 	void UpdateConversation();
 
@@ -159,6 +157,7 @@ private:
 		{}
 		virtual ~FInworldPlayerPacketVisitor() = default;
 
+		virtual void Visit(const FInworldVADEvent& Event) override;
 		virtual void Visit(const FInworldConversationUpdateEvent& Event) override;
 
 	private:
