@@ -44,12 +44,8 @@ public:
 	FOnInworldSessionLoaded OnSessionLoadedDelegate;
 	FOnInworldSessionLoadedNative& OnLoaded() { return OnSessionLoadedDelegateNative; }
 
-	UFUNCTION(BlueprintCallable, Category = "Session")
-	void StartSessionFromSceneId(const FString& SceneId);
-	UFUNCTION(BlueprintCallable, Category = "Session")
-	void StartSessionFromSave(const FInworldSave& Save);
-	UFUNCTION(BlueprintCallable, Category = "Session")
-	void StartSessionFromToken(const FInworldSessionToken& Token);
+	UFUNCTION(BlueprintCallable, Category = "Session", meta = (DisplayName = "StartSession", AdvancedDisplay = "1", AutoCreateRefTerm = "Save, Token"))
+	void StartSession(const FString& SceneId, const FInworldSave& Save, const FInworldSessionToken& Token);
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
 	UFUNCTION(BlueprintCallable, Category = "Session")
