@@ -270,20 +270,8 @@ static void ConvertPlayerProfile(const FInworldPlayerProfile& PlayerProfile, Inw
 	}
 }
 
-static void ConvertSpeechOptions(const FInworldPlayerSpeechOptions& SpeechOptions, Inworld::ClientSpeechOptions& OutSpeechOptions)
-{
-	OutSpeechOptions.VADProbThreshhold = SpeechOptions.VADProbThreshhold;
-	OutSpeechOptions.VADBufferChunksNum = SpeechOptions.VADBufferChunksNum;
-	OutSpeechOptions.VADSilenceChunksNum = SpeechOptions.VADSilenceChunksNum;
-	OutSpeechOptions.Mode = static_cast<Inworld::ClientSpeechOptions::SpeechMode>(SpeechOptions.Mode);
-
-	const FString Path = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/InworldAINDKLibrary/resource/silero_vad_10_27_2022.onnx"));
-	const std::string ModelPath = TCHAR_TO_UTF8(*Path);
-	OutSpeechOptions.VADModelPath = ModelPath;
-}
-
 void UInworldClient::StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
-	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata)
+	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata)
 {
 	NO_CLIENT_RETURN(void())
 
@@ -306,12 +294,6 @@ void UInworldClient::StartSession(const FInworldPlayerProfile& PlayerProfile, co
 
 	ConvertPlayerProfile(PlayerProfile, Options.UserConfig);
 	ConvertCapabilities(CapabilitySet, Options.Capabilities);
-	ConvertSpeechOptions(SpeechOptions, Options.SpeechOptions);
-
-	Options.SpeechOptions.VADCb = [this](bool bVoiceDetected)
-	{
-		OnVADDelegateNative.Broadcast(AudioSessionOwner, bVoiceDetected);
-	};
 
 	for (const TPair<FString, FString>& Entry : Metadata)
 	{
@@ -339,7 +321,6 @@ void UInworldClient::StopSession()
 	OnPreStopDelegateNative.Broadcast();
 	OnPreStopDelegate.Broadcast();
 
-	AudioSessionOwner = nullptr;
 	Client->Get().StopClient();
 }
 
@@ -490,6 +471,39 @@ FInworldWrappedPacket UInworldClient::SendTextMessageToConversation(const FStrin
 	return PacketTranslator.GetPacket();
 }
 
+void UInworldClient::InitSpeechProcessor(EInworldPlayerSpeechMode Mode, const FInworldPlayerSpeechOptions& SpeechOptions)
+{
+	NO_CLIENT_RETURN(void())
+
+	const FString Path = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/InworldAINDKLibrary/resource/silero_vad_10_27_2022.onnx"));
+
+	Inworld::ClientSpeechOptions_VAD Options_VAD;
+	Options_VAD.VADModelPath = TCHAR_TO_UTF8(*Path);
+	Options_VAD.VADProbThreshhold = SpeechOptions.VADProbThreshhold;
+	Options_VAD.VADBufferChunksNum = SpeechOptions.VADBufferChunksNum;
+	Options_VAD.VADSilenceChunksNum = SpeechOptions.VADSilenceChunksNum;
+
+	switch (Mode)
+	{
+	case EInworldPlayerSpeechMode::DEFAULT:
+		Client->Get().InitSpeechProcessor(Inworld::ClientSpeechOptions_Default{});
+		break;
+	case EInworldPlayerSpeechMode::VAD_DETECT_ONLY:
+		Client->Get().InitSpeechProcessor(Inworld::ClientSpeechOptions_VAD_DetectOnly{ Options_VAD });
+		break;
+	case EInworldPlayerSpeechMode::VAD_DETECT_AND_FILTER:
+		Client->Get().InitSpeechProcessor(Inworld::ClientSpeechOptions_VAD_DetectAndFilterAudio{ Options_VAD });
+		break;
+	}
+}
+
+void UInworldClient::DestroySpeechProcessor()
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->Get().DestroySpeechProcessor();
+}
+
 void UInworldClient::SendSoundMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
 	NO_CLIENT_RETURN(void())
@@ -528,12 +542,10 @@ void UInworldClient::SendSoundMessageToConversation(const FString& ConversationI
 	}
 }
 
-void UInworldClient::SendAudioSessionStart(const FString& AgentId, UObject* Owner, FInworldAudioSessionOptions SessionOptions)
+void UInworldClient::SendAudioSessionStart(const FString& AgentId, FInworldAudioSessionOptions SessionOptions)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(AgentId, void())
-
-	AudioSessionOwner = Owner;
 
 	Inworld::AudioSessionStartPayload AudioPayload;
 	AudioPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(SessionOptions.MicrophoneMode);
@@ -541,12 +553,10 @@ void UInworldClient::SendAudioSessionStart(const FString& AgentId, UObject* Owne
 	Client->Get().StartAudioSession(TCHAR_TO_UTF8(*AgentId), AudioPayload);
 }
 
-void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, UObject* Owner, FInworldAudioSessionOptions SessionOptions)
+void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, FInworldAudioSessionOptions SessionOptions)
 {
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
-
-	AudioSessionOwner = Owner;
 
 	Inworld::AudioSessionStartPayload AudioPayload;
 	AudioPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(SessionOptions.MicrophoneMode);
@@ -559,7 +569,6 @@ void UInworldClient::SendAudioSessionStop(const FString& AgentId)
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(AgentId, void())
 
-	AudioSessionOwner = nullptr;
 	Client->Get().StopAudioSession(TCHAR_TO_UTF8(*AgentId));
 }
 
@@ -568,7 +577,6 @@ void UInworldClient::SendAudioSessionStopToConversation(const FString& Conversat
 	NO_CLIENT_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
 
-	AudioSessionOwner = nullptr;
 	Client->Get().StopAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId));
 }
 

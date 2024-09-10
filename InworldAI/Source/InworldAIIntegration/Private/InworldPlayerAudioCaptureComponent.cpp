@@ -159,6 +159,8 @@ public:
 
 UInworldPlayerAudioCaptureComponent::UInworldPlayerAudioCaptureComponent(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
+    , AudioSessionMode{ EInworldMicrophoneMode::OPEN_MIC, EInworldUnderstandingMode::FULL }
+    , PlayerSpeechMode{ EInworldPlayerSpeechMode::VAD_DETECT_ONLY }
 {
     PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.bTickEvenWhenPaused = true;
@@ -181,26 +183,30 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
                     EvaluateVoiceCapture();
                 }
             );
-            OnSessionPrePause = InworldPlayer->GetSession()->OnPrePause().AddLambda(
+
+            UInworldSession* InworldSession = InworldPlayer->GetSession();
+
+            OnSessionPrePause = InworldSession->OnPrePause().AddLambda(
                 [this]()
                 {
                     bSessionPendingPause = true;
                     EvaluateVoiceCapture();
                 }
             );
-            OnSessionConnectionStateChanged = InworldPlayer->GetSession()->OnConnectionStateChanged().AddLambda(
+            OnSessionConnectionStateChanged = InworldSession->OnConnectionStateChanged().AddLambda(
                 [this](EInworldConnectionState ConnectionState) -> void
                 {
                     bSessionPendingPause = false;
                     EvaluateVoiceCapture();
                 }
             );
-            OnSessionLoaded = InworldPlayer->GetSession()->OnLoaded().AddLambda(
+            OnSessionLoaded = InworldSession->OnLoaded().AddLambda(
                 [this](bool bLoaded) -> void
                 {
                     EvaluateVoiceCapture();
                 }
             );
+            InworldSession->InitSpeechProcessor(PlayerSpeechMode, PlayerSpeechOptions);
         }
 
         PrimaryComponentTick.SetTickFunctionEnable(false);
@@ -260,10 +266,17 @@ void UInworldPlayerAudioCaptureComponent::EndPlay(const EEndPlayReason::Type End
 
     if (GetOwnerRole() == ROLE_Authority)
     {
-        InworldPlayer->OnConversationChanged().Remove(OnPlayerConversationChanged);
+        if (InworldPlayer.IsValid())
+        {
+            InworldPlayer->OnConversationChanged().Remove(OnPlayerConversationChanged);
 
-        InworldPlayer->GetSession()->OnConnectionStateChanged().Remove(OnSessionConnectionStateChanged);
-        InworldPlayer->GetSession()->OnLoaded().Remove(OnSessionLoaded);
+            UInworldSession* InworldSession = InworldPlayer->GetSession();
+
+            InworldSession->OnConnectionStateChanged().Remove(OnSessionConnectionStateChanged);
+            InworldSession->OnLoaded().Remove(OnSessionLoaded);
+
+            InworldSession->DestroySpeechProcessor();
+        }
     }
 
     Super::EndPlay(EndPlayReason);

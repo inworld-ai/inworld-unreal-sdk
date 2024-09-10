@@ -168,6 +168,19 @@ FString FInworldPacket::ToDebugString() const
 	return Str;
 }
 
+void FInworldTextEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("Text"));
+	AppendToDebugString(Str, Text);
+	AppendToDebugString(Str, Final ? TEXT("Final") : TEXT("Not final"));
+}
+
+void FInworldVADEvent::AppendDebugString(FString& Str) const
+{
+	AppendToDebugString(Str, TEXT("Voice Activity"));
+	AppendToDebugString(Str, VoiceDetected ? TEXT("Detected") : TEXT("Not Detected"));
+}
+
 void FInworldDataEvent::Serialize(FMemoryArchive& Ar)
 {
 	FInworldPacket::Serialize(Ar);
@@ -210,13 +223,6 @@ void FInworldA2FHeaderEvent::AppendDebugString(FString& Str) const
 
 void FInworldA2FContentEvent::AppendDebugString(FString& Str) const
 {
-}
-
-void FInworldTextEvent::AppendDebugString(FString& Str) const
-{
-	AppendToDebugString(Str, TEXT("Text"));
-	AppendToDebugString(Str, Text);
-	AppendToDebugString(Str, Final ? TEXT("Final") : TEXT("Not final"));
 }
 
 void FInworldSilenceEvent::AppendDebugString(FString& Str) const
