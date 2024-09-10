@@ -58,6 +58,13 @@ void InworldPacketTranslator::TranslateEvent<Inworld::TextEvent, FInworldTextEve
 }
 
 template<>
+void InworldPacketTranslator::TranslateEvent<Inworld::VADEvent, FInworldVADEvent>(const Inworld::VADEvent& Original, FInworldVADEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+	New.VoiceDetected = Original.IsVoiceDetected();
+}
+
+template<>
 void InworldPacketTranslator::TranslateEvent<Inworld::DataEvent, FInworldDataEvent>(const Inworld::DataEvent& Original, FInworldDataEvent& New)
 {
 	TranslateInworldPacket(Original, New);
