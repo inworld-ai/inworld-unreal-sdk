@@ -133,6 +133,7 @@ struct INWORLDAICLIENT_API FInworldPacketId
 };
 
 struct FInworldTextEvent;
+struct FInworldVADEvent;
 struct FInworldDataEvent;
 struct FInworldAudioDataEvent;
 struct FInworldA2FHeaderEvent;
@@ -151,6 +152,7 @@ class InworldPacketVisitor
 {
 public:
 	virtual void Visit(const FInworldTextEvent& Event) {  }
+	virtual void Visit(const FInworldVADEvent& Event) {  }
 	virtual void Visit(const FInworldDataEvent& Event) {  }
 	virtual void Visit(const FInworldAudioDataEvent& Event) {  }
 	virtual void Visit(const FInworldA2FHeaderEvent& Event) {  }
@@ -207,6 +209,23 @@ struct INWORLDAICLIENT_API FInworldPacket
 
 protected:
 	virtual void AppendDebugString(FString& Str) const PURE_VIRTUAL(FInworldPacket::AppendDebugString);
+};
+
+USTRUCT(BlueprintType)
+struct INWORLDAICLIENT_API FInworldVADEvent : public FInworldPacket
+{
+	GENERATED_BODY()
+
+	FInworldVADEvent() = default;
+	virtual ~FInworldVADEvent() = default;
+
+	virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+
+	UPROPERTY()
+	bool VoiceDetected = false;
+
+protected:
+	virtual void AppendDebugString(FString& Str) const override;
 };
 
 USTRUCT(BlueprintType)
