@@ -10,7 +10,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FInworldTestModule : public IModuleInterface
+class FInworldAITestEditorModule : public IModuleInterface
 {
 public:
 

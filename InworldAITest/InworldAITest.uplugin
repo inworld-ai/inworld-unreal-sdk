@@ -2,8 +2,8 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.6.0",
-	"FriendlyName": "Inworld Innequin",
-	"Description": "Create Innequin Characters for use with InworldAI!",
+	"FriendlyName": "Inworld Test",
+	"Description": "Test suite for InworldAI",
 	"Category": "Inworld",
 	"CreatedBy": "InworldAI",
 	"CreatedByURL": "https://inworld.ai/",
@@ -16,8 +16,13 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "InworldTest",
+			"Name": "InworldAITest",
 			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "InworldAITestEditor",
+			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
 	],
