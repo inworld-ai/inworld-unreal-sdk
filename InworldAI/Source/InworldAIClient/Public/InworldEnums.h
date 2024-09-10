@@ -140,5 +140,5 @@ enum class EInworldPlayerSpeechMode : uint8
 {
 	DEFAULT = 0,
 	VAD_DETECT_ONLY = 1 UMETA(DisplayName="VAD - Detect Only"),
-	VAD_DETECT_AND_FILTER = 2 UMETA(DisplayName="VAD - Conditional Audio Send"),
+	VAD_DETECT_AND_FILTER = 2 UMETA(DisplayName="VAD - Detect and Filter"),
 };
