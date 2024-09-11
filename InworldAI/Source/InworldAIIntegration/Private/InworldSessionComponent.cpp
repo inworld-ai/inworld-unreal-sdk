@@ -99,7 +99,7 @@ void UInworldSessionComponent::StartSession(const FString& SceneId, const FInwor
 	NO_CLIENT_RETURN(void())
 
 	InworldSession->GetClient()->SetEnvironment(Environment);
-	InworldSession->StartSession(PlayerProfile, Auth, SceneId, Save, Token, CapabilitySet, SpeechOptions, Metadata);
+	InworldSession->StartSession(PlayerProfile, Auth, SceneId, Save, Token, CapabilitySet, Metadata);
 }
 
 void UInworldSessionComponent::StopSession()

@@ -36,19 +36,6 @@ UInworldCharacterComponent::UInworldCharacterComponent()
 #endif
 }
 
-void UInworldCharacterComponent::HandleTargetPlayerVoiceDetection(bool bVoiceDetected)
-{
-	if (bVoiceDetected)
-	{
-		MessageQueue->TryToPause();
-	}
-	else
-	{
-		MessageQueue->TryToResume();
-	}
-	OnVoiceDetection.Broadcast(bVoiceDetected);
-}
-
 void UInworldCharacterComponent::OnRegister()
 {
 	Super::OnRegister();
@@ -295,11 +282,11 @@ void UInworldCharacterComponent::SendNarrationEvent(const FString& Content)
 	InworldCharacter->SendNarrationEvent(Content);
 }
 
-void UInworldCharacterComponent::StartAudioSession(UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions)
+void UInworldCharacterComponent::StartAudioSession(FInworldAudioSessionOptions SessionOptions)
 {
 	NO_CHARACTER_RETURN(void())
 
-	InworldCharacter->SendAudioSessionStart(Player, SessionOptions);
+	InworldCharacter->SendAudioSessionStart(SessionOptions);
 }
 
 void UInworldCharacterComponent::StopAudioSession()
@@ -367,6 +354,24 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 			Interrupt(Event.PacketId.InteractionId);
 		}
 	}
+}
+
+void UInworldCharacterComponent::Multicast_VisitVAD_Implementation(const FInworldVADEvent& Event)
+{
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+	
+	if (Event.VoiceDetected)
+	{
+		MessageQueue->TryToPause();
+	}
+	else
+	{
+		MessageQueue->TryToResume();
+	}
+	OnVoiceDetection.Broadcast(Event.VoiceDetected);
 }
 
 void UInworldCharacterComponent::VisitAudioOnClient(const FInworldAudioDataEvent& Event)
@@ -443,6 +448,11 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 void UInworldCharacterComponent::OnInworldTextEvent(const FInworldTextEvent& Event)
 {
     Multicast_VisitText(Event);
+}
+
+void UInworldCharacterComponent::OnInworldVADEvent(const FInworldVADEvent& Event)
+{
+	Multicast_VisitVAD(Event);
 }
 
 bool IsA2FEnabled(UInworldSession* InworldSession)
@@ -587,6 +597,7 @@ void UInworldCharacterComponent::OnRep_InworldCharacter()
 		OnPlayerInteractionStateChanged.Broadcast(InworldCharacter->GetTargetPlayer() != nullptr);
 
 		InworldCharacter->OnInworldTextEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldTextEvent);
+		InworldCharacter->OnInworldVADEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldVADEvent);
 		InworldCharacter->OnInworldAudioEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldAudioEvent);
 		InworldCharacter->OnInworldA2FHeaderEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldA2FHeaderEvent);
 		InworldCharacter->OnInworldA2FContentEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldA2FContentEvent);

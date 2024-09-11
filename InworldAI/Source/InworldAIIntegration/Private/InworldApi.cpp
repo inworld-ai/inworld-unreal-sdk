@@ -94,7 +94,7 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     Environment.AuthUrl = AuthUrlOverride;
     Environment.TargetUrl = TargetUrlOverride;
 
-    InworldSession->StartSession(PlayerProfile, Auth, SceneName, FInworldSave(), SessionToken, {}, {}, {});
+    InworldSession->StartSession(PlayerProfile, Auth, SceneName, FInworldSave(), SessionToken, {}, {});
 }
 
 void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride, FInworldSave SavedSessionState)
@@ -112,7 +112,7 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
         UE_LOG(LogInworldAIIntegration, Warning, TEXT("Start Session, please provide unique PlayerProfile.ProjectName for possible troubleshooting"));
     }
 
-    InworldSession->StartSession(PlayerProfile, Auth, SceneName, SavedSessionState, SessionToken, Capabilities, {}, {});
+    InworldSession->StartSession(PlayerProfile, Auth, SceneName, SavedSessionState, SessionToken, Capabilities, {});
 }
 
 void UInworldApiSubsystem::PauseSession()
@@ -224,12 +224,12 @@ void UInworldApiSubsystem::SendAudioMessage(const FString& AgentId, const TArray
     InworldSession->GetClient()->SendSoundMessage(AgentId, InputData, OutputData);
 }
 
-void UInworldApiSubsystem::StartAudioSession(const FString& AgentId, UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions)
+void UInworldApiSubsystem::StartAudioSession(const FString& AgentId, FInworldAudioSessionOptions SessionOptions)
 {
     NO_CLIENT_RETURN(void())
     EMPTY_ARG_RETURN(AgentId, void())
 
-    InworldSession->GetClient()->SendAudioSessionStart(AgentId, Cast<UObject>(Player), SessionOptions);
+    InworldSession->GetClient()->SendAudioSessionStart(AgentId, SessionOptions);
 }
 
 void UInworldApiSubsystem::StopAudioSession(const FString& AgentId)
