@@ -15,62 +15,60 @@
 #include "InworldSession.h"
 #include "InworldAITestSettings.h"
 
-#include "InworldAITestHelpers.generated.h"
-
-
-USTRUCT()
-struct FInworldAITestHelpers
+namespace Inworld
 {
-	GENERATED_BODY()
-};
+	namespace Test
+	{
+		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(InitSession, UInworldSession*, Session);
+		bool InitSession::Update()
+		{
+			Session->Init();
+			return true;
+		}
 
-DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(FInworldInitSession, UInworldSession*, Session);
-bool FInworldInitSession::Update()
-{
-	Session->Init();
-	return true;
-}
+		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(DestroySession, UInworldSession*, Session);
+		bool DestroySession::Update()
+		{
+			Session->MarkAsGarbage();
+			return true;
+		}
 
-DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(FInworldDestroySession, UInworldSession*, Session);
-bool FInworldDestroySession::Update()
-{
-	Session->MarkAsGarbage();
-	return true;
-}
+		DEFINE_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(StartSessionByScene, UInworldSession*, Session, FInworldAuth, Auth, FString, SceneId);
+		bool StartSessionByScene::Update()
+		{
+			Session->StartSession({}, Auth, SceneId, {}, {}, {}, {});
+			return true;
+		}
 
-DEFINE_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(FInworldStartSessionByScene, UInworldSession*, Session, FInworldAuth, Auth, FString, SceneId);
-bool FInworldStartSessionByScene::Update()
-{
-	Session->StartSession({}, Auth, SceneId, {}, {}, {}, {}, {});
-	return true;
-}
+		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(StopSession, UInworldSession*, Session);
+		bool StopSession::Update()
+		{
+			Session->StopSession();
+			return true;
+		}
 
-DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(FInworldStopSession, UInworldSession*, Session);
-bool FInworldStopSession::Update()
-{
-	Session->StopSession();
-	return true;
-}
+		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilConnectingComplete, UInworldSession*, Session);
+		bool WaitUntilConnectingComplete::Update()
+		{
+			const EInworldConnectionState ConnectionState = Session->GetConnectionState();
+			return ConnectionState != EInworldConnectionState::Idle && ConnectionState != EInworldConnectionState::Connecting;
+		}
 
-DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(FInworldWaitUntilConnectingComplete, UInworldSession*, Session);
-bool FInworldWaitUntilConnectingComplete::Update()
-{
-	const EInworldConnectionState ConnectionState = Session->GetConnectionState();
-	return ConnectionState != EInworldConnectionState::Idle && ConnectionState != EInworldConnectionState::Connecting;
-}
+		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilDisconnectingComplete, UInworldSession*, Session);
+		bool WaitUntilDisconnectingComplete::Update()
+		{
+			const EInworldConnectionState ConnectionState = Session->GetConnectionState();
+			return ConnectionState != EInworldConnectionState::Connected;
+		}
 
-DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(FInworldWaitUntilDisconnectingComplete, UInworldSession*, Session);
-bool FInworldWaitUntilDisconnectingComplete::Update()
-{
-	const EInworldConnectionState ConnectionState = Session->GetConnectionState();
-	return ConnectionState != EInworldConnectionState::Connected;
-}
+		DEFINE_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(TestEqualConnectionState, FAutomationTestBase*, Test, UInworldSession*, Session, EInworldConnectionState, ConnectionState);
+		bool TestEqualConnectionState::Update()
+		{
+			static const UEnum* TypeEnum = StaticEnum<EInworldConnectionState>();
+			const FName TypeName = TypeEnum->GetNameByValue((int64)ConnectionState);
+			Test->TestEqual(FString::Printf(TEXT("Check that connection state is %s"), *TypeName.ToString()), Session->GetConnectionState(), ConnectionState);
+			return true;
+		}
 
-DEFINE_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(FInworldAITestEqualConnectionState, FAutomationTestBase*, Test, UInworldSession*, Session, EInworldConnectionState, ConnectionState);
-bool FInworldAITestEqualConnectionState::Update()
-{
-	static const UEnum* TypeEnum = StaticEnum<EInworldConnectionState>();
-	const FName TypeName = TypeEnum->GetNameByValue((int64)ConnectionState);
-	Test->TestEqual(FString::Printf(TEXT("Check that connection state is %s"), *TypeName.ToString()), Session->GetConnectionState(), ConnectionState);
-	return true;
+	}
 }
