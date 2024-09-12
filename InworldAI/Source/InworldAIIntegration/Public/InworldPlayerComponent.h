@@ -44,20 +44,28 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     void ContinueConversation();
 
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacter"))
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacter", DeprecatedFunction, DeprecationMessage = "Please use GetTargetCharacter"))
     UInworldCharacterComponent* GetTargetInworldCharacter();
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacters"))
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    UInworldCharacter* GetTargetCharacter();
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "GetTargetCharacters", DeprecatedFunction, DeprecationMessage = "Please use GetTargetCharacters"))
     TArray<UInworldCharacterComponent*> GetTargetInworldCharacters();
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    TArray<UInworldCharacter*> GetTargetCharacters();
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "SetTargetCharacter", DeprecatedFunction, DeprecationMessage="Please use AddTargetCharacter"))
     void SetTargetInworldCharacter(UInworldCharacterComponent* Character) { AddTargetInworldCharacter(Character); }
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "AddTargetCharacter"))
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "AddTargetCharacter", DeprecatedFunction, DeprecationMessage = "Please use RemoveTargetCharacter"))
     void AddTargetInworldCharacter(UInworldCharacterComponent* Character);
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    void AddTargetCharacter(UInworldCharacter* Character);
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearTargetCharacter", DeprecatedFunction, DeprecationMessage = "Please use RemoveTargetCharacter"))
     void ClearTargetInworldCharacter(UInworldCharacterComponent* Character) { RemoveTargetInworldCharacter(Character); }
-    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "RemoveTargetCharacter"))
+    UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "RemoveTargetCharacter", DeprecatedFunction, DeprecationMessage = "Please use RemoveTargetCharacter"))
     void RemoveTargetInworldCharacter(UInworldCharacterComponent* Character);
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    void RemoveTargetCharacter(UInworldCharacter* Character);
 
     UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (Displayname = "ClearAllTargetCharacters"))
     void ClearAllTargetInworldCharacters();
@@ -82,10 +90,17 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     void SendAudioMessageToTarget(const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
-private:
+protected:
+    UPROPERTY(EditInstanceOnly, Category = "Inworld")
+    bool bFindSession = true;
+
+    UPROPERTY(EditInstanceOnly, Category = "Inworld", meta = (EditCondition = "!bFindSession", EditConditionHides, MustImplement = "/Script/InworldAIIntegration.InworldSessionOwnerInterface"))
+    AActor* InworldSessionOwner;
+
     UPROPERTY(EditAnywhere, Category = "UI")
     FString UiName = "Player";
 
+private:
     UPROPERTY(Replicated)
     UInworldPlayer* InworldPlayer;
 
