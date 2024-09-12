@@ -11,7 +11,6 @@
 #include "Modules/ModuleManager.h"
 
 INWORLDAICLIENT_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAIClient, Log, All);
-INWORLDAICLIENT_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAINDK, Log, All);
 
 class FInworldAIClientModule : public IModuleInterface
 {
