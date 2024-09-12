@@ -27,11 +27,8 @@ class UInworldTestObjectSendAudioMessageToCharacter : public UInworldTestObjectS
 public:
 	UInworldTestObjectSendAudioMessageToCharacter()
 		: UInworldTestObjectSession()
-		, TestAudioData(Inworld::Test::GetTestAudioData())
 	{
 	}
-
-	TArray<uint8> TestAudioData;
 };
 
 namespace Inworld
@@ -45,11 +42,12 @@ namespace Inworld
 
 			ADD_LATENT_AUTOMATION_COMMAND(InitSpeechProcessor(TestObject->Session, EInworldPlayerSpeechMode::DEFAULT, {}))
 			ADD_LATENT_AUTOMATION_COMMAND(SendCharacterAudioSessionStart(TestObject->Characters[0], FInworldAudioSessionOptions::Default()));
-			const int MaxChunkSize = 3200;
-			for (int32 i = 44; i < TestObject->TestAudioData.Num(); i += MaxChunkSize)
+			TArray<uint8> TestAudioData = GetTestAudioData();
+			constexpr int32 MaxChunkSize = (16000 / 10) * 2;
+			for (int32 i = 44; i < TestAudioData.Num(); i += MaxChunkSize)
 			{
-				const int32 AudioChunkSize = FMath::Min(i + MaxChunkSize, TestObject->TestAudioData.Num());
-				TArray<uint8> AudioChunk(TestObject->TestAudioData.GetData() + i, AudioChunkSize);
+				const int32 AudioChunkSize = FMath::Min(MaxChunkSize, TestAudioData.Num() - i);
+				const TArray<uint8> AudioChunk(TestAudioData.GetData() + i, AudioChunkSize);
 				ADD_LATENT_AUTOMATION_COMMAND(SendCharacterAudioData(TestObject->Characters[0], AudioChunk));
 				ADD_LATENT_AUTOMATION_COMMAND(FWaitLatentCommand(0.1f));
 			}

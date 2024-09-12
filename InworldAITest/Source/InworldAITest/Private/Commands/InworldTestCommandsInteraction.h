@@ -59,14 +59,14 @@ namespace Inworld
 
 		TFunction<bool(const FInworldTextEvent&)> TextEventValid = [](const FInworldTextEvent& TextEvent) -> bool
 		{
-			return TextEvent.Final && !TextEvent.Text.IsEmpty();
+			return !TextEvent.Text.IsEmpty();
 		};
 		DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(Text)
 		DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID(Text)
 
 		TFunction<bool(const FInworldAudioDataEvent&)> AudioDataEventValid = [](const FInworldAudioDataEvent& AudioDataEvent) -> bool
 		{
-			return AudioDataEvent.bFinal && !AudioDataEvent.Chunk.IsEmpty();
+			return !AudioDataEvent.Chunk.IsEmpty();
 		};
 		DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(AudioData)
 		DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID(AudioData)
