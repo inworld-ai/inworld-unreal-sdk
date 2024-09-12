@@ -20,6 +20,9 @@ public:
 	UInworldAILLMSettings(const FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
+	FString URL;
+
+	UPROPERTY(config, EditAnywhere, Category = "Inworld")
 	FString RuntimeApiKey;
 
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")

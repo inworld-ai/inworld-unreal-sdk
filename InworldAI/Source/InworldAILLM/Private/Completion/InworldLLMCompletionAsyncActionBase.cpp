@@ -19,6 +19,7 @@ UInworldLLMCompletionAsyncActionBase::UInworldLLMCompletionAsyncActionBase(const
     const UInworldAILLMSettings* LLMSettings = GetDefault<UInworldAILLMSettings>();
     if (LLMSettings)
     {
+        URL = LLMSettings->URL;
         ApiKey = LLMSettings->RuntimeApiKey;
         UserId = LLMSettings->UserId;
         Model = LLMSettings->Model;
@@ -28,7 +29,7 @@ UInworldLLMCompletionAsyncActionBase::UInworldLLMCompletionAsyncActionBase(const
 void UInworldLLMCompletionAsyncActionBase::Activate()
 {
     TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
-    HttpRequest->SetURL("https://api.inworld.ai/llm/v1alpha/completions:" + GetCompletionType());
+    HttpRequest->SetURL("https://" + URL + "/llm/v1alpha/completions:" + GetCompletionType());
     HttpRequest->SetVerb("POST");
     HttpRequest->SetHeader("Content-Type", "application/json");
     HttpRequest->SetHeader("Authorization", "Basic " + ApiKey);
