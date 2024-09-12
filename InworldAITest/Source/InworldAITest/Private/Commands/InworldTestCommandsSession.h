@@ -19,6 +19,20 @@ namespace Inworld
 {
 	namespace Test
 	{
+		DEFINE_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(InitSpeechProcessor, UInworldSession*, Session, EInworldPlayerSpeechMode, Mode, FInworldPlayerSpeechOptions, SpeechOptions);
+		bool InitSpeechProcessor::Update()
+		{
+			Session->InitSpeechProcessor(Mode, SpeechOptions);
+			return true;
+		}
+
+		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(DestroySpeechProcessor, UInworldSession*, Session);
+		bool DestroySpeechProcessor::Update()
+		{
+			Session->DestroySpeechProcessor();
+			return true;
+		}
+
 		DEFINE_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(StartSessionByScene, UInworldSession*, Session, const FInworldAuth&, Auth, const FString&, SceneId);
 		bool StartSessionByScene::Update()
 		{

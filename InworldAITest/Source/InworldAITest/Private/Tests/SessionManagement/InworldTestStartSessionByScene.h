@@ -18,18 +18,6 @@ UCLASS()
 class UInworldTestObjectStartSessionByScene : public UInworldTestObjectSession
 {
 	GENERATED_BODY()
-
-public:
-	UInworldTestObjectStartSessionByScene()
-		: UInworldTestObjectSession(
-			FInworldTestSessionConfig{ TEXT("workspaces/sdk_test_automation/scenes/full_scene") },
-			TArray<FInworldTestCharacterConfig>{
-				FInworldTestCharacterConfig{ TEXT("character_one") },
-				FInworldTestCharacterConfig{ TEXT("character_two") },
-				FInworldTestCharacterConfig{ TEXT("character_three") },
-			}
-	)
-	{}
 };
 
 namespace Inworld

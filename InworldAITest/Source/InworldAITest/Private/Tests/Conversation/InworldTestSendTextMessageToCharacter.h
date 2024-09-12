@@ -20,15 +20,6 @@ UCLASS()
 class UInworldTestObjectSendTextMessageToCharacter : public UInworldTestObjectSession
 {
 	GENERATED_BODY()
-
-public:
-	UInworldTestObjectSendTextMessageToCharacter()
-		: UInworldTestObjectSession(
-			FInworldTestSessionConfig{ TEXT("workspaces/sdk_test_automation/characters/character_one") },
-			TArray<FInworldTestCharacterConfig>{ FInworldTestCharacterConfig{ TEXT("character_one")}, }
-		)
-	{
-	}
 };
 
 namespace Inworld

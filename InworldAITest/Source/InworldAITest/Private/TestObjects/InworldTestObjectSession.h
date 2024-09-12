@@ -25,19 +25,20 @@ class UInworldTestObjectSession : public UInworldTestObject
 	GENERATED_BODY()
 
 public:
-	UInworldTestObjectSession() = default;
-	UInworldTestObjectSession(const FInworldTestSessionConfig& InSessionConfig, const TArray<FInworldTestCharacterConfig>& InCharacterConfigs)
+	UInworldTestObjectSession()
 		: UInworldTestObject()
-		, SceneName(InSessionConfig.SceneName)
 		, Session(NewObject<UInworldSession>())
 		, Player(NewObject<UInworldPlayer>())
 	{
 		Session->Init();
 
-		for (const FInworldTestCharacterConfig& CharacterConfig : InCharacterConfigs)
+		const UInworldAITestSettings* InworldAITestSettings = GetDefault<UInworldAITestSettings>();
+		SceneName = InworldAITestSettings->SceneName;
+
+		for (const FString& CharacterName : InworldAITestSettings->CharacterNames)
 		{
 			UInworldCharacter* const Character = Characters.Emplace_GetRef(NewObject<UInworldCharacter>());
-			Character->SetBrainName(CharacterConfig.CharacterName);
+			Character->SetBrainName(CharacterName);
 			Character->SetSession(Session);
 #define BIND_INWORLD_CHARACTER_EVENT(Type) \
 			Character->OnInworld##Type##Event().AddLambda( [this, Character](const FInworld##Type##Event& Type##Event) { OnInworld##Type##Event_Internal(Character, Type##Event); } );

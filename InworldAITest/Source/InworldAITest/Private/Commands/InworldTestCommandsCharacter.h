@@ -25,5 +25,26 @@ namespace Inworld
 			Character->SendTextMessage(Text);
 			return true;
 		}
+
+		DEFINE_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(SendCharacterAudioSessionStart, UInworldCharacter*, Character, FInworldAudioSessionOptions, AudioSessionOptions);
+		bool SendCharacterAudioSessionStart::Update()
+		{
+			Character->SendAudioSessionStart(AudioSessionOptions);
+			return true;
+		}
+
+		DEFINE_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(SendCharacterAudioData, UInworldCharacter*, Character, TArray<uint8>, AudioChunk);
+		bool SendCharacterAudioData::Update()
+		{
+			Character->SendSoundMessage(AudioChunk, {});
+			return true;
+		}
+
+		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(SendCharacterAudioSessionStop, UInworldCharacter*, Character);
+		bool SendCharacterAudioSessionStop::Update()
+		{
+			Character->SendAudioSessionStop();
+			return true;
+		}
 	}
 }

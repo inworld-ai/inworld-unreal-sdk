@@ -11,4 +11,7 @@
 UInworldAITestSettings::UInworldAITestSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	SceneName = TEXT("workspaces/sdk_test_automation/scenes/test_scene");
+
+	CharacterNames = { TEXT("character_one"), TEXT("character_two"), TEXT("character_three"), };
 }

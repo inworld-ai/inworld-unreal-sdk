@@ -18,6 +18,12 @@ class INWORLDAITEST_API UInworldAITestSettings : public UObject
 public:
 	UInworldAITestSettings(const FObjectInitializer& ObjectInitializer);
 
-	UPROPERTY(config, EditAnywhere, Category = "Inworld")
+	UPROPERTY(config, EditAnywhere, Category = "Test")
 	FString RuntimeApiKey;
+
+	UPROPERTY(config, EditAnywhere, Category = "Test|Session")
+	FString SceneName;
+
+	UPROPERTY(config, EditAnywhere, Category = "Test|Session")
+	TArray<FString> CharacterNames;
 };

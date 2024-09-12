@@ -27,7 +27,8 @@ public class InworldAITest : ModuleRules
 				"Engine",
 				"InworldAIClient",
 				"InworldAIIntegration",
-			}
+				"Projects",
+            }
 			);
 	}
 }

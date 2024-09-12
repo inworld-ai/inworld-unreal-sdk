@@ -22,9 +22,9 @@ class UInworldTestObject : public UObject
 public:
 	UInworldTestObject()
 	{
+		const UInworldAITestSettings* InworldAITestSettings = GetDefault<UInworldAITestSettings>();
 		if (!FParse::Value(FCommandLine::Get(), TEXT("InworldTestRuntimeApiKey="), RuntimeAuth.Base64Signature))
 		{
-			const UInworldAITestSettings* InworldAITestSettings = GetDefault<UInworldAITestSettings>();
 			RuntimeAuth.Base64Signature = InworldAITestSettings->RuntimeApiKey;
 		}
 	}
