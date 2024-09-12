@@ -156,15 +156,6 @@ void UInworldCharacter::CancelResponse(const FString& InteractionId, const TArra
 	Session->CancelResponse(this, InteractionId, UtteranceIds);
 }
 
-TScriptInterface<IInworldCharacterOwnerInterface> UInworldCharacter::GetInworldCharacterOwner()
-{
-	if (!ensureMsgf(GetOuter()->Implements<UInworldCharacterOwnerInterface>(), TEXT("UInworldCharacter outer must implement IInworldCharacterOwnerInterface!")))
-	{
-		return nullptr;
-	}
-	return TScriptInterface<IInworldCharacterOwnerInterface>(GetOuter());
-}
-
 void UInworldCharacter::SetBrainName(const FString& BrainName)
 {
 	if (!AgentInfo.BrainName.IsEmpty())

@@ -9,11 +9,13 @@
 #include "IAssetTools.h"
 #include "ContentBrowserModule.h"
 #include "InworldEditorApi.h"
+#include "InworldAIIntegrationSettings.h"
 #include "InworldAIEditorSettings.h"
 #include "InworldAILLMSettings.h"
 #include "PluginData/InworldMetahumanEditorSettings.h"
 #include "PluginData/InworldInnequinEditorSettings.h"
 #include "Style/InworldEditorUIStyle.h"
+#include "EditorUtilityWidget.h"
 #include "ISettingsModule.h"
 #include "LevelEditor.h"
 #include "WidgetBlueprint.h"
@@ -39,8 +41,12 @@ void FInworldAIEditorModule::StartupModule()
 	ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 	if (SettingsModule)
 	{
+		SettingsModule->RegisterSettings("Project", "Plugins", "InworldAIIntegrationSettings",
+			LOCTEXT("InworldSettingsName", "InworldAI - Integration"), LOCTEXT("InworldSettingsDescription", "Inworld AI Integration Settings"),
+			GetMutableDefault<UInworldAIEditorSettings>());
+
 		SettingsModule->RegisterSettings("Project", "Plugins", "InworldAIEditorSettings",
-			LOCTEXT("InworldSettingsName", "InworldAI"), LOCTEXT("InworldSettingsDescription", "Inworld AI Editor Settings"),
+			LOCTEXT("InworldSettingsName", "InworldAI - Editor"), LOCTEXT("InworldSettingsDescription", "Inworld AI Editor Settings"),
 			GetMutableDefault<UInworldAIEditorSettings>());
 
 		SettingsModule->RegisterSettings("Project", "Plugins", "InworldAIELLMSettings",
@@ -78,6 +84,8 @@ void FInworldAIEditorModule::ShutdownModule()
 	ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 	if (SettingsModule)
 	{
+		SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAIIntegrationSettings");
+
 		SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAIEditorSettings");
 		SettingsModule->UnregisterSettings("Project", "Plugins", "InworldAILLMSettings");
 
