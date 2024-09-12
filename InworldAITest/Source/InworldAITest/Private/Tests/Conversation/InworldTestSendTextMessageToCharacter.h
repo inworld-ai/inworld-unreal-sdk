@@ -9,10 +9,11 @@
 
 #include "CoreMinimal.h"
 #include "Misc/AutomationTest.h"
-#include "Objects/InworldTestObjectSession.h"
-#include "Objects/InworldTestObjectSessionScoped.h"
+#include "Tests/AutomationCommon.h"
 #include "InworldTestFlags.h"
-#include "InworldTestCommands.h"
+#include "TestObjects/InworldTestObjectSession.h"
+#include "Commands/InworldTestCommandsCharacter.h"
+#include "Commands/InworldTestCommandsInteraction.h"
 #include "InworldTestSendTextMessageToCharacter.generated.h"
 
 UCLASS()
@@ -22,7 +23,10 @@ class UInworldTestObjectSendTextMessageToCharacter : public UInworldTestObjectSe
 
 public:
 	UInworldTestObjectSendTextMessageToCharacter()
-		: UInworldTestObjectSession({ TEXT("workspaces/sdk_test_automation/characters/character_one"), { TEXT("character_one"), } })
+		: UInworldTestObjectSession(
+			FInworldTestSessionConfig{ TEXT("workspaces/sdk_test_automation/characters/character_one") },
+			TArray<FInworldTestCharacterConfig>{ FInworldTestCharacterConfig{ TEXT("character_one")}, }
+		)
 	{
 	}
 };

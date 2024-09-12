@@ -10,10 +10,8 @@
 #include "CoreMinimal.h"
 #include "Misc/AutomationTest.h"
 #include "Tests/AutomationCommon.h"
-#include "Objects/InworldTestObjectSession.h"
-#include "Objects/InworldTestObjectSessionScoped.h"
 #include "InworldTestFlags.h"
-#include "InworldTestCommands.h"
+#include "TestObjects/InworldTestObjectSession.h"
 #include "InworldTestStartSessionByScene.generated.h"
 
 UCLASS()
@@ -23,9 +21,15 @@ class UInworldTestObjectStartSessionByScene : public UInworldTestObjectSession
 
 public:
 	UInworldTestObjectStartSessionByScene()
-		: UInworldTestObjectSession({ TEXT("workspaces/sdk_test_automation/scenes/full_scene") , { TEXT("character_one"),TEXT("character_two"),TEXT("character_three"),  } })
-	{
-	}
+		: UInworldTestObjectSession(
+			FInworldTestSessionConfig{ TEXT("workspaces/sdk_test_automation/scenes/full_scene") },
+			TArray<FInworldTestCharacterConfig>{
+				FInworldTestCharacterConfig{ TEXT("character_one") },
+				FInworldTestCharacterConfig{ TEXT("character_two") },
+				FInworldTestCharacterConfig{ TEXT("character_three") },
+			}
+	)
+	{}
 };
 
 namespace Inworld

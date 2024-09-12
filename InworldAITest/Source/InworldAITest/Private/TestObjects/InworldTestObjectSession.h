@@ -8,40 +8,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Objects/InworldTestObject.h"
+#include "TestObjects/InworldTestObject.h"
 #include "InworldAITestModule.h"
+#include "Types/InworldTestCharacterConfig.h"
+#include "Types/InworldTestSessionConfig.h"
+#include "Commands/InworldTestCommandsSession.h"
 #include "InworldTypes.h"
 #include "InworldCharacter.h"
 #include "InworldPlayer.h"
 #include "InworldSession.h"
 #include "InworldTestObjectSession.generated.h"
-
-USTRUCT()
-struct FInworldTestObjectSessionConfig : public FInworldTestObjectConfig
-{
-	GENERATED_BODY()
-
-public:
-	FInworldTestObjectSessionConfig() = default;
-	FInworldTestObjectSessionConfig(const FString& InScene, const TArray<FString>& InCharacterNames)
-		: FInworldTestObjectConfig()
-		, Scene(InScene)
-		, CharacterNames(InCharacterNames)
-	{}
-
-	UPROPERTY()
-	FString Scene;
-
-	UPROPERTY()
-	TArray<FString> CharacterNames;
-};
-
-USTRUCT()
-struct FInworldTestInteraction
-{
-	GENERATED_BODY()
-
-};
 
 UCLASS()
 class UInworldTestObjectSession : public UInworldTestObject
@@ -50,18 +26,18 @@ class UInworldTestObjectSession : public UInworldTestObject
 
 public:
 	UInworldTestObjectSession() = default;
-	UInworldTestObjectSession(FInworldTestObjectSessionConfig Config)
-		: UInworldTestObject(Config)
-		, Scene(Config.Scene)
+	UInworldTestObjectSession(const FInworldTestSessionConfig& InSessionConfig, const TArray<FInworldTestCharacterConfig>& InCharacterConfigs)
+		: UInworldTestObject()
+		, SceneName(InSessionConfig.SceneName)
 		, Session(NewObject<UInworldSession>())
 		, Player(NewObject<UInworldPlayer>())
 	{
 		Session->Init();
 
-		for (const FString& CharacterName : Config.CharacterNames)
+		for (const FInworldTestCharacterConfig& CharacterConfig : InCharacterConfigs)
 		{
 			UInworldCharacter* const Character = Characters.Emplace_GetRef(NewObject<UInworldCharacter>());
-			Character->SetBrainName(CharacterName);
+			Character->SetBrainName(CharacterConfig.CharacterName);
 			Character->SetSession(Session);
 #define BIND_INWORLD_CHARACTER_EVENT(Type) \
 			Character->OnInworld##Type##Event().AddLambda( [this, Character](const FInworld##Type##Event& Type##Event) { OnInworld##Type##Event_Internal(Character, Type##Event); } );
@@ -75,7 +51,7 @@ public:
 	}
 
 	UPROPERTY()
-	FString Scene;
+	FString SceneName;
 
 	UPROPERTY()
 	TObjectPtr<UInworldSession> Session;
@@ -106,3 +82,32 @@ public: \
 
 #undef HANDLE_INWORLD_CHARACTER_EVENT
 };
+
+namespace Inworld
+{
+	namespace Test
+	{
+		template<typename T>
+		struct TInworldTestObjectSessionScoped : public TInworldTestObjectScoped<T>
+		{
+		public:
+			TInworldTestObjectSessionScoped(FAutomationTestBase* Test)
+				: TInworldTestObjectScoped(Test)
+			{
+				T& Object = Get();
+				ADD_LATENT_AUTOMATION_COMMAND(StartSessionByScene(Object.Session, Object.RuntimeAuth, Object.SceneName));
+				ADD_LATENT_AUTOMATION_COMMAND(WaitUntilSessionConnectingComplete(Object.Session));
+				ADD_LATENT_AUTOMATION_COMMAND(WaitUntilSessionLoaded(Object.Session));
+				ADD_LATENT_AUTOMATION_COMMAND(TestEqualConnectionState(OwningTest, Object.Session, EInworldConnectionState::Connected));
+			}
+
+			~TInworldTestObjectSessionScoped()
+			{
+				T& Object = Get();
+				ADD_LATENT_AUTOMATION_COMMAND(StopSession(Object.Session));
+				ADD_LATENT_AUTOMATION_COMMAND(WaitUntilSessionDisconnectingComplete(Object.Session));
+				ADD_LATENT_AUTOMATION_COMMAND(TestEqualConnectionState(OwningTest, Object.Session, EInworldConnectionState::Idle));
+			}
+		};
+	}
+}

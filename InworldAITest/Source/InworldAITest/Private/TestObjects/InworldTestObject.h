@@ -7,8 +7,31 @@
 
 #pragma once
 
-#include "InworldTestCommands.h"
-#include "Objects/InworldTestObject.h"
+#include "CoreMinimal.h"
+#include "UObject/NoExportTypes.h"
+#include "InworldTypes.h"
+#include "Commands/InworldTestCommandsGarbageCollection.h"
+#include "InworldTestObject.generated.h"
+
+
+UCLASS()
+class UInworldTestObject : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	UInworldTestObject()
+	{
+		if (!FParse::Value(FCommandLine::Get(), TEXT("InworldTestRuntimeApiKey="), RuntimeAuth.Base64Signature))
+		{
+			const UInworldAITestSettings* InworldAITestSettings = GetDefault<UInworldAITestSettings>();
+			RuntimeAuth.Base64Signature = InworldAITestSettings->RuntimeApiKey;
+		}
+	}
+
+	UPROPERTY()
+	FInworldAuth RuntimeAuth;
+};
 
 namespace Inworld
 {
@@ -55,8 +78,9 @@ namespace Inworld
 
 		protected:
 			FAutomationTestBase* OwningTest;
-		public:
+		private:
 			T* InworldTestObject;
 		};
 	}
 }
+
