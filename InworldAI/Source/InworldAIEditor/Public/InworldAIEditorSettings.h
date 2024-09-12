@@ -21,9 +21,6 @@ class INWORLDAIEDITOR_API UInworldAIEditorSettings : public UObject
 public:
 	UInworldAIEditorSettings(const FObjectInitializer& ObjectInitializer);
 
-	UPROPERTY(config, EditAnywhere, Category = "Inworld")
-	FString StudioAccessToken;
-
 public:
 	UPROPERTY(config, EditAnywhere, Category = "Player")
 	TSubclassOf<UInworldPlayerComponent> InworldPlayerComponent;
