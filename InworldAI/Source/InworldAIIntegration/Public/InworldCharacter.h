@@ -63,9 +63,6 @@ public:
 	void CancelResponse(const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Character")
-	TScriptInterface<IInworldCharacterOwnerInterface> GetInworldCharacterOwner();
-
 	UFUNCTION(BlueprintCallable, Category = "Possession")
 	void SetBrainName(const FString& BrainName);
 
