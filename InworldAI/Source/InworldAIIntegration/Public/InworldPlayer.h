@@ -43,6 +43,7 @@ public:
 
 	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
+	virtual void BeginDestroy() { SetSession(nullptr); Super::BeginDestroy(); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override;
@@ -56,7 +57,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SetSession(UInworldSession* InSession);
 	UFUNCTION(BlueprintPure, Category = "Session")
-	UInworldSession* GetSession() const { return Session; }
+	UInworldSession* GetSession() const { return Session.Get(); }
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
 	void SendTextMessageToConversation(const FString& Text);
@@ -124,7 +125,7 @@ private:
 	void OnRep_VoiceDetected(bool bOldValue);
 	
 	UPROPERTY(Replicated)
-	UInworldSession* Session;
+	TWeakObjectPtr<UInworldSession> Session;
 
 	UPROPERTY(Replicated)
 	bool bConversationParticipant = true;

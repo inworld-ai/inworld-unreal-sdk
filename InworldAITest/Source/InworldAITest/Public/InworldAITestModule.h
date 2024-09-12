@@ -10,6 +10,8 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+INWORLDAITEST_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAITest, Log, All);
+
 class FInworldAITestModule : public IModuleInterface
 {
 public:

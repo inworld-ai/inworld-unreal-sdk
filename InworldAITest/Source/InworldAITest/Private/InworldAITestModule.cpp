@@ -5,9 +5,11 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
-#include "InworldAITest.h"
+#include "InworldAITestModule.h"
 
 #define LOCTEXT_NAMESPACE "FInworldAITestModule"
+
+DEFINE_LOG_CATEGORY(LogInworldAITest);
 
 void FInworldAITestModule::StartupModule()
 {

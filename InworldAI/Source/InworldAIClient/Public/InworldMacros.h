@@ -14,6 +14,8 @@ namespace Inworld
 {
     template<class T>
     inline bool CheckEmpty(const T& Value) { return !Value; }
+    template<class T>
+    inline bool CheckEmpty(const TWeakObjectPtr<T>& Value) { return !Value.IsValid(); }
     template<>
     inline bool CheckEmpty<FString>(const FString& Value) { return Value.IsEmpty(); }
     template<class T>

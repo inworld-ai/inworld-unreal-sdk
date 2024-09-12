@@ -82,14 +82,14 @@ void UInworldPlayer::SetSession(UInworldSession* InSession)
 		return;
 	}
 
-	if (Session)
+	if (Session.IsValid())
 	{
 		Session->UnregisterPlayer(this);
 	}
 
 	Session = InSession;
 
-	if (Session)
+	if (Session.IsValid())
 	{
 		Session->RegisterPlayer(this);
 	}
