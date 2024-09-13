@@ -10,11 +10,9 @@
 #include "CoreMinimal.h"
 #include "Misc/AutomationTest.h"
 #include "Tests/AutomationCommon.h"
-#include "InworldEnums.h"
-#include "InworldTypes.h"
 #include "InworldTestFlags.h"
-#include "InworldTestUtils.h"
 #include "TestObjects/InworldTestObjectSession.h"
+#include "Commands/InworldTestCommandsGarbageCollection.h"
 #include "Commands/InworldTestCommandsCharacter.h"
 #include "Commands/InworldTestCommandsInteraction.h"
 #include "InworldTestSendAudioMessageToCharacter.generated.h"
@@ -23,12 +21,6 @@ UCLASS()
 class UInworldTestObjectSendAudioMessageToCharacter : public UInworldTestObjectSession
 {
 	GENERATED_BODY()
-
-public:
-	UInworldTestObjectSendAudioMessageToCharacter()
-		: UInworldTestObjectSession()
-	{
-	}
 };
 
 namespace Inworld
@@ -38,27 +30,22 @@ namespace Inworld
 		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendAudioMessageToCharacter, "Inworld.Conversation.SendAudioMessageToCharacter", Flags)
 		bool FSendAudioMessageToCharacter::RunTest(const FString& Parameters)
 		{
-			TInworldTestObjectSessionScoped<UInworldTestObjectSendAudioMessageToCharacter> TestObject(this);
-
-			ADD_LATENT_AUTOMATION_COMMAND(InitSpeechProcessor(TestObject->Session, EInworldPlayerSpeechMode::DEFAULT, {}))
-			ADD_LATENT_AUTOMATION_COMMAND(SendCharacterAudioSessionStart(TestObject->Characters[0], FInworldAudioSessionOptions::Default()));
-			TArray<uint8> TestAudioData = GetTestAudioData();
-			constexpr int32 MaxChunkSize = (16000 / 10) * 2;
-			for (int32 i = 44; i < TestAudioData.Num(); i += MaxChunkSize)
+			TScopedGCObject<UInworldTestObjectSendAudioMessageToCharacter> TestObject;
 			{
-				const int32 AudioChunkSize = FMath::Min(MaxChunkSize, TestAudioData.Num() - i);
-				const TArray<uint8> AudioChunk(TestAudioData.GetData() + i, AudioChunkSize);
-				ADD_LATENT_AUTOMATION_COMMAND(SendCharacterAudioData(TestObject->Characters[0], AudioChunk));
-				ADD_LATENT_AUTOMATION_COMMAND(FWaitLatentCommand(0.1f));
-			}
-			ADD_LATENT_AUTOMATION_COMMAND(SendCharacterAudioSessionStop(TestObject->Characters[0]));
-			ADD_LATENT_AUTOMATION_COMMAND(DestroySpeechProcessor(TestObject->Session))
+				FScopedSessionScene SessionScenePinned(this, TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+				{
+					FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session, EInworldPlayerSpeechMode::DEFAULT);
+					{
+						FScopedCharacterAudioSession CharacterAudioSessionPin(TestObject->Characters[0]);
+						SendCharacterTestAudioData(TestObject->Characters[0]);
+					}
+				}
 
-			ADD_LATENT_AUTOMATION_COMMAND(WaitUntilInteractionEnd(TestObject->ControlEvents));
-			ADD_LATENT_AUTOMATION_COMMAND(TestTextEventCollectionNotEmpty(this, TestObject->TextEvents))
-			ADD_LATENT_AUTOMATION_COMMAND(TestAudioDataEventCollectionNotEmpty(this, TestObject->AudioDataEvents))
-			ADD_LATENT_AUTOMATION_COMMAND(TestTextEventCollectionValid(this, TestObject->TextEvents))
-			ADD_LATENT_AUTOMATION_COMMAND(TestAudioDataEventCollectionValid(this, TestObject->AudioDataEvents))
+				WaitUntilInteractionEnd(TestObject->ControlEvents);
+
+				TestTextEventCollection(this, TestObject->TextEvents);
+				TestAudioDataEventCollection(this, TestObject->AudioDataEvents);
+			}
 
 			return true;
 		}

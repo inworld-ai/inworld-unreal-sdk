@@ -12,6 +12,7 @@
 #include "Tests/AutomationCommon.h"
 #include "InworldTestFlags.h"
 #include "TestObjects/InworldTestObjectSession.h"
+#include "Commands/InworldTestCommandsGarbageCollection.h"
 #include "InworldTestStartSessionByScene.generated.h"
 
 UCLASS()
@@ -27,8 +28,10 @@ namespace Inworld
 		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStartSessionByScene, "Inworld.SessionManagement.StartSessionByScene", Flags)
 		bool FStartSessionByScene::RunTest(const FString& Parameters)
 		{
-			TInworldTestObjectSessionScoped<UInworldTestObjectStartSessionByScene> TestObject(this);
-
+			TScopedGCObject<UInworldTestObjectStartSessionByScene> TestObject;
+			{
+				FScopedSessionScene SessionScenePinned(this, TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+			}
 			return true;
 		}
 	}

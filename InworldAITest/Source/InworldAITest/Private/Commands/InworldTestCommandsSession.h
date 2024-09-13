@@ -10,6 +10,7 @@
 #include "CoreMinimal.h"
 #include "Misc/AutomationTest.h"
 #include "Tests/AutomationCommon.h"
+#include "InworldTestMacros.h"
 
 #include "InworldSession.h"
 
@@ -19,50 +20,50 @@ namespace Inworld
 {
 	namespace Test
 	{
-		DEFINE_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(InitSpeechProcessor, UInworldSession*, Session, EInworldPlayerSpeechMode, Mode, FInworldPlayerSpeechOptions, SpeechOptions);
-		bool InitSpeechProcessor::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(InitSpeechProcessor, UInworldSession*, Session, EInworldPlayerSpeechMode, Mode, FInworldPlayerSpeechOptions, SpeechOptions);
+		bool FInitSpeechProcessorCommand::Update()
 		{
 			Session->InitSpeechProcessor(Mode, SpeechOptions);
 			return true;
 		}
 
-		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(DestroySpeechProcessor, UInworldSession*, Session);
-		bool DestroySpeechProcessor::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(DestroySpeechProcessor, UInworldSession*, Session);
+		bool FDestroySpeechProcessorCommand::Update()
 		{
 			Session->DestroySpeechProcessor();
 			return true;
 		}
 
-		DEFINE_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(StartSessionByScene, UInworldSession*, Session, const FInworldAuth&, Auth, const FString&, SceneId);
-		bool StartSessionByScene::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(StartSessionByScene, UInworldSession*, Session, const FInworldAuth&, Auth, const FString&, SceneId);
+		bool FStartSessionBySceneCommand::Update()
 		{
 			Session->StartSession({}, Auth, SceneId, {}, {}, {}, {});
 			return true;
 		}
 
-		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(StopSession, UInworldSession*, Session);
-		bool StopSession::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(StopSession, UInworldSession*, Session);
+		bool FStopSessionCommand::Update()
 		{
 			Session->StopSession();
 			return true;
 		}
 
-		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilSessionConnectingComplete, UInworldSession*, Session);
-		bool WaitUntilSessionConnectingComplete::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilSessionConnectingComplete, UInworldSession*, Session);
+		bool FWaitUntilSessionConnectingCompleteCommand::Update()
 		{
 			const EInworldConnectionState ConnectionState = Session->GetConnectionState();
 			return ConnectionState != EInworldConnectionState::Idle && ConnectionState != EInworldConnectionState::Connecting;
 		}
 
-		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilSessionDisconnectingComplete, UInworldSession*, Session);
-		bool WaitUntilSessionDisconnectingComplete::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilSessionDisconnectingComplete, UInworldSession*, Session);
+		bool FWaitUntilSessionDisconnectingCompleteCommand::Update()
 		{
 			const EInworldConnectionState ConnectionState = Session->GetConnectionState();
 			return ConnectionState != EInworldConnectionState::Connected;
 		}
 
-		DEFINE_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(TestEqualConnectionState, FAutomationTestBase*, Test, UInworldSession*, Session, EInworldConnectionState, ConnectionState);
-		bool TestEqualConnectionState::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(TestEqualConnectionState, FAutomationTestBase*, Test, UInworldSession*, Session, EInworldConnectionState, ConnectionState);
+		bool FTestEqualConnectionStateCommand::Update()
 		{
 			static const UEnum* TypeEnum = StaticEnum<EInworldConnectionState>();
 			const FName ExpectedTypeName = TypeEnum->GetNameByValue((int64)ConnectionState);
@@ -71,10 +72,47 @@ namespace Inworld
 			return true;
 		}
 
-		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilSessionLoaded, UInworldSession*, Session);
-		bool WaitUntilSessionLoaded::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilSessionLoaded, UInworldSession*, Session);
+		bool FWaitUntilSessionLoadedCommand::Update()
 		{
 			return Session->IsLoaded();
 		}
+
+		struct FScopedSessionScene
+		{
+			FScopedSessionScene(FAutomationTestBase* InTest, UInworldSession* InSession, const FString& InSceneName, const FInworldAuth& InRuntimeAuth)
+				: Test(InTest)
+				, Session(InSession)
+			{
+				StartSessionByScene(Session, InRuntimeAuth, InSceneName);
+				WaitUntilSessionConnectingComplete(Session);
+				WaitUntilSessionLoaded(Session);
+				TestEqualConnectionState(Test, Session, EInworldConnectionState::Connected);
+			}
+			~FScopedSessionScene()
+			{
+				StopSession(Session);
+				WaitUntilSessionDisconnectingComplete(Session);
+				TestEqualConnectionState(Test, Session, EInworldConnectionState::Idle);
+			}
+		private:
+			FAutomationTestBase* Test;
+			UInworldSession* Session;
+		};
+
+		struct FScopedSpeechProcessor
+		{
+			FScopedSpeechProcessor(UInworldSession* InSession, EInworldPlayerSpeechMode InPlayerSpeechMode, FInworldPlayerSpeechOptions InPlayerSpeechOptions = {})
+				: Session(InSession)
+			{
+				InitSpeechProcessor(Session, InPlayerSpeechMode, InPlayerSpeechOptions);
+			}
+			~FScopedSpeechProcessor()
+			{
+				DestroySpeechProcessor(Session);
+			}
+		private:
+			UInworldSession* Session;
+		};
 	}
 }

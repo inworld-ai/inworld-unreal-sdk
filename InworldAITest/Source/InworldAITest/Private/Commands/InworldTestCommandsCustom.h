@@ -10,6 +10,7 @@
 #include "CoreMinimal.h"
 #include "Misc/AutomationTest.h"
 #include "Tests/AutomationCommon.h"
+#include "InworldTestMacros.h"
 
 #include "InworldAITestSettings.h"
 
@@ -17,8 +18,8 @@ namespace Inworld
 {
 	namespace Test
 	{
-		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(TestCustom, TFunction<bool()>, Func);
-		bool TestCustom::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(TestCustom, TFunction<bool()>, Func);
+		bool FTestCustomCommand::Update()
 		{
 			return Func();
 		}

@@ -10,6 +10,7 @@
 #include "CoreMinimal.h"
 #include "Misc/AutomationTest.h"
 #include "Tests/AutomationCommon.h"
+#include "InworldTestMacros.h"
 
 #include "InworldSession.h"
 #include "InworldCharacter.h"
@@ -21,8 +22,8 @@ namespace Inworld
 {
 	namespace Test
 	{
-		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilInteractionEnd, const TArray<FInworldControlEvent>&, ControlEvents);
-		bool WaitUntilInteractionEnd::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilInteractionEnd, const TArray<FInworldControlEvent>&, ControlEvents);
+		bool FWaitUntilInteractionEndCommand::Update()
 		{
 			return nullptr != ControlEvents.FindByPredicate(
 				[](const FInworldControlEvent& ControlEvent) -> bool
@@ -32,23 +33,23 @@ namespace Inworld
 			);
 		}
 
-#define DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(Type) \
-		DEFINE_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(Test##Type##EventCollection##Empty, FAutomationTestBase*, Test, const TArray<FInworld##Type##Event>&, Type##Events);\
-		bool Test##Type##EventCollection##Empty::Update()\
+#define DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(Type) \
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(Test##Type##EventCollection##Empty, FAutomationTestBase*, Test, const TArray<FInworld##Type##Event>&, Type##Events);\
+		bool FTest##Type##EventCollection##EmptyCommand::Update()\
 		{\
 			Test->TestTrue(FString::Printf(TEXT("%sEvents is empty"), #Type), Type##Events.IsEmpty()); \
 			return true;\
 		}\
-		DEFINE_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(Test##Type##EventCollection##NotEmpty, FAutomationTestBase*, Test, const TArray<FInworld##Type##Event>&, Type##Events);\
-		bool Test##Type##EventCollection##NotEmpty::Update()\
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(Test##Type##EventCollection##NotEmpty, FAutomationTestBase*, Test, const TArray<FInworld##Type##Event>&, Type##Events);\
+		bool FTest##Type##EventCollection##NotEmptyCommand::Update()\
 		{\
 			Test->TestFalse(FString::Printf(TEXT("%sEvents is empty"), #Type), Type##Events.IsEmpty()); \
 			return true;\
 		}\
 
-#define DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID(Type) \
-		DEFINE_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(Test##Type##EventCollection##Valid, FAutomationTestBase*, Test, const TArray<FInworld##Type##Event>&, Type##Events);\
-		bool Test##Type##EventCollection##Valid::Update()\
+#define DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID(Type) \
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(Test##Type##EventCollection##Valid, FAutomationTestBase*, Test, const TArray<FInworld##Type##Event>&, Type##Events);\
+		bool FTest##Type##EventCollection##ValidCommand::Update()\
 		{\
 			for(const auto& Type##Event : Type##Events)\
 			{\
@@ -57,21 +58,31 @@ namespace Inworld
 			return true;\
 		}\
 
+#define DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TEST_EVENT_COLLECTION(Type) \
+		void Test##Type##EventCollection(FAutomationTestBase* Test, const TArray<FInworld##Type##Event>& Type##Events)\
+		{\
+			Test##Type##EventCollectionNotEmpty(Test, Type##Events); \
+			Test##Type##EventCollectionValid(Test, Type##Events); \
+		}\
+
 		TFunction<bool(const FInworldTextEvent&)> TextEventValid = [](const FInworldTextEvent& TextEvent) -> bool
 		{
 			return !TextEvent.Text.IsEmpty();
 		};
-		DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(Text)
-		DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID(Text)
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(Text)
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID(Text)
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TEST_EVENT_COLLECTION(Text)
 
 		TFunction<bool(const FInworldAudioDataEvent&)> AudioDataEventValid = [](const FInworldAudioDataEvent& AudioDataEvent) -> bool
 		{
 			return !AudioDataEvent.Chunk.IsEmpty();
 		};
-		DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(AudioData)
-		DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID(AudioData)
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(AudioData)
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID(AudioData)
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TEST_EVENT_COLLECTION(AudioData)
 
-#undef DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY
-#undef DEFINE_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID
+#undef DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY
+#undef DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID
+#undef DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TEST_EVENT_COLLECTION
 	}
 }

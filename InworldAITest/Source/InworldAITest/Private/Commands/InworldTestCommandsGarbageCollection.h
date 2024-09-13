@@ -8,8 +8,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/NoExportTypes.h"
+#include "UObject/UObjectGlobals.h"
 #include "Misc/AutomationTest.h"
 #include "Tests/AutomationCommon.h"
+#include "InworldTestMacros.h"
 
 #include "InworldAITestSettings.h"
 
@@ -17,19 +20,61 @@ namespace Inworld
 {
 	namespace Test
 	{
-		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(AddObjectToRoot, UObject*, Object);
-		bool AddObjectToRoot::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(AddObjectToRoot, UObject*, Object);
+		bool FAddObjectToRootCommand::Update()
 		{
 			Object->AddToRoot();
 			return true;
 		}
 
-		DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(RemoveObjectFromRoot, UObject*, Object);
-		bool RemoveObjectFromRoot::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(RemoveObjectFromRoot, UObject*, Object);
+		bool FRemoveObjectFromRootCommand::Update()
 		{
 			Object->RemoveFromRoot();
 			GEngine->ForceGarbageCollection(true);
 			return true;
 		}
+
+		template<typename T>
+		struct TScopedGCObject
+		{
+		public:
+			TScopedGCObject()
+				: GCObject(NewObject<T>())
+			{
+				AddObjectToRoot(GCObject);
+			}
+
+			~TScopedGCObject()
+			{
+				RemoveObjectFromRoot(GCObject);
+			}
+
+			FORCEINLINE const bool IsValid() const
+			{
+				return GCObject != nullptr;
+			}
+
+			FORCEINLINE T& Get() const
+			{
+				checkSlow(IsValid());
+				return *GCObject;
+			}
+
+			FORCEINLINE T& operator*() const
+			{
+				checkSlow(IsValid());
+				return *GCObject;
+			}
+
+			FORCEINLINE T* operator->() const
+			{
+				checkSlow(IsValid());
+				return GCObject;
+			}
+
+		private:
+			T* GCObject;
+		};
 	}
 }

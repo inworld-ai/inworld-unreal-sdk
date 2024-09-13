@@ -12,6 +12,7 @@
 #include "Tests/AutomationCommon.h"
 #include "InworldTestFlags.h"
 #include "TestObjects/InworldTestObjectSession.h"
+#include "Commands/InworldTestCommandsGarbageCollection.h"
 #include "Commands/InworldTestCommandsCharacter.h"
 #include "Commands/InworldTestCommandsInteraction.h"
 #include "InworldTestSendTextMessageToCharacter.generated.h"
@@ -29,14 +30,16 @@ namespace Inworld
 		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendTextMessageToCharacter, "Inworld.Conversation.SendTextMessageToCharacter", Flags)
 		bool FSendTextMessageToCharacter::RunTest(const FString& Parameters)
 		{
-			TInworldTestObjectSessionScoped<UInworldTestObjectSendTextMessageToCharacter> TestObject(this);
+			TScopedGCObject<UInworldTestObjectSendTextMessageToCharacter> TestObject;
+			{
+				FScopedSessionScene SessionScenePinned(this, TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+				SendCharacterTextMessage(TestObject->Characters[0], TEXT("Hello!"));
 
-			ADD_LATENT_AUTOMATION_COMMAND(SendCharacterTextMessage(TestObject->Characters[0], TEXT("Hello!")));
-			ADD_LATENT_AUTOMATION_COMMAND(WaitUntilInteractionEnd(TestObject->ControlEvents));
-			ADD_LATENT_AUTOMATION_COMMAND(TestTextEventCollectionNotEmpty(this, TestObject->TextEvents))
-			ADD_LATENT_AUTOMATION_COMMAND(TestAudioDataEventCollectionNotEmpty(this, TestObject->AudioDataEvents))
-			ADD_LATENT_AUTOMATION_COMMAND(TestTextEventCollectionValid(this, TestObject->TextEvents))
-			ADD_LATENT_AUTOMATION_COMMAND(TestAudioDataEventCollectionValid(this, TestObject->AudioDataEvents))
+				WaitUntilInteractionEnd(TestObject->ControlEvents);
+
+				TestTextEventCollection(this, TestObject->TextEvents);
+				TestAudioDataEventCollection(this, TestObject->AudioDataEvents);
+			}
 
 			return true;
 		}

@@ -10,9 +10,8 @@
 #include "CoreMinimal.h"
 #include "TestObjects/InworldTestObject.h"
 #include "InworldAITestModule.h"
-#include "Types/InworldTestCharacterConfig.h"
-#include "Types/InworldTestSessionConfig.h"
 #include "Commands/InworldTestCommandsSession.h"
+#include "InworldEnums.h"
 #include "InworldTypes.h"
 #include "InworldCharacter.h"
 #include "InworldPlayer.h"
@@ -83,32 +82,3 @@ public: \
 
 #undef HANDLE_INWORLD_CHARACTER_EVENT
 };
-
-namespace Inworld
-{
-	namespace Test
-	{
-		template<typename T>
-		struct TInworldTestObjectSessionScoped : public TInworldTestObjectScoped<T>
-		{
-		public:
-			TInworldTestObjectSessionScoped(FAutomationTestBase* Test)
-				: TInworldTestObjectScoped(Test)
-			{
-				T& Object = Get();
-				ADD_LATENT_AUTOMATION_COMMAND(StartSessionByScene(Object.Session, Object.RuntimeAuth, Object.SceneName));
-				ADD_LATENT_AUTOMATION_COMMAND(WaitUntilSessionConnectingComplete(Object.Session));
-				ADD_LATENT_AUTOMATION_COMMAND(WaitUntilSessionLoaded(Object.Session));
-				ADD_LATENT_AUTOMATION_COMMAND(TestEqualConnectionState(OwningTest, Object.Session, EInworldConnectionState::Connected));
-			}
-
-			~TInworldTestObjectSessionScoped()
-			{
-				T& Object = Get();
-				ADD_LATENT_AUTOMATION_COMMAND(StopSession(Object.Session));
-				ADD_LATENT_AUTOMATION_COMMAND(WaitUntilSessionDisconnectingComplete(Object.Session));
-				ADD_LATENT_AUTOMATION_COMMAND(TestEqualConnectionState(OwningTest, Object.Session, EInworldConnectionState::Idle));
-			}
-		};
-	}
-}
