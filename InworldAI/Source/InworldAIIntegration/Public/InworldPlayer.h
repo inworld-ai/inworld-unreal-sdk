@@ -70,9 +70,6 @@ public:
 	void SendSoundMessageToConversation(const TArray<uint8>& Input, const TArray<uint8>& Output);
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Player")
-	TScriptInterface<IInworldPlayerOwnerInterface> GetInworldPlayerOwner();
-
 	UFUNCTION(BlueprintCallable, Category = "Participation")
 	void SetConversationParticipation(bool bParticipate);
 	UFUNCTION(BlueprintPure, Category = "Participation")
