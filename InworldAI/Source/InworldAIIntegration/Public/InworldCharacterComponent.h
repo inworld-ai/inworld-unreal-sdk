@@ -37,7 +37,6 @@ public:
 
 	// IInworldCharacterOwnerInterface
 	virtual UInworldCharacter* GetInworldCharacter_Implementation() const override { return InworldCharacter; }
-	virtual void HandleTargetPlayerVoiceDetection(bool bVoiceDetected) override;
 	// ~IInworldCharacterOwnerInterface
 
 	virtual void OnRegister() override;
@@ -133,13 +132,16 @@ public:
 	void SendNarrationEvent(const FString& Content);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void StartAudioSession(UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions);
+	void StartAudioSession(FInworldAudioSessionOptions SessionOptions);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession();
 
 	UFUNCTION(BlueprintPure, Category = "Interaction")
 	FVector GetTargetPlayerCameraLocation();
+
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void Interrupt();
 
 	void Interrupt(const FString& InteractionId);
 
@@ -171,6 +173,11 @@ public:
 	TArray<TSubclassOf<UInworldCharacterPlayback>> PlaybackTypes;
 
 protected:
+	UPROPERTY(EditInstanceOnly, Category = "Inworld")
+	bool bFindSession = true;
+
+	UPROPERTY(EditInstanceOnly, Category = "Inworld", meta = (EditCondition = "!bFindSession", EditConditionHides, MustImplement = "/Script/InworldAIIntegration.InworldSessionOwnerInterface"))
+	AActor* InworldSessionOwner;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	FString UiName = "Character";
@@ -179,7 +186,13 @@ private:
 	UFUNCTION()
 	void OnInworldTextEvent(const FInworldTextEvent& Event);
 	UFUNCTION()
+	void OnInworldVADEvent(const FInworldVADEvent& Event);
+	UFUNCTION()
 	void OnInworldAudioEvent(const FInworldAudioDataEvent& Event);
+	UFUNCTION()
+	void OnInworldA2FHeaderEvent(const FInworldA2FHeaderEvent& Event);
+	UFUNCTION()
+	void OnInworldA2FContentEvent(const FInworldA2FContentEvent& Event);
 	UFUNCTION()
 	void OnInworldSilenceEvent(const FInworldSilenceEvent& Event);
 	UFUNCTION()
@@ -193,6 +206,8 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitText(const FInworldTextEvent& Event);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_VisitVAD(const FInworldVADEvent& Event);
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitSilence(const FInworldSilenceEvent& Event);
 	UFUNCTION(NetMulticast, Reliable)

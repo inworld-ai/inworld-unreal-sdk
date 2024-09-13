@@ -58,6 +58,13 @@ void InworldPacketTranslator::TranslateEvent<Inworld::TextEvent, FInworldTextEve
 }
 
 template<>
+void InworldPacketTranslator::TranslateEvent<Inworld::VADEvent, FInworldVADEvent>(const Inworld::VADEvent& Original, FInworldVADEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+	New.VoiceDetected = Original.IsVoiceDetected();
+}
+
+template<>
 void InworldPacketTranslator::TranslateEvent<Inworld::DataEvent, FInworldDataEvent>(const Inworld::DataEvent& Original, FInworldDataEvent& New)
 {
 	TranslateInworldPacket(Original, New);
@@ -78,6 +85,44 @@ void InworldPacketTranslator::TranslateEvent<Inworld::AudioDataEvent, FInworldAu
 			auto& VisemeInfoRef = New.VisemeInfos.AddDefaulted_GetRef();
 			VisemeInfoRef.Code = Code;
 			VisemeInfoRef.Timestamp = PhonemeInfo.Timestamp;
+		}
+	}
+}
+
+template<>
+void InworldPacketTranslator::TranslateEvent<Inworld::A2FHeaderEvent, FInworldA2FHeaderEvent>(const Inworld::A2FHeaderEvent& Original, FInworldA2FHeaderEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+	New.ChannelCount = Original.GetChannelCount();
+	New.SamplesPerSecond = Original.GetSamplesPerSecond();
+	New.BitsPerSample = Original.GetBitsPerSample();
+
+	for (const auto& BlendShape : Original.GetBlendShapes())
+	{
+		New.BlendShapes.Add(FName(UTF8_TO_TCHAR(BlendShape.c_str())));
+	}
+}
+
+template<>
+void InworldPacketTranslator::TranslateEvent<Inworld::A2FContentEvent, FInworldA2FContentEvent>(const Inworld::A2FContentEvent& Original, FInworldA2FContentEvent& New)
+{
+	TranslateInworldPacket(Original, New);
+
+	const Inworld::A2FContentEvent::FAudioInfo& OriginalAudioInfo = Original.GetAudioInfo();
+
+	New.AudioInfo.TimeCode = OriginalAudioInfo._TimeCode;
+
+	const std::string& OriginalAudioData = OriginalAudioInfo._Audio;
+	New.AudioInfo.Audio.SetNumUninitialized(OriginalAudioData.size());
+	FMemory::Memcpy(New.AudioInfo.Audio.GetData(), OriginalAudioData.data(), OriginalAudioData.size());
+
+	if (Original.GetSkeletalAnim()._BlendShapeWeights.size() > 0)
+	{
+		const auto& OriginalBlendShapeWeight = Original.GetSkeletalAnim()._BlendShapeWeights[0];
+		New.BlendShapeWeights.TimeCode = OriginalBlendShapeWeight._TimeCode;
+		for (const auto& Value : OriginalBlendShapeWeight._Values)
+		{
+			New.BlendShapeWeights.Values.Add(Value);
 		}
 	}
 }
@@ -113,6 +158,9 @@ template <>
 void InworldPacketTranslator::TranslateEvent<>(const Inworld::ControlEventCurrentSceneStatus& Original, FInworldCurrentSceneStatusEvent& New)
 {
 	TranslateInworldPacket(Original, New);
+	New.SceneName = UTF8_TO_TCHAR(Original.GetSceneName().c_str());
+	New.SceneDescription = UTF8_TO_TCHAR(Original.GetSceneDescription().c_str());
+	New.SceneDisplayName = UTF8_TO_TCHAR(Original.GetSceneDisplayName().c_str());
 	TranslateAgents(Original, New);
 }
 

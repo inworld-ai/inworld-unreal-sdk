@@ -39,8 +39,6 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldPerceivedLatencyNative, FString /
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldSessionSavedCallback, FInworldSave, Save, bool, bSuccess);
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldVADNative, UObject*, bool);
-
 namespace Inworld
 {
 	class Client;
@@ -66,7 +64,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
 	void StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
-		const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata);
+		const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata);
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
 	UFUNCTION(BlueprintCallable, Category = "Session")
@@ -76,6 +74,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;
+
+	UFUNCTION(BlueprintPure, Category = "Session")
+	FInworldCapabilitySet GetCapabilities() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
@@ -101,14 +102,19 @@ public:
 	FInworldWrappedPacket SendTextMessageToConversation(const FString& ConversationId, const FString& Text);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
+	void InitSpeechProcessor(EInworldPlayerSpeechMode Mode, const FInworldPlayerSpeechOptions& SpeechOptions);
+	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
+	void DestroySpeechProcessor();
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendSoundMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendSoundMessageToConversation(const FString& ConversationId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(const FString& AgentId, UObject* Owner, FInworldAudioSessionOptions SessionOptions);
+	void SendAudioSessionStart(const FString& AgentId, FInworldAudioSessionOptions SessionOptions);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStartToConversation(const FString& ConversationId, UObject* Owner, FInworldAudioSessionOptions SessionOptions);
+	void SendAudioSessionStartToConversation(const FString& ConversationId, FInworldAudioSessionOptions SessionOptions);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStop(const FString& AgentId);
@@ -128,6 +134,21 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void CreateOrUpdateItems(const TArray<FInworldEntityItem>& Items, const TArray<FString>& AddToEntities);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void RemoveItems(const TArray<FString>& ItemIds);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void AddItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void RemoveItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames);
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Entity")
+	void ReplaceItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames);
 
 	UPROPERTY(BlueprintAssignable, Category = "Packet")
 	FOnInworldPacketReceived OnPacketReceivedDelegate;
@@ -158,18 +179,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inworld Development")
 	void SetEnvironment(const FInworldEnvironment& InEnvironment) { Environment = InEnvironment; }
 
-	FOnInworldVADNative& OnVAD() { return OnVADDelegateNative; }
-
 private:
 	FOnInworldSessionPrePauseNative OnPrePauseDelegateNative;
 	FOnInworldSessionPreStopNative OnPreStopDelegateNative;
 	FOnInworldPacketReceivedNative OnPacketReceivedDelegateNative;
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
-	FOnInworldVADNative OnVADDelegateNative;
-
-	UPROPERTY()
-	UObject* AudioSessionOwner = nullptr;
 
 	bool bIsBeingDestroyed = false;
 

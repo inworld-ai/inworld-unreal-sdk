@@ -71,6 +71,12 @@ struct FInworldCapabilitySet
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     bool MultiAgent = true;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    bool Audio2Face = false;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    bool MultiModalActionPlanning = false;
 };
 
 USTRUCT(BlueprintType)
@@ -78,8 +84,8 @@ struct FInworldAuth
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
-	FString Base64Signature = "";
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    FString Base64Signature = "";
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     FString ApiKey = "";
@@ -184,9 +190,6 @@ struct FInworldPlayerSpeechOptions
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
-	EInworldPlayerSpeechMode Mode = EInworldPlayerSpeechMode::VAD_DetectOnly;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
 	float VADProbThreshhold = 0.3f;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
@@ -194,4 +197,22 @@ struct FInworldPlayerSpeechOptions
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
 	uint8 VADSilenceChunksNum = 5;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldEntityItem
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    FString Id;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    FString DisplayName;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    FString Description;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entity")
+    TMap<FString, FString> Properties;
 };

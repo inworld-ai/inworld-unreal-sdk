@@ -121,12 +121,12 @@ void UInworldCharacter::SendNarrationEvent(const FString& Content)
 	Session->SendNarrationEvent(this, Content);
 }
 
-void UInworldCharacter::SendAudioSessionStart(UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions)
+void UInworldCharacter::SendAudioSessionStart(FInworldAudioSessionOptions SessionOptions)
 {
 	NO_SESSION_RETURN(void())
 	EMPTY_ARG_RETURN(AgentInfo.AgentId, void())
 
-	Session->SendAudioSessionStart(this, Player, SessionOptions);
+	Session->SendAudioSessionStart(this, SessionOptions);
 }
 
 void UInworldCharacter::SendAudioSessionStop()
@@ -154,15 +154,6 @@ void UInworldCharacter::CancelResponse(const FString& InteractionId, const TArra
 	EMPTY_ARG_RETURN(UtteranceIds, void())
 
 	Session->CancelResponse(this, InteractionId, UtteranceIds);
-}
-
-TScriptInterface<IInworldCharacterOwnerInterface> UInworldCharacter::GetInworldCharacterOwner()
-{
-	if (!ensureMsgf(GetOuter()->Implements<UInworldCharacterOwnerInterface>(), TEXT("UInworldCharacter outer must implement IInworldCharacterOwnerInterface!")))
-	{
-		return nullptr;
-	}
-	return TScriptInterface<IInworldCharacterOwnerInterface>(GetOuter());
 }
 
 void UInworldCharacter::SetBrainName(const FString& BrainName)
@@ -245,19 +236,6 @@ void UInworldCharacter::OnRep_TargetPlayer(UInworldPlayer* OldTargetPlayer)
 {
 	OnTargetPlayerChangedDelegateNative.Broadcast();
 	OnTargetPlayerChangedDelegate.Broadcast();
-
-	if (OldTargetPlayer && OnVADHandle.IsValid())
-	{
-		OldTargetPlayer->OnVoiceDetection().Remove(OnVADHandle);
-	}
-	if (TargetPlayer)
-	{
-		OnVADHandle = TargetPlayer->OnVoiceDetection().AddLambda(
-			[this](bool bVoiceDetected) -> void
-		{
-			GetInworldCharacterOwner()->HandleTargetPlayerVoiceDetection(bVoiceDetected);
-		});
-	}
 }
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldTextEvent& Event)
@@ -266,10 +244,28 @@ void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldText
 	Character->OnInworldTextEventDelegate.Broadcast(Event);
 }
 
+void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldVADEvent& Event)
+{
+	Character->OnInworldVADEventDelegateNative.Broadcast(Event);
+	Character->OnInworldVADEventDelegate.Broadcast(Event);
+}
+
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldAudioDataEvent& Event)
 {
 	Character->OnInworldAudioEventDelegateNative.Broadcast(Event);
 	Character->OnInworldAudioEventDelegate.Broadcast(Event);
+}
+
+void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldA2FHeaderEvent& Event)
+{
+	Character->OnInworldA2FHeaderEventDelegateNative.Broadcast(Event);
+	Character->OnInworldA2FHeaderEventDelegate.Broadcast(Event);
+}
+
+void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldA2FContentEvent& Event)
+{
+	Character->OnInworldA2FContentEventDelegateNative.Broadcast(Event);
+	Character->OnInworldA2FContentEventDelegate.Broadcast(Event);
 }
 
 void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldSilenceEvent& Event)

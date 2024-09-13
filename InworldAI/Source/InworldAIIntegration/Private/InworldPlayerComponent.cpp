@@ -37,6 +37,7 @@ void UInworldPlayerComponent::OnRegister()
     if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
     {
         InworldPlayer = NewObject<UInworldPlayer>(this);
+        InworldPlayer->SetConversationParticipation(bConversationParticipant);
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
         AddReplicatedSubObject(InworldPlayer);
 #endif
@@ -64,9 +65,24 @@ void UInworldPlayerComponent::InitializeComponent()
 {
     Super::InitializeComponent();
     UWorld* World = GetWorld();
+
+#if WITH_EDITOR
+    if (World == nullptr || !World->IsPlayInEditor())
+    {
+        return;
+    }
+#endif
+
     if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
     {
-        InworldPlayer->SetSession(World->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession());
+        if (bFindSession)
+        {
+            InworldPlayer->SetSession(World->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession());
+        }
+        else if (InworldSessionOwner)
+        {
+            InworldPlayer->SetSession(IInworldSessionOwnerInterface::Execute_GetInworldSession(InworldSessionOwner));
+        }
     }
 }
 
@@ -74,6 +90,14 @@ void UInworldPlayerComponent::UninitializeComponent()
 {
     Super::UninitializeComponent();
     UWorld* World = GetWorld();
+
+#if WITH_EDITOR
+    if (World == nullptr || !World->IsPlayInEditor())
+    {
+        return;
+    }
+#endif
+
     if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
     {
         InworldPlayer->SetSession(nullptr);
@@ -86,7 +110,6 @@ void UInworldPlayerComponent::BeginPlay()
 
     if (GetOwnerRole() == ROLE_Authority)
     {
-        InworldPlayer->SetConversationParticipation(bConversationParticipant);
     }
 }
 
@@ -131,7 +154,17 @@ void UInworldPlayerComponent::ContinueConversation()
 
 UInworldCharacterComponent* UInworldPlayerComponent::GetTargetInworldCharacter()
 {
-    TArray<UInworldCharacterComponent*> TargetCharacters = GetTargetInworldCharacters();
+    UInworldCharacter* Character = GetTargetCharacter();
+    if (Character)
+    {
+        return Cast<UInworldCharacterComponent>(Character->GetOuter());
+    }
+    return nullptr;
+}
+
+UInworldCharacter* UInworldPlayerComponent::GetTargetCharacter()
+{
+    TArray<UInworldCharacter*> TargetCharacters = GetTargetCharacters();
     if (TargetCharacters.Num() > 0)
     {
         return TargetCharacters[0];
@@ -141,8 +174,10 @@ UInworldCharacterComponent* UInworldPlayerComponent::GetTargetInworldCharacter()
 
 TArray<UInworldCharacterComponent*> UInworldPlayerComponent::GetTargetInworldCharacters()
 {
+    NO_PLAYER_RETURN({})
+
     TArray<UInworldCharacterComponent*> InworldCharacterComponents;
-    for (UInworldCharacter* Character : InworldPlayer->GetTargetCharacters())
+    for (UInworldCharacter* Character : GetTargetCharacters())
     {
         UInworldCharacterComponent* InworldCharacterComponent = Cast<UInworldCharacterComponent>(Character->GetOuter());
         if (InworldCharacterComponent)
@@ -153,18 +188,43 @@ TArray<UInworldCharacterComponent*> UInworldPlayerComponent::GetTargetInworldCha
     return InworldCharacterComponents;
 }
 
+TArray<UInworldCharacter*> UInworldPlayerComponent::GetTargetCharacters()
+{
+    NO_PLAYER_RETURN({})
+
+    return InworldPlayer->GetTargetCharacters();
+}
+
+
 void UInworldPlayerComponent::AddTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
-    NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(Character, void())
 
-    InworldPlayer->AddTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
+    AddTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
 }
+
+void UInworldPlayerComponent::AddTargetCharacter(UInworldCharacter* Character)
+{
+    NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(Character, void())
+
+    InworldPlayer->AddTargetCharacter(Character);
+}
+
 
 void UInworldPlayerComponent::RemoveTargetInworldCharacter(UInworldCharacterComponent* Character)
 {
-    NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(Character, void())
 
-    InworldPlayer->RemoveTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
+    RemoveTargetCharacter(IInworldCharacterOwnerInterface::Execute_GetInworldCharacter(Character));
+}
+
+void UInworldPlayerComponent::RemoveTargetCharacter(UInworldCharacter* Character)
+{
+    NO_PLAYER_RETURN(void())
+    EMPTY_ARG_RETURN(Character, void())
+
+    InworldPlayer->RemoveTargetCharacter(Character);
 }
 
 void UInworldPlayerComponent::ClearAllTargetInworldCharacters()

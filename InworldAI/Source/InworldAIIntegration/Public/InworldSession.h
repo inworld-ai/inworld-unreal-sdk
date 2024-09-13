@@ -24,8 +24,14 @@ class UInworldAudioRepl;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldTextEvent, const FInworldTextEvent&, TextEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldTextEventNative, const FInworldTextEvent& /*TextEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldVADEvent, const FInworldVADEvent&, VADEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldVADEventNative, const FInworldVADEvent& /*VADEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldAudioEvent, const FInworldAudioDataEvent&, AudioEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldAudioEventNative, const FInworldAudioDataEvent& /*AudioEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldA2FHeaderEvent, const FInworldA2FHeaderEvent&, A2FHeaderEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FHeaderEventNative, const FInworldA2FHeaderEvent& /*A2FHeaderEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldA2FContentEvent, const FInworldA2FContentEvent&, A2FContentEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldA2FContentEventNative, const FInworldA2FContentEvent& /*A2FContentEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSilenceEvent, const FInworldSilenceEvent&, SilenceEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSilenceEventNative, const FInworldSilenceEvent& /*SilenceEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldControlEvent, const FInworldControlEvent&, ControlEvent);
@@ -36,7 +42,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEvent, const FInwor
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEventNative, const FInworldEmotionEvent& /*EmotionEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEvent, const FInworldCustomEvent&, CustomEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEventNative, const FInworldCustomEvent& /*CustomEvent*/);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInworldVAD, UInworldPlayer*, Player, bool, bVoiceDetected);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoaded, bool, bLoaded);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoadedNative, bool /*bLoaded*/);
@@ -87,7 +92,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
 	void StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
-		const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const FInworldPlayerSpeechOptions& SpeechOptions, const TMap<FString, FString>& Metadata);
+		const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata);
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
 	UFUNCTION(BlueprintCallable, Category = "Session")
@@ -122,12 +127,17 @@ public:
 	void SendTextMessageToConversation(UInworldPlayer* Player, const FString& Message);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
+	void InitSpeechProcessor(EInworldPlayerSpeechMode Mode, const FInworldPlayerSpeechOptions& SpeechOptions);
+	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
+	void DestroySpeechProcessor();
+
+	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendSoundMessage(UInworldCharacter* Character, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendSoundMessageToConversation(UInworldPlayer* Player, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStart(UInworldCharacter* Character, UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions);
+	void SendAudioSessionStart(UInworldCharacter* Character, FInworldAudioSessionOptions SessionOptions);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStartToConversation(UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions);
 
@@ -178,10 +188,6 @@ public:
 	FOnInworldPerceivedLatency OnPerceivedLatencyDelegate;
 	FOnInworldPerceivedLatencyNative& OnPerceivedLatency() { return OnPerceivedLatencyDelegateNative; }
 
-	UPROPERTY(BlueprintAssignable, Category = "VAD")
-	FOnInworldVAD OnVADDelegate;
-	FOnInworldVADNative& OnVAD() { return OnVADDelegateNative; }
-
 	void InitAudioReplication(int32 Port);
 	void ReplicateAudioEventFromServer(const FInworldAudioDataEvent& Packet);
 	void HandleAudioEventOnClient(const TSharedPtr<FInworldAudioDataEvent>& Packet);
@@ -193,6 +199,8 @@ private:
 private:
 	UPROPERTY()
 	UInworldClient* Client;
+
+	FString Workspace;
 
 	UFUNCTION()
 	void OnRep_IsLoaded();
@@ -209,7 +217,6 @@ private:
 	FDelegateHandle OnClientPacketReceivedHandle;
 	FDelegateHandle OnClientConnectionStateChangedHandle;
 	FDelegateHandle OnClientPerceivedLatencyHandle;
-	FDelegateHandle OnVADHandle;
 
 	UPROPERTY(Replicated)
 	TArray<UInworldCharacter*> RegisteredCharacters;
@@ -227,7 +234,6 @@ private:
 	FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
 	FOnInworldSessionLoadedNative OnLoadedDelegateNative;
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
-	FOnInworldVADNative OnVADDelegateNative;
 
 	class FInworldSessionPacketVisitor : public TSharedFromThis<FInworldSessionPacketVisitor>, public InworldPacketVisitor
 	{

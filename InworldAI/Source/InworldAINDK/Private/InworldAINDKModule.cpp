@@ -11,11 +11,17 @@
 #include "HAL/PlatformProcess.h"
 #include "Misc/Paths.h"
 
+THIRD_PARTY_INCLUDES_START
+#include "Utils/Log.h"
+THIRD_PARTY_INCLUDES_END
+
 #if WITH_EDITOR
 #include "Misc/MessageDialog.h"
 #endif //WITH_EDITOR
 
 #define LOCTEXT_NAMESPACE "FInworldAINDKModule"
+
+DEFINE_LOG_CATEGORY(LogInworldAINDK);
 
 void FInworldAINDKModule::StartupModule()
 {
@@ -52,10 +58,28 @@ void FInworldAINDKModule::StartupModule()
 #endif
 	LoadDll(LibraryPath, &ndkLibraryHandle);
 #endif
+
+
+	Inworld::SetLogCallbacks(
+		[](const char* message)
+		{
+			UE_LOG(LogInworldAINDK, Log, TEXT("%s"), UTF8_TO_TCHAR(message));
+		},
+		[](const char* message)
+		{
+			UE_LOG(LogInworldAINDK, Warning, TEXT("%s"), UTF8_TO_TCHAR(message));
+		},
+		[](const char* message)
+		{
+			UE_LOG(LogInworldAINDK, Error, TEXT("%s"), UTF8_TO_TCHAR(message));
+		}
+	);
 }
 
 void FInworldAINDKModule::ShutdownModule()
 {
+	Inworld::ClearLogCallbacks();
+
 #ifdef INWORLD_AEC
 	FPlatformProcess::FreeDllHandle(webrtcLibraryHandle);
 #endif //INWORLD_AEC

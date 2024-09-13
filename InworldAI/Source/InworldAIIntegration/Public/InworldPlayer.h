@@ -70,9 +70,6 @@ public:
 	void SendSoundMessageToConversation(const TArray<uint8>& Input, const TArray<uint8>& Output);
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Player")
-	TScriptInterface<IInworldPlayerOwnerInterface> GetInworldPlayerOwner();
-
 	UFUNCTION(BlueprintCallable, Category = "Participation")
 	void SetConversationParticipation(bool bParticipate);
 	UFUNCTION(BlueprintPure, Category = "Participation")
@@ -116,8 +113,6 @@ public:
 	bool HasAudioSession() const { return bHasAudioSession; }
 	EInworldMicrophoneMode GetMicMode() const { return AudioSessionMode.MicrophoneMode; }
 
-	void SetVoiceDetected(bool bVal);
-
 private:
 	void UpdateConversation();
 
@@ -159,6 +154,7 @@ private:
 		{}
 		virtual ~FInworldPlayerPacketVisitor() = default;
 
+		virtual void Visit(const FInworldVADEvent& Event) override;
 		virtual void Visit(const FInworldConversationUpdateEvent& Event) override;
 
 	private:
