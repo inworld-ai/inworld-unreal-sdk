@@ -38,6 +38,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "LLMService")
 	FInworldLLMApiDelegate OnFailure;
 
+private:
+	FString URL;
+
 protected:
 	FString ApiKey;
 	FString UserId;

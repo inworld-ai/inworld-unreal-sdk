@@ -151,16 +151,19 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 			}
 		}
 
-		if (!MessageQueueEntry.IsValid() || MessageQueueEntry->IsFinished())
+		if (CanCreateNewQueueEntry<T>() && (!MessageQueueEntry.IsValid() || MessageQueueEntry->IsFinished()))
 		{
 			MessageQueueEntry = MakeShared<FCharacterMessageQueueEntry<U>>(MakeShared<U>());
 			Message = StaticCastSharedPtr<U>(MessageQueueEntry->GetCharacterMessage());
 			PendingMessageQueueEntries.Emplace(MessageQueueEntry);
 		}
 
-		(*Message) << Event;
+		if (Message.IsValid())
+		{
+			(*Message) << Event;
 
-		OnUpdated(*Message);
+			OnUpdated(*Message);
+		}
 
 		TryToProgress();
 	}
@@ -188,6 +191,13 @@ private:
 		UNDETERMINED = 2,
 		INVALID = 3,
 	};
+
+	template<class T>
+	bool CanCreateNewQueueEntry() const { return true; }
+	template<>
+	bool CanCreateNewQueueEntry<FInworldA2FContentEvent>() const { return false; }
+	template<>
+	bool CanCreateNewQueueEntry<FInworldA2FHeaderEvent>() const { return false; }
 
 	void SetInterruptible(const FString& InteractionId, bool bInterruptible);
 	bool CanPauseCurrentMessageQueueEntry() const;

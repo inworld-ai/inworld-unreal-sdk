@@ -12,147 +12,132 @@
 #include "InworldStudioTypes.generated.h"
 
 USTRUCT(BlueprintType)
-struct FInworldStudioTokenOptions
+struct FInworldStudioWorkspace
 {
 public:
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Editor Client")
-	FString ServerUrl;
+	UPROPERTY(BlueprintReadOnly, Category = "Workspace", meta = (DisplayName = "Name"))
+	FString name;
 
-	UPROPERTY(EditAnywhere, Category = "Editor Client")
-	FString ExchangeToken;
+	UPROPERTY(BlueprintReadOnly, Category = "Workspace", meta = (DisplayName = "Display Name"))
+	FString displayName;
 };
 
 USTRUCT(BlueprintType)
-struct FInworldStudioUserCharacterData
+struct FInworldStudioWorkspaces
 {
-	GENERATED_BODY()
-	
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString Name;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString ShortName;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString RpmModelUri;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString RpmImageUri;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString RpmPortraitUri;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString RpmPostureUri;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	bool bMale = false;
-
-	mutable FString RpmModelData;
-};
-
-USTRUCT(BlueprintType)
-struct FInworldStudioUserSceneData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString Name;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString ShortName;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	TArray<FString> Characters;
-};
-
-USTRUCT(BlueprintType)
-struct FInworldStudioUserApiKeyData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString Name;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString Key;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString Secret;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	bool IsActive = false;
-};
-
-USTRUCT(BlueprintType)
-struct FInworldStudioUserWorkspaceData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString Name;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	FString ShortName;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	TArray<FInworldStudioUserCharacterData> Characters;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	TArray<FInworldStudioUserSceneData> Scenes;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	TArray<FInworldStudioUserApiKeyData> ApiKeys;
-};
-
-USTRUCT(BlueprintType)
-struct FInworldStudioUserData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Studio")
-	TArray<FInworldStudioUserWorkspaceData> Workspaces;
-};
-
-USTRUCT()
-struct FRefreshTokenRequestData
-{
-	GENERATED_BODY()
-
 public:
-	UPROPERTY()
-	FString grant_type;
-
-	UPROPERTY()
-	FString refresh_token;
-};
-
-USTRUCT()
-struct FRefreshTokenResponseData
-{
 	GENERATED_BODY()
 
+	UPROPERTY(BlueprintReadOnly, Category = "Workspace", meta = (DisplayName = "Workspaces"))
+	TArray<FInworldStudioWorkspace> workspaces;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioApiKey
+{
 public:
-	UPROPERTY()
-	FString access_token;
+	GENERATED_BODY()
 
-	UPROPERTY()
-	int32 expires_in = 0;
+	UPROPERTY(BlueprintReadOnly, Category = "Api Key", meta = (DisplayName = "Key"))
+	FString key;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Api Key", meta = (DisplayName = "Secret"))
+	FString secret;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioApiKeys
+{
+public:
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Workspace", meta = (DisplayName = "Api Keys"))
+	TArray<FInworldStudioApiKey> apiKeys;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioCharacterDescription
+{
+public:
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character|Description", meta = (DisplayName = "Given Name"))
+	FString givenName;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioCharacterAssets
+{
+public:
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character|Assets", meta = (DisplayName = "Avatar Image"))
+	FString avatarImg;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioCharacter
+{
+public:
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (DisplayName = "Name"))
+	FString name;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (DisplayName = "Character Description"))
+	FInworldStudioCharacterDescription defaultCharacterDescription;
 	
-	UPROPERTY()
-	FString token_type;
+	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (DisplayName = "Character Assets"))
+	FInworldStudioCharacterAssets defaultCharacterAssets;
+};
 
-	UPROPERTY()
-	FString refresh_token;
+USTRUCT(BlueprintType)
+struct FInworldStudioCharacters
+{
+public:
+	GENERATED_BODY()
 
-	UPROPERTY()
-	FString id_token;
-	
-	UPROPERTY()
-	FString user_id;
+	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (DisplayName = "Characters"))
+	TArray<FInworldStudioCharacter> characters;
+};
 
-	UPROPERTY()
-	FString project_id;
+USTRUCT(BlueprintType)
+struct FInworldStudioSceneCharacter
+{
+public:
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scene|Character", meta = (DisplayName = "Name"))
+	FString character;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scene|Character", meta = (DisplayName = "Display Name"))
+	FString displayTitle;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioScene
+{
+public:
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scene", meta = (DisplayName = "Name"))
+	FString name;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scene", meta = (DisplayName = "Display Name"))
+	FString displayName;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scene", meta = (DisplayName = "Characters"))
+	TArray<FInworldStudioSceneCharacter> characters;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioScenes
+{
+public:
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scene", meta = (DisplayName = "Scenes"))
+	TArray<FInworldStudioScene> scenes;
 };

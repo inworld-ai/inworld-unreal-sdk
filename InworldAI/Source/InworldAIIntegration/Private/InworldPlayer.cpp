@@ -156,15 +156,6 @@ void UInworldPlayer::SendSoundMessageToConversation(const TArray<uint8>& Input, 
 	Session->SendSoundMessageToConversation(this, Input, Output);
 }
 
-TScriptInterface<IInworldPlayerOwnerInterface> UInworldPlayer::GetInworldPlayerOwner()
-{
-	if (!ensureMsgf(GetOuter()->Implements<UInworldPlayerOwnerInterface>(), TEXT("UInworldPlayer outer must implement IInworldPlayerOwnerInterface!")))
-	{
-		return nullptr;
-	}
-	return TScriptInterface<IInworldPlayerOwnerInterface>(GetOuter());
-}
-
 void UInworldPlayer::SetConversationParticipation(bool bParticipate)
 {
 	if (bConversationParticipant != bParticipate)

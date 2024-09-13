@@ -9,25 +9,15 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "InworldAILLMSettings.generated.h"
+#include "InworldAIIntegrationSettings.generated.h"
 
 UCLASS(config=InworldAI)
-class INWORLDAILLM_API UInworldAILLMSettings : public UObject
+class INWORLDAIINTEGRATION_API UInworldAIIntegrationSettings : public UObject
 {
 	GENERATED_BODY()
-
 public:
-	UInworldAILLMSettings(const FObjectInitializer& ObjectInitializer);
+	UInworldAIIntegrationSettings(const FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
-	FString URL;
-
-	UPROPERTY(config, EditAnywhere, Category = "Inworld")
-	FString RuntimeApiKey;
-
-	UPROPERTY(config, EditAnywhere, Category = "Inworld")
-	FString UserId;
-
-	UPROPERTY(config, EditAnywhere, Category = "Inworld")
-	FString Model;
+	FString StudioApiKey;
 };
