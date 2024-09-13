@@ -41,7 +41,7 @@ namespace Inworld
 					}
 				}
 
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 10.f);
+				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 10.0f);
 
 				TestTextEventCollection(TestObject->TextEvents);
 				TestAudioDataEventCollection(TestObject->AudioDataEvents);
