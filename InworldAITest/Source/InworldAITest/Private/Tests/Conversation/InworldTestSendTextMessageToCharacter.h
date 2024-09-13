@@ -35,7 +35,7 @@ namespace Inworld
 				FScopedSessionScene SessionScenePinned(this, TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 				SendCharacterTextMessage(TestObject->Characters[0], TEXT("Hello!"));
 
-				WaitUntilInteractionEnd(TestObject->ControlEvents);
+				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 0.1f);
 
 				TestTextEventCollection(this, TestObject->TextEvents);
 				TestAudioDataEventCollection(this, TestObject->AudioDataEvents);

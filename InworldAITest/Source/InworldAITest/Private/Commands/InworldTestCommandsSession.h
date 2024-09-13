@@ -10,6 +10,7 @@
 #include "CoreMinimal.h"
 #include "Misc/AutomationTest.h"
 #include "Tests/AutomationCommon.h"
+#include "InworldAITestModule.h"
 #include "InworldTestMacros.h"
 
 #include "InworldSession.h"
@@ -85,14 +86,14 @@ namespace Inworld
 				, Session(InSession)
 			{
 				StartSessionByScene(Session, InRuntimeAuth, InSceneName);
-				WaitUntilSessionConnectingComplete(Session);
-				WaitUntilSessionLoaded(Session);
+				WaitUntilSessionConnectingCompleteWithTimeout(Session, 10.0f);
+				WaitUntilSessionLoadedWithTimeout(Session, 10.0f);
 				TestEqualConnectionState(Test, Session, EInworldConnectionState::Connected);
 			}
 			~FScopedSessionScene()
 			{
 				StopSession(Session);
-				WaitUntilSessionDisconnectingComplete(Session);
+				WaitUntilSessionDisconnectingCompleteWithTimeout(Session, 10.0f);
 				TestEqualConnectionState(Test, Session, EInworldConnectionState::Idle);
 			}
 		private:
