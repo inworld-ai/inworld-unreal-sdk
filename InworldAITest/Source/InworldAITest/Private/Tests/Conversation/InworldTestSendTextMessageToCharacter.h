@@ -32,13 +32,13 @@ namespace Inworld
 		{
 			TScopedGCObject<UInworldTestObjectSendTextMessageToCharacter> TestObject;
 			{
-				FScopedSessionScene SessionScenePinned(this, TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+				FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 				SendCharacterTextMessage(TestObject->Characters[0], TEXT("Hello!"));
 
 				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 0.1f);
 
-				TestTextEventCollection(this, TestObject->TextEvents);
-				TestAudioDataEventCollection(this, TestObject->AudioDataEvents);
+				TestTextEventCollection(TestObject->TextEvents);
+				TestAudioDataEventCollection(TestObject->AudioDataEvents);
 			}
 
 			return true;

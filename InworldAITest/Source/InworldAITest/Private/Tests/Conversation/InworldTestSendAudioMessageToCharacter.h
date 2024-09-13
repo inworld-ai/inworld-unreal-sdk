@@ -32,7 +32,7 @@ namespace Inworld
 		{
 			TScopedGCObject<UInworldTestObjectSendAudioMessageToCharacter> TestObject;
 			{
-				FScopedSessionScene SessionScenePinned(this, TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+				FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 				{
 					FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session, EInworldPlayerSpeechMode::DEFAULT);
 					{
@@ -43,8 +43,8 @@ namespace Inworld
 
 				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 10.f);
 
-				TestTextEventCollection(this, TestObject->TextEvents);
-				TestAudioDataEventCollection(this, TestObject->AudioDataEvents);
+				TestTextEventCollection(TestObject->TextEvents);
+				TestAudioDataEventCollection(TestObject->AudioDataEvents);
 			}
 
 			return true;

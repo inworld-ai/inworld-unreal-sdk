@@ -74,6 +74,8 @@
 			if(F##CommandName##Command::Update()) return true; \
 			if (FPlatformTime::Seconds() - StartTime >= _Timeout) \
 			{\
+				const FString CommandNameString = FString(TEXT(#CommandName)); \
+				UE_LOG(LogInworldAITest, Error, TEXT("%s has timed out"), *CommandNameString); \
 				return true;\
 			}\
 			return false; \

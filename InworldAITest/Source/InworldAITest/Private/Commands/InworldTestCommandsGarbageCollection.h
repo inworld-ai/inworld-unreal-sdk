@@ -10,11 +10,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "UObject/UObjectGlobals.h"
-#include "Misc/AutomationTest.h"
-#include "Tests/AutomationCommon.h"
 #include "InworldTestMacros.h"
-
-#include "InworldAITestSettings.h"
 
 namespace Inworld
 {

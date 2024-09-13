@@ -30,7 +30,7 @@ namespace Inworld
 		{
 			TScopedGCObject<UInworldTestObjectStartSessionByScene> TestObject;
 			{
-				FScopedSessionScene SessionScenePinned(this, TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+				FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 			}
 			return true;
 		}

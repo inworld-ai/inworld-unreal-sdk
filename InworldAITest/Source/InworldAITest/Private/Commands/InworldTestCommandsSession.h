@@ -8,14 +8,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Misc/AutomationTest.h"
-#include "Tests/AutomationCommon.h"
-#include "InworldAITestModule.h"
 #include "InworldTestMacros.h"
+#include "InworldTestChecks.h"
 
 #include "InworldSession.h"
-
-#include "InworldAITestSettings.h"
 
 namespace Inworld
 {
@@ -63,13 +59,13 @@ namespace Inworld
 			return ConnectionState != EInworldConnectionState::Connected;
 		}
 
-		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(TestEqualConnectionState, FAutomationTestBase*, Test, UInworldSession*, Session, EInworldConnectionState, ConnectionState);
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(TestEqualConnectionState, UInworldSession*, Session, EInworldConnectionState, ConnectionState);
 		bool FTestEqualConnectionStateCommand::Update()
 		{
 			static const UEnum* TypeEnum = StaticEnum<EInworldConnectionState>();
 			const FName ExpectedTypeName = TypeEnum->GetNameByValue((int64)ConnectionState);
 			const FName CurrentTypeName = TypeEnum->GetNameByValue((int64)Session->GetConnectionState());
-			Test->TestEqual(TEXT("Connection State"), *CurrentTypeName.ToString(), *ExpectedTypeName.ToString());
+			CheckEqual(TEXT("Connection State"), *CurrentTypeName.ToString(), *ExpectedTypeName.ToString());
 			return true;
 		}
 
@@ -81,23 +77,21 @@ namespace Inworld
 
 		struct FScopedSessionScene
 		{
-			FScopedSessionScene(FAutomationTestBase* InTest, UInworldSession* InSession, const FString& InSceneName, const FInworldAuth& InRuntimeAuth)
-				: Test(InTest)
-				, Session(InSession)
+			FScopedSessionScene(UInworldSession* InSession, const FString& InSceneName, const FInworldAuth& InRuntimeAuth)
+				: Session(InSession)
 			{
 				StartSessionByScene(Session, InRuntimeAuth, InSceneName);
 				WaitUntilSessionConnectingCompleteWithTimeout(Session, 10.0f);
 				WaitUntilSessionLoadedWithTimeout(Session, 10.0f);
-				TestEqualConnectionState(Test, Session, EInworldConnectionState::Connected);
+				TestEqualConnectionState(Session, EInworldConnectionState::Connected);
 			}
 			~FScopedSessionScene()
 			{
 				StopSession(Session);
 				WaitUntilSessionDisconnectingCompleteWithTimeout(Session, 10.0f);
-				TestEqualConnectionState(Test, Session, EInworldConnectionState::Idle);
+				TestEqualConnectionState(Session, EInworldConnectionState::Idle);
 			}
 		private:
-			FAutomationTestBase* Test;
 			UInworldSession* Session;
 		};
 

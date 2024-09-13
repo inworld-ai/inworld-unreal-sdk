@@ -8,8 +8,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Misc/AutomationTest.h"
-#include "Tests/AutomationCommon.h"
 #include "InworldTestMacros.h"
 #include "InworldTestUtils.h"
 
