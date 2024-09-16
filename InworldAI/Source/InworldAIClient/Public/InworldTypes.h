@@ -95,7 +95,7 @@ struct FInworldAuth
 };
 
 USTRUCT(BlueprintType)
-struct FInworldSessionToken
+struct FInworldToken
 {
     GENERATED_BODY()
 

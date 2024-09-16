@@ -83,7 +83,7 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     Auth.ApiKey = ApiKey;
     Auth.ApiSecret = ApiSecret;
 
-    FInworldSessionToken SessionToken;
+    FInworldToken SessionToken;
     SessionToken.Token = Token;
     SessionToken.ExpirationTime = TokenExpirationTime;
     SessionToken.SessionId = SessionId;
@@ -91,7 +91,7 @@ void UInworldApiSubsystem::StartSession(const FString& SceneName, const FString&
     StartSession_V2(SceneName, PlayerProfile, {}, Auth, SessionToken, {}, {});
 }
 
-void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, FString UniqueUserIdOverride, FInworldSave SavedSessionState)
+void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldToken& SessionToken, FString UniqueUserIdOverride, FInworldSave SavedSessionState)
 {
     NO_CLIENT_RETURN(void())
 

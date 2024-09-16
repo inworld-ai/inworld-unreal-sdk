@@ -46,7 +46,7 @@ public:
      * @param SessionId : optional, will be generated if empty
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DisplayName = "StartSession", AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Capabilities, Auth, SessionToken"))
-    void StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, FString UniqueUserIdOverride, FInworldSave SavedSessionState);
+    void StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldToken& SessionToken, FString UniqueUserIdOverride, FInworldSave SavedSessionState);
 
     UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AdvancedDisplay = "4", DeprecatedFunction, DeprecationMessage = "Please recreate 'Start Session' node with updated parameters."))
     void StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& Token = "", int64 TokenExpiration = 0, const FString& SessionId = "");

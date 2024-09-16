@@ -109,7 +109,7 @@ void UInworldSessionComponent::StartSessionFromSave(const FInworldSave& Save)
 	InworldSession->StartSessionFromSave(Save, PlayerProfile, CapabilitySet, Metadata, Workspace, Auth);
 }
 
-void UInworldSessionComponent::StartSessionFromToken(const FInworldSessionToken& Token)
+void UInworldSessionComponent::StartSessionFromToken(const FInworldToken& Token)
 {
 	NO_CLIENT_RETURN(void())
 
@@ -137,7 +137,7 @@ void UInworldSessionComponent::ResumeSession()
 	InworldSession->ResumeSession();
 }
 
-FInworldSessionToken UInworldSessionComponent::GetSessionToken() const
+FInworldToken UInworldSessionComponent::GetSessionToken() const
 {
 	NO_SESSION_RETURN({})
 

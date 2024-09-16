@@ -49,7 +49,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StartSessionFromSave(const FInworldSave& Save);
 	UFUNCTION(BlueprintCallable, Category = "Session")
-	void StartSessionFromToken(const FInworldSessionToken& Token);
+	void StartSessionFromToken(const FInworldToken& Token);
 
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
@@ -59,7 +59,7 @@ public:
 	void ResumeSession();
 
 	UFUNCTION(BlueprintPure, Category = "Session")
-	FInworldSessionToken GetSessionToken() const;
+	FInworldToken GetSessionToken() const;
 
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;

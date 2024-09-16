@@ -280,11 +280,11 @@ void UInworldSession::StartSessionFromSave(const FInworldSave& Save, const FInwo
 	Client->StartSessionFromSave(Save, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
 }
 
-void UInworldSession::StartSessionFromToken(const FInworldSessionToken& SessionToken, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
+void UInworldSession::StartSessionFromToken(const FInworldToken& Token, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->StartSessionFromToken(SessionToken, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
+	Client->StartSessionFromToken(Token, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
 }
 
 void UInworldSession::StopSession()
@@ -310,7 +310,7 @@ void UInworldSession::ResumeSession()
 	Client->ResumeSession();
 }
 
-FInworldSessionToken UInworldSession::GetSessionToken() const
+FInworldToken UInworldSession::GetSessionToken() const
 {
 	NO_CLIENT_RETURN({})
 
