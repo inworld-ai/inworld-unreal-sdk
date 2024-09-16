@@ -84,8 +84,8 @@ struct FInworldAuth
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
-	FString Base64Signature = "";
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
+    FString Base64Signature = "";
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
     FString ApiKey = "";

@@ -50,6 +50,7 @@ public:
 	void StartSessionFromSave(const FInworldSave& Save);
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StartSessionFromToken(const FInworldSessionToken& Token);
+
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
 	UFUNCTION(BlueprintCallable, Category = "Session")

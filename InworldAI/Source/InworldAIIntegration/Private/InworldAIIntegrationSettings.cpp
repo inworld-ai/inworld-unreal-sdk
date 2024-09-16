@@ -6,11 +6,9 @@
  */
 
 
-#include "InworldAILLMSettings.h"
+#include "InworldAIIntegrationSettings.h"
 
-UInworldAILLMSettings::UInworldAILLMSettings(const FObjectInitializer& ObjectInitializer)
+UInworldAIIntegrationSettings::UInworldAIIntegrationSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	URL = { "api.inworld.ai" };
-	Model = { "inworld-dragon" };
 }

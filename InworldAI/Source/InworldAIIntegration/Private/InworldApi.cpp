@@ -120,42 +120,42 @@ void UInworldApiSubsystem::PauseSession()
 {
     NO_CLIENT_RETURN(void())
 
-    InworldSession->GetClient()->PauseSession();
+    InworldSession->PauseSession();
 }
 
 void UInworldApiSubsystem::ResumeSession()
 {
     NO_CLIENT_RETURN(void())
 
-    InworldSession->GetClient()->ResumeSession();
+    InworldSession->ResumeSession();
 }
 
 void UInworldApiSubsystem::StopSession()
 {
     NO_CLIENT_RETURN(void())
 
-    InworldSession->GetClient()->StopSession();
+    InworldSession->StopSession();
 }
 
 void UInworldApiSubsystem::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
     NO_CLIENT_RETURN(void())
 
-    InworldSession->GetClient()->SaveSession(Callback);
+    InworldSession->SaveSession(Callback);
 }
 
 void UInworldApiSubsystem::SetResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate)
 {
     NO_CLIENT_RETURN(void())
 
-    InworldSession->GetClient()->OnPerceivedLatencyDelegate.Add(Delegate);
+    InworldSession->OnPerceivedLatencyDelegate.Add(Delegate);
 }
 
 void UInworldApiSubsystem::ClearResponseLatencyTrackerDelegate(const FOnInworldPerceivedLatencyCallback& Delegate)
 {
     NO_CLIENT_RETURN(void())
 
-    InworldSession->GetClient()->OnPerceivedLatencyDelegate.Remove(Delegate);
+    InworldSession->OnPerceivedLatencyDelegate.Remove(Delegate);
 }
 
 void UInworldApiSubsystem::LoadCharacters(const TArray<FString>& Names)
@@ -246,7 +246,7 @@ void UInworldApiSubsystem::ChangeScene(const FString& SceneId)
     NO_CLIENT_RETURN(void())
     EMPTY_ARG_RETURN(SceneId, void())
 
-    InworldSession->GetClient()->SendChangeSceneEvent(SceneId);
+    InworldSession->SendChangeSceneEvent(SceneId);
 }
 
 EInworldConnectionState UInworldApiSubsystem::GetConnectionState() const

@@ -7,7 +7,10 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
+
+INWORLDAINDK_API DECLARE_LOG_CATEGORY_EXTERN(LogInworldAINDK, Log, All);
 
 class FInworldAINDKModule : public IModuleInterface
 {

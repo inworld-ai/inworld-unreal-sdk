@@ -16,13 +16,13 @@
 #include "IPAddress.h"
 
 #include "InworldAINDKModule.h"
-#include "InworldUtils.h"
 #include "InworldPacketTranslator.h"
 
 THIRD_PARTY_INCLUDES_START
 #include "Packets.h"
 #include "Client.h"
 #include "Utils/Log.h"
+#include "Utils/Utils.h"
 THIRD_PARTY_INCLUDES_END
 
 #include "Async/Async.h"
@@ -101,6 +101,45 @@ std::unordered_map<std::string, std::string> ToStd(const TMap<FString, FString>&
 		StdMap.insert(ToStd(Entry));
 	}
 	return StdMap;
+}
+
+template<typename T>
+void DataArrayToVec(const TArray<T>& ArrData, std::vector<T>& VecData)
+{
+	VecData.resize(ArrData.Num() * sizeof(T));
+	FMemory::Memcpy((void*)VecData.data(), (void*)ArrData.GetData(), VecData.size());
+}
+
+template<typename T>
+void VecToDataArray(const std::vector<T>& VecData, TArray<T>& ArrData)
+{
+	ArrData.SetNumUninitialized(VecData.size() * sizeof(T));
+	FMemory::Memcpy((void*)ArrData.GetData(), (void*)VecData.data(), ArrData.Num());
+}
+
+static TArray<uint8> HmacSha256(const TArray<uint8>& Data, const TArray<uint8>& Key)
+{
+	std::vector<uint8> data;
+	std::vector<uint8> key;
+	DataArrayToVec(Data, data);
+	DataArrayToVec(Key, key);
+
+	std::vector<uint8> result(32);
+	Inworld::Utils::HmacSha256(data, key, result);
+	TArray<uint8> Result;
+	VecToDataArray(result, Result);
+	return Result;
+}
+
+static FString ToHex(const TArray<uint8>& Data)
+{
+	std::string result(Data.Num() * 2, '0');
+	for (int32 i = 0; i < Data.Num(); i++)
+	{
+		FCStringAnsi::Sprintf((char*)(result.data()) + (i * 2), "%02x", Data[i]);
+	}
+
+	return FString(UTF8_TO_TCHAR(result.c_str()));
 }
 
 UInworldClient::UInworldClient()
@@ -250,9 +289,9 @@ static FString GenerateUserId()
 	Data.SetNumZeroed(SId.size());
 	FMemory::Memcpy(Data.GetData(), SId.data(), SId.size());
 
-	Data = Inworld::Utils::HmacSha256(Data, Data);
+	Data = HmacSha256(Data, Data);
 
-	return FString(UTF8_TO_TCHAR(Inworld::Utils::ToHex(Data).c_str()));
+	return ToHex(Data);
 }
 
 static void ConvertPlayerProfile(const FInworldPlayerProfile& PlayerProfile, Inworld::UserConfiguration& UserConfig)
