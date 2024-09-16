@@ -187,7 +187,7 @@ struct FInworldPlayerSpeechOptions
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
-	EInworldPlayerSpeechMode Mode = EInworldPlayerSpeechMode::VAD_DetectOnly;
+	EInworldPlayerSpeechMode Mode = EInworldPlayerSpeechMode::Default;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Speech")
 	float VADProbThreshhold = 0.3f;
