@@ -90,11 +90,11 @@ public:
 	const TArray<UInworldPlayer*>& GetRegisteredPlayers() const { return RegisteredPlayers; }
 
 	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, AuthOverride"))
-	void StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FInworldAuth& AuthOverride);
+	void StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
 	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, AuthOverride"))
-	void StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FInworldAuth& AuthOverride);
+	void StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
 	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, AuthOverride"))
-	void StartSessionFromToken(const FInworldSessionToken& SessionToken, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FInworldAuth& AuthOverride);
+	void StartSessionFromToken(const FInworldSessionToken& SessionToken, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
 
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
@@ -102,6 +102,9 @@ public:
 	void PauseSession();
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void ResumeSession();
+
+	UFUNCTION(BlueprintPure, Category = "Session")
+	FInworldSessionToken GetSessionToken() const;
 
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;

@@ -99,21 +99,21 @@ void UInworldSessionComponent::StartSessionFromScene(const FInworldScene& Scene)
 {
 	NO_CLIENT_RETURN(void())
 
-	InworldSession->StartSessionFromScene(Scene, PlayerProfile, CapabilitySet, Metadata, Auth);
+	InworldSession->StartSessionFromScene(Scene, PlayerProfile, CapabilitySet, Metadata, Workspace, Auth);
 }
 
 void UInworldSessionComponent::StartSessionFromSave(const FInworldSave& Save)
 {
 	NO_CLIENT_RETURN(void())
 
-	InworldSession->StartSessionFromSave(Save, PlayerProfile, CapabilitySet, Metadata, Auth);
+	InworldSession->StartSessionFromSave(Save, PlayerProfile, CapabilitySet, Metadata, Workspace, Auth);
 }
 
 void UInworldSessionComponent::StartSessionFromToken(const FInworldSessionToken& Token)
 {
 	NO_CLIENT_RETURN(void())
 
-	InworldSession->StartSessionFromToken(Token, PlayerProfile, CapabilitySet, Metadata, Auth);
+	InworldSession->StartSessionFromToken(Token, PlayerProfile, CapabilitySet, Metadata, Workspace, Auth);
 }
 
 void UInworldSessionComponent::StopSession()
@@ -135,6 +135,13 @@ void UInworldSessionComponent::ResumeSession()
 	NO_CLIENT_RETURN(void())
 
 	InworldSession->ResumeSession();
+}
+
+FInworldSessionToken UInworldSessionComponent::GetSessionToken() const
+{
+	NO_SESSION_RETURN({})
+
+	return InworldSession->GetSessionToken();
 }
 
 FString UInworldSessionComponent::GetSessionId() const

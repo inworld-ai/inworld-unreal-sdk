@@ -102,17 +102,17 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
 
     if (!SavedSessionState.Data.IsEmpty())
     {
-        InworldSession->GetClient()->StartSessionFromSave(SavedSessionState, PlayerProfile, Capabilities, {}, Auth);
+        InworldSession->GetClient()->StartSessionFromSave(SavedSessionState, PlayerProfile, Capabilities, {}, {}, Auth);
     }
     else if (!SessionToken.Token.IsEmpty())
     {
-        InworldSession->GetClient()->StartSessionFromToken(SessionToken, PlayerProfile, Capabilities, {}, Auth);
+        InworldSession->GetClient()->StartSessionFromToken(SessionToken, PlayerProfile, Capabilities, {}, {}, Auth);
     }
     else
     {
         FInworldScene Scene;
         Scene.Name = SceneName;
-        InworldSession->GetClient()->StartSessionFromScene(Scene, PlayerProfile, Capabilities, {}, Auth);
+        InworldSession->GetClient()->StartSessionFromScene(Scene, PlayerProfile, Capabilities, {}, {}, Auth);
     }
 }
 

@@ -59,6 +59,9 @@ public:
 	void ResumeSession();
 
 	UFUNCTION(BlueprintPure, Category = "Session")
+	FInworldSessionToken GetSessionToken() const;
+
+	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Session")
@@ -79,6 +82,9 @@ public:
 protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
 	FInworldPlayerProfile PlayerProfile;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
+	FString Workspace;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
 	FInworldAuth Auth;
