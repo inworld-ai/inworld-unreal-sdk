@@ -100,7 +100,7 @@ void UInworldApiSubsystem::StartSession_V2(const FString& SceneName, const FInwo
         UE_LOG(LogInworldAIIntegration, Warning, TEXT("Start Session, please provide unique PlayerProfile.ProjectName for possible troubleshooting"));
     }
 
-    if (!SavedSessionState.Data.IsEmpty())
+    if (!SavedSessionState.State.IsEmpty())
     {
         InworldSession->GetClient()->StartSessionFromSave(SavedSessionState, PlayerProfile, Capabilities, {}, {}, Auth);
     }

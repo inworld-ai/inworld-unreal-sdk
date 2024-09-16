@@ -399,8 +399,8 @@ void UInworldClient::StartSessionFromScene(const FInworldScene& Scene, const FIn
 void UInworldClient::StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
 	Inworld::SessionSave SessionSave;
-	SessionSave.Data.resize(Save.Data.Num());
-	FMemory::Memcpy((uint8*)SessionSave.Data.data(), (uint8*)Save.Data.GetData(), SessionSave.Data.size());
+	SessionSave.State.resize(Save.State.Num());
+	FMemory::Memcpy((uint8*)SessionSave.State.data(), (uint8*)Save.State.GetData(), SessionSave.State.size());
 
 	Client->Get().SetOptions(CreateClientOptions(PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride));
 	Client->Get().StartClientFromSave(SessionSave);
@@ -448,13 +448,13 @@ void UInworldClient::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->Get().SaveSessionStateAsync([Callback](const std::string& Data, bool bSuccess)
+	Client->Get().SaveSessionStateAsync([Callback](const std::string& State, bool bSuccess)
 		{
 			FInworldSave Save;
 			if (bSuccess)
 			{
-				Save.Data.SetNumUninitialized(Data.size());
-				FMemory::Memcpy(Save.Data.GetData(), (uint8*)Data.data(), Save.Data.Num());
+				Save.State.SetNumUninitialized(State.size());
+				FMemory::Memcpy(Save.State.GetData(), (uint8*)State.data(), Save.State.Num());
 			}
 			AsyncTask(ENamedThreads::GameThread, [Callback, Save, bSuccess]()
 				{
