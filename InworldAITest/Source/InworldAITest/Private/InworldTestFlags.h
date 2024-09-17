@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "Misc/AutomationTest.h"
+
 namespace Inworld
 {
 	namespace Test
