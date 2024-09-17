@@ -25,5 +25,11 @@ public:
 	FString SceneName;
 
 	UPROPERTY(config, EditAnywhere, Category = "Test|Session")
-	TArray<FString> CharacterNames;
+	TArray<FString> InitialCharacterNames;
+
+	UPROPERTY(config, EditAnywhere, Category = "Test|Load")
+	TArray<FString> CharacterNamesToLoad;
+
+	UPROPERTY(config, EditAnywhere, Category = "Test|Load")
+	TArray<FString> CharacterNamesToUnload;
 };

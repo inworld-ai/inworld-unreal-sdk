@@ -12,6 +12,7 @@
 #include "InworldTestUtils.h"
 
 #include "InworldCharacter.h"
+#include "InworldSession.h"
 
 #include "InworldAITestSettings.h"
 
@@ -19,6 +20,25 @@ namespace Inworld
 {
 	namespace Test
 	{
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(SetCharacterSession, UInworldCharacter*, Character, UInworldSession*, Session);
+		bool FSetCharacterSessionCommand::Update()
+		{
+			Character->SetSession(Session);
+			return true;
+		}
+
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilCharacterPossessed, UInworldCharacter*, Character);
+		bool FWaitUntilCharacterPossessedCommand::Update()
+		{
+			return Character->IsPossessed();
+		}
+
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilCharacterUnpossessed, UInworldCharacter*, Character);
+		bool FWaitUntilCharacterUnpossessedCommand::Update()
+		{
+			return !Character->IsPossessed();
+		}
+
 		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(SendCharacterTextMessage, UInworldCharacter*, Character, FString, Text);
 		bool FSendCharacterTextMessageCommand::Update()
 		{
