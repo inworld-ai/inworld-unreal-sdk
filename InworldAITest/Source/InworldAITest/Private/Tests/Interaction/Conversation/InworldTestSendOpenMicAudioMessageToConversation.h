@@ -16,10 +16,10 @@
 #include "Commands/InworldTestCommandsPlayer.h"
 #include "Commands/InworldTestCommandsInteraction.h"
 #include "Commands/InworldTestCommandsWait.h"
-#include "InworldTestSendPushToTalkAudioMessageToConversation.generated.h"
+#include "InworldTestSendOpenMicAudioMessageToConversation.generated.h"
 
 UCLASS()
-class UInworldTestObjectSendPushToTalkAudioMessageToConversation : public UInworldTestObjectSession
+class UInworldTestObjectSendOpenMicAudioMessageToConversation : public UInworldTestObjectSession
 {
 	GENERATED_BODY()
 };
@@ -28,10 +28,10 @@ namespace Inworld
 {
 	namespace Test
 	{
-		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendPushToTalkAudioMessageToConversation, "Inworld.Conversation.SendPushToTalkAudioMessageToConversation", Flags)
-		bool FSendPushToTalkAudioMessageToConversation::RunTest(const FString& Parameters)
+		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendOpenMicAudioMessageToConversation, "Inworld.Interaction.Conversation.SendOpenMicAudioMessage", Flags)
+		bool FSendOpenMicAudioMessageToConversation::RunTest(const FString& Parameters)
 		{
-			TScopedGCObject<UInworldTestObjectSendPushToTalkAudioMessageToConversation> TestObject;
+			TScopedGCObject<UInworldTestObjectSendOpenMicAudioMessageToConversation> TestObject;
 			{
 				FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 
@@ -40,12 +40,12 @@ namespace Inworld
 				{
 					FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session);
 					{
-						FScopedConversationAudioSession ConversationAudioSessionPin(TestObject->Player, { EInworldMicrophoneMode::EXPECT_AUDIO_END });
-						SendTestAudioDataToConversation(TestObject->Player);
+						FScopedCharacterAudioSession CharacterAudioSessionPin(TestObject->Characters[0], { EInworldMicrophoneMode::OPEN_MIC });
+						SendCharacterTestAudioData(TestObject->Characters[0]);
 
 						Wait(5.0f);
 
-						TestInteractionEndFalse(TestObject->ControlEvents);
+						TestInteractionEndTrue(TestObject->ControlEvents);
 					}
 				}
 

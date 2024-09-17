@@ -28,7 +28,7 @@ namespace Inworld
 {
 	namespace Test
 	{
-		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendPushToTalkAudioMessageToCharacter, "Inworld.Conversation.SendPushToTalkAudioMessageToCharacter", Flags)
+		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendPushToTalkAudioMessageToCharacter, "Inworld.Interaction.Character.SendPushToTalkAudioMessage", Flags)
 		bool FSendPushToTalkAudioMessageToCharacter::RunTest(const FString& Parameters)
 		{
 			TScopedGCObject<UInworldTestObjectSendPushToTalkAudioMessageToCharacter> TestObject;

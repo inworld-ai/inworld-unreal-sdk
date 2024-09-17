@@ -27,7 +27,7 @@ namespace Inworld
 {
 	namespace Test
 	{
-		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendTextMessageToCharacter, "Inworld.Conversation.SendTextMessageToCharacter", Flags)
+		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendTextMessageToCharacter, "Inworld.Interaction.Character.SendTextMessage", Flags)
 		bool FSendTextMessageToCharacter::RunTest(const FString& Parameters)
 		{
 			TScopedGCObject<UInworldTestObjectSendTextMessageToCharacter> TestObject;

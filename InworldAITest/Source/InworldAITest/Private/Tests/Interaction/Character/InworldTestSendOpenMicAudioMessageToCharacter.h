@@ -13,13 +13,12 @@
 #include "InworldTestFlags.h"
 #include "TestObjects/InworldTestObjectSession.h"
 #include "Commands/InworldTestCommandsGarbageCollection.h"
-#include "Commands/InworldTestCommandsPlayer.h"
+#include "Commands/InworldTestCommandsCharacter.h"
 #include "Commands/InworldTestCommandsInteraction.h"
-#include "Commands/InworldTestCommandsWait.h"
-#include "InworldTestSendOpenMicAudioMessageToConversation.generated.h"
+#include "InworldTestSendOpenMicAudioMessageToCharacter.generated.h"
 
 UCLASS()
-class UInworldTestObjectSendOpenMicAudioMessageToConversation : public UInworldTestObjectSession
+class UInworldTestObjectSendOpenMicAudioMessageToCharacter : public UInworldTestObjectSession
 {
 	GENERATED_BODY()
 };
@@ -28,15 +27,12 @@ namespace Inworld
 {
 	namespace Test
 	{
-		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendOpenMicAudioMessageToConversation, "Inworld.Conversation.SendOpenMicAudioMessageToConversation", Flags)
-		bool FSendOpenMicAudioMessageToConversation::RunTest(const FString& Parameters)
+		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendOpenMicAudioMessageToCharacter, "Inworld.Interaction.Character.SendOpenMicAudioMessage", Flags)
+		bool FSendOpenMicAudioMessageToCharacter::RunTest(const FString& Parameters)
 		{
-			TScopedGCObject<UInworldTestObjectSendOpenMicAudioMessageToConversation> TestObject;
+			TScopedGCObject<UInworldTestObjectSendOpenMicAudioMessageToCharacter> TestObject;
 			{
 				FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
-
-				AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[0]);
-
 				{
 					FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session);
 					{

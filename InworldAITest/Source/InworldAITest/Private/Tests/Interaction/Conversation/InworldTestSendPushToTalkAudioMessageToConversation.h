@@ -15,10 +15,11 @@
 #include "Commands/InworldTestCommandsGarbageCollection.h"
 #include "Commands/InworldTestCommandsPlayer.h"
 #include "Commands/InworldTestCommandsInteraction.h"
-#include "InworldTestSendTextMessageToConversation.generated.h"
+#include "Commands/InworldTestCommandsWait.h"
+#include "InworldTestSendPushToTalkAudioMessageToConversation.generated.h"
 
 UCLASS()
-class UInworldTestObjectSendTextMessageToConversation : public UInworldTestObjectSession
+class UInworldTestObjectSendPushToTalkAudioMessageToConversation : public UInworldTestObjectSession
 {
 	GENERATED_BODY()
 };
@@ -27,16 +28,26 @@ namespace Inworld
 {
 	namespace Test
 	{
-		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendTextMessageToConversation, "Inworld.Conversation.SendTextMessageToConversation", Flags)
-		bool FSendTextMessageToConversation::RunTest(const FString& Parameters)
+		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendPushToTalkAudioMessageToConversation, "Inworld.Interaction.Conversation.SendPushToTalkAudioMessage", Flags)
+		bool FSendPushToTalkAudioMessageToConversation::RunTest(const FString& Parameters)
 		{
-			TScopedGCObject<UInworldTestObjectSendTextMessageToConversation> TestObject;
+			TScopedGCObject<UInworldTestObjectSendPushToTalkAudioMessageToConversation> TestObject;
 			{
 				FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 
 				AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[0]);
 
-				SendTextMessageToConversation(TestObject->Player, TEXT("Hello!"));
+				{
+					FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session);
+					{
+						FScopedConversationAudioSession ConversationAudioSessionPin(TestObject->Player, { EInworldMicrophoneMode::EXPECT_AUDIO_END });
+						SendTestAudioDataToConversation(TestObject->Player);
+
+						Wait(5.0f);
+
+						TestInteractionEndFalse(TestObject->ControlEvents);
+					}
+				}
 
 				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 5.0f);
 
