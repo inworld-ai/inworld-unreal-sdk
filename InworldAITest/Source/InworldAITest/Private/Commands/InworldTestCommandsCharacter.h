@@ -69,7 +69,7 @@ namespace Inworld
 
 		struct FScopedCharacterAudioSession
 		{
-			FScopedCharacterAudioSession(UInworldCharacter* InCharacter, const FInworldAudioSessionOptions& InAudioSessionOptions = FInworldAudioSessionOptions::Default())
+			FScopedCharacterAudioSession(UInworldCharacter* InCharacter, const FInworldAudioSessionOptions& InAudioSessionOptions = {})
 				: Character(InCharacter)
 			{
 				SendCharacterAudioSessionStart(Character, InAudioSessionOptions);

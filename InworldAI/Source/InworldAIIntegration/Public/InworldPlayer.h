@@ -64,7 +64,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
 	void SendTriggerToConversation(const FString& Name, const TMap<FString, FString>& Params);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStartToConversation(FInworldAudioSessionOptions AudioSessionMode);
+	void SendAudioSessionStartToConversation(FInworldAudioSessionOptions AudioSessionOptions);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStopToConversation();
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
@@ -112,7 +112,7 @@ public:
 	FOnInworldPlayerVoiceDetectionNative& OnVoiceDetection() { return OnVoiceDetectionDelegateNative; }
 
 	bool HasAudioSession() const { return bHasAudioSession; }
-	EInworldMicrophoneMode GetMicMode() const { return AudioSessionMode.MicrophoneMode; }
+	EInworldMicrophoneMode GetMicMode() const { return AudioSessionOptions.MicrophoneMode; }
 
 private:
 	void UpdateConversation();
@@ -141,7 +141,7 @@ private:
 	FString ConversationId;
 	FOnInworldPlayerConversationChangedNative OnConversationChangedDelegateNative;
 
-	FInworldAudioSessionOptions AudioSessionMode;
+	FInworldAudioSessionOptions AudioSessionOptions;
 	bool bHasAudioSession = false;
 
 	class FInworldPlayerPacketVisitor : public TSharedFromThis<FInworldPlayerPacketVisitor>, public InworldPacketVisitor

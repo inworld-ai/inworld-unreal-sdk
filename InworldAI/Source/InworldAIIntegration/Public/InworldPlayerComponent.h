@@ -82,7 +82,7 @@ public:
     void SendCustomEventToTarget(const FString& Name) { SendTriggerToTarget(Name, {}); }
 
     UFUNCTION(BlueprintCallable, Category = "Interaction")
-    void StartAudioSessionWithTarget();
+    void StartAudioSessionWithTarget(FInworldAudioSessionOptions AudioSessionOptions);
 
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     void StopAudioSessionWithTarget();

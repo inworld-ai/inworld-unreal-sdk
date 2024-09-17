@@ -97,7 +97,7 @@ namespace Inworld
 
 		struct FScopedSpeechProcessor
 		{
-			FScopedSpeechProcessor(UInworldSession* InSession, EInworldPlayerSpeechMode InPlayerSpeechMode, FInworldPlayerSpeechOptions InPlayerSpeechOptions = {})
+			FScopedSpeechProcessor(UInworldSession* InSession, EInworldPlayerSpeechMode InPlayerSpeechMode = EInworldPlayerSpeechMode::DEFAULT, FInworldPlayerSpeechOptions InPlayerSpeechOptions = {})
 				: Session(InSession)
 			{
 				InitSpeechProcessor(Session, InPlayerSpeechMode, InPlayerSpeechOptions);

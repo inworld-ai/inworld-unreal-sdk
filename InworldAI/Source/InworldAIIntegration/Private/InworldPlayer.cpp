@@ -113,7 +113,7 @@ void UInworldPlayer::SendTriggerToConversation(const FString& Name, const TMap<F
 	Session->SendTriggerToConversation(this, Name, Params);
 }
 
-void UInworldPlayer::SendAudioSessionStartToConversation(FInworldAudioSessionOptions InAudioSessionMode)
+void UInworldPlayer::SendAudioSessionStartToConversation(FInworldAudioSessionOptions InAudioSessionOptions)
 {
 	NO_SESSION_RETURN(void())
 	EMPTY_ARG_RETURN(ConversationId, void())
@@ -124,8 +124,8 @@ void UInworldPlayer::SendAudioSessionStartToConversation(FInworldAudioSessionOpt
 	}
 	bHasAudioSession = true;
 
-	AudioSessionMode = InAudioSessionMode;
-	Session->SendAudioSessionStartToConversation(this, AudioSessionMode);
+	AudioSessionOptions = InAudioSessionOptions;
+	Session->SendAudioSessionStartToConversation(this, AudioSessionOptions);
 }
 
 void UInworldPlayer::SendAudioSessionStopToConversation()
@@ -139,7 +139,7 @@ void UInworldPlayer::SendAudioSessionStopToConversation()
 	}
 	bHasAudioSession = false;
 
-	AudioSessionMode.Clear();
+	AudioSessionOptions = {};
 	Session->SendAudioSessionStopToConversation(this);
 }
 
@@ -259,7 +259,7 @@ void UInworldPlayer::UpdateConversation()
 
 	if (bHadAudioSession && !ConversationId.IsEmpty())
 	{
-		SendAudioSessionStartToConversation(AudioSessionMode);
+		SendAudioSessionStartToConversation(AudioSessionOptions);
 	}
 }
 
