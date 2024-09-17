@@ -8,6 +8,8 @@
 #pragma once
 
 #include "Interfaces/IPluginManager.h"
+#include "Misc/Paths.h"
+#include "Misc/FileHelper.h"
 
 namespace Inworld
 {

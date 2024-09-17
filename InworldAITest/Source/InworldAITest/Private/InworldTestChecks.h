@@ -8,6 +8,8 @@
 #pragma once
 
 #include "Interfaces/IPluginManager.h"
+#include "CoreGlobals.h"
+#include "InworldAITestModule.h"
 
 namespace Inworld
 {
