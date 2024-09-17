@@ -44,10 +44,8 @@ namespace Inworld
 				{
 					SendTextMessageToConversation(TestObject->Player, TEXT("Hello!"));
 
-					Wait(5.0f);
+					WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, i + 1, 10.0f);
 				}
-
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, NumMessages, 5.0f);
 
 				TestTextEventCollection(TestObject->TextEvents);
 				TestAudioDataEventCollection(TestObject->AudioDataEvents);

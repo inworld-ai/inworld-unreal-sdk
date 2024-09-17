@@ -96,5 +96,18 @@ namespace Inworld
 				Wait(0.1f);
 			}
 		}
+
+		void SendCharacterBlankAudioData(UInworldCharacter* Character, float Duration)
+		{
+			constexpr int32 MaxChunkSize = (16000 / 10) * 2;
+			TArray<uint8> AudioChunk;
+			AudioChunk.SetNumZeroed(MaxChunkSize);
+			while(Duration > 0.f)
+			{
+				SendCharacterAudioData(Character, AudioChunk);
+				Wait(0.1f);
+				Duration -= 0.1f;
+			}
+		}
 	}
 }

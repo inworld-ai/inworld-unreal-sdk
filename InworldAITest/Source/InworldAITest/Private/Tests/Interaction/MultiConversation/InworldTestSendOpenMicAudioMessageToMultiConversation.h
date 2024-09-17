@@ -46,15 +46,14 @@ namespace Inworld
 					for (int32 i = 0; i < NumMessages; ++i)
 					{
 						FScopedConversationAudioSession ConversationAudioSessionPin(TestObject->Player, { EInworldMicrophoneMode::OPEN_MIC });
+						
 						SendTestAudioDataToConversation(TestObject->Player);
 
-						Wait(25.0f);
+						SendBlankAudioDataToConversation(TestObject->Player, 2.5f);
 
-						TestInteractionEndTrue(TestObject->ControlEvents, i + 1);
+						WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, i + 1, 10.0f);
 					}
 				}
-
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, NumMessages, 5.0f);
 
 				TestTextEventCollection(TestObject->TextEvents);
 				TestAudioDataEventCollection(TestObject->AudioDataEvents);

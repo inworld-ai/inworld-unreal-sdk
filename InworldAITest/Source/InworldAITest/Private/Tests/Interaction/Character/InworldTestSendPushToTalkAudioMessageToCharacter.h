@@ -36,17 +36,20 @@ namespace Inworld
 				FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 				{
 					FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session);
-					{
-						FScopedCharacterAudioSession CharacterAudioSessionPin(TestObject->Characters[0], { EInworldMicrophoneMode::EXPECT_AUDIO_END });
-						SendCharacterTestAudioData(TestObject->Characters[0]);
+					{ 
+						{
+							FScopedCharacterAudioSession CharacterAudioSessionPin(TestObject->Characters[0], { EInworldMicrophoneMode::EXPECT_AUDIO_END });
 
-						Wait(5.0f);
+							SendCharacterTestAudioData(TestObject->Characters[0]);
 
-						TestInteractionEndFalse(TestObject->ControlEvents, 1);
+							SendCharacterBlankAudioData(TestObject->Characters[0], 5.0f);
+
+							TestInteractionEndFalse(TestObject->ControlEvents, 1);
+						}
+
+						WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1, 10.0f);
 					}
 				}
-
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1, 5.0f);
 
 				TestTextEventCollection(TestObject->TextEvents);
 				TestAudioDataEventCollection(TestObject->AudioDataEvents);

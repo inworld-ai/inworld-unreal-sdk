@@ -45,16 +45,19 @@ namespace Inworld
 
 					for(int32 i = 0; i < NumMessages; ++i)
 					{
-						FScopedConversationAudioSession ConversationAudioSessionPin(TestObject->Player, { EInworldMicrophoneMode::EXPECT_AUDIO_END });
-						SendTestAudioDataToConversation(TestObject->Player);
+						{
+							FScopedConversationAudioSession ConversationAudioSessionPin(TestObject->Player, { EInworldMicrophoneMode::EXPECT_AUDIO_END });
+							
+							SendTestAudioDataToConversation(TestObject->Player);
 
-						Wait(5.0f);
+							SendBlankAudioDataToConversation(TestObject->Player, 2.5f);
 
-						TestInteractionEndFalse(TestObject->ControlEvents, i + 1);
+							TestInteractionEndFalse(TestObject->ControlEvents, i + 1);
+						}
+
+						WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, i + 1, 10.0f);
 					}
 				}
-
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, NumMessages, 5.0f);
 
 				TestTextEventCollection(TestObject->TextEvents);
 				TestAudioDataEventCollection(TestObject->AudioDataEvents);

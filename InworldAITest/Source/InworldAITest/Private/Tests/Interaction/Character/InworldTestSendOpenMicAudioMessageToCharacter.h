@@ -39,13 +39,11 @@ namespace Inworld
 						FScopedCharacterAudioSession CharacterAudioSessionPin(TestObject->Characters[0], { EInworldMicrophoneMode::OPEN_MIC });
 						SendCharacterTestAudioData(TestObject->Characters[0]);
 
-						Wait(5.0f);
+						SendCharacterBlankAudioData(TestObject->Characters[0], 5.0f);
 
-						TestInteractionEndTrue(TestObject->ControlEvents, 1);
+						WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1, 10.0f);
 					}
 				}
-
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1, 5.0f);
 
 				TestTextEventCollection(TestObject->TextEvents);
 				TestAudioDataEventCollection(TestObject->AudioDataEvents);

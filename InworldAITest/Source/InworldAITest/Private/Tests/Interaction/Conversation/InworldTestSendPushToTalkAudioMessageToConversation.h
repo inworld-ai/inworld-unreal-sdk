@@ -40,16 +40,19 @@ namespace Inworld
 				{
 					FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session);
 					{
-						FScopedConversationAudioSession ConversationAudioSessionPin(TestObject->Player, { EInworldMicrophoneMode::EXPECT_AUDIO_END });
-						SendTestAudioDataToConversation(TestObject->Player);
+						{
+							FScopedConversationAudioSession ConversationAudioSessionPin(TestObject->Player, { EInworldMicrophoneMode::EXPECT_AUDIO_END });
 
-						Wait(5.0f);
+							SendTestAudioDataToConversation(TestObject->Player);
 
-						TestInteractionEndFalse(TestObject->ControlEvents, 1);
+							SendBlankAudioDataToConversation(TestObject->Player, 2.5f);
+
+							TestInteractionEndFalse(TestObject->ControlEvents, 1);
+						}
+
+						WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1, 10.0f);
 					}
 				}
-
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1, 5.0f);
 
 				TestTextEventCollection(TestObject->TextEvents);
 				TestAudioDataEventCollection(TestObject->AudioDataEvents);

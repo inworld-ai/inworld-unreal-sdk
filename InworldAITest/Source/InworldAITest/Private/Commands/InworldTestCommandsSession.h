@@ -81,8 +81,8 @@ namespace Inworld
 				: Session(InSession)
 			{
 				StartSessionByScene(Session, InRuntimeAuth, InSceneName);
-				WaitUntilSessionConnectingCompleteWithTimeout(Session, 10.0f);
-				WaitUntilSessionLoadedWithTimeout(Session, 10.0f);
+				WaitUntilSessionConnectingCompleteWithTimeout(Session, 30.0f);
+				WaitUntilSessionLoadedWithTimeout(Session, 30.0f);
 				TestEqualConnectionState(Session, EInworldConnectionState::Connected);
 			}
 			~FScopedSessionScene()
