@@ -15,11 +15,10 @@
 #include "Commands/InworldTestCommandsGarbageCollection.h"
 #include "Commands/InworldTestCommandsPlayer.h"
 #include "Commands/InworldTestCommandsInteraction.h"
-#include "Commands/InworldTestCommandsWait.h"
-#include "InworldTestSendOpenMicAudioMessageToConversation.generated.h"
+#include "InworldTestSendTextMessageToMultiConversation.generated.h"
 
 UCLASS()
-class UInworldTestObjectSendOpenMicAudioMessageToConversation : public UInworldTestObjectSession
+class UInworldTestObjectSendTextMessageToMultiConversation : public UInworldTestObjectSession
 {
 	GENERATED_BODY()
 };
@@ -28,29 +27,27 @@ namespace Inworld
 {
 	namespace Test
 	{
-		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendOpenMicAudioMessageToConversation, "Inworld.Interaction.Conversation.SendOpenMicAudioMessage", Flags)
-		bool FSendOpenMicAudioMessageToConversation::RunTest(const FString& Parameters)
+		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendTextMessageToMultiConversation, "Inworld.Interaction.MultiConversation.SendTextMessage", Flags)
+		bool FSendTextMessageToMultiConversation::RunTest(const FString& Parameters)
 		{
-			TScopedGCObject<UInworldTestObjectSendOpenMicAudioMessageToConversation> TestObject;
+			TScopedGCObject<UInworldTestObjectSendTextMessageToMultiConversation> TestObject;
 			{
 				FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 
 				AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[0]);
 				AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[1]);
+				AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[2]);
 
+				const int32 NumMessages = 5;
+
+				for (int32 i = 0; i < NumMessages; ++i)
 				{
-					FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session);
-					{
-						FScopedConversationAudioSession ConversationAudioSessionPin(TestObject->Player, { EInworldMicrophoneMode::OPEN_MIC });
-						SendTestAudioDataToConversation(TestObject->Player);
+					SendTextMessageToConversation(TestObject->Player, TEXT("Hello!"));
 
-						Wait(5.0f);
-
-						TestInteractionEndTrue(TestObject->ControlEvents, 1);
-					}
+					Wait(5.0f);
 				}
 
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1, 5.0f);
+				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, NumMessages, 5.0f);
 
 				TestTextEventCollection(TestObject->TextEvents);
 				TestAudioDataEventCollection(TestObject->AudioDataEvents);

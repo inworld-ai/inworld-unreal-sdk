@@ -19,39 +19,39 @@ namespace Inworld
 {
 	namespace Test
 	{
-		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(TestInteractionEndTrue, const TArray<FInworldControlEvent>&, ControlEvents);
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(TestInteractionEndTrue, const TArray<FInworldControlEvent>&, ControlEvents, int32, Count);
 		bool FTestInteractionEndTrueCommand::Update()
 		{
-			CheckTrue(TEXT("Interaction End"), nullptr != ControlEvents.FindByPredicate(
+			CheckTrue(TEXT("Interaction End"), ControlEvents.FilterByPredicate(
 				[](const FInworldControlEvent& ControlEvent) -> bool
 				{
 					return ControlEvent.Action == EInworldControlEventAction::INTERACTION_END;
 				}
-			));
+			).Num() >= Count);
 			return true;
 		}
 
-		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(TestInteractionEndFalse, const TArray<FInworldControlEvent>&, ControlEvents);
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(TestInteractionEndFalse, const TArray<FInworldControlEvent>&, ControlEvents, int32, Count);
 		bool FTestInteractionEndFalseCommand::Update()
 		{
-			CheckFalse(TEXT("Interaction End"), nullptr != ControlEvents.FindByPredicate(
+			CheckFalse(TEXT("Interaction End"), ControlEvents.FilterByPredicate(
 				[](const FInworldControlEvent& ControlEvent) -> bool
 				{
 					return ControlEvent.Action == EInworldControlEventAction::INTERACTION_END;
 				}
-			));
+			).Num() >= Count);
 			return true;
 		}
 
-		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilInteractionEnd, const TArray<FInworldControlEvent>&, ControlEvents);
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(WaitUntilInteractionEnd, const TArray<FInworldControlEvent>&, ControlEvents, int32, Count);
 		bool FWaitUntilInteractionEndCommand::Update()
 		{
-			return nullptr != ControlEvents.FindByPredicate(
+			return ControlEvents.FilterByPredicate(
 				[](const FInworldControlEvent& ControlEvent) -> bool
 				{
 					return ControlEvent.Action == EInworldControlEventAction::INTERACTION_END;
 				}
-			);
+			).Num() >= Count;
 		}
 
 #define DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(Type) \
