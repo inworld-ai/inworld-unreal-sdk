@@ -19,15 +19,28 @@ namespace Inworld
 {
 	namespace Test
 	{
-		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(TestInteractionOngoing, const TArray<FInworldControlEvent>&, ControlEvents);
-		bool FTestInteractionOngoingCommand::Update()
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(TestInteractionEndTrue, const TArray<FInworldControlEvent>&, ControlEvents);
+		bool FTestInteractionEndTrueCommand::Update()
 		{
-			return nullptr == ControlEvents.FindByPredicate(
+			CheckTrue(TEXT("Interaction End"), nullptr != ControlEvents.FindByPredicate(
 				[](const FInworldControlEvent& ControlEvent) -> bool
 				{
 					return ControlEvent.Action == EInworldControlEventAction::INTERACTION_END;
 				}
-			);
+			));
+			return true;
+		}
+
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(TestInteractionEndFalse, const TArray<FInworldControlEvent>&, ControlEvents);
+		bool FTestInteractionEndFalseCommand::Update()
+		{
+			CheckFalse(TEXT("Interaction End"), nullptr != ControlEvents.FindByPredicate(
+				[](const FInworldControlEvent& ControlEvent) -> bool
+				{
+					return ControlEvent.Action == EInworldControlEventAction::INTERACTION_END;
+				}
+			));
+			return true;
 		}
 
 		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilInteractionEnd, const TArray<FInworldControlEvent>&, ControlEvents);

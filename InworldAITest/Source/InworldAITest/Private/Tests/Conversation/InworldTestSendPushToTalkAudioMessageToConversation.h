@@ -13,12 +13,13 @@
 #include "InworldTestFlags.h"
 #include "TestObjects/InworldTestObjectSession.h"
 #include "Commands/InworldTestCommandsGarbageCollection.h"
-#include "Commands/InworldTestCommandsCharacter.h"
+#include "Commands/InworldTestCommandsPlayer.h"
 #include "Commands/InworldTestCommandsInteraction.h"
-#include "InworldTestSendOpenMicAudioMessageToCharacter.generated.h"
+#include "Commands/InworldTestCommandsWait.h"
+#include "InworldTestSendPushToTalkAudioMessageToConversation.generated.h"
 
 UCLASS()
-class UInworldTestObjectSendOpenMicAudioMessageToCharacter : public UInworldTestObjectSession
+class UInworldTestObjectSendPushToTalkAudioMessageToConversation : public UInworldTestObjectSession
 {
 	GENERATED_BODY()
 };
@@ -27,21 +28,24 @@ namespace Inworld
 {
 	namespace Test
 	{
-		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendOpenMicAudioMessageToCharacter, "Inworld.Conversation.SendOpenMicAudioMessageToCharacter", Flags)
-		bool FSendOpenMicAudioMessageToCharacter::RunTest(const FString& Parameters)
+		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendPushToTalkAudioMessageToConversation, "Inworld.Conversation.SendPushToTalkAudioMessageToConversation", Flags)
+		bool FSendPushToTalkAudioMessageToConversation::RunTest(const FString& Parameters)
 		{
-			TScopedGCObject<UInworldTestObjectSendOpenMicAudioMessageToCharacter> TestObject;
+			TScopedGCObject<UInworldTestObjectSendPushToTalkAudioMessageToConversation> TestObject;
 			{
 				FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+
+				AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[0]);
+
 				{
 					FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session);
 					{
-						FScopedCharacterAudioSession CharacterAudioSessionPin(TestObject->Characters[0], { EInworldMicrophoneMode::OPEN_MIC });
-						SendCharacterTestAudioData(TestObject->Characters[0]);
+						FScopedConversationAudioSession ConversationAudioSessionPin(TestObject->Player, { EInworldMicrophoneMode::EXPECT_AUDIO_END });
+						SendTestAudioDataToConversation(TestObject->Player);
 
 						Wait(5.0f);
 
-						TestInteractionEndTrue(TestObject->ControlEvents);
+						TestInteractionEndFalse(TestObject->ControlEvents);
 					}
 				}
 

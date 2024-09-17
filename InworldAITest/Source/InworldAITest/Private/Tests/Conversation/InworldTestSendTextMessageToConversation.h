@@ -13,12 +13,12 @@
 #include "InworldTestFlags.h"
 #include "TestObjects/InworldTestObjectSession.h"
 #include "Commands/InworldTestCommandsGarbageCollection.h"
-#include "Commands/InworldTestCommandsCharacter.h"
+#include "Commands/InworldTestCommandsPlayer.h"
 #include "Commands/InworldTestCommandsInteraction.h"
-#include "InworldTestSendOpenMicAudioMessageToCharacter.generated.h"
+#include "InworldTestSendTextMessageToConversation.generated.h"
 
 UCLASS()
-class UInworldTestObjectSendOpenMicAudioMessageToCharacter : public UInworldTestObjectSession
+class UInworldTestObjectSendTextMessageToConversation : public UInworldTestObjectSession
 {
 	GENERATED_BODY()
 };
@@ -27,23 +27,16 @@ namespace Inworld
 {
 	namespace Test
 	{
-		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendOpenMicAudioMessageToCharacter, "Inworld.Conversation.SendOpenMicAudioMessageToCharacter", Flags)
-		bool FSendOpenMicAudioMessageToCharacter::RunTest(const FString& Parameters)
+		IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSendTextMessageToConversation, "Inworld.Conversation.SendTextMessageToConversation", Flags)
+		bool FSendTextMessageToConversation::RunTest(const FString& Parameters)
 		{
-			TScopedGCObject<UInworldTestObjectSendOpenMicAudioMessageToCharacter> TestObject;
+			TScopedGCObject<UInworldTestObjectSendTextMessageToConversation> TestObject;
 			{
 				FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
-				{
-					FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session);
-					{
-						FScopedCharacterAudioSession CharacterAudioSessionPin(TestObject->Characters[0], { EInworldMicrophoneMode::OPEN_MIC });
-						SendCharacterTestAudioData(TestObject->Characters[0]);
 
-						Wait(5.0f);
+				AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[0]);
 
-						TestInteractionEndTrue(TestObject->ControlEvents);
-					}
-				}
+				SendTextMessageToConversation(TestObject->Player, TEXT("Hello!"));
 
 				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 5.0f);
 

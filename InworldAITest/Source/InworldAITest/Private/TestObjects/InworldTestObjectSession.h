@@ -34,6 +34,8 @@ public:
 		const UInworldAITestSettings* InworldAITestSettings = GetDefault<UInworldAITestSettings>();
 		SceneName = InworldAITestSettings->SceneName;
 
+		Player->SetSession(Session);
+
 		for (const FString& CharacterName : InworldAITestSettings->InitialCharacterNames)
 		{
 			UInworldCharacter* const Character = Characters.Emplace_GetRef(NewObject<UInworldCharacter>());

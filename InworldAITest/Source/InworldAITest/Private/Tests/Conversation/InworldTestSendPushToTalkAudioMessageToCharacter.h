@@ -42,11 +42,11 @@ namespace Inworld
 
 						Wait(5.0f);
 
-						TestInteractionOngoing(TestObject->ControlEvents);
+						TestInteractionEndFalse(TestObject->ControlEvents);
 					}
 				}
 
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 10.0f);
+				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 5.0f);
 
 				TestTextEventCollection(TestObject->TextEvents);
 				TestAudioDataEventCollection(TestObject->AudioDataEvents);
