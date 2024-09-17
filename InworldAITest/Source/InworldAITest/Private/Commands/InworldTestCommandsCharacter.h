@@ -14,6 +14,8 @@
 #include "InworldCharacter.h"
 #include "InworldSession.h"
 
+#include "Commands/InworldTestCommandsWait.h"
+
 #include "InworldAITestSettings.h"
 
 namespace Inworld
@@ -91,7 +93,7 @@ namespace Inworld
 				const int32 AudioChunkSize = FMath::Min(MaxChunkSize, TestAudioData.Num() - i);
 				const TArray<uint8> AudioChunk(TestAudioData.GetData() + i, AudioChunkSize);
 				SendCharacterAudioData(Character, AudioChunk);
-				ADD_LATENT_AUTOMATION_COMMAND(FWaitLatentCommand(0.1f));
+				Wait(0.1f);
 			}
 		}
 	}

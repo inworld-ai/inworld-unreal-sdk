@@ -19,6 +19,17 @@ namespace Inworld
 {
 	namespace Test
 	{
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(TestInteractionOngoing, const TArray<FInworldControlEvent>&, ControlEvents);
+		bool FTestInteractionOngoingCommand::Update()
+		{
+			return nullptr == ControlEvents.FindByPredicate(
+				[](const FInworldControlEvent& ControlEvent) -> bool
+				{
+					return ControlEvent.Action == EInworldControlEventAction::INTERACTION_END;
+				}
+			);
+		}
+
 		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(WaitUntilInteractionEnd, const TArray<FInworldControlEvent>&, ControlEvents);
 		bool FWaitUntilInteractionEndCommand::Update()
 		{

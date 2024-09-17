@@ -8,16 +8,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InworldTestMacros.h"
 
 namespace Inworld
 {
 	namespace Test
 	{
-		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(TestCustom, TFunction<bool()>, Func);
-		bool FTestCustomCommand::Update()
+		void Wait(float Duration)
 		{
-			return Func();
+			ADD_LATENT_AUTOMATION_COMMAND(FWaitLatentCommand(Duration));
 		}
 	}
 }
