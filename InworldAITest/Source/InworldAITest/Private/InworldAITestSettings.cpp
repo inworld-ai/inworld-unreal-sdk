@@ -5,7 +5,6 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
-
 #include "InworldAITestSettings.h"
 
 UInworldAITestSettings::UInworldAITestSettings(const FObjectInitializer& ObjectInitializer)

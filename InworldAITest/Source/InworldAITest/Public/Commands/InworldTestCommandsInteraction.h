@@ -1,0 +1,48 @@
+/**
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ *
+ * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
+ * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
+ */
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "InworldTestMacros.h"
+
+#include "InworldSession.h"
+#include "InworldPackets.h"
+
+namespace Inworld
+{
+	namespace Test
+	{
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(TestInteractionEndTrue, const TArray<FInworldControlEvent>&, ControlEvents, int32, Count);
+
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(TestInteractionEndFalse, const TArray<FInworldControlEvent>&, ControlEvents, int32, Count);
+
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TWO_PARAMETER(WaitUntilInteractionEnd, const TArray<FInworldControlEvent>&, ControlEvents, int32, Count);
+
+#define DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(Type) \
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(Test##Type##EventCollection##Empty, const TArray<FInworld##Type##Event>&, Type##Events); \
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(Test##Type##EventCollection##NotEmpty, const TArray<FInworld##Type##Event>&, Type##Events); \
+
+#define DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID(Type) \
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(Test##Type##EventCollection##Valid, const TArray<FInworld##Type##Event>&, Type##Events); \
+
+#define DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TEST_EVENT_COLLECTION(Type) \
+		void Test##Type##EventCollection(const TArray<FInworld##Type##Event>& Type##Events); \
+
+		DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(Text)
+		DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID(Text)
+		DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TEST_EVENT_COLLECTION(Text)
+
+		DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY(AudioData)
+		DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID(AudioData)
+		DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TEST_EVENT_COLLECTION(AudioData)
+
+#undef DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_EMPTY
+#undef DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_CHECK_EVENT_COLLECTION_VALID
+#undef DECLARE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_TEST_EVENT_COLLECTION
+	}
+}
