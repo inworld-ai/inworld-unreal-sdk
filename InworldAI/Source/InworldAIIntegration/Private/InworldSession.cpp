@@ -322,6 +322,27 @@ FString UInworldSession::GetSessionId() const
 	return GetSessionToken().SessionId;
 }
 
+void UInworldSession::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->LoadPlayerProfile(PlayerProfile);
+}
+
+FInworldCapabilitySet UInworldSession::GetCapabilities() const
+{
+	NO_CLIENT_RETURN({})
+
+	return Client->GetCapabilities();
+}
+
+void UInworldSession::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->LoadCapabilities(CapabilitySet);
+}
+
 void UInworldSession::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
 	NO_CLIENT_RETURN(void())

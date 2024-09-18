@@ -463,9 +463,7 @@ void UInworldCharacterComponent::OnInworldVADEvent(const FInworldVADEvent& Event
 bool IsA2FEnabled(UInworldSession* InworldSession)
 {
 	EMPTY_ARG_RETURN(InworldSession, false)
-	UInworldClient* InworldClient = InworldSession->GetClient();
-	EMPTY_ARG_RETURN(InworldClient, false)
-	return InworldClient->GetCapabilities().Audio2Face;
+	return InworldSession->GetCapabilities().Audio2Face;
 }
 
 void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEvent& Event)

@@ -64,6 +64,15 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Load|Save")
+	void LoadSessionSave(const FInworldSave& Save);
+
+	UFUNCTION(BlueprintSetter)
+	void SetPlayerProfile(const FInworldPlayerProfile& InProfile);
+
+	UFUNCTION(BlueprintSetter)
+	void SetCapabilitySet(const FInworldCapabilitySet& InCapabilitySet);
+
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
 
@@ -81,15 +90,15 @@ public:
 
 protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
-	FInworldPlayerProfile PlayerProfile;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
 	FString Workspace;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
 	FInworldAuth Auth;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")
+	UPROPERTY(EditAnywhere, BlueprintSetter=SetPlayerProfile, Category = "Config")
+	FInworldPlayerProfile PlayerProfile;
+
+	UPROPERTY(EditAnywhere, BlueprintSetter=SetCapabilitySet, Category = "Config")
 	FInworldCapabilitySet CapabilitySet;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")

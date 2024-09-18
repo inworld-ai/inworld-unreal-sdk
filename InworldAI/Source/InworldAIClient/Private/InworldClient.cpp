@@ -308,6 +308,12 @@ static void ConvertPlayerProfile(const FInworldPlayerProfile& PlayerProfile, Inw
 	}
 }
 
+static void ConvertSave(const FInworldSave& InworldSave, Inworld::SessionSave& SessionSave)
+{
+	SessionSave.State.resize(InworldSave.State.Num());
+	FMemory::Memcpy((uint8*)SessionSave.State.data(), (uint8*)InworldSave.State.GetData(), SessionSave.State.size());
+}
+
 static Inworld::ClientOptions CreateClientOptions(const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
 	Inworld::ClientOptions Options;
@@ -399,8 +405,7 @@ void UInworldClient::StartSessionFromScene(const FInworldScene& Scene, const FIn
 void UInworldClient::StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
 	Inworld::SessionSave SessionSave;
-	SessionSave.State.resize(Save.State.Num());
-	FMemory::Memcpy((uint8*)SessionSave.State.data(), (uint8*)Save.State.GetData(), SessionSave.State.size());
+	ConvertSave(Save, SessionSave);
 
 	Client->Get().SetOptions(CreateClientOptions(PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride));
 	Client->Get().StartClientFromSave(SessionSave);
@@ -442,6 +447,45 @@ void UInworldClient::ResumeSession()
 	NO_CLIENT_RETURN(void())
 
 	Client->Get().ResumeClient();
+}
+
+FInworldToken UInworldClient::GetSessionToken() const
+{
+	NO_CLIENT_RETURN({})
+
+	FInworldToken Token;
+	Inworld::SessionToken SessionToken = Client->Get().GetSessionToken();
+	Token.Token = UTF8_TO_TCHAR(SessionToken.Token.c_str());
+	Token.ExpirationTime = SessionToken.ExpirationTime;
+	Token.SessionId = UTF8_TO_TCHAR(SessionToken.SessionId.c_str());
+	return Token;
+}
+
+void UInworldClient::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
+{
+	NO_CLIENT_RETURN(void())
+
+	Inworld::UserConfiguration UserConfig;
+	ConvertPlayerProfile(PlayerProfile, UserConfig);
+	Client->Get().LoadUserConfiguration(UserConfig);
+}
+
+FInworldCapabilitySet UInworldClient::GetCapabilities() const
+{
+	NO_CLIENT_RETURN({})
+
+	FInworldCapabilitySet CapabilitySet;
+	ConvertCapabilities(Client->Get().GetOptions().Capabilities, CapabilitySet);
+	return CapabilitySet;
+}
+
+void UInworldClient::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet)
+{
+	NO_CLIENT_RETURN(void())
+
+	Inworld::Capabilities Capabilities;
+	ConvertCapabilities(CapabilitySet, Capabilities);
+	Client->Get().LoadCapabilities(Capabilities);
 }
 
 void UInworldClient::SaveSession(FOnInworldSessionSavedCallback Callback)
@@ -532,27 +576,6 @@ void UInworldClient::GetConnectionError(FString& OutErrorMessage, int32& OutErro
 	OutErrorDetails.ReconnectionType = static_cast<EInworldReconnectionType>(ErrorDetails.Reconnect);
 	OutErrorDetails.ReconnectTime = ErrorDetails.ReconnectTime;
 	OutErrorDetails.MaxRetries = ErrorDetails.MaxRetries;
-}
-
-FInworldToken UInworldClient::GetSessionToken() const
-{
-	NO_CLIENT_RETURN({})
-
-	FInworldToken Token;
-	Inworld::SessionToken SessionToken = Client->Get().GetSessionToken();
-	Token.Token = UTF8_TO_TCHAR(SessionToken.Token.c_str());
-	Token.ExpirationTime = SessionToken.ExpirationTime;
-	Token.SessionId = UTF8_TO_TCHAR(SessionToken.SessionId.c_str());
-	return Token;
-}
-
-FInworldCapabilitySet UInworldClient::GetCapabilities() const
-{
-	NO_CLIENT_RETURN({})
-
-	FInworldCapabilitySet CapabilitySet;
-	ConvertCapabilities(Client->Get().GetOptions().Capabilities, CapabilitySet);
-	return CapabilitySet;
 }
 
 FInworldWrappedPacket UInworldClient::SendTextMessage(const FString& AgentId, const FString& Text)
