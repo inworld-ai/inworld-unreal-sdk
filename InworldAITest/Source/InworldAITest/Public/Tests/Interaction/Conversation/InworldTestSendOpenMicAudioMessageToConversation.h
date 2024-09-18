@@ -11,13 +11,6 @@
 #include "Misc/AutomationTest.h"
 #include "InworldTestFlags.h"
 #include "TestObjects/InworldTestObjectSession.h"
-#include "InworldTestSendOpenMicAudioMessageToConversation.generated.h"
-
-UCLASS()
-class UInworldTestObjectSendOpenMicAudioMessageToConversation : public UInworldTestObjectSession
-{
-	GENERATED_BODY()
-};
 
 namespace Inworld
 {

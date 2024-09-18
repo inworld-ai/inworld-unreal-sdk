@@ -30,5 +30,8 @@ public class InworldAITest : ModuleRules
 				"Projects",
             }
 			);
-	}
+
+        PrivateDefinitions.Add("INWORLD_TEST_TASK_TIMEOUT=10");
+        PrivateDefinitions.Add("INWORLD_TEST_BLANK_AUDIO_DURATION=3");
+    }
 }

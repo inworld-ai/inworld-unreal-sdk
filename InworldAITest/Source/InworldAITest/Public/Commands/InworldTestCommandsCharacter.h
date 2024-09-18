@@ -40,6 +40,6 @@ namespace Inworld
 		};
 
 		void SendCharacterTestAudioData(UInworldCharacter* Character);
-		void SendCharacterBlankAudioData(UInworldCharacter* Character, float Duration);
+		void SendCharacterBlankAudioData(UInworldCharacter* Character, float Duration = INWORLD_TEST_BLANK_AUDIO_DURATION);
 	}
 }

@@ -65,15 +65,14 @@ Inworld::Test::FScopedSessionScene::FScopedSessionScene(UInworldSession* InSessi
 	: Session(InSession)
 {
 	StartSessionByScene(Session, InRuntimeAuth, InSceneName);
-	WaitUntilSessionConnectingCompleteWithTimeout(Session, 30.0f);
-	WaitUntilSessionLoadedWithTimeout(Session, 30.0f);
+	WaitUntilSessionLoadedWithTimeout(Session, 30.f);
 	TestEqualConnectionState(Session, EInworldConnectionState::Connected);
 }
 
 Inworld::Test::FScopedSessionScene::~FScopedSessionScene()
 {
 	StopSession(Session);
-	WaitUntilSessionDisconnectingCompleteWithTimeout(Session, 10.0f);
+	WaitUntilSessionDisconnectingCompleteWithTimeout(Session);
 	TestEqualConnectionState(Session, EInworldConnectionState::Idle);
 }
 

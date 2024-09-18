@@ -11,13 +11,6 @@
 #include "Misc/AutomationTest.h"
 #include "InworldTestFlags.h"
 #include "TestObjects/InworldTestObjectSession.h"
-#include "InworldTestSendTextMessageToConversation.generated.h"
-
-UCLASS()
-class UInworldTestObjectSendTextMessageToConversation : public UInworldTestObjectSession
-{
-	GENERATED_BODY()
-};
 
 namespace Inworld
 {

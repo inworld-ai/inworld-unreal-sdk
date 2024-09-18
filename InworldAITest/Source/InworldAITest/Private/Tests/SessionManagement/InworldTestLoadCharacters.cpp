@@ -35,7 +35,7 @@ bool Inworld::Test::FLoadCharacters::RunTest(const FString& Parameters)
 
 		for (UInworldCharacter* const Character : TestObject->LoadCharacters)
 		{
-			WaitUntilCharacterPossessedWithTimeout(Character, 10.0f);
+			WaitUntilCharacterPossessedWithTimeout(Character);
 		}
 	}
 	return true;

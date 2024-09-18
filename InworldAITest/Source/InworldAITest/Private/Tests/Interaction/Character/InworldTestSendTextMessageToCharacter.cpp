@@ -13,12 +13,12 @@
 
 bool Inworld::Test::FSendTextMessageToCharacter::RunTest(const FString& Parameters)
 {
-	TScopedGCObject<UInworldTestObjectSendTextMessageToCharacter> TestObject;
+	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
 		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 		SendCharacterTextMessage(TestObject->Characters[0], TEXT("Hello!"));
 
-		WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1, 10.0f);
+		WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1);
 
 		TestTextEventCollection(TestObject->TextEvents);
 		TestAudioDataEventCollection(TestObject->AudioDataEvents);

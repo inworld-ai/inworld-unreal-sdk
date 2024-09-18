@@ -37,6 +37,6 @@ namespace Inworld
 		};
 
 		void SendTestAudioDataToConversation(UInworldPlayer* Player);
-		void SendBlankAudioDataToConversation(UInworldPlayer* Player, float Duration);
+		void SendBlankAudioDataToConversation(UInworldPlayer* Player, float Duration = INWORLD_TEST_BLANK_AUDIO_DURATION);
 	}
 }

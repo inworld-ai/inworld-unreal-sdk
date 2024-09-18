@@ -34,7 +34,7 @@ bool Inworld::Test::FUnloadCharacters::RunTest(const FString& Parameters)
 
 		for (UInworldCharacter* const Character : TestObject->UnloadCharacters)
 		{
-			WaitUntilCharacterUnpossessedWithTimeout(Character, 10.0f);
+			WaitUntilCharacterUnpossessedWithTimeout(Character);
 		}
 	}
 	return true;

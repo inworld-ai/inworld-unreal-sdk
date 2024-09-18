@@ -13,7 +13,7 @@
 
 bool Inworld::Test::FSendPushToTalkAudioMessageToCharacter::RunTest(const FString& Parameters)
 {
-	TScopedGCObject<UInworldTestObjectSendPushToTalkAudioMessageToCharacter> TestObject;
+	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
 		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 		{
@@ -24,12 +24,12 @@ bool Inworld::Test::FSendPushToTalkAudioMessageToCharacter::RunTest(const FStrin
 
 					SendCharacterTestAudioData(TestObject->Characters[0]);
 
-					SendCharacterBlankAudioData(TestObject->Characters[0], 5.0f);
+					SendCharacterBlankAudioData(TestObject->Characters[0]);
 
 					TestInteractionEndFalse(TestObject->ControlEvents, 1);
 				}
 
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1, 10.0f);
+				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1);
 			}
 		}
 

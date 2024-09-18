@@ -13,7 +13,7 @@
 
 bool Inworld::Test::FSendOpenMicAudioMessageToCharacter::RunTest(const FString& Parameters)
 {
-	TScopedGCObject<UInworldTestObjectSendOpenMicAudioMessageToCharacter> TestObject;
+	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
 		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 		{
@@ -22,9 +22,9 @@ bool Inworld::Test::FSendOpenMicAudioMessageToCharacter::RunTest(const FString& 
 				FScopedCharacterAudioSession CharacterAudioSessionPin(TestObject->Characters[0], { EInworldMicrophoneMode::OPEN_MIC });
 				SendCharacterTestAudioData(TestObject->Characters[0]);
 
-				SendCharacterBlankAudioData(TestObject->Characters[0], 5.0f);
+				SendCharacterBlankAudioData(TestObject->Characters[0]);
 
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1, 10.0f);
+				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1);
 			}
 		}
 

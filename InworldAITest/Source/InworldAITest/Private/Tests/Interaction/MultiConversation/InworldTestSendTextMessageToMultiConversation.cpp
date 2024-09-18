@@ -15,13 +15,14 @@
 
 bool Inworld::Test::FSendTextMessageToMultiConversation::RunTest(const FString& Parameters)
 {
-	TScopedGCObject<UInworldTestObjectSendTextMessageToMultiConversation> TestObject;
+	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
 		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 
-		AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[0]);
-		AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[1]);
-		AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[2]);
+		for (UInworldCharacter* const Character : TestObject->Characters)
+		{
+			AddPlayerTargetCharacter(TestObject->Player, Character);
+		}
 
 		const int32 NumMessages = 5;
 
@@ -29,7 +30,7 @@ bool Inworld::Test::FSendTextMessageToMultiConversation::RunTest(const FString& 
 		{
 			SendTextMessageToConversation(TestObject->Player, TEXT("Hello!"));
 
-			WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, i + 1, 10.0f);
+			WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, i + 1);
 		}
 
 		TestTextEventCollection(TestObject->TextEvents);

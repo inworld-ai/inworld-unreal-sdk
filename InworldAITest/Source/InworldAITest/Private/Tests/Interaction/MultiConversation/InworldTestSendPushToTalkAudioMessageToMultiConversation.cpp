@@ -13,13 +13,14 @@
 
 bool Inworld::Test::FSendPushToTalkAudioMessageToMultiConversation::RunTest(const FString& Parameters)
 {
-	TScopedGCObject<UInworldTestObjectSendPushToTalkAudioMessageToMultiConversation> TestObject;
+	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
 		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 
-		AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[0]);
-		AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[1]);
-		AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[2]);
+		for (UInworldCharacter* const Character : TestObject->Characters)
+		{
+			AddPlayerTargetCharacter(TestObject->Player, Character);
+		}
 
 		const int32 NumMessages = 5;
 		{
@@ -37,7 +38,7 @@ bool Inworld::Test::FSendPushToTalkAudioMessageToMultiConversation::RunTest(cons
 					TestInteractionEndFalse(TestObject->ControlEvents, i + 1);
 				}
 
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, i + 1, 10.0f);
+				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, i + 1);
 			}
 		}
 

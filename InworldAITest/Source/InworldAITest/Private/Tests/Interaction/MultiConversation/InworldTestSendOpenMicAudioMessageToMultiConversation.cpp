@@ -13,13 +13,14 @@
 
 bool Inworld::Test::FSendOpenMicAudioMessageToMultiConversation::RunTest(const FString& Parameters)
 {
-	TScopedGCObject<UInworldTestObjectSendOpenMicAudioMessageToMultiConversation> TestObject;
+	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
 		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
 
-		AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[0]);
-		AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[1]);
-		AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[2]);
+		for (UInworldCharacter* const Character : TestObject->Characters)
+		{
+			AddPlayerTargetCharacter(TestObject->Player, Character);
+		}
 
 		const int32 NumMessages = 5;
 		{
@@ -33,7 +34,7 @@ bool Inworld::Test::FSendOpenMicAudioMessageToMultiConversation::RunTest(const F
 
 				SendBlankAudioDataToConversation(TestObject->Player, 2.5f);
 
-				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, i + 1, 10.0f);
+				WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, i + 1);
 			}
 		}
 
