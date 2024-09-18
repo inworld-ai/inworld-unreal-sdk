@@ -189,6 +189,20 @@ void UInworldApiSubsystem::UnloadCharacters(const TArray<FString>& Names)
 	InworldSession->UnloadCharacters(Characters);
 }
 
+void UInworldApiSubsystem::LoadCapabilities(const FInworldCapabilitySet& Capabilities)
+{
+    NO_CLIENT_RETURN(void())
+
+    InworldSession->GetClient()->LoadCapabilities(Capabilities);
+}
+
+void UInworldApiSubsystem::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
+{
+    NO_CLIENT_RETURN(void())
+
+    InworldSession->GetClient()->LoadPlayerProfile(PlayerProfile);
+}
+
 void UInworldApiSubsystem::SendTextMessage(const FString& AgentId, const FString& Text)
 {
     NO_CLIENT_RETURN(void())

@@ -130,6 +130,40 @@ FString UInworldSessionComponent::GetSessionId() const
 	return InworldSession->GetSessionId();
 }
 
+void UInworldSessionComponent::SetPlayerProfile(const FInworldPlayerProfile& InPlayerProfile)
+{
+	PlayerProfile = InPlayerProfile;
+
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
+	{
+		NO_SESSION_RETURN(void())
+
+		const EInworldConnectionState ConnectionState = GetConnectionState();
+		if (ConnectionState == EInworldConnectionState::Connected)
+		{
+			InworldSession->LoadPlayerProfile(PlayerProfile);
+		}
+	}
+}
+
+void UInworldSessionComponent::SetCapabilitySet(const FInworldCapabilitySet& InCapabilitySet)
+{
+	CapabilitySet = InCapabilitySet;
+
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
+	{
+		NO_SESSION_RETURN(void())
+
+		const EInworldConnectionState ConnectionState = GetConnectionState();
+		if (ConnectionState == EInworldConnectionState::Connected)
+		{
+			InworldSession->LoadCapabilities(CapabilitySet);
+		}
+	}
+}
+
 void UInworldSessionComponent::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
 	NO_SESSION_RETURN(void())

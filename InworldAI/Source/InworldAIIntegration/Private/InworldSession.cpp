@@ -352,6 +352,20 @@ void UInworldSession::UnloadCharacters(const TArray<UInworldCharacter*>& Charact
 	Client->UnloadCharacters(Names);
 }
 
+void UInworldSession::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->LoadCapabilities(CapabilitySet);
+}
+
+void UInworldSession::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->LoadPlayerProfile(PlayerProfile);
+}
+
 FString UInworldSession::UpdateConversation(UInworldPlayer* Player)
 {
 	NO_CLIENT_RETURN({})

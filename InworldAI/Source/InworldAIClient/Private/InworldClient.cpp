@@ -412,6 +412,24 @@ void UInworldClient::UnloadCharacters(const TArray<FString>& Ids)
 	Client->Get().UnloadCharacters(ToStd(Ids));
 }
 
+void UInworldClient::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet)
+{
+	NO_CLIENT_RETURN(void())
+
+	Inworld::Capabilities Capabilities;
+	ConvertCapabilities(CapabilitySet, Capabilities);
+	Client->Get().LoadCapabilities(Capabilities);
+}
+
+void UInworldClient::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
+{
+	NO_CLIENT_RETURN(void())
+
+	Inworld::UserConfiguration UserConfig;
+	ConvertPlayerProfile(PlayerProfile, UserConfig);
+	Client->Get().LoadUserConfiguration(UserConfig);
+}
+
 FString UInworldClient::UpdateConversation(const FString& ConversationId, const TArray<FString>& AgentIds, bool bIncludePlayer)
 {
 	NO_CLIENT_RETURN({})

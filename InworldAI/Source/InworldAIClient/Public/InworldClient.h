@@ -95,6 +95,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void UnloadCharacters(const TArray<FString>& Ids);
 
+	UFUNCTION(BlueprintCallable, Category = "Load")
+	void LoadCapabilities(const FInworldCapabilitySet& CapabilitySet);
+	UFUNCTION(BlueprintCallable, Category = "Load")
+	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
+
 	UFUNCTION(BlueprintCallable, Category = "Conversation")
 	FString UpdateConversation(const FString& ConversationId, const TArray<FString>& AgentIds, bool bIncludePlayer);
 
