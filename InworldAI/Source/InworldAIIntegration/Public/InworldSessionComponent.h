@@ -64,9 +64,6 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Load|Save")
-	void LoadSessionSave(const FInworldSave& Save);
-
 	UFUNCTION(BlueprintSetter)
 	void SetPlayerProfile(const FInworldPlayerProfile& InProfile);
 
