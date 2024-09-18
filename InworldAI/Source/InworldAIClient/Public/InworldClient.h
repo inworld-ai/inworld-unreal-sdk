@@ -79,8 +79,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FInworldToken GetSessionToken() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Load|Configuration")
+	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
+
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FInworldCapabilitySet GetCapabilities() const;
+	UFUNCTION(BlueprintCallable, Category = "Load|Configuration")
+	void LoadCapabilities(const FInworldCapabilitySet& CapabilitySet);
 
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
