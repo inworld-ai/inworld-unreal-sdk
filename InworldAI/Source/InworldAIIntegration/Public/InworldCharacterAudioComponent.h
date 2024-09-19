@@ -75,7 +75,7 @@ private:
 
 protected:
 	mutable FCriticalSection QueueLock;
-	TSharedPtr<FCharacterMessageUtteranceData> UtteranceData;
+	TSharedPtr<FCharacterMessageUtteranceDataAudio> UtteranceData;
 	int32 NumSoundDataBytesPlayed;
 	class USoundWaveProcedural* SoundStreaming;
 
