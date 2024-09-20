@@ -81,7 +81,7 @@ public:
 	FCharacterMessageUtteranceData()
 		: FCharacterMessageUtteranceData(ECharacterMessageUtteranceDataType::UNKNOWN)
 	{}
-
+	virtual ~FCharacterMessageUtteranceData() {}
 private:
 	const ECharacterMessageUtteranceDataType Type;
 
@@ -91,30 +91,52 @@ protected:
 	{}
 
 public:
+	virtual bool IsReady() const { return true; }
+	virtual bool IsFinal() const { return true; }
+
+	template<class T>
+	bool IsType() { return false; }
+};
+
+struct FCharacterMessageUtteranceDataAudio : public FCharacterMessageUtteranceData
+{
+public:
+	FCharacterMessageUtteranceDataAudio() = default;
+	virtual ~FCharacterMessageUtteranceDataAudio() = default;
+protected:
+	FCharacterMessageUtteranceDataAudio(ECharacterMessageUtteranceDataType InType)
+		: FCharacterMessageUtteranceData(InType)
+	{}
+public:
 	TArray<uint8> SoundData;
 	int32 ChannelCount = 0;
 	int32 SamplesPerSecond = 0;
 	int32 BitsPerSample = 0;
 	bool bAudioFinal = false;
 
-	template<class T>
-	bool IsType() { return false; }
+	virtual bool IsReady() const override { return !SoundData.IsEmpty(); }
+	virtual bool IsFinal() const override { return bAudioFinal; }
 };
 
-struct FCharacterMessageUtteranceDataInworld : public FCharacterMessageUtteranceData
+struct FCharacterMessageUtteranceDataInworld : public FCharacterMessageUtteranceDataAudio
 {
+public:
 	FCharacterMessageUtteranceDataInworld()
-		: FCharacterMessageUtteranceData(ECharacterMessageUtteranceDataType::INWORLD)
+		: FCharacterMessageUtteranceDataAudio(ECharacterMessageUtteranceDataType::INWORLD)
 	{}
+	virtual ~FCharacterMessageUtteranceDataInworld() = default;
 
 	TArray<FCharacterUtteranceVisemeInfo> VisemeInfos;
 };
 
-struct FCharacterMessageUtteranceDataA2F : public FCharacterMessageUtteranceData
+struct FCharacterMessageUtteranceDataA2F : public FCharacterMessageUtteranceDataAudio
 {
+public:
 	FCharacterMessageUtteranceDataA2F()
-		: FCharacterMessageUtteranceData(ECharacterMessageUtteranceDataType::A2F)
+		: FCharacterMessageUtteranceDataAudio(ECharacterMessageUtteranceDataType::A2F)
 	{}
+
+	virtual ~FCharacterMessageUtteranceDataA2F() = default;
 
 	bool bRecvEnd = false;
 	TArray<FName> BlendShapeNames;
