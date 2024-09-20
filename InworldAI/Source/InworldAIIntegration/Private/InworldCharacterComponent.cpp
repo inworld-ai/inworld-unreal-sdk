@@ -323,6 +323,14 @@ bool UInworldCharacterComponent::IsCustomGesture(const FString& CustomEventName)
 	return CustomEventName.Find("gesture") == 0;
 }
 
+bool IsAudioEnabled(UInworldSession* InworldSession)
+{
+	EMPTY_ARG_RETURN(InworldSession, false)
+	UInworldClient* InworldClient = InworldSession->GetClient();
+	EMPTY_ARG_RETURN(InworldClient, false)
+	return InworldClient->GetCapabilities().Audio;
+}
+
 void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInworldTextEvent& Event)
 {
     if (GetNetMode() == NM_DedicatedServer)
@@ -338,7 +346,12 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 			UE_LOG(LogInworldAIIntegration, Log, TEXT("From %s: %s"), *FromActor.Name, *Event.Text);
 		}
 
-		MessageQueue->AddOrUpdateMessage<FInworldTextEvent, FCharacterMessageUtterance>(Event);
+		auto Message = MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event);
+		if (!IsAudioEnabled(InworldCharacter->GetSession()))
+		{
+			Message->UtteranceData = MakeShared<FCharacterMessageUtteranceData>();
+			MessageQueue->TryToProgress();
+		}
 	}
 	else if (FromActor.Type == EInworldActorType::PLAYER)
 	{
@@ -386,7 +399,7 @@ void UInworldCharacterComponent::VisitAudioOnClient(const FInworldAudioDataEvent
 		return;
 	}
 
-	MessageQueue->AddOrUpdateMessage<FInworldAudioDataEvent, FCharacterMessageUtterance>(Event);
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event);
 }
 
 void UInworldCharacterComponent::Multicast_VisitSilence_Implementation(const FInworldSilenceEvent& Event)
@@ -396,7 +409,7 @@ void UInworldCharacterComponent::Multicast_VisitSilence_Implementation(const FIn
 		return;
 	}
 
-	MessageQueue->AddOrUpdateMessage<FInworldSilenceEvent, FCharacterMessageSilence>(Event);
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageSilence>(Event);
 }
 
 void UInworldCharacterComponent::Multicast_VisitControl_Implementation(const FInworldControlEvent& Event)
@@ -408,7 +421,7 @@ void UInworldCharacterComponent::Multicast_VisitControl_Implementation(const FIn
 
 	if (Event.Action == EInworldControlEventAction::INTERACTION_END)
 	{
-		MessageQueue->AddOrUpdateMessage<FInworldControlEvent, FCharacterMessageInteractionEnd>(Event);
+		MessageQueue->AddOrUpdateMessage<FCharacterMessageInteractionEnd>(Event);
 	}
 }
 
@@ -421,7 +434,7 @@ void UInworldCharacterComponent::Multicast_VisitCustom_Implementation(const FInw
 
 	UE_LOG(LogInworldAIIntegration, Log, TEXT("CustomEvent arrived: %s - %s"), *Event.Name, *Event.PacketId.InteractionId);
 
-	MessageQueue->AddOrUpdateMessage<FInworldCustomEvent, FCharacterMessageTrigger>(Event);
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageTrigger>(Event);
 }
 
 void UInworldCharacterComponent::Multicast_VisitRelation_Implementation(const FInworldRelationEvent& Event)
@@ -431,7 +444,7 @@ void UInworldCharacterComponent::Multicast_VisitRelation_Implementation(const FI
 		return;
 	}
 
-	MessageQueue->AddOrUpdateMessage<FInworldRelationEvent, FCharacterMessageTrigger>(Event);
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageTrigger>(Event);
 }
 
 void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FInworldEmotionEvent& Event)
@@ -501,13 +514,13 @@ void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEven
 void UInworldCharacterComponent::OnInworldA2FHeaderEvent(const FInworldA2FHeaderEvent& Event)
 {
 	// TODO: Support Networked A2F
-	MessageQueue->AddOrUpdateMessage<FInworldA2FHeaderEvent, FCharacterMessageUtterance>(Event);
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event);
 }
 
 void UInworldCharacterComponent::OnInworldA2FContentEvent(const FInworldA2FContentEvent& Event)
 {
 	// TODO: Support Networked A2F
-	MessageQueue->AddOrUpdateMessage<FInworldA2FContentEvent, FCharacterMessageUtterance>(Event);
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event);
 }
 
 void UInworldCharacterComponent::OnInworldSilenceEvent(const FInworldSilenceEvent& Event)

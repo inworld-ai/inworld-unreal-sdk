@@ -75,12 +75,12 @@ bool FCharacterMessageQueueEntry<T>::IsEnd() const { return false; }
 template<>
 inline bool FCharacterMessageQueueEntry<FCharacterMessageUtterance>::IsReady() const
 {
-	return Message->bTextFinal && Message->UtteranceData && !Message->UtteranceData->SoundData.IsEmpty();
+	return Message->bTextFinal && Message->UtteranceData && Message->UtteranceData->IsReady();
 }
 template<>
 inline bool FCharacterMessageQueueEntry<FCharacterMessageUtterance>::IsFinished() const
 {
-	return Message->bTextFinal && Message->UtteranceData && Message->UtteranceData->bAudioFinal;
+	return Message->bTextFinal && Message->UtteranceData && Message->UtteranceData->IsFinal();
 }
 
 template<>
@@ -124,8 +124,8 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 	TSharedPtr<FCharacterMessageQueueEntryBase> CurrentMessageQueueEntry;
 	TArray<TSharedPtr<FCharacterMessageQueueEntryBase>> PendingMessageQueueEntries;
 
-	template<class T, class U>
-	void AddOrUpdateMessage(const T& Event)
+	template<class U, class T>
+	TSharedPtr<U> AddOrUpdateMessage(const T& Event)
 	{
 		const FString& InteractionId = Event.PacketId.InteractionId;
 		const FString& UtteranceId = Event.PacketId.UtteranceId;
@@ -166,6 +166,8 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 		}
 
 		TryToProgress();
+
+		return Message;
 	}
 
 	void TryToPause();
