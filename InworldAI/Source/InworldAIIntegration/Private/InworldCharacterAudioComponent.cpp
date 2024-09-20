@@ -48,7 +48,18 @@ void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessa
 {
 	FScopeLock ScopeLock(&QueueLock);
 
-	UtteranceData = Message.UtteranceData;
+	if (Message.UtteranceData->IsType<FCharacterMessageUtteranceDataInworld>())
+	{
+		UtteranceData = StaticCastSharedPtr<FCharacterMessageUtteranceDataInworld>(Message.UtteranceData);
+	}
+	else if (Message.UtteranceData->IsType<FCharacterMessageUtteranceDataA2F>())
+	{
+		UtteranceData = StaticCastSharedPtr<FCharacterMessageUtteranceDataA2F>(Message.UtteranceData);
+	}
+	else
+	{
+		return;
+	}
 
 	NumSoundDataBytesPlayed = 44;
 
