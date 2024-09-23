@@ -29,11 +29,11 @@ jobs:
       shell: bash
       if: steps.ndk-cache-mac.outputs.cache-hit != 'true'
       run: |
-        python3 "build-scripts/ndk-util.py" --clean
+        python3 "scripts/ndk/ndk-util.py" --clean
         sudo xcode-select -s /Applications/Xcode_13_0.app/Contents/Developer
-        python3 "build-scripts/ndk-util.py" --platform=Mac --build
+        python3 "scripts/ndk/ndk-util.py" --platform=Mac --build
         rm InworldAI/inworld-ndk/build/CMakeCache.txt
-        python3 "build-scripts/ndk-util.py" --platform=Mac-shared --build
+        python3 "scripts/ndk/ndk-util.py" --platform=Mac-shared --build
         sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
     - uses: actions/cache/save@v4
       if: steps.ndk-cache-mac.outputs.cache-hit != 'true'

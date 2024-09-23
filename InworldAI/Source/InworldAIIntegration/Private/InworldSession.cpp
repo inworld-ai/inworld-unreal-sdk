@@ -137,6 +137,10 @@ void UInworldSession::Destroy()
 	}
 	if (IsValid(Client))
 	{
+		Client->OnPacketReceived().Remove(OnClientPacketReceivedHandle);
+		Client->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
+		Client->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
+
 #if ENGINE_MAJOR_VERSION == 5
 		Client->MarkAsGarbage();
 #endif
@@ -144,9 +148,6 @@ void UInworldSession::Destroy()
 #if ENGINE_MAJOR_VERSION == 4
 		Client->MarkPendingKill();
 #endif
-		Client->OnPacketReceived().Remove(OnClientPacketReceivedHandle);
-		Client->OnConnectionStateChanged().Remove(OnClientConnectionStateChangedHandle);
-		Client->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
 	}
 	Client = nullptr;
 }
