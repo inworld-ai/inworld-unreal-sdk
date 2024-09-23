@@ -15,7 +15,7 @@ bool Inworld::Test::FSendOpenMicAudioMessageToCharacter::RunTest(const FString& 
 {
 	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
-		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->Scene, TestObject->Workspace, TestObject->RuntimeAuth);
 		{
 			FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session);
 			{
