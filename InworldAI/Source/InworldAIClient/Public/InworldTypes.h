@@ -126,6 +126,9 @@ struct FInworldSave
 {
 	GENERATED_BODY()
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "State")
+    FInworldScene Scene;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "State")
 	TArray<uint8> State;
 };

@@ -248,6 +248,21 @@ UInworldClient::~UInworldClient()
 	Client.Reset();
 }
 
+static FString GetResourceFromSettings(const FString& WorkspaceOverride)
+{
+	const UInworldAIClientSettings* InworldAIClientSettings = GetDefault<UInworldAIClientSettings>();
+
+	if (!WorkspaceOverride.IsEmpty())
+	{
+		return FString("workspaces/") + WorkspaceOverride;
+	}
+	else if (!InworldAIClientSettings->Workspace.IsEmpty())
+	{
+		return FString("workspaces/") + InworldAIClientSettings->Workspace;
+	}
+	return {};
+}
+
 template<class T, class U>
 static void ConvertCapabilities(const T& Capabilities, U& OutCapabilities)
 {
@@ -294,63 +309,8 @@ static FString GenerateUserId()
 	return ToHex(Data);
 }
 
-static void ConvertPlayerProfile(const FInworldPlayerProfile& PlayerProfile, Inworld::UserConfiguration& UserConfig)
+static void ConvertSceneToSceneId(const FInworldScene& Scene, const FString& Resource, std::string& SceneId)
 {
-	UserConfig.Name = TCHAR_TO_UTF8(*PlayerProfile.Name);
-	UserConfig.Id = PlayerProfile.UniqueId.IsEmpty() ? TCHAR_TO_UTF8(*GenerateUserId()) : TCHAR_TO_UTF8(*PlayerProfile.UniqueId);
-	UserConfig.Profile.Fields.reserve(PlayerProfile.Fields.Num());
-	for (const auto& ProfileField : PlayerProfile.Fields)
-	{
-		Inworld::UserConfiguration::PlayerProfile::PlayerField PlayerField;
-		PlayerField.Id = TCHAR_TO_UTF8(*ProfileField.Key);
-		PlayerField.Value = TCHAR_TO_UTF8(*ProfileField.Value);
-		UserConfig.Profile.Fields.push_back(PlayerField);
-	}
-}
-
-static void ConvertSave(const FInworldSave& InworldSave, Inworld::SessionSave& SessionSave)
-{
-	SessionSave.State.resize(InworldSave.State.Num());
-	FMemory::Memcpy((uint8*)SessionSave.State.data(), (uint8*)InworldSave.State.GetData(), SessionSave.State.size());
-}
-
-static Inworld::ClientOptions CreateClientOptions(const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
-{
-	Inworld::ClientOptions Options;
-
-	const UInworldAIClientSettings* InworldAIClientSettings = GetDefault<UInworldAIClientSettings>();
-	Options.ServerUrl = TCHAR_TO_UTF8(*InworldAIClientSettings->Environment.TargetUrl);
-
-	if (!WorkspaceOverride.IsEmpty())
-	{
-		Options.Resource = TCHAR_TO_UTF8(*(FString("workspaces/") + WorkspaceOverride));
-	}
-	else if (!InworldAIClientSettings->Workspace.IsEmpty())
-	{
-		Options.Resource = TCHAR_TO_UTF8(*(FString("workspaces/") + InworldAIClientSettings->Workspace));
-	}
-	
-	const FInworldAuth DefaultAuth = InworldAIClientSettings->Auth;
-	Options.Base64 = TCHAR_TO_UTF8(AuthOverride.Base64Signature.IsEmpty() ? *DefaultAuth.Base64Signature : *AuthOverride.Base64Signature);
-	Options.ApiKey = TCHAR_TO_UTF8(AuthOverride.ApiKey.IsEmpty() ? *DefaultAuth.ApiKey : *AuthOverride.ApiKey);
-	Options.ApiSecret = TCHAR_TO_UTF8(AuthOverride.ApiSecret.IsEmpty() ? *DefaultAuth.ApiSecret : *AuthOverride.ApiSecret);
-	Options.ProjectName = TCHAR_TO_UTF8(!PlayerProfile.ProjectName.IsEmpty() ? *PlayerProfile.ProjectName : FApp::GetProjectName());
-
-	ConvertPlayerProfile(PlayerProfile, Options.UserConfig);
-	ConvertCapabilities(CapabilitySet, Options.Capabilities);
-
-	for (const TPair<FString, FString>& Entry : Metadata)
-	{
-		Options.Metadata.emplace_back(ToStd(Entry));
-	}
-
-	return Options;
-}
-
-void UInworldClient::StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
-{
-	Inworld::ClientOptions Options = CreateClientOptions(PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
-	
 	const FString SceneName = [Scene]() -> FString
 		{
 			TArray<FString> Split;
@@ -376,11 +336,83 @@ void UInworldClient::StartSessionFromScene(const FInworldScene& Scene, const FIn
 		}
 	();
 
-	// Failed to parse from settings
-	// possible to contain in long scene name
+	SceneId = TCHAR_TO_UTF8(*FString(Resource + ("/") + SceneName));
+}
+
+static void ConvertSceneIdToScene(const std::string& SceneId, FInworldScene& Scene)
+{
+	TArray<FString> Split;
+	FString{UTF8_TO_TCHAR(SceneId.c_str())}.ParseIntoArray(Split, TEXT("/"));
+	if (Split.Num() == 4)
+	{
+		if (Split[2] == TEXT("characters"))
+		{
+			Scene.Type = EInworldSceneType::CHARACTER;
+		}
+		else if (Split[2] == TEXT("scenes"))
+		{
+			Scene.Type = EInworldSceneType::SCENE;
+		}
+		Scene.Name = Split[3];
+	}
+}
+
+static void ConvertPlayerProfile(const FInworldPlayerProfile& PlayerProfile, Inworld::UserConfiguration& UserConfig)
+{
+	UserConfig.Name = TCHAR_TO_UTF8(*PlayerProfile.Name);
+	UserConfig.Id = PlayerProfile.UniqueId.IsEmpty() ? TCHAR_TO_UTF8(*GenerateUserId()) : TCHAR_TO_UTF8(*PlayerProfile.UniqueId);
+	UserConfig.Profile.Fields.reserve(PlayerProfile.Fields.Num());
+	for (const auto& ProfileField : PlayerProfile.Fields)
+	{
+		Inworld::UserConfiguration::PlayerProfile::PlayerField PlayerField;
+		PlayerField.Id = TCHAR_TO_UTF8(*ProfileField.Key);
+		PlayerField.Value = TCHAR_TO_UTF8(*ProfileField.Value);
+		UserConfig.Profile.Fields.push_back(PlayerField);
+	}
+}
+
+static Inworld::ClientOptions CreateClientOptions(const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
+{
+	Inworld::ClientOptions Options;
+
+	const UInworldAIClientSettings* InworldAIClientSettings = GetDefault<UInworldAIClientSettings>();
+	Options.ServerUrl = TCHAR_TO_UTF8(*InworldAIClientSettings->Environment.TargetUrl);
+	Options.Resource = [InworldAIClientSettings, WorkspaceOverride]() -> std::string
+	{
+		if (!WorkspaceOverride.IsEmpty())
+		{
+			return TCHAR_TO_UTF8(*(FString("workspaces/") + WorkspaceOverride));
+		}
+		else if (!InworldAIClientSettings->Workspace.IsEmpty())
+		{
+			return TCHAR_TO_UTF8(*(FString("workspaces/") + InworldAIClientSettings->Workspace));
+		}
+		return {};
+	}();
+	
+	const FInworldAuth DefaultAuth = InworldAIClientSettings->Auth;
+	Options.Base64 = TCHAR_TO_UTF8(AuthOverride.Base64Signature.IsEmpty() ? *DefaultAuth.Base64Signature : *AuthOverride.Base64Signature);
+	Options.ApiKey = TCHAR_TO_UTF8(AuthOverride.ApiKey.IsEmpty() ? *DefaultAuth.ApiKey : *AuthOverride.ApiKey);
+	Options.ApiSecret = TCHAR_TO_UTF8(AuthOverride.ApiSecret.IsEmpty() ? *DefaultAuth.ApiSecret : *AuthOverride.ApiSecret);
+	Options.ProjectName = TCHAR_TO_UTF8(!PlayerProfile.ProjectName.IsEmpty() ? *PlayerProfile.ProjectName : FApp::GetProjectName());
+
+	ConvertPlayerProfile(PlayerProfile, Options.UserConfig);
+	ConvertCapabilities(CapabilitySet, Options.Capabilities);
+
+	for (const TPair<FString, FString>& Entry : Metadata)
+	{
+		Options.Metadata.emplace_back(ToStd(Entry));
+	}
+
+	return Options;
+}
+
+void UInworldClient::StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
+{
+	Inworld::ClientOptions Options = CreateClientOptions(PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
 	if (Options.Resource.empty())
 	{
-		const FString WorkspaceId = [Scene]() -> FString
+		Options.Resource = [Scene]() -> std::string
 			{
 				// Use first segment of scene for resource
 				// 'workspaces/sample-workspace'
@@ -388,37 +420,40 @@ void UInworldClient::StartSessionFromScene(const FInworldScene& Scene, const FIn
 				Scene.Name.ParseIntoArray(Split, TEXT("/"));
 				if (Split.Num() >= 2)
 				{
-					return FString(Split[0] + "/" + Split[1]);
+					return TCHAR_TO_UTF8(*FString(Split[0] + "/" + Split[1]));
 				}
 				return {};
 			}
 		();
-		Options.Resource = TCHAR_TO_UTF8(*WorkspaceId);
 	}
-
-	const std::string SceneId = Options.Resource + "/" + TCHAR_TO_UTF8(*SceneName);
-
 	Client->Get().SetOptions(Options);
+
+	std::string SceneId;
+	ConvertSceneToSceneId(Scene, UTF8_TO_TCHAR(Options.Resource.c_str()), SceneId);
 	Client->Get().StartClientFromSceneId(SceneId);
 }
 
 void UInworldClient::StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
-	Inworld::SessionSave SessionSave;
-	ConvertSave(Save, SessionSave);
+	Inworld::ClientOptions Options = CreateClientOptions(PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
+	Client->Get().SetOptions(Options);
 
-	Client->Get().SetOptions(CreateClientOptions(PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride));
+	Inworld::SessionSave SessionSave;
+	ConvertSceneToSceneId(Save.Scene, UTF8_TO_TCHAR(Options.Resource.c_str()), SessionSave.SceneId);
+	SessionSave.State.resize(Save.State.Num());
+	FMemory::Memcpy((uint8*)SessionSave.State.data(), (uint8*)Save.State.GetData(), SessionSave.State.size());
 	Client->Get().StartClientFromSave(SessionSave);
 }
 
 void UInworldClient::StartSessionFromToken(const FInworldToken& Token, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
+	Inworld::ClientOptions Options = CreateClientOptions(PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
+	Client->Get().SetOptions(Options);
+
 	Inworld::SessionToken SessionToken;
 	SessionToken.Token = TCHAR_TO_UTF8(*Token.Token);
 	SessionToken.ExpirationTime = Token.ExpirationTime;
 	SessionToken.SessionId = TCHAR_TO_UTF8(*Token.SessionId);
-
-	Client->Get().SetOptions(CreateClientOptions(PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride));
 	Client->Get().StartClientFromToken(SessionToken);
 }
 
@@ -492,13 +527,14 @@ void UInworldClient::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->Get().SaveSessionStateAsync([Callback](const std::string& State, bool bSuccess)
+	Client->Get().SaveSessionStateAsync([Callback](const Inworld::SessionSave& SessionSave, bool bSuccess)
 		{
 			FInworldSave Save;
 			if (bSuccess)
 			{
-				Save.State.SetNumUninitialized(State.size());
-				FMemory::Memcpy(Save.State.GetData(), (uint8*)State.data(), Save.State.Num());
+				ConvertSceneIdToScene(SessionSave.SceneId, Save.Scene);
+				Save.State.SetNumUninitialized(SessionSave.State.size());
+				FMemory::Memcpy(Save.State.GetData(), (uint8*)SessionSave.State.data(), Save.State.Num());
 			}
 			AsyncTask(ENamedThreads::GameThread, [Callback, Save, bSuccess]()
 				{
