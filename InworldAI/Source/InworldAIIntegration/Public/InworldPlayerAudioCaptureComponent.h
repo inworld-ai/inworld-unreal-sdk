@@ -84,17 +84,17 @@ public:
     UFUNCTION(Server, Reliable, Category = "Audio")
     void ServerSetMuted(bool bInMuted);
 
-    UFUNCTION(BlueprintCallable, Category = "Audio", meta=(DeprecatedFunction, DeprecationMessage="SetMicMode is deprecated, use SetAudioSessionMode instead."))
+    UFUNCTION(BlueprintCallable, Category = "Audio", meta=(DeprecatedFunction, DeprecationMessage="SetMicMode is deprecated, use SetAudioSessionOptions instead."))
     void SetMicMode(EInworldMicrophoneMode InMicMode) { ServerSetMicMode(InMicMode); }
 
     UFUNCTION(Server, Reliable, Category = "Audio")
 	void ServerSetMicMode(EInworldMicrophoneMode InMicMode);
 
 	UFUNCTION(BlueprintCallable, Category = "Audio")
-	void SetAudioSessionMode(FInworldAudioSessionOptions InMode) { ServerSetAudioSessionMode(InMode); }
+	void SetAudioSessionOptions(FInworldAudioSessionOptions InMode) { ServerSetAudioSessionOptions(InMode); }
 
 	UFUNCTION(Server, Reliable, Category = "Audio")
-	void ServerSetAudioSessionMode(FInworldAudioSessionOptions InMode);
+	void ServerSetAudioSessionOptions(FInworldAudioSessionOptions InMode);
 
     UFUNCTION(BlueprintCallable, Category = "Devices")
     void SetCaptureDeviceById(const FString& DeviceId);
@@ -117,8 +117,8 @@ protected:
     bool bMuted = false;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
-	FInworldAudioSessionOptions AudioSessionMode;
-    bool bIsAudioSessionModeDirty = false;
+	FInworldAudioSessionOptions AudioSessionOptions;
+    bool bIsAudioSessionOptionsDirty = false;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
     EInworldPlayerSpeechMode PlayerSpeechMode;

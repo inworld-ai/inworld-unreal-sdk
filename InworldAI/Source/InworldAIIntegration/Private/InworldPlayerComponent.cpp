@@ -250,11 +250,11 @@ void UInworldPlayerComponent::SendTriggerToTarget(const FString& Name, const TMa
     InworldPlayer->SendTriggerToConversation(Name, Params);
 }
 
-void UInworldPlayerComponent::StartAudioSessionWithTarget()
+void UInworldPlayerComponent::StartAudioSessionWithTarget(FInworldAudioSessionOptions AudioSessionOptions)
 {
     NO_PLAYER_RETURN(void())
 
-    InworldPlayer->SendAudioSessionStartToConversation(FInworldAudioSessionOptions::Default());
+    InworldPlayer->SendAudioSessionStartToConversation(AudioSessionOptions);
 }
 
 void UInworldPlayerComponent::StopAudioSessionWithTarget()

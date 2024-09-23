@@ -51,6 +51,7 @@ SourceArt/**/*.tga
 InworldAI/Binaries/*
 InworldMetahuman/Binaries/*
 InworldInnequin/Binaries/*
+InworldAITest/Binaries/*
 
 # Builds
 Build/*
@@ -70,16 +71,19 @@ Build/*/**
 InworldAI/Saved/*
 InworldMetahuman/Saved/*
 InworldInnequin/Saved/*
+InworldAITest/Saved/*
 
 # Compiled source files for the engine to use
 InworldAI/Intermediate/*
 InworldMetahuman/Intermediate/*
 InworldInnequin/Intermediate/*
+InworldAITest/Intermediate/*
 
 # Cache files for the editor to use
 InworldAI/DerivedDataCache/*
 InworldMetahuman/DerivedDataCache/*
 InworldInnequin/DerivedDataCache/*
+InworldAITest/DerivedDataCache/*
 
 # Copied NDK sources
 InworldAI/Source/ThirdParty/InworldAINDKLibrary/include/*
@@ -88,4 +92,5 @@ InworldAI/Source/ThirdParty/InworldAINDKLibrary/src/*
 InworldAI/Source/ThirdParty/InworldAINDKLibrary/resource/*
 
 package-release/*
-build-scripts/*.zip
+scripts/marketplace/*.zip
+scripts/marketplace/Temp/*

@@ -7,10 +7,10 @@ import contextlib
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-ndk_path = os.path.join(os.getcwd(), '../InworldAI/inworld-ndk')
-build_path = os.path.join(os.getcwd(), '../InworldAI/inworld-ndk/build')
-package_path = os.path.join(os.getcwd(), '../InworldAI/inworld-ndk/build/package')
-copy_path = os.path.join(os.getcwd(), './../InworldAI/Source/ThirdParty/InworldAINDKLibrary/')
+ndk_path = os.path.join(os.getcwd(), '../../InworldAI/inworld-ndk')
+build_path = os.path.join(os.getcwd(), '../../InworldAI/inworld-ndk/build')
+package_path = os.path.join(os.getcwd(), '../../InworldAI/inworld-ndk/build/package')
+copy_path = os.path.join(os.getcwd(), '../../InworldAI/Source/ThirdParty/InworldAINDKLibrary/')
 
 print(ndk_path)
 

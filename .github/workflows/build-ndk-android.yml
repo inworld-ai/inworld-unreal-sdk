@@ -29,10 +29,10 @@ jobs:
       shell: bash
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       run: |
-        python3 "build-scripts/ndk-util.py" --clean
-        python3 "build-scripts/ndk-util.py" --platform=Android --build
+        python3 "scripts/ndk/ndk-util.py" --clean
+        python3 "scripts/ndk/ndk-util.py" --platform=Android --build
         rm InworldAI/inworld-ndk/build/CMakeCache.txt
-        python3 "build-scripts/ndk-util.py" --platform=Android-shared --build
+        python3 "scripts/ndk/ndk-util.py" --platform=Android-shared --build
     - uses: actions/cache/save@v4
       if: steps.ndk-cache-android.outputs.cache-hit != 'true'
       with:
