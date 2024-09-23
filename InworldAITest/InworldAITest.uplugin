@@ -1,0 +1,40 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.7.0",
+	"FriendlyName": "Inworld Test",
+	"Description": "Test suite for InworldAI",
+	"Category": "Inworld",
+	"CreatedBy": "InworldAI",
+	"CreatedByURL": "https://inworld.ai/",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "mailto:support@inworld.ai",
+	"IsBetaVersion": false,
+	"CanContainContent": false,
+	"EnabledByDefault": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "InworldAITest",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "InworldAITestEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "InworldAI",
+			"Enabled": true
+		},
+		{
+			"Name": "FunctionalTestingEditor",
+			"Enabled": true
+		}
+	]
+}

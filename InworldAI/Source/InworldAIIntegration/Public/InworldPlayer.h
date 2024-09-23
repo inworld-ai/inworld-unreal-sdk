@@ -43,6 +43,7 @@ public:
 
 	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
+	virtual void BeginDestroy() { SetSession(nullptr); Super::BeginDestroy(); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override;
@@ -56,14 +57,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SetSession(UInworldSession* InSession);
 	UFUNCTION(BlueprintPure, Category = "Session")
-	UInworldSession* GetSession() const { return Session; }
+	UInworldSession* GetSession() const { return Session.Get(); }
 
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
 	void SendTextMessageToConversation(const FString& Text);
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
 	void SendTriggerToConversation(const FString& Name, const TMap<FString, FString>& Params);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
-	void SendAudioSessionStartToConversation(FInworldAudioSessionOptions AudioSessionMode);
+	void SendAudioSessionStartToConversation(FInworldAudioSessionOptions AudioSessionOptions);
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStopToConversation();
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
@@ -111,7 +112,7 @@ public:
 	FOnInworldPlayerVoiceDetectionNative& OnVoiceDetection() { return OnVoiceDetectionDelegateNative; }
 
 	bool HasAudioSession() const { return bHasAudioSession; }
-	EInworldMicrophoneMode GetMicMode() const { return AudioSessionMode.MicrophoneMode; }
+	EInworldMicrophoneMode GetMicMode() const { return AudioSessionOptions.MicrophoneMode; }
 
 private:
 	void UpdateConversation();
@@ -121,7 +122,7 @@ private:
 	void OnRep_VoiceDetected(bool bOldValue);
 	
 	UPROPERTY(Replicated)
-	UInworldSession* Session;
+	TWeakObjectPtr<UInworldSession> Session;
 
 	UPROPERTY(Replicated)
 	bool bConversationParticipant = true;
@@ -140,7 +141,7 @@ private:
 	FString ConversationId;
 	FOnInworldPlayerConversationChangedNative OnConversationChangedDelegateNative;
 
-	FInworldAudioSessionOptions AudioSessionMode;
+	FInworldAudioSessionOptions AudioSessionOptions;
 	bool bHasAudioSession = false;
 
 	class FInworldPlayerPacketVisitor : public TSharedFromThis<FInworldPlayerPacketVisitor>, public InworldPacketVisitor

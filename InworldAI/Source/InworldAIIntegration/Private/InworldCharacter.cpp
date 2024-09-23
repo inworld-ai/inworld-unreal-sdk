@@ -24,6 +24,7 @@
 
 UInworldCharacter::UInworldCharacter()
 	: Super()
+	, Session(nullptr)
 	, PacketVisitor(MakeShared<FInworldCharacterPacketVisitor>(this))
 {}
 
@@ -81,14 +82,14 @@ void UInworldCharacter::SetSession(UInworldSession* InSession)
 		return;
 	}
 
-	if (Session && !AgentInfo.BrainName.IsEmpty())
+	if (Session.IsValid() && !AgentInfo.BrainName.IsEmpty())
 	{
 		Session->UnregisterCharacter(this);
 	}
 
 	Session = InSession;
 
-	if (Session && !AgentInfo.BrainName.IsEmpty())
+	if (Session.IsValid() && !AgentInfo.BrainName.IsEmpty())
 	{
 		Session->RegisterCharacter(this);
 	}

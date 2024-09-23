@@ -1,5 +1,4 @@
 import os
-import re
 import sys
 import json
 import stat
@@ -7,9 +6,18 @@ import getopt
 import shutil
 import subprocess
 
+ue_copyright = """// Copyright 2024 Theai, Inc. (DBA Inworld) All Rights Reserved."""
+
+inworld_copyright = """/**
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ *
+ * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
+ * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
+ */"""
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-inworld_path = os.path.join(os.getcwd(), '../InworldAI')
+inworld_path = os.path.join(os.getcwd(), '../../InworldAI')
 temp_path = os.path.join(os.getcwd(), 'Temp')
 
 if not os.path.exists(temp_path):
@@ -27,7 +35,7 @@ for subdir, dirs, files in os.walk(os.path.join(temp_path, 'Copy', 'Source')):
         
         filedata = ''
         with open(filepath, 'r') as file:
-            filedata = '// Copyright 2024 Theai, Inc. (DBA Inworld) All Rights Reserved.' + '\n' + re.sub('\/\*(.*?|\s)*\*\/', '', file.read())
+            filedata = file.read().replace(inworld_copyright, ue_copyright)
 
         with open(filepath, 'w') as file:
             file.write(filedata)
