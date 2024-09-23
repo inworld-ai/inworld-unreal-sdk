@@ -56,6 +56,7 @@ public:
 
 	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
+	virtual void BeginDestroy() { Destroy(); Super::BeginDestroy(); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override;
@@ -198,7 +199,7 @@ private:
 
 private:
 	UPROPERTY()
-	UInworldClient* Client;
+	TObjectPtr<UInworldClient> Client;
 
 	FString Workspace;
 

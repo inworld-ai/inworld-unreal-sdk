@@ -172,16 +172,12 @@ struct FInworldAudioSessionOptions
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Audio")
-	EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::UNKNOWN;
+	EInworldMicrophoneMode MicrophoneMode = EInworldMicrophoneMode::OPEN_MIC;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Audio")
-	EInworldUnderstandingMode UnderstandingMode = EInworldUnderstandingMode::UNKNOWN;
+	EInworldUnderstandingMode UnderstandingMode = EInworldUnderstandingMode::FULL;
 
 	bool operator==(const FInworldAudioSessionOptions& Other) const { return MicrophoneMode == Other.MicrophoneMode && UnderstandingMode == Other.UnderstandingMode; }
 	bool operator!=(const FInworldAudioSessionOptions& Other) const { return !(*this == Other); }
-
-	void Clear() { MicrophoneMode = EInworldMicrophoneMode::UNKNOWN; UnderstandingMode = EInworldUnderstandingMode::UNKNOWN; }
-
-	static FInworldAudioSessionOptions Default() { return { EInworldMicrophoneMode::OPEN_MIC, EInworldUnderstandingMode::FULL }; }
 };
 
 USTRUCT(BlueprintType)
