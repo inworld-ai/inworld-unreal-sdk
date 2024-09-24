@@ -48,5 +48,10 @@ jobs:
     - name: BuildPlugin-ios-${{ matrix.ue-version }}
       shell: bash
       run: |
-        sh "/Users/Shared/Epic Games/UE_${{ matrix.ue-version }}/Engine/Build/BatchFiles/RunUAT.sh" BuildPlugin -plugin="$PWD/TP_FirstPerson/Plugins/InworldAI/InworldAI.uplugin" -TargetPlatforms=IOS -package="$PWD/PluginBuild"
-
+        sh "/Users/Shared/Epic Games/UE_${{ matrix.ue-version }}/Engine/Build/BatchFiles/RunUAT.sh" > BuildPluginLog.txt BuildPlugin -plugin="$PWD/TP_FirstPerson/Plugins/InworldAI/InworldAI.uplugin" -TargetPlatforms=IOS -package="$PWD/PluginBuild"
+        cat BuildPluginLog.txt
+          if (grep -Fxq "BUILD SUCCESSFUL" BuildPluginLog.txt)
+          then
+              exit 0
+          fi
+          exit 1
