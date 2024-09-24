@@ -353,7 +353,7 @@ static void ConvertSceneIdToScene(const std::string& SceneId, FInworldScene& Sce
 		{
 			Scene.Type = EInworldSceneType::SCENE;
 		}
-		Scene.Name = Split[3];
+		Scene.Name = UTF8_TO_TCHAR(SceneId.c_str());
 	}
 }
 
@@ -371,13 +371,13 @@ static void ConvertPlayerProfile(const FInworldPlayerProfile& PlayerProfile, Inw
 	}
 }
 
-static Inworld::ClientOptions CreateClientOptions(const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
+static Inworld::ClientOptions CreateClientOptions(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
 	Inworld::ClientOptions Options;
 
 	const UInworldAIClientSettings* InworldAIClientSettings = GetDefault<UInworldAIClientSettings>();
 	Options.ServerUrl = TCHAR_TO_UTF8(*InworldAIClientSettings->Environment.TargetUrl);
-	Options.Resource = [InworldAIClientSettings, WorkspaceOverride]() -> std::string
+	Options.Resource = [&]() -> std::string
 	{
 		if (!WorkspaceOverride.IsEmpty())
 		{
@@ -386,6 +386,17 @@ static Inworld::ClientOptions CreateClientOptions(const FInworldPlayerProfile& P
 		else if (!InworldAIClientSettings->Workspace.IsEmpty())
 		{
 			return TCHAR_TO_UTF8(*(FString("workspaces/") + InworldAIClientSettings->Workspace));
+		}
+		else
+		{
+			// Use first segment of scene for resource
+			// 'workspaces/sample-workspace'
+			TArray<FString> Split;
+			Scene.Name.ParseIntoArray(Split, TEXT("/"));
+			if (Split.Num() == 4)
+			{
+				return TCHAR_TO_UTF8(*FString(Split[0] + "/" + Split[1]));
+			}
 		}
 		return {};
 	}();
@@ -409,23 +420,7 @@ static Inworld::ClientOptions CreateClientOptions(const FInworldPlayerProfile& P
 
 void UInworldClient::StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
-	Inworld::ClientOptions Options = CreateClientOptions(PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
-	if (Options.Resource.empty())
-	{
-		Options.Resource = [Scene]() -> std::string
-			{
-				// Use first segment of scene for resource
-				// 'workspaces/sample-workspace'
-				TArray<FString> Split;
-				Scene.Name.ParseIntoArray(Split, TEXT("/"));
-				if (Split.Num() >= 2)
-				{
-					return TCHAR_TO_UTF8(*FString(Split[0] + "/" + Split[1]));
-				}
-				return {};
-			}
-		();
-	}
+	Inworld::ClientOptions Options = CreateClientOptions(Scene, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
 	Client->Get().SetOptions(Options);
 
 	std::string SceneId;
@@ -435,7 +430,7 @@ void UInworldClient::StartSessionFromScene(const FInworldScene& Scene, const FIn
 
 void UInworldClient::StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
-	Inworld::ClientOptions Options = CreateClientOptions(PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
+	Inworld::ClientOptions Options = CreateClientOptions(Save.Scene, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
 	Client->Get().SetOptions(Options);
 
 	Inworld::SessionSave SessionSave;
@@ -447,7 +442,7 @@ void UInworldClient::StartSessionFromSave(const FInworldSave& Save, const FInwor
 
 void UInworldClient::StartSessionFromToken(const FInworldToken& Token, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
-	Inworld::ClientOptions Options = CreateClientOptions(PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
+	Inworld::ClientOptions Options = CreateClientOptions({}, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
 	Client->Get().SetOptions(Options);
 
 	Inworld::SessionToken SessionToken;
