@@ -54,10 +54,6 @@ public:
 
 	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual bool IsSupportedForNetworking() const override { return true; }
-	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override;
-	virtual bool CallRemoteFunction(UFunction* Function, void* Parms, struct FOutParmRec* OutParms, FFrame* Stack) override;
 	// ~UObject
 
 public:
@@ -203,13 +199,13 @@ private:
 	UFUNCTION()
 	void OnRep_IsLoaded();
 
-	UPROPERTY(ReplicatedUsing = OnRep_IsLoaded)
+	UPROPERTY()
 	bool bIsLoaded;
 
 	UFUNCTION()
 	void OnRep_ConnectionState();
 
-	UPROPERTY(ReplicatedUsing = OnRep_ConnectionState)
+	UPROPERTY()
 	EInworldConnectionState ConnectionState;
 
 	FDelegateHandle OnClientPacketReceivedHandle;
@@ -217,9 +213,9 @@ private:
 	FDelegateHandle OnClientPerceivedLatencyHandle;
 	FDelegateHandle OnVADHandle;
 
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	TArray<UInworldCharacter*> RegisteredCharacters;
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	TArray<UInworldPlayer*> RegisteredPlayers;
 
 	TMap<FString, UInworldCharacter*> BrainNameToCharacter;

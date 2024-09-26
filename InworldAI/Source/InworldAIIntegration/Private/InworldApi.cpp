@@ -62,7 +62,7 @@ UInworldSession* UInworldApiSubsystem::GetInworldSession()
     {
         // Lazily instantiate the InworldSession if needed for backwards compatability
         UWorld* World = GetWorld();
-        if (World && World->GetNetMode() != NM_Client)
+        if (World && World->GetNetMode() != NM_DedicatedServer)
         {
             // Backward compatibility for calls directly to InworldApi without some sort of session actor
             UInworldSessionComponent* SessionComponent = Cast<UInworldSessionComponent>(World->GetGameState()->AddComponentByClass(UInworldSessionComponent::StaticClass(), false, FTransform::Identity, false));
@@ -314,12 +314,6 @@ void UInworldApiSubsystem::Deinitialize()
 void UInworldApiSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
     Super::OnWorldBeginPlay(InWorld);
-
-    UWorld* World = GetWorld();
-    if (World && World->GetNetMode() != NM_Standalone)
-    {
-        StartAudioReplication();
-    }
 }
 #endif
 

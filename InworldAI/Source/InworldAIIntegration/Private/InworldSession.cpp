@@ -58,42 +58,6 @@ UInworldSession::UInworldSession()
 UInworldSession::~UInworldSession()
 {}
 
-void UInworldSession::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	if (UBlueprintGeneratedClass* BPCClass = Cast<UBlueprintGeneratedClass>(GetClass()))
-	{
-		BPCClass->GetLifetimeBlueprintReplicationList(OutLifetimeProps);
-	}
-
-	DOREPLIFETIME(UInworldSession, bIsLoaded);
-	DOREPLIFETIME(UInworldSession, ConnectionState);
-	DOREPLIFETIME(UInworldSession, RegisteredCharacters);
-	DOREPLIFETIME(UInworldSession, RegisteredPlayers);
-}
-
-int32 UInworldSession::GetFunctionCallspace(UFunction* Function, FFrame* Stack)
-{
-	if (HasAnyFlags(RF_ClassDefaultObject) || !IsSupportedForNetworking())
-	{
-		return GEngine->GetGlobalFunctionCallspace(Function, this, Stack);
-	}
-
-	return GetOuter()->GetFunctionCallspace(Function, Stack);
-}
-
-bool UInworldSession::CallRemoteFunction(UFunction* Function, void* Parms, FOutParmRec* OutParms, FFrame* Stack)
-{
-	AActor* Owner = GetTypedOuter<AActor>();
-	if (UNetDriver* NetDriver = Owner->GetNetDriver())
-	{
-		NetDriver->ProcessRemoteFunction(Owner, Function, Parms, OutParms, Stack, this);
-		return true;
-	}
-	return false;
-}
-
 void UInworldSession::Init()
 {
 	Client = NewObject<UInworldClient>(this);

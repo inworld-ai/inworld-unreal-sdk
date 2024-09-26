@@ -35,10 +35,9 @@ void UInworldSessionComponent::OnRegister()
 	Super::OnRegister();
 
 	UWorld* World = GetWorld();
-	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
 	{
 		InworldSession = NewObject<UInworldSession>(this);
-		InworldSession->Init();
 		OnRep_InworldSession();
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
 		AddReplicatedSubObject(InworldSession);
@@ -63,28 +62,14 @@ void UInworldSessionComponent::OnUnregister()
 	InworldSession = nullptr;
 }
 
-
-void UInworldSessionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UInworldSessionComponent::BeginPlay()
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UInworldSessionComponent, InworldSession);
-}
-
-bool UInworldSessionComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
-{
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
-	return Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-#else
-	bool WroteSomething = true;
-
-	if (IsValid(InworldSession))
+	Super::BeginPlay();
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_DedicatedServer)
 	{
-		WroteSomething |= Channel->ReplicateSubobject(InworldSession, *Bunch, *RepFlags);
+		InworldSession->Init();
 	}
-
-	return WroteSomething;
-#endif
 }
 
 bool UInworldSessionComponent::GetIsLoaded() const
@@ -226,7 +211,7 @@ void UInworldSessionComponent::OnRep_InworldSession()
 			{
 				return;
 			}
-			if (World->GetNetMode() != NM_Client)
+			if (World->GetNetMode() != NM_DedicatedServer)
 			{
 				if (ConnectionState == EInworldConnectionState::Connected)
 				{

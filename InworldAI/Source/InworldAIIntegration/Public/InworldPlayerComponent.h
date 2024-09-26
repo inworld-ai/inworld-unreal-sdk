@@ -35,9 +35,6 @@ public:
 
     virtual void BeginPlay() override;
 
-    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-    virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
-
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     void SetConversationParticipation(bool bParticipant);
 
@@ -86,7 +83,7 @@ private:
     UPROPERTY(EditAnywhere, Category = "UI")
     FString UiName = "Player";
 
-    UPROPERTY(Replicated)
+    UPROPERTY()
     UInworldPlayer* InworldPlayer;
 
     UPROPERTY(EditDefaultsOnly, Category = "Conversation")

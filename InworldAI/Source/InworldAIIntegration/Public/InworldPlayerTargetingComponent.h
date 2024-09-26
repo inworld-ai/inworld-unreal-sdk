@@ -29,6 +29,7 @@ public:
     virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
+	bool IsLocallyControlled() const;
 	void UpdateTargetCharacters();
 
 public:

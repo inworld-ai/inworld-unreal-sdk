@@ -30,8 +30,7 @@ public:
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
+	virtual void BeginPlay() override;
 
 	UPROPERTY(BlueprintAssignable, Category = "Session")
 	FOnInworldSessionCreated OnSessionCreatedDelegate;
@@ -106,6 +105,6 @@ private:
 	UFUNCTION()
 	void OnRep_InworldSession();
 
-	UPROPERTY(ReplicatedUsing = OnRep_InworldSession)
+	UPROPERTY()
 	UInworldSession* InworldSession;
 };

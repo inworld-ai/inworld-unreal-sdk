@@ -168,8 +168,8 @@ UInworldPlayerAudioCaptureComponent::UInworldPlayerAudioCaptureComponent(const F
 void UInworldPlayerAudioCaptureComponent::BeginPlay()
 {
     Super::BeginPlay();
-
-    if (GetOwnerRole() == ROLE_Authority)
+    
+    if (IsLocallyControlled())
     {
         TArray<UActorComponent*> PlayerOwnerComponents = GetOwner()->GetComponentsByInterface(UInworldPlayerOwnerInterface::StaticClass());
         if (ensureMsgf(PlayerOwnerComponents.Num() > 0, TEXT("The owner of the AudioCapture must contain an InworldPlayerOwner!")))
@@ -204,10 +204,7 @@ void UInworldPlayerAudioCaptureComponent::BeginPlay()
         }
 
         PrimaryComponentTick.SetTickFunctionEnable(false);
-    }
     
-    if (IsLocallyControlled())
-    {
         auto OnInputCapture = [this](const TArray<uint8>& AudioData)
             {
                 if (bCapturingVoice)
@@ -258,7 +255,7 @@ void UInworldPlayerAudioCaptureComponent::EndPlay(const EEndPlayReason::Type End
         StopCapture();
     }
 
-    if (GetOwnerRole() == ROLE_Authority)
+    if (IsLocallyControlled())
     {
         InworldPlayer->OnConversationChanged().Remove(OnPlayerConversationChanged);
 
@@ -292,21 +289,14 @@ void UInworldPlayerAudioCaptureComponent::TickComponent(float DeltaTime, enum EL
                 OutputBuffer.Data.SetNum(OutputBuffer.Data.Num() - SampleSendSize);
             }
 
-            Server_ProcessVoiceCaptureChunk(VoiceCaptureInfoRep);
+            Server_ProcessVoiceCaptureChunk_Implementation(VoiceCaptureInfoRep);
         }
     }
 }
 
-void UInworldPlayerAudioCaptureComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(UInworldPlayerAudioCaptureComponent, bServerCapturingVoice, COND_OwnerOnly);
-}
-
 void UInworldPlayerAudioCaptureComponent::EvaluateVoiceCapture()
 {
-    if (GetOwnerRole() == ROLE_Authority)
+    if (IsLocallyControlled())
     {
         const bool bIsMicHot = !bMuted;
         const bool bIsWorldPlaying = !GetWorld()->IsPaused();
@@ -482,6 +472,10 @@ void UInworldPlayerAudioCaptureComponent::Server_ProcessVoiceCaptureChunk_Implem
 bool UInworldPlayerAudioCaptureComponent::IsLocallyControlled() const
 {
     auto* Controller = Cast<APlayerController>(GetOwner()->GetInstigatorController());
+    if (Controller == nullptr)
+    {
+        Controller = Cast<APlayerController>(GetOwner());
+    }
     return Controller && Controller->IsLocalController();
 }
 

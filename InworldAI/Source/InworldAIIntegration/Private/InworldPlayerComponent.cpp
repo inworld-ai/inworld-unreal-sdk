@@ -34,7 +34,7 @@ void UInworldPlayerComponent::OnRegister()
     Super::OnRegister();
 
     UWorld* World = GetWorld();
-    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
     {
         InworldPlayer = NewObject<UInworldPlayer>(this);
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
@@ -64,7 +64,7 @@ void UInworldPlayerComponent::InitializeComponent()
 {
     Super::InitializeComponent();
     UWorld* World = GetWorld();
-    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_DedicatedServer)
     {
         InworldPlayer->SetSession(World->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession());
     }
@@ -74,7 +74,7 @@ void UInworldPlayerComponent::UninitializeComponent()
 {
     Super::UninitializeComponent();
     UWorld* World = GetWorld();
-    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+    if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_DedicatedServer)
     {
         InworldPlayer->SetSession(nullptr);
     }
@@ -88,29 +88,6 @@ void UInworldPlayerComponent::BeginPlay()
     {
         InworldPlayer->SetConversationParticipation(bConversationParticipant);
     }
-}
-
-void UInworldPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-    DOREPLIFETIME(UInworldPlayerComponent, InworldPlayer);
-}
-
-bool UInworldPlayerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
-{
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
-    return Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-#else
-    bool WroteSomething = true;
-
-    if (IsValid(InworldPlayer))
-    {
-        WroteSomething |= Channel->ReplicateSubobject(InworldPlayer, *Bunch, *RepFlags);
-    }
-
-    return WroteSomething;
-#endif
 }
 
 void UInworldPlayerComponent::SetConversationParticipation(bool bParticipating)

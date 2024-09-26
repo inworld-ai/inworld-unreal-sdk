@@ -49,9 +49,6 @@ public:
 	virtual void EndPlay(EEndPlayReason::Type Reason);
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
-
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInworldCharacterPlayerInteractionStateChanged, bool, bInteracting);
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Interaction")
 	FInworldCharacterPlayerInteractionStateChanged OnPlayerInteractionStateChanged;
@@ -213,8 +210,6 @@ private:
 
 	bool IsCustomGesture(const FString& CustomEventName) const;
 
-	void VisitAudioOnClient(const FInworldAudioDataEvent& Event);
-
 	TQueue<FInworldAudioDataEvent> PendingRepAudioEvents;
 
 	UPROPERTY()
@@ -246,7 +241,7 @@ private:
 	UFUNCTION()
 	void OnRep_InworldCharacter();
 
-	UPROPERTY(ReplicatedUsing=OnRep_InworldCharacter)
+	UPROPERTY()
 	UInworldCharacter* InworldCharacter;
 
 #if defined(WITH_GAMEPLAY_DEBUGGER) && WITH_GAMEPLAY_DEBUGGER

@@ -32,10 +32,6 @@ public:
 
 	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual bool IsSupportedForNetworking() const override { return true; }
-	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override;
-	virtual bool CallRemoteFunction(UFunction* Function, void* Parms, struct FOutParmRec* OutParms, FFrame* Stack) override;
 	// ~UObject
 
 public:
@@ -121,17 +117,17 @@ public:
 	FOnInworldCustomEventNative& OnInworldCustomEvent() { return OnInworldCustomEventDelegateNative; }
 
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	UInworldSession* Session;
 
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	FInworldAgentInfo AgentInfo;
 	FOnInworldCharacterPossessedNative OnPossessedDelegateNative;
 
 	UFUNCTION()
 	void OnRep_TargetPlayer(UInworldPlayer* OldTargetPlayer);
 
-	UPROPERTY(ReplicatedUsing=OnRep_TargetPlayer)
+	UPROPERTY()
 	UInworldPlayer* TargetPlayer;
 	FOnInworldCharacterTargetPlayerChangedNative OnTargetPlayerChangedDelegateNative;
 

@@ -21,18 +21,18 @@ void UInworldPlayerTargetingComponent::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (GetOwnerRole() != ROLE_Authority)
+    if (IsLocallyControlled())
     {
-        PrimaryComponentTick.SetTickFunctionEnable(false);
-    }
-    else
-	{
-		PrimaryComponentTick.SetTickFunctionEnable(true);
+        PrimaryComponentTick.SetTickFunctionEnable(true);
         TArray<UActorComponent*> PlayerOwnerComponents = GetOwner()->GetComponentsByInterface(UInworldPlayerOwnerInterface::StaticClass());
         if (ensureMsgf(PlayerOwnerComponents.Num() > 0, TEXT("The owner of the AudioCapture must contain an InworldPlayerOwner!")))
         {
             InworldPlayer = IInworldPlayerOwnerInterface::Execute_GetInworldPlayer(PlayerOwnerComponents[0]);
         }
+    }
+    else
+	{
+        PrimaryComponentTick.SetTickFunctionEnable(false);
     }
 }
 
@@ -41,6 +41,16 @@ void UInworldPlayerTargetingComponent::TickComponent(float DeltaTime, enum ELeve
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
     UpdateTargetCharacters();
+}
+
+bool UInworldPlayerTargetingComponent::IsLocallyControlled() const
+{
+    auto* Controller = Cast<APlayerController>(GetOwner()->GetInstigatorController());
+    if (Controller == nullptr)
+    {
+        Controller = Cast<APlayerController>(GetOwner());
+    }
+    return Controller && Controller->IsLocalController();
 }
 
 void UInworldPlayerTargetingComponent::UpdateTargetCharacters()

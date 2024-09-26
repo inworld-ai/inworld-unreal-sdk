@@ -54,7 +54,7 @@ void UInworldCharacterComponent::OnRegister()
 	Super::OnRegister();
 
 	UWorld* World = GetWorld();
-	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
 	{
 		InworldCharacter = NewObject<UInworldCharacter>(this);
 		OnRep_InworldCharacter();
@@ -86,7 +86,7 @@ void UInworldCharacterComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 	UWorld* World = GetWorld();
-	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_DedicatedServer)
 	{
 		InworldCharacter->SetSession(World->GetSubsystem<UInworldApiSubsystem>()->GetInworldSession());
 	}
@@ -117,7 +117,7 @@ void UInworldCharacterComponent::UninitializeComponent()
 	Super::UninitializeComponent();
 
 	UWorld* World = GetWorld();
-	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_Client)
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE) && World->GetNetMode() != NM_DedicatedServer)
 	{
 		InworldCharacter->SetSession(nullptr);
 	}
@@ -139,7 +139,7 @@ void UInworldCharacterComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (GetOwnerRole() == ROLE_Authority)
+	if (GetWorld()->GetNetMode() != NM_DedicatedServer)
 	{
 		InworldCharacter->SetBrainName(BrainName);
 	}
@@ -152,7 +152,7 @@ void UInworldCharacterComponent::BeginPlay()
 
 void UInworldCharacterComponent::EndPlay(EEndPlayReason::Type Reason)
 {
-	if (GetOwnerRole() == ROLE_Authority)
+	if (GetWorld()->GetNetMode() != NM_DedicatedServer)
 	{
 		InworldCharacter->SetBrainName({});
 	}
@@ -179,29 +179,6 @@ void UInworldCharacterComponent::TickComponent(float DeltaTime, enum ELevelTick 
 	{
 		Pb->Tick(DeltaTime);
 	}
-}
-
-void UInworldCharacterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UInworldCharacterComponent, InworldCharacter);
-}
-
-bool UInworldCharacterComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
-{
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
-	return Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-#else
-	bool WroteSomething = true;
-
-	if (IsValid(InworldCharacter))
-	{
-		WroteSomething |= Channel->ReplicateSubobject(InworldCharacter, *Bunch, *RepFlags);
-	}
-
-	return WroteSomething;
-#endif
 }
 
 void UInworldCharacterComponent::SetBrainName(const FString& Name)
@@ -382,16 +359,6 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 	}
 }
 
-void UInworldCharacterComponent::VisitAudioOnClient(const FInworldAudioDataEvent& Event)
-{
-	if (GetNetMode() == NM_DedicatedServer)
-	{
-		return;
-	}
-
-	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event);
-}
-
 void UInworldCharacterComponent::Multicast_VisitSilence_Implementation(const FInworldSilenceEvent& Event)
 {
 	if (GetNetMode() == NM_DedicatedServer)
@@ -474,28 +441,7 @@ void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEven
 		return;
 	}
 
-	if (GetNetMode() == NM_Standalone || GetNetMode() == NM_Client)
-	{
-		VisitAudioOnClient(Event);
-		return;
-	}
-
-	if (GetNetMode() == NM_ListenServer)
-	{
-		VisitAudioOnClient(Event);
-	}
-
-	UInworldApiSubsystem* InworldSubsystem = GetWorld()->GetSubsystem<UInworldApiSubsystem>();
-	if (ensure(InworldSubsystem))
-	{
-		TArray<FInworldAudioDataEvent> RepEvents;
-		FInworldAudioDataEvent::ConvertToReplicatableEvents(Event, RepEvents);
-
-		for (auto& E : RepEvents)
-		{
-			InworldSubsystem->ReplicateAudioEventFromServer(E);
-		}
-	}
+	MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event);
 }
 
 void UInworldCharacterComponent::OnInworldA2FHeaderEvent(const FInworldA2FHeaderEvent& Event)

@@ -43,10 +43,6 @@ public:
 
 	// UObject
 	virtual UWorld* GetWorld() const override { return GetTypedOuter<AActor>()->GetWorld(); }
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual bool IsSupportedForNetworking() const override { return true; }
-	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override;
-	virtual bool CallRemoteFunction(UFunction* Function, void* Parms, struct FOutParmRec* OutParms, FFrame* Stack) override;
 	// ~UObject
 
 public:
@@ -125,16 +121,16 @@ private:
 	UFUNCTION()
 	void OnRep_VoiceDetected(bool bOldValue);
 	
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	UInworldSession* Session;
 
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	bool bConversationParticipant = true;
 
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	TArray<UInworldCharacter*> TargetCharacters;
 
-	UPROPERTY(ReplicatedUsing=OnRep_VoiceDetected)
+	UPROPERTY()
 	bool bVoiceDetected = false;
 
 	FOnInworldPlayerTargetCharacterAddedNative OnTargetCharacterAddedDelegateNative;

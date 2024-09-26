@@ -67,8 +67,6 @@ public:
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
     bool IsLocallyControlled() const;
 
 private:
@@ -126,7 +124,7 @@ private:
 	UFUNCTION()
 	void Rep_ServerCapturingVoice();
 
-	UPROPERTY(ReplicatedUsing=Rep_ServerCapturingVoice)
+	UPROPERTY()
 	bool bServerCapturingVoice = false;
 
     TAtomic<bool> bCapturingVoice = false;
