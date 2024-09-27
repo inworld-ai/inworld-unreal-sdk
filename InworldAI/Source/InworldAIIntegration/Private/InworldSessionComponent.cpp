@@ -40,7 +40,7 @@ void UInworldSessionComponent::OnRegister()
 		InworldSession = NewObject<UInworldSession>(this);
 		OnRep_InworldSession();
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
-		AddReplicatedSubObject(InworldSession);
+		//AddReplicatedSubObject(InworldSession);
 #endif
 	}
 }

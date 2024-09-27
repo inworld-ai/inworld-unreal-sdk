@@ -59,7 +59,7 @@ void UInworldCharacterComponent::OnRegister()
 		InworldCharacter = NewObject<UInworldCharacter>(this);
 		OnRep_InworldCharacter();
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
-		AddReplicatedSubObject(InworldCharacter);
+		//AddReplicatedSubObject(InworldCharacter);
 #endif
 	}
 }
