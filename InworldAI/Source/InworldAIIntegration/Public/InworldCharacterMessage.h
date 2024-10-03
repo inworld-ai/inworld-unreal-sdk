@@ -42,9 +42,11 @@ struct FCharacterMessage
 	FCharacterMessage() {}
 	virtual ~FCharacterMessage() = default;
 
+	/** The unique identifier for the utterance message. */
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString UtteranceId;
 
+	/** The unique identifier for the interaction message. */
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString InteractionId;
 
@@ -61,9 +63,11 @@ struct FCharacterUtteranceVisemeInfo
 		, Timestamp(InTimestamp)
 	{}
 
+	/** The code representing the viseme. */
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString Code;
 
+	/** The timestamp for the viseme. */
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	float Timestamp = 0.f;
 };
@@ -153,9 +157,11 @@ struct FCharacterMessageUtterance : public FCharacterMessage
 {
 	GENERATED_BODY()
 
+	/** The text of the utterance message. */
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString Text;
 
+	/** Flag indicating if the text is final. */
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	bool bTextFinal = false;
 
@@ -169,9 +175,11 @@ struct FCharacterMessagePlayerTalk : public FCharacterMessage
 {
 	GENERATED_BODY()
 
+	/** The text of the player talk message. */
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString Text;
 
+	/** Flag indicating if the text is final. */
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	bool bTextFinal = false;
 
@@ -183,6 +191,7 @@ struct FCharacterMessageSilence : public FCharacterMessage
 {
 	GENERATED_BODY()
 
+	/** The duration of the silence message. */
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	float Duration = 0.f;
 
@@ -194,9 +203,11 @@ struct FCharacterMessageTrigger : public FCharacterMessage
 {
 	GENERATED_BODY()
 
+	/** The name of the trigger message. */
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	FString Name;
 
+	/** Parameters associated with the trigger. */
 	UPROPERTY(BlueprintReadOnly, Category = "Message")
 	TMap<FString, FString> Params;
 
