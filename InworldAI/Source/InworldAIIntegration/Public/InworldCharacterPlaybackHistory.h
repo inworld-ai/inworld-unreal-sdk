@@ -29,9 +29,11 @@ struct FInworldCharacterInteraction
 	FString InteractionId;
 	FString UtteranceId;
 
+	/** The text associated with the interaction. */
 	UPROPERTY(BlueprintReadOnly, Category = "Text")
 	FString Text;
 
+	/** Indicates if the interaction involves the player. */
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
 	bool bPlayerInteraction = false;
 };
@@ -68,14 +70,24 @@ class INWORLDAIINTEGRATION_API UInworldCharacterPlaybackHistory : public UInworl
 
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterInteractionsChanged, const TArray<FInworldCharacterInteraction>&, Interactions);
+	/**
+	 * Event dispatcher for when Inworld character interactions change.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterInteractionsChanged OnInteractionsChanged;
 
+	/**
+	 * Returns the array of Inworld character interactions.
+	 * @return The array of Inworld character interactions.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Interactions")
 	const TArray<FInworldCharacterInteraction>& GetInteractions() { return InteractionHistory.GetInteractions(); }
 
 	virtual void BeginPlay_Implementation() override;
 
+	/**
+	 * Maximum number of entries to keep in the interaction history.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (UIMin = "1", UIMax = "500"))
 	int32 InteractionHistoryMaxEntries = 50;
 

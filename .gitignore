@@ -1,5 +1,9 @@
-# Visual Studio 2015 user specific files
+# Visual Studio 
 .vs/
+.vscode/
+
+# JetBrains
+.idea/
 
 # Compiled Object files
 *.slo

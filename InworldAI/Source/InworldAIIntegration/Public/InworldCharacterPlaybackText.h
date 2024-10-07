@@ -20,18 +20,30 @@ class INWORLDAIINTEGRATION_API UInworldCharacterPlaybackText : public UInworldCh
 
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInworldCharacterTextStart, const FString&, Id, bool, bIsPlayer);
+	/**
+	 * Event dispatcher for when Inworld character text starts.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterTextStart OnCharacterTextStart;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnInworldCharacterTextChanged, const FString&, Id, bool, bIsPlayer, const FString&, Text);
+	/**
+	 * Event dispatcher for when Inworld character text changes.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterTextChanged OnCharacterTextChanged;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnInworldCharacterTextFinal, const FString&, Id, bool, bIsPlayer, const FString&, Text);
+	/**
+	 * Event dispatcher for when Inworld character text is finalized.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterTextFinal OnCharacterTextFinal;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterTextInterrupt, const FString&, Id);
+	/**
+	 * Event dispatcher for when Inworld character text is interrupted.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterTextInterrupt OnCharacterTextInterrupt;
 
