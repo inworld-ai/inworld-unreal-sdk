@@ -19,6 +19,9 @@ class INWORLDAIINTEGRATION_API UInworldCharacterPlaybackControl : public UInworl
 
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldCharacterInteractionEnd);
+	/**
+	 * Event dispatcher for when Inworld character interaction ends.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterInteractionEnd OnInteractionEnd;
 

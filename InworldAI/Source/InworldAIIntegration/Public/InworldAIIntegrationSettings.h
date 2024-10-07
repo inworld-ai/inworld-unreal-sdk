@@ -18,6 +18,9 @@ class INWORLDAIINTEGRATION_API UInworldAIIntegrationSettings : public UObject
 public:
 	UInworldAIIntegrationSettings(const FObjectInitializer& ObjectInitializer);
 
+	/**
+	 * Studio API key for authenticating with Inworld AI.
+	 */
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
 	FString StudioApiKey;
 };

@@ -52,94 +52,202 @@ public:
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInworldCharacterPlayerInteractionStateChanged, bool, bInteracting);
+	/**
+	 * Event dispatcher for when the interaction state of the Inworld character with the player changes.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Interaction")
 	FInworldCharacterPlayerInteractionStateChanged OnPlayerInteractionStateChanged;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterPlayerTalk, const FCharacterMessagePlayerTalk&, PlayerTalk);
+	/**
+	 * Event dispatcher for when the player talks with the Inworld character.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Interaction")
 	FOnInworldCharacterPlayerTalk OnPlayerTalk;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInworldCharacterEmotionalBehaviorChanged, EInworldCharacterEmotionalBehavior, EmotionalBehavior, EInworldCharacterEmotionStrength, Strength);
+	/**
+	 * Event dispatcher for when the emotional behavior of the Inworld character changes.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Emotion")
 	FOnInworldCharacterEmotionalBehaviorChanged OnEmotionalBehaviorChanged;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterUtterance, const FCharacterMessageUtterance&, Utterance);
+	/**
+	 * Event dispatcher for when the Inworld character utters a message.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Utterance")
 	FOnInworldCharacterUtterance OnUtterance;
+
+	/**
+	 * Event dispatcher for when the Inworld character's utterance is interrupted.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Utterance")
 	FOnInworldCharacterUtterance OnUtteranceInterrupt;
+
+	/**
+	 * Event dispatcher for when the Inworld character's utterance is paused.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Utterance")
 	FOnInworldCharacterUtterance OnUtterancePause;
+
+	/**
+	 * Event dispatcher for when the Inworld character's utterance resumes.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Utterance")
 	FOnInworldCharacterUtterance OnUtteranceResume;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterSilence, const FCharacterMessageSilence&, Silence);
+	/**
+	 * Event dispatcher for when the Inworld character is silenced.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Silence")
 	FOnInworldCharacterSilence OnSilence;
+
+	/**
+	 * Event dispatcher for when the Inworld character's silence is interrupted.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Silence")
 	FOnInworldCharacterSilence OnSilenceInterrupt;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterTrigger, const FCharacterMessageTrigger&, Trigger);
+	/**
+	 * Event dispatcher for when a trigger event is received from the Inworld character.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Trigger")
 	FOnInworldCharacterTrigger OnTrigger;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterInteractionEnd, const FCharacterMessageInteractionEnd&, InteractionEnd);
+	/**
+	 * Event dispatcher for when an interaction with the Inworld character ends.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|InteractionEnd")
 	FOnInworldCharacterInteractionEnd OnInteractionEnd;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetection, bool, bVoiceDetected);
+	/**
+	 * Event dispatcher for detecting voice from the Inworld player.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "Conversation")
 	FOnInworldPlayerVoiceDetection OnVoiceDetection;
 
+	/**
+	 * Sets the name of the brain.
+	 * @param Name The name to set for the brain.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	void SetBrainName(const FString& Name);
 
+	/**
+	 * Gets the name of the brain.
+	 * @return The name of the brain.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Inworld")
 	FString GetBrainName() const;
 
+	/**
+	 * Gets the agent ID.
+	 * @return The agent ID.
+	 */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
 	FString GetAgentId() const;
 
+	/**
+	 * Gets the given name.
+	 * @return The given name.
+	 */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
 	FString GetGivenName() const;
 
+	/**
+	 * Gets the UI name.
+	 * @return The UI name.
+	 */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     const FString& GetUiName() const { return UiName; }
+	/**
+	 * Sets the UI name.
+	 * @param Name The name to set for the UI.
+	 */
     UFUNCTION(BlueprintCallable, Category = "Inworld")
     void SetUiName(const FString& Name) { UiName = Name; }
 
+	/**
+	 * Gets the playback instance of the specified class.
+	 * @param Class The class of the playback instance.
+	 * @return The playback instance.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DeterminesOutputType = "Class"))
 	UInworldCharacterPlayback* GetPlayback(TSubclassOf<UInworldCharacterPlayback> Class) const;
 
+	/**
+	 * Checks if the character is interacting with a player.
+	 * @return True if interacting with a player, false otherwise.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Interactions")
 	bool IsInteractingWithPlayer() const;
 
+	/**
+	 * Gets the emotional behavior of the character.
+	 * @return The emotional behavior.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Emotions")
 	EInworldCharacterEmotionalBehavior GetEmotionalBehavior() const { return EmotionalBehavior; }
 
+	/**
+	 * Gets the emotion strength of the character.
+	 * @return The emotion strength.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Emotions")
 	EInworldCharacterEmotionStrength GetEmotionStrength() const { return EmotionStrength; }
 
+	/**
+	 * Sends a text message.
+	 * @param Text The text message to send.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void SendTextMessage(const FString& Text) const;
 
+	/**
+	 * Sends a trigger with parameters.
+	 * @param Name The name of the trigger.
+	 * @param Params The parameters for the trigger.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Interaction", meta = (AutoCreateRefTerm = "Params"))
 	void SendTrigger(const FString& Name, const TMap<FString, FString>& Params) const;
 	[[deprecated("UInworldCharacterComponent::SendCustomEvent is deprecated, please use UInworldCharacterComponent::SendTrigger")]]
 	void SendCustomEvent(const FString& Name) const { SendTrigger(Name, {}); }
     
+	/**
+	 * Sends a narration event with the specified content.
+	 * @param Content The content of the narration event.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void SendNarrationEvent(const FString& Content);
 
+	/**
+	 * Starts an audio session with the provided options.
+	 * @param SessionOptions The options for the audio session.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StartAudioSession(FInworldAudioSessionOptions SessionOptions);
 
+	/**
+	 * Stops the current audio session.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopAudioSession();
 
+	/**
+	 * Retrieves the target player camera location.
+	 * @return The location of the target player camera.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Interaction")
 	FVector GetTargetPlayerCameraLocation();
 
+	/**
+	 * Interrupts the current interaction.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void Interrupt();
 
@@ -150,9 +258,18 @@ public:
 		return MessageQueue->CurrentMessageQueueEntry ? MessageQueue->CurrentMessageQueueEntry->GetCharacterMessage() : nullptr;
 	}
 
+	/**
+	 * Locks the message queue using the provided handle.
+	 * @param Handle The reference to the handle used to lock the message queue.
+	 * @return True if the message queue was successfully locked, false otherwise.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message")
 	bool LockMessageQueue(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle) { return MessageQueue->Lock(Handle); }
 
+	/**
+	 * Unlocks the message queue using the provided handle.
+	 * @param Handle The reference to the handle used to unlock the message queue.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message")
 	void UnlockMessageQueue(UPARAM(ref) FInworldCharacterMessageQueueLockHandle& Handle) { MessageQueue->Unlock(Handle); }
 
@@ -169,16 +286,28 @@ public:
 		return nullptr;
 	}
 
+	/**
+	 * Array of playback types for Inworld characters.
+	 */
 	UPROPERTY(EditAnywhere, Category = "Inworld")
 	TArray<TSubclassOf<UInworldCharacterPlayback>> PlaybackTypes;
 
 protected:
+	/**
+	 * Flag indicating whether to find a session.
+	 */
 	UPROPERTY(EditInstanceOnly, Category = "Inworld")
 	bool bFindSession = true;
 
+	/**
+	 * The actor that owns the Inworld session.
+	 */
 	UPROPERTY(EditInstanceOnly, Category = "Inworld", meta = (EditCondition = "!bFindSession", EditConditionHides, MustImplement = "/Script/InworldAIIntegration.InworldSessionOwnerInterface"))
 	AActor* InworldSessionOwner;
 
+	/**
+	 * The name of the UI element.
+	 */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	FString UiName = "Character";
 
