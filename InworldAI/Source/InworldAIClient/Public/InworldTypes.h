@@ -222,12 +222,6 @@ struct FInworldEnvironment
     GENERATED_BODY()
 
     /**
-     * The authentication URL for the Inworld environment.
-     */
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
-    FString AuthUrl = "";
-
-    /**
      * The target URL for the Inworld environment.
      */
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
