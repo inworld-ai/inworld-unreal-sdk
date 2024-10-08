@@ -119,9 +119,17 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;
 
+	/**
+	 * Set the Player Profile.
+	 * @param InPlayerProfile The Player Profile.
+	 */
 	UFUNCTION(BlueprintSetter)
-	void SetPlayerProfile(const FInworldPlayerProfile& InProfile);
+	void SetPlayerProfile(const FInworldPlayerProfile& InPlayerProfile);
 
+	/**
+	 * Set the Capability Set.
+	 * @param InCapabilitySet The Capability Set.
+	 */
 	UFUNCTION(BlueprintSetter)
 	void SetCapabilitySet(const FInworldCapabilitySet& InCapabilitySet);
 
@@ -165,7 +173,7 @@ public:
 
 protected:
 	/**
-	 * Player profile configuration.
+	 * Workspace configuration.
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
 	FString Workspace;
@@ -181,6 +189,7 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintSetter=SetPlayerProfile, Category = "Config")
 	FInworldPlayerProfile PlayerProfile;
+
 	/**
 	 * CapabilitySet configuration.
 	 */

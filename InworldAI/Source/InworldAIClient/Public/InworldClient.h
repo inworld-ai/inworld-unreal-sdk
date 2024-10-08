@@ -120,6 +120,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FInworldToken GetSessionToken() const;
 
+	/**
+	* Load the Player Profile.
+	* @param PlayerProfile The player profile.
+	*/
 	UFUNCTION(BlueprintCallable, Category = "Load|Configuration")
 	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
 
@@ -129,6 +133,11 @@ public:
 	*/
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FInworldCapabilitySet GetCapabilities() const;
+
+	/**
+	* Load the CapabilitySet.
+	* @param CapabilitySet The capabilities.
+	*/
 	UFUNCTION(BlueprintCallable, Category = "Load|Configuration")
 	void LoadCapabilities(const FInworldCapabilitySet& CapabilitySet);
 

@@ -11,4 +11,5 @@
 UInworldAIIntegrationSettings::UInworldAIIntegrationSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	StudioApiUrl = { "api.inworld.ai" };
 }

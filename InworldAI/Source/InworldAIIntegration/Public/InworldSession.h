@@ -183,6 +183,13 @@ public:
 	void ResumeSession();
 
 	/**
+	 * Get the current session token.
+	 * @return The session token.
+	 */
+	UFUNCTION(BlueprintPure, Category = "Session")
+	FInworldToken GetSessionToken() const;
+
+	/**
 	 * Get the current session ID.
 	 * @return The session ID.
 	 */
@@ -203,7 +210,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FInworldCapabilitySet GetCapabilities() const;
   
-  /**
+    /**
 	 * Load the capabilities.
 	 * @param The player profile to load.
 	 */
