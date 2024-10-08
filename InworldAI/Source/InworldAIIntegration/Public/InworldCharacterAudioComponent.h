@@ -26,22 +26,44 @@ public:
 	virtual void BeginPlay() override;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterVisemeBlendsUpdated, const FInworldCharacterVisemeBlends&, VisemeBlends);
+	/**
+	 * Event dispatcher for when the viseme blends of the Inworld character are updated.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterVisemeBlendsUpdated OnVisemeBlendsUpdated;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterBlendShapesUpdated, const FA2FBlendShapeData&, BlendShapes);
+	/**
+	 * Event dispatcher for when the blend shapes of the Inworld character are updated.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")
 	FOnInworldCharacterBlendShapesUpdated OnBlendShapesUpdated;
 
+	/**
+	 * Get the duration of the audio.
+	 * @return The duration of the audio.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Sound")
 	float GetAudioDuration() const;
 
+	/**
+	 * Get the playback percentage of the audio.
+	 * @return The playback percentage of the audio.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Sound")
 	float GetAudioPlaybackPercent() const;
 
+	/**
+	 * Get the elapsed time for the current utterance.
+	 * @return The elapsed time for the current utterance.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Sound")
 	float GetElapsedTimeForCurrentUtterance() const;
 
+	/**
+	 * Get the remaining time for the current utterance.
+	 * @return The remaining time for the current utterance.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Sound")
 	float GetRemainingTimeForCurrentUtterance() const;
 

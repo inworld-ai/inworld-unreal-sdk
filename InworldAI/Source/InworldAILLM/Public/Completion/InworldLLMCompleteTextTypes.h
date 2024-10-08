@@ -18,6 +18,9 @@ struct INWORLDAILLM_API FInworldLLMRequestCompleteTextPrompt
 	GENERATED_BODY()
 
 public:
+	/**
+	 * The text prompt for completing text.
+	 */
 	UPROPERTY()
 	FString text;
 };
@@ -28,6 +31,9 @@ struct INWORLDAILLM_API FInworldLLMRequestCompleteText : public FInworldLLMReque
 	GENERATED_BODY()
 
 public:
+	/**
+	 * The prompt for completing text.
+	 */
 	UPROPERTY()
 	FInworldLLMRequestCompleteTextPrompt prompt;
 };
@@ -38,9 +44,15 @@ struct INWORLDAILLM_API FInworldLLMResponseCompleteTextChoice
 	GENERATED_BODY()
 
 public:
+	/**
+	 * The text choice for completing text.
+	 */
 	UPROPERTY()
 	FString text;
 
+	/**
+	 * The reason for finishing the text completion.
+	 */
 	UPROPERTY()
 	FString finishReason;
 };
@@ -51,6 +63,9 @@ struct INWORLDAILLM_API FInworldLLMResponseCompleteTextResult : public FInworldL
 	GENERATED_BODY()
 
 public:
+	/**
+	 * An array of text choices for completing the text.
+	 */
 	UPROPERTY()
 	TArray<FInworldLLMResponseCompleteTextChoice> choices;
 };
@@ -61,6 +76,9 @@ struct INWORLDAILLM_API FInworldLLMResponseCompleteText
 	GENERATED_BODY()
 
 public:
+	/**
+	 * The result of completing the text.
+	 */
 	UPROPERTY()
 	FInworldLLMResponseCompleteTextResult result;
 };
