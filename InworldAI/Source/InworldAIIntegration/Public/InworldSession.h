@@ -131,31 +131,31 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Register")
 	const TArray<UInworldPlayer*>& GetRegisteredPlayers() const { return RegisteredPlayers; }
 
-  /**
-	* Start a session from a scene.
-	* @param Scene The scene to initialize.
-	* @param PlayerProfile The player's profile.
-	* @param CapabilitySet The capability set.
-	* @param Metadata Additional metadata.
-	* @param WorkspaceOverride The workspace to use instead of the project default.
-	* @param AuthOverride The authentication to use instead of project default.
-	*/
+    /**
+	 * Start a session from a scene.
+	 * @param Scene The scene to initialize.
+	 * @param PlayerProfile The player's profile.
+	 * @param CapabilitySet The capability set.
+	 * @param Metadata Additional metadata.
+	 * @param WorkspaceOverride The workspace to use instead of the project default.
+	 * @param AuthOverride The authentication to use instead of project default.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, AuthOverride"))
 	void StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
 	
-  /**
-	* Start a session from a save.
-	* @param Save The save data.
-	* @param PlayerProfile The player's profile.
-	* @param CapabilitySet The capability set.
-	* @param Metadata Additional metadata.
-	* @param WorkspaceOverride The workspace to use instead of the project default.
-	* @param AuthOverride The authentication to use instead of project default.
-	*/
-  UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, AuthOverride"))
+    /**
+	 * Start a session from a save.
+	 * @param Save The save data.
+	 * @param PlayerProfile The player's profile.
+	 * @param CapabilitySet The capability set.
+	 * @param Metadata Additional metadata.
+	 * @param WorkspaceOverride The workspace to use instead of the project default.
+	 * @param AuthOverride The authentication to use instead of project default.
+	 */
+    UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, AuthOverride"))
 	void StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
 	
-  /**
+    /**
 	* Start a session from a token.
 	* @param SessionToken The session token.
 	* @param PlayerProfile The player's profile.
@@ -164,9 +164,12 @@ public:
 	* @param WorkspaceOverride The workspace to use instead of the project default.
 	* @param AuthOverride The authentication to use instead of project default.
 	*/
-  UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, AuthOverride"))
+    UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, AuthOverride"))
 	void StartSessionFromToken(const FInworldToken& Token, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
-
+	
+	/**
+	 * Stop the current session.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
 

@@ -19,12 +19,21 @@ class INWORLDAICLIENT_API UInworldAIClientSettings : public UObject
 public:
 	UInworldAIClientSettings(const FObjectInitializer& ObjectInitializer);
 
+	/**
+	 * The Inworld AI Studio workspace to use by default.
+	 */
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
 	FString Workspace;
 
+	/**
+	 * The Api Key/Secret or Base64 encoded key to use by default.
+	 */
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
 	FInworldAuth Auth;
 
+	/**
+	 * The Inworld AI environment.
+	 */
 	UPROPERTY(config, EditAnywhere, Category = "Inworld", meta = (ShowOnlyInnerProperties))
 	FInworldEnvironment Environment;
 };

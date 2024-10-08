@@ -64,8 +64,6 @@ public:
      * @param PlayerName Name of the player
      * @param ApiKey API key for authentication
      * @param ApiSecret API secret for authentication
-     * @param AuthUrlOverride Optional override for authentication URL
-     * @param TargetUrlOverride Optional override for target URL
      * @param Token Authentication token
      * @param TokenExpiration Token expiration time
      * @param SessionId Session ID
