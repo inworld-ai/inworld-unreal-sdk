@@ -51,62 +51,143 @@ public:
 	// ~UObject
 
 public:
+	/**
+	 * Handle the incoming packet.
+	 * @param WrappedPacket The wrapped packet to handle.
+	 */
 	UFUNCTION()
 	void HandlePacket(const FInworldWrappedPacket& WrappedPacket);
 
+	/**
+	 * Set the session.
+	 * @param InSession The session to set.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SetSession(UInworldSession* InSession);
+
+	/**
+	 * Get the session.
+	 * @return The session.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Session")
 	UInworldSession* GetSession() const { return Session.Get(); }
 
+	/**
+	 * Send a text message to the conversation.
+	 * @param Text The text message to send.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
 	void SendTextMessageToConversation(const FString& Text);
+
+	/**
+	 * Send a trigger message to the conversation.
+	 * @param Name The name of the trigger.
+	 * @param Params The parameters associated with the trigger.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
 	void SendTriggerToConversation(const FString& Name, const TMap<FString, FString>& Params);
+
+	/**
+	 * Start an audio session in the conversation.
+	 * @param AudioSessionOptions The audio session options.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStartToConversation(FInworldAudioSessionOptions AudioSessionOptions);
+
+	/**
+	 * Stop the current audio session in the conversation.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStopToConversation();
+
+	/**
+	 * Send a sound message to the conversation.
+	 * @param Input The input sound data.
+	 * @param Output The output sound data.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendSoundMessageToConversation(const TArray<uint8>& Input, const TArray<uint8>& Output);
 
 public:
+	/**
+	 * Set whether the character is participating in the conversation.
+	 * @param bParticipate Whether the character should participate in the conversation.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Participation")
 	void SetConversationParticipation(bool bParticipate);
+
+	/**
+	 * Check if the character is a participant in the conversation.
+	 * @return True if the character is a participant, false otherwise.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Participation")
 	bool IsConversationParticipant() const { return bConversationParticipant; }
 
+	/**
+	 * Get the target characters of the conversation.
+	 * @return An array of target characters.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Target")
 	const TArray<UInworldCharacter*>& GetTargetCharacters() const { return TargetCharacters; }
 
+	/**
+	 * Add a target character to the conversation.
+	 * @param TargetCharacter The target character to add.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Target")
 	void AddTargetCharacter(UInworldCharacter* TargetCharacter);
 
+	/**
+	 * Remove a target character from the conversation.
+	 * @param TargetCharacter The target character to remove.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Target")
 	void RemoveTargetCharacter(UInworldCharacter* TargetCharacter);
 
+	/**
+	 * Clear all target characters from the conversation.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Target")
 	void ClearAllTargetCharacters();
 
+	/**
+	 * Delegate for when a target character is added.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "Target")
 	FOnInworldPlayerTargetCharacterAdded OnTargetCharacterAddedDelegate;
 	FOnInworldPlayerTargetCharacterAddedNative& OnTargetCharacterAdded() { return OnTargetCharacterAddedDelegateNative; }
 
+	/**
+	 * Delegate for when a target character is removed.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "Target")
 	FOnInworldPlayerTargetCharacterRemoved OnTargetCharacterRemovedDelegate;
 	FOnInworldPlayerTargetCharacterRemovedNative& OnTargetCharacterRemoved() { return OnTargetCharacterRemovedDelegateNative; }
 
+	/**
+	 * Delegate for when target characters are changed.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "Target")
 	FOnInworldPlayerTargetCharactersChanged OnTargetCharactersChangedDelegate;
 	FOnInworldPlayerTargetCharactersChangedNative& OnTargetCharactersChanged() { return OnTargetCharactersChangedDelegateNative; }
 
+	/**
+	 * Get the conversation ID.
+	 * @return The conversation ID.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Conversation")
 	const FString& GetConversationId() const { return ConversationId; }
 
+	/**
+	 * Delegate for when the conversation changes.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "Conversation")
 	FOnInworldPlayerConversationChanged OnConversationChangedDelegate;
 	FOnInworldPlayerConversationChangedNative& OnConversationChanged() { return OnConversationChangedDelegateNative; }
 
+	/**
+	 * Delegate for voice detection events.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "Conversation")
 	FOnInworldPlayerVoiceDetection OnVoiceDetectionDelegate;
 	FOnInworldPlayerVoiceDetectionNative& OnVoiceDetection() { return OnVoiceDetectionDelegateNative; }
@@ -176,6 +257,10 @@ class INWORLDAIINTEGRATION_API IInworldPlayerOwnerInterface
 	GENERATED_BODY()
 
 public:
+	/**
+	 * Get the Inworld Player associated with this interface.
+	 * @return The Inworld Player object.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
 	UInworldPlayer* GetInworldPlayer() const;
 };

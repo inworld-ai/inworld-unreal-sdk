@@ -64,127 +64,330 @@ public:
 	// ~UObject
 
 public:
+	/**
+	 * Initialize the client.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Client")
 	void Init();
+
+	/**
+	 * Destroy the client.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Client")
 	void Destroy();
 
+	/**
+	 * Get the client.
+	 * @return The Inworld client.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Client")
 	UInworldClient* GetClient() const { return Client; }
 
+	/**
+	 * Handle an incoming packet.
+	 * @param WrappedPacket The wrapped packet to handle.
+	 */
 	UFUNCTION()
 	void HandlePacket(const FInworldWrappedPacket& WrappedPacket);
 
+	/**
+	 * Register a character.
+	 * @param Character The character to register.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Register")
 	void RegisterCharacter(UInworldCharacter* Character);
+
+	/**
+	 * Unregister a character.
+	 * @param Character The character to unregister.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Register")
 	void UnregisterCharacter(UInworldCharacter* Character);
 
+	/**
+	 * Get the registered characters.
+	 * @return An array of registered characters.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Register")
 	const TArray<UInworldCharacter*>& GetRegisteredCharacters() const { return RegisteredCharacters; }
 
+	/**
+	 * Register a player.
+	 * @param Player The player to register.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Register")
 	void RegisterPlayer(UInworldPlayer* Player);
+
+	/**
+	 * Unregister a player.
+	 * @param Player The player to unregister.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Register")
 	void UnregisterPlayer(UInworldPlayer* Player);
 
+	/**
+	 * Get the registered players.
+	 * @return An array of registered players.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Register")
 	const TArray<UInworldPlayer*>& GetRegisteredPlayers() const { return RegisteredPlayers; }
 
+	/**
+	 * Start a new session.
+	 * @param PlayerProfile The player's profile.
+	 * @param Auth The authentication information.
+	 * @param SceneId The ID of the scene.
+	 * @param Save The save data.
+	 * @param SessionToken The session token.
+	 * @param CapabilitySet The capability set.
+	 * @param Metadata Additional metadata.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
 	void StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
 		const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata);
+
+	/**
+	 * Stop the current session.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StopSession();
+
+	/**
+	 * Pause the current session.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void PauseSession();
+
+	/**
+	 * Resume the paused session.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void ResumeSession();
 
+	/**
+	 * Get the current session ID.
+	 * @return The session ID.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;
 
+	/**
+	 * Save the current session.
+	 * @param Callback The callback function to execute after saving.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SaveSession(FOnInworldSessionSavedCallback Callback);
 
+	/**
+	 * Send feedback for a specific interaction.
+	 * @param InteractionId The ID of the interaction.
+	 * @param bIsLike Whether the feedback is positive or negative.
+	 * @param Message The feedback message.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message);
 
+	/**
+	 * Load a character.
+	 * @param Character The character to load.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void LoadCharacter(UInworldCharacter* Character) { LoadCharacters({ Character }); }
+	/**
+	 * Load multiple characters.
+	 * @param Characters An array of characters to load.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void LoadCharacters(const TArray<UInworldCharacter*>& Characters);
+	/**
+	 * Unload a character.
+	 * @param Character The character to unload.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void UnloadCharacter(UInworldCharacter* Character) { UnloadCharacters({ Character }); }
+	/**
+	 * Unload multiple characters.
+	 * @param Characters An array of characters to unload.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
 	void UnloadCharacters(const TArray<UInworldCharacter*>& Characters);
 
+	/**
+	 * Update a conversation for a player.
+	 * @param Player The player to update the conversation for.
+	 * @return The updated conversation.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Conversation")
 	FString UpdateConversation(UInworldPlayer* Player);
 
+	/**
+	 * Send a text message to a character.
+	 * @param Character The character to send the message to.
+	 * @param Message The text message to send.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
 	void SendTextMessage(UInworldCharacter* Character, const FString& Message);
+	/**
+	 * Send a text message to a conversation for a player.
+	 * @param Player The player to send the message to.
+	 * @param Message The text message to send.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Text")
 	void SendTextMessageToConversation(UInworldPlayer* Player, const FString& Message);
 
+	/**
+	 * Initialize the speech processor with the specified mode and options.
+	 * @param Mode The speech mode to initialize.
+	 * @param SpeechOptions The speech options to set.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void InitSpeechProcessor(EInworldPlayerSpeechMode Mode, const FInworldPlayerSpeechOptions& SpeechOptions);
+	/**
+	 * Destroy the speech processor.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void DestroySpeechProcessor();
 
+	/**
+	 * Send a sound message to a character.
+	 * @param Character The character to send the sound message to.
+	 * @param InputData The input sound data.
+	 * @param OutputData The output sound data.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendSoundMessage(UInworldCharacter* Character, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
+	/**
+	 * Send a sound message to a conversation for a player.
+	 * @param Player The player to send the sound message to.
+	 * @param InputData The input sound data.
+	 * @param OutputData The output sound data.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendSoundMessageToConversation(UInworldPlayer* Player, const TArray<uint8>& InputData, const TArray<uint8>& OutputData);
 
+	/**
+	 * Start an audio session for a character with the specified options.
+	 * @param Character The character to start the audio session for.
+	 * @param SessionOptions The audio session options.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStart(UInworldCharacter* Character, FInworldAudioSessionOptions SessionOptions);
+	/**
+	 * Start an audio session for a conversation for a player with the specified options.
+	 * @param Player The player to start the audio session for.
+	 * @param SessionOptions The audio session options.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStartToConversation(UInworldPlayer* Player, FInworldAudioSessionOptions SessionOptions);
 
+	/**
+	 * Stop the audio session for a character.
+	 * @param Character The character to stop the audio session for.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStop(UInworldCharacter* Character);
+
+	/**
+	 * Stop the audio session for a conversation for a player.
+	 * @param Player The player to stop the audio session for.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Audio")
 	void SendAudioSessionStopToConversation(UInworldPlayer* Player);
 
+	/**
+	 * Send a narration event for a character.
+	 * @param Character The character for the narration event.
+	 * @param Content The content of the narration.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Narration")
 	void SendNarrationEvent(UInworldCharacter* Character, const FString& Content);
 
+	/**
+	 * Send a trigger event to a character.
+	 * @param Character The character to send the trigger event to.
+	 * @param Name The name of the trigger.
+	 * @param Params The parameters associated with the trigger.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
 	void SendTrigger(UInworldCharacter* Character, const FString& Name, const TMap<FString, FString>& Params);
+	/**
+	 * Send a trigger event to a conversation for a player.
+	 * @param Player The player to send the trigger event to.
+	 * @param Name The name of the trigger.
+	 * @param Params The parameters associated with the trigger.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Trigger")
 	void SendTriggerToConversation(UInworldPlayer* Player, const FString& Name, const TMap<FString, FString>& Params);
 
+	/**
+	 * Send a change scene event.
+	 * @param SceneName The name of the scene to change to.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void SendChangeSceneEvent(const FString& SceneName);
 
+	/**
+	 * Cancel a response for a character.
+	 * @param Character The character to cancel the response for.
+	 * @param InteractionId The ID of the interaction to cancel the response for.
+	 * @param UtteranceIds The IDs of the utterances to cancel.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Message|Mutation")
 	void CancelResponse(UInworldCharacter* Character, const FString& InteractionId, const TArray<FString>& UtteranceIds);
 
+	/**
+	 * Delegate for handling pre-pause events in the Inworld session.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldSessionPrePause OnPrePauseDelegate;
 	FOnInworldSessionPrePauseNative& OnPrePause() { return OnPrePauseDelegateNative; }
 
+	/**
+	 * Delegate for handling pre-stop events in the Inworld session.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldSessionPreStop OnPreStopDelegate;
 	FOnInworldSessionPreStopNative& OnPreStop() { return OnPreStopDelegateNative; }
 
+	/**
+	 * Get the current connection state.
+	 * @return The current connection state.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	EInworldConnectionState GetConnectionState() const;
+	/**
+	 * Get the connection error details.
+	 * @param OutErrorMessage The error message to output.
+	 * @param OutErrorCode The error code to output.
+	 * @param OutErrorDetails The error details to output.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const;
 
+	/**
+	 * Delegate for handling connection state changes.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldConnectionStateChanged OnConnectionStateChangedDelegate;
 	FOnInworldConnectionStateChangedNative& OnConnectionStateChanged() { return OnConnectionStateChangedDelegateNative; }
 
+	/**
+	 * Delegate for handling Inworld session loading events.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldSessionLoaded OnLoadedDelegate;
 	FOnInworldSessionLoadedNative& OnLoaded() { return OnLoadedDelegateNative; }
 
+	/**
+	 * Check if the Inworld session is loaded.
+	 * @return True if the session is loaded, false otherwise.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Connection")
 	bool IsLoaded() const { return bIsLoaded; }
 
+	/**
+	 * Delegate for handling perceived latency events.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldPerceivedLatency OnPerceivedLatencyDelegate;
 	FOnInworldPerceivedLatencyNative& OnPerceivedLatency() { return OnPerceivedLatencyDelegateNative; }
@@ -272,6 +475,10 @@ class INWORLDAIINTEGRATION_API IInworldSessionOwnerInterface
 	GENERATED_BODY()
 
 public:
+	/**
+	 * Get the Inworld Session.
+	 * @return The Inworld Session.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Inworld")
 	UInworldSession* GetInworldSession() const;
 };

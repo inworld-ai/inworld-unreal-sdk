@@ -19,15 +19,27 @@ class INWORLDAILLM_API UInworldAILLMSettings : public UObject
 public:
 	UInworldAILLMSettings(const FObjectInitializer& ObjectInitializer);
 
+	/**
+	 * The URL for the Inworld AI service.
+	 */
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
 	FString URL;
 
+	/**
+	 * The API key for the Inworld AI service.
+	 */
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
 	FString RuntimeApiKey;
 
+	/**
+	 * The user ID for accessing the Inworld AI service.
+	 */
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
 	FString UserId;
 
+	/**
+	 * The model used for the Inworld AI service.
+	 */
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
 	FString Model;
 };

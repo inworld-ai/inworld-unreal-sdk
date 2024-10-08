@@ -27,17 +27,43 @@ class INWORLDAIEDITOR_API UInworldEditorApiSubsystem : public UEditorSubsystem
 public:
 	void NotifyRestartRequired();
 
+	/**
+	 * Binds an action for character data.
+	 * @param Name The name of the action.
+	 * @param Permission The permission for the action.
+	 * @param Action The action to bind.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AutoCreateRefTerm = "Name"))
 	void BindActionForCharacterData(const FName& Name, FOnCharacterStudioDataPermission Permission, FOnCharacterStudioDataAction Action);
 
+	/**
+	 * Unbinds an action for character data.
+	 * @param Name The name of the action to unbind.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AutoCreateRefTerm = "Name"))
 	void UnbindActionForCharacterData(const FName& Name);
 
+	/**
+	 * Retrieves the actions associated with character data.
+	 * @param OutKeys An array to store the keys of the character data actions.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Inworld")
 	void GetCharacterDataActions(TArray<FName>& OutKeys) const;
 
+	/**
+	 * Checks if a character data action can be executed.
+	 * @param Name The name of the action.
+	 * @param CharacterStudioData The character studio data.
+	 * @return True if the action can be executed, false otherwise.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Inworld", meta = (AutoCreateRefTerm = "Name"))
 	bool CanExecuteCharacterDataAction(const FName& Name, const FInworldStudioCharacter& CharacterStudioData);
+
+	/**
+	 * Executes a character data action.
+	 * @param Name The name of the action to execute.
+	 * @param CharacterStudioData The character studio data.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AutoCreateRefTerm = "Name"))
 	void ExecuteCharacterDataAction(const FName& Name, const FInworldStudioCharacter& CharacterStudioData);
 
@@ -64,8 +90,18 @@ public:
 	UObject* AddNodeToBlueprintNode(UBlueprint* Blueprint, const FString& ParentNodeName, UClass* Class, const FString& NodeName);
 	UObject* GetNodeFromBlueprint(UBlueprint* Blueprint, const FString& NodeName);
 
+	/**
+	 * Checks if an Innequin actor can be created for the given character data.
+	 * @param CharacterData The character data for which the Innequin actor creation is checked.
+	 * @return True if an Innequin actor can be created, false otherwise.
+	 */
 	UFUNCTION()
 	bool CanCreateInnequinActor(const FInworldStudioCharacter& CharacterData);
+
+	/**
+	 * Creates an Innequin actor for the given character data.
+	 * @param CharacterData The character data for which the Innequin actor is created.
+	 */
 	UFUNCTION()
 	void CreateInnequinActor(const FInworldStudioCharacter& CharacterData);
 
@@ -83,6 +119,13 @@ private:
 	TSharedPtr<class FInworldEditorRestartRequiredNotification> RestartRequiredNotification;
 
 public:
+	/**
+	 * Set the data for the Studio API widget.
+	 * @param StudioApiKey The API key for the Studio.
+	 * @param Workspace The workspace for the Studio.
+	 * @param RuntimeApiKey The runtime API key for the Studio.
+	 * @param Scene The scene for the Studio.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Studio API")
 	void SetStudioApiWidgetData(const FString& StudioApiKey, const FString& Workspace, const FString& RuntimeApiKey, const FString& Scene)
 	{
@@ -93,6 +136,13 @@ public:
 		SaveConfig();
 	}
 
+	/**
+	 * Get the data for the Studio API widget.
+	 * @param StudioApiKey The API key for the Studio.
+	 * @param Workspace The workspace for the Studio.
+	 * @param RuntimeApiKey The runtime API key for the Studio.
+	 * @param Scene The scene for the Studio.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Inworld|Studio Api")
 	void GetStudioApiWidgetData(FString& StudioApiKey, FString& Workspace, FString& RuntimeApiKey, FString& Scene)
 	{
@@ -116,6 +166,14 @@ private:
 	FString CacheStudioWidgetScene;
 
 public:
+	/**
+	 * Set the character data for the Dialogue Map.
+	 * @param BrainName The name of the character's brain.
+	 * @param DisplayName The display name of the character.
+	 * @param ImageURI The URI for the character's image.
+	 * @param ApiKey The API key for the character.
+	 * @param ApiSecret The API secret for the character.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Dialogue Map")
 	void SetDialogueMapCharacterData(const FString& BrainName, const FString& DisplayName, const FString& ImageURI, const FString& ApiKey, const FString& ApiSecret)
 	{
@@ -127,6 +185,14 @@ public:
 		SaveConfig();
 	}
 
+	/**
+	 * Get the character data for the Dialogue Map.
+	 * @param BrainName The name of the character's brain.
+	 * @param DisplayName The display name of the character.
+	 * @param ImageURI The URI for the character's image.
+	 * @param ApiKey The API key for the character.
+	 * @param ApiSecret The API secret for the character.
+	 */
 	UFUNCTION(BlueprintPure, Category = "Inworld|Dialogue Map")
 	void GetDialogueMapCharacterData(FString& BrainName, FString& DisplayName, FString& ImageURI, FString& ApiKey, FString& ApiSecret)
 	{

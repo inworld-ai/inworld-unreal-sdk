@@ -29,12 +29,21 @@ public:
 
 	virtual void Activate() override;
 
+	/**
+	 * Event dispatcher for progress updates during the completion action.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "LLMService")
 	FInworldLLMApiDelegate OnProgress;
 
+	/**
+	 * Event dispatcher for completion of the asynchronous action.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "LLMService")
 	FInworldLLMApiDelegate OnComplete;
 
+	/**
+	 * Event dispatcher for handling failures during the asynchronous action.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "LLMService")
 	FInworldLLMApiDelegate OnFailure;
 

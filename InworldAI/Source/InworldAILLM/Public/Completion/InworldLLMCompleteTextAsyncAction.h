@@ -18,6 +18,15 @@ class INWORLDAILLM_API UInworldLLMCompleteTextAsyncAction : public UInworldLLMCo
 	GENERATED_BODY()
 
 public:
+	/**
+	 * Completes the text generation asynchronously.
+	 * @param Text The input text for text generation.
+	 * @param TextGenerationConfig The configuration for text generation.
+	 * @param ApiKeyOverride (Optional) Override for the API key.
+	 * @param UserIdOverride (Optional) Override for the user ID.
+	 * @param ModelOverride (Optional) Override for the model.
+	 * @return A pointer to the async action for completing text generation.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LLMService", meta = (AdvancedDisplay = "2", AutoCreateRefTerm = "TextGenerationConfig", BlueprintInternalUseOnly = "true"))
 	static UInworldLLMCompleteTextAsyncAction* CompleteText(const FString& Text, const FInworldLLMTextGenerationConfig& TextGenerationConfig, const FString& ApiKeyOverride = "", const FString& UserIdOverride = "", const FString& ModelOverride = "");
 

@@ -27,9 +27,15 @@ struct INWORLDAILLM_API FInworldLLMCompleteChatMessage
 	GENERATED_BODY()
 
 public:
+	/**
+	 * The role of the author of the chat message.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService")
 	EInworldLLMCompleteChatAuthorRole Role = EInworldLLMCompleteChatAuthorRole::USER;
 
+	/**
+	 * The content of the chat message.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LLMService")
 	FString Content;
 };
@@ -40,9 +46,15 @@ struct INWORLDAILLM_API FInworldLLMRequestCompleteChatMessage
 	GENERATED_BODY()
 
 public:
+	/**
+	 * The role of the author of the chat message.
+	 */
 	UPROPERTY()
 	int32 role;
 
+	/**
+	 * The content of the chat message.
+	 */
 	UPROPERTY()
 	FString content;
 };
@@ -53,6 +65,9 @@ struct INWORLDAILLM_API FInworldLLMRequestCompleteChat : public FInworldLLMReque
 	GENERATED_BODY()
 
 public:
+	/**
+	 * An array of messages for completing the chat.
+	 */
 	UPROPERTY()
 	TArray<FInworldLLMRequestCompleteChatMessage> messages;
 };
@@ -63,9 +78,15 @@ struct INWORLDAILLM_API FInworldLLMResponseCompleteChatMessage
 	GENERATED_BODY()
 
 public:
+	/**
+	 * The role of the author of the chat message.
+	 */
 	UPROPERTY()
 	FString role;
 
+	/**
+	 * The content of the chat message.
+	 */
 	UPROPERTY()
 	FString content;
 };
@@ -76,9 +97,15 @@ struct INWORLDAILLM_API FInworldLLMResponseCompleteChatChoice
 	GENERATED_BODY()
 
 public:
+	/**
+	 * The message for completing the chat choice.
+	 */
 	UPROPERTY()
 	FInworldLLMResponseCompleteChatMessage message;
 
+	/**
+	 * The reason for finishing the chat.
+	 */
 	UPROPERTY()
 	FString finishReason;
 };
@@ -89,6 +116,9 @@ struct INWORLDAILLM_API FInworldLLMResponseCompleteChatResult : public FInworldL
 	GENERATED_BODY()
 
 public:
+	/**
+	 * An array of choices for completing the chat.
+	 */
 	UPROPERTY()
 	TArray<FInworldLLMResponseCompleteChatChoice> choices;
 };
@@ -99,6 +129,9 @@ struct INWORLDAILLM_API FInworldLLMResponseCompleteChat
 	GENERATED_BODY()
 
 public:
+	/**
+	 * The result of completing the chat.
+	 */
 	UPROPERTY()
 	FInworldLLMResponseCompleteChatResult result;
 };
