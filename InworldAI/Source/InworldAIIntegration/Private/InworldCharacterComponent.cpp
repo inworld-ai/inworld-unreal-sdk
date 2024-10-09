@@ -506,7 +506,7 @@ void UInworldCharacterComponent::OnInworldAudioEvent(const FInworldAudioDataEven
 
 		for (auto& E : RepEvents)
 		{
-			InworldSubsystem->ReplicateAudioEventFromServer(E);
+			InworldSubsystem->GetInworldSession()->ReplicateAudioEventFromServer(E);
 		}
 	}
 }

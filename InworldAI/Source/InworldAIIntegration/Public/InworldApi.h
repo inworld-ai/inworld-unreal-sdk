@@ -216,23 +216,12 @@ public:
      */
     void NotifyCustomTrigger(const FString& Name) { OnCustomTrigger.Broadcast(Name); }
 
-    /** 
-    * Call this in multiplayer on BeginPlay both on server and client
-    * Called in UE5 automatically
-    */
-    UFUNCTION(BlueprintCallable, Category = "Multiplayer")
-    void StartAudioReplication();
 
     /** Subsystem interface */
     virtual bool DoesSupportWorldType(EWorldType::Type WorldType) const override;
-	   virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-	   virtual void Deinitialize() override;
-#if ENGINE_MAJOR_VERSION > 4
-    virtual void OnWorldBeginPlay(UWorld& InWorld) override;
-#endif
+    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+    virtual void Deinitialize() override;
 
-	   void ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet);
-    void HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet);
 
     /**
      * Event dispatcher for when the connection state changes. (Deprecated, use InworldSession->OnConnectionStateChanged.)
@@ -253,9 +242,6 @@ public:
     FCustomTrigger OnCustomTrigger;
 
 private:
-    UPROPERTY()
-    UInworldAudioRepl* AudioRepl;
-
     UPROPERTY()
     UInworldSession* InworldSession;
 

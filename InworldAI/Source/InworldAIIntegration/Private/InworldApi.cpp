@@ -15,7 +15,6 @@
 #include <Engine/Engine.h>
 #include <UObject/UObjectGlobals.h>
 #include "TimerManager.h"
-#include "InworldAudioRepl.h"
 #include "UObject/UObjectIterator.h"
 #include "GameFramework/GameStateBase.h"
 #include "Runtime/Launch/Resources/Version.h"
@@ -31,7 +30,6 @@ TEXT("Enable/Disable logging all packets going from server")
 
 UInworldApiSubsystem::UInworldApiSubsystem()
     : Super()
-    , AudioRepl(nullptr)
     , InworldSession(nullptr)
 {}
 
@@ -273,14 +271,6 @@ void UInworldApiSubsystem::CancelResponse(const FString& AgentId, const FString&
     InworldSession->GetClient()->CancelResponse(AgentId, InteractionId, UtteranceIds);
 }
 
-void UInworldApiSubsystem::StartAudioReplication()
-{
-	if (!AudioRepl && GetWorld()->GetNetMode() != NM_Standalone)
-	{
-		AudioRepl = NewObject<UInworldAudioRepl>(GetWorld(), TEXT("InworldAudioRepl"));
-	}
-}
-
 bool UInworldApiSubsystem::DoesSupportWorldType(EWorldType::Type WorldType) const
 {
     return WorldType == EWorldType::Game || WorldType == EWorldType::PIE;
@@ -295,44 +285,6 @@ void UInworldApiSubsystem::Deinitialize()
 {
     Super::Deinitialize();
     InworldSession = nullptr;
-}
-
-#if ENGINE_MAJOR_VERSION > 4
-void UInworldApiSubsystem::OnWorldBeginPlay(UWorld& InWorld)
-{
-    Super::OnWorldBeginPlay(InWorld);
-
-    UWorld* World = GetWorld();
-    if (World && World->GetNetMode() != NM_Standalone)
-    {
-        StartAudioReplication();
-    }
-}
-#endif
-
-void UInworldApiSubsystem::ReplicateAudioEventFromServer(FInworldAudioDataEvent& Packet)
-{
-    if (AudioRepl)
-    {
-        AudioRepl->ReplicateAudioEvent(Packet);
-    }
-}
-
-void UInworldApiSubsystem::HandleAudioEventOnClient(TSharedPtr<FInworldAudioDataEvent> Packet)
-{
-    NO_SESSION_RETURN(void())
-    EMPTY_ARG_RETURN(Packet, void())
-
-    UInworldCharacter* const* InworldCharacter = InworldSession->GetRegisteredCharacters().FindByPredicate(
-            [Packet](UInworldCharacter* InworldCharacter) -> bool
-            {
-                return InworldCharacter && InworldCharacter->GetAgentInfo().AgentId == Packet->Routing.Source.Name;
-            }
-    );
-    if (InworldCharacter != nullptr)
-    {
-        (*InworldCharacter)->HandlePacket(FInworldWrappedPacket(Packet));
-    }
 }
 
 #undef EMPTY_ARG_RETURN

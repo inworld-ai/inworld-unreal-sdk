@@ -10,51 +10,44 @@
 #include "IPAddress.h"
 #include "Common/UdpSocketBuilder.h"
 #include "Common/UdpSocketReceiver.h"
-#include "Common/UdpSocketSender.h"
 
 #include "InworldAIIntegrationModule.h"
 
 
-bool Inworld::FSocketSend::Initialize(const FSocketSettings& Settings)
+Inworld::FSocketBase::~FSocketBase()
 {
-	TSharedRef<FInternetAddr> Addr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
-
-	bool bIsValid;
-	Addr->SetIp(*Settings.IpAddr, bIsValid);
-	Addr->SetPort(Settings.Port);
-
-	if (!bIsValid)
+	if (Socket)
 	{
-		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::Initialize Address is invalid '%s:%d'"), *Settings.IpAddr, Settings.Port);
-		return false;
+		Socket->Close();
+		ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Socket);
+		Socket = nullptr;
 	}
-
-	Socket = FUdpSocketBuilder(*Settings.Name).AsReusable().WithBroadcast().AsNonBlocking().Build();
-
-	int32 SendSize, ReceiveSize;
-	Socket->SetSendBufferSize(Settings.BufferSize, SendSize);
-	Socket->SetReceiveBufferSize(Settings.BufferSize, ReceiveSize);
-
-	if (!Socket->Connect(*Addr))
-	{
-		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::Initialize couldn't connect"));
-		return false;
-	}
-
-	return true;
 }
 
-bool Inworld::FSocketSend::Deinitialize()
+Inworld::FSocketSend::FSocketSend(const FSocketSettings& Settings)
+	: FSocketBase(Settings)
 {
+	Socket = FUdpSocketBuilder(*Settings.Name)
+		.AsReusable()
+		.WithBroadcast()
+		.AsNonBlocking()
+		.WithSendBufferSize(Settings.BufferSize)
+		.Build();
+
 	if (!Socket)
 	{
-		return true;
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::FSocketSend couldn't build a socket"));
+		return;
 	}
 
-	const bool bSuccess = Socket->Close();
-	ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Socket);
-	
-	return bSuccess;
+	if (!Socket->Connect(*Settings.RemoteAddr))
+	{
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::FSocketSend couldn't connect"));
+		return;
+	}
+
+	UE_LOG(LogInworldAIIntegration, Log, TEXT("FSocketSend: created local %s, remote %s"),
+		*Settings.LocalAddr->ToString(true), *Settings.RemoteAddr->ToString(true));
 }
 
 bool Inworld::FSocketSend::ProcessData(TArray<uint8>& Data)
@@ -62,19 +55,19 @@ bool Inworld::FSocketSend::ProcessData(TArray<uint8>& Data)
 	int32 BytesSent;
 	if (!Socket->Send(Data.GetData(), Data.Num(), BytesSent))
 	{
+		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketSend::ProcessData couldn't send %d bytes from %s to %s."),
+			Data.Num(), *Settings.LocalAddr->ToString(true), *Settings.RemoteAddr->ToString(true));
 		return false;
 	}
 
 	return Data.Num() == BytesSent;
 }
 
-bool Inworld::FSocketReceive::Initialize(const FSocketSettings& Settings)
+Inworld::FSocketReceive::FSocketReceive(const FSocketSettings& Settings)
+	: FSocketBase(Settings)
+	, Receiver(nullptr)
 {
-	FIPv4Address Addr;
-	FIPv4Address::Parse(Settings.IpAddr, Addr);
-
-	FIPv4Endpoint Endpoint(Addr, Settings.Port);
-
+	const FIPv4Endpoint Endpoint(Settings.LocalAddr);
 	Socket = FUdpSocketBuilder(*Settings.Name)
 		.AsNonBlocking()
 		.AsReusable()
@@ -85,11 +78,10 @@ bool Inworld::FSocketReceive::Initialize(const FSocketSettings& Settings)
 	if (!Socket)
 	{
 		UE_LOG(LogInworldAIIntegration, Error, TEXT("FSocketReceive::Initialize couldn't build a socket"));
-		return false;
+		return;
 	}
 
 	Receiver = new FUdpSocketReceiver(Socket, FTimespan::FromMilliseconds(100), *Settings.Name);
-
 	Receiver->OnDataReceived().BindLambda([this](const FArrayReaderPtr& DataPtr, const FIPv4Endpoint& Endpoint)
 		{
 			TArray<uint8> NewData;
@@ -100,10 +92,11 @@ bool Inworld::FSocketReceive::Initialize(const FSocketSettings& Settings)
 
 	Receiver->Start();
 
-	return true;
+	UE_LOG(LogInworldAIIntegration, Log, TEXT("FSocketReceive: created local %s, remote %s"),
+		*Settings.LocalAddr->ToString(true), *Settings.RemoteAddr->ToString(true));
 }
 
-bool Inworld::FSocketReceive::Deinitialize()
+Inworld::FSocketReceive::~FSocketReceive()
 {
 	if (Receiver)
 	{
@@ -111,17 +104,6 @@ bool Inworld::FSocketReceive::Deinitialize()
 		delete Receiver;
 		Receiver = nullptr;
 	}
-
-	if (!Socket)
-	{
-		return true;
-	}
-
-	const bool bSuccess = Socket->Close();
-	ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Socket);
-	Socket = nullptr;
-
-	return true;
 }
 
 bool Inworld::FSocketReceive::ProcessData(TArray<uint8>& Data)
