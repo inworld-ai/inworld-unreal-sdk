@@ -48,7 +48,7 @@ public:
 	FInworldLLMApiDelegate OnFailure;
 
 private:
-	FString URL;
+	FString ApiUrl;
 
 protected:
 	FString ApiKey;

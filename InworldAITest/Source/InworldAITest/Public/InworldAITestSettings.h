@@ -9,6 +9,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "InworldTypes.h"
+#include "InworldEnums.h"
 #include "InworldAITestSettings.generated.h"
 
 UCLASS(config = InworldAI)
@@ -22,7 +24,10 @@ public:
 	FString RuntimeApiKey;
 
 	UPROPERTY(config, EditAnywhere, Category = "Test|Session")
-	FString SceneName;
+	FString Workspace;
+
+	UPROPERTY(config, EditAnywhere, Category = "Test|Session")
+	FInworldScene Scene;
 
 	UPROPERTY(config, EditAnywhere, Category = "Test|Session")
 	TArray<FString> InitialCharacterNames;

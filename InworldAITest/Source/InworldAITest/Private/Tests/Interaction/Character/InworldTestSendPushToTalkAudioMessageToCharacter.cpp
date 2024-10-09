@@ -15,7 +15,7 @@ bool Inworld::Test::FSendPushToTalkAudioMessageToCharacter::RunTest(const FStrin
 {
 	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
-		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->Scene, TestObject->Workspace, TestObject->RuntimeAuth);
 		{
 			FScopedSpeechProcessor SpeechProcessorPinned(TestObject->Session);
 			{

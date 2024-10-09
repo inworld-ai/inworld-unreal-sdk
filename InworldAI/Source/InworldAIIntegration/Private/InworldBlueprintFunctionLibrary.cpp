@@ -52,7 +52,13 @@ FString UInworldBlueprintFunctionLibrary::GetInworldAIPluginVersion()
     return "";
 }
 
-FString UInworldBlueprintFunctionLibrary::GetStudioApiKey()
+const FString& UInworldBlueprintFunctionLibrary::GetStudioApiUrl()
+{
+    const UInworldAIIntegrationSettings* InworldAIIntegrationSettings = GetDefault<UInworldAIIntegrationSettings>();
+    return InworldAIIntegrationSettings->StudioApiUrl;
+}
+
+const FString& UInworldBlueprintFunctionLibrary::GetStudioApiKey()
 {
     const UInworldAIIntegrationSettings* InworldAIIntegrationSettings = GetDefault<UInworldAIIntegrationSettings>();
     return InworldAIIntegrationSettings->StudioApiKey;
@@ -100,19 +106,19 @@ void GetInworldStudioResource(const U& Callback, const FString& URL, const FStri
 void UInworldBlueprintFunctionLibrary::GetInworldStudioWorkspaces(const FOnInworldStudioWorkspaces& Callback, const FString& StudioApiKeyOverride)
 {
     const FString InworldStudioApiKey = StudioApiKeyOverride.IsEmpty() ? GetStudioApiKey() : StudioApiKeyOverride;
-    GetInworldStudioResource<FInworldStudioWorkspaces>(Callback, FString("https://api.inworld.ai/studio/v1/workspaces"), InworldStudioApiKey);
+    GetInworldStudioResource<FInworldStudioWorkspaces>(Callback, FString::Format(TEXT("https://{0}/studio/v1/workspaces"), { GetStudioApiUrl() }), InworldStudioApiKey);
 }
 
 void UInworldBlueprintFunctionLibrary::GetInworldStudioApiKeys(const FOnInworldStudioApiKeys& Callback, const FString& Workspace, const FString& StudioApiKeyOverride)
 {
     const FString InworldStudioApiKey = StudioApiKeyOverride.IsEmpty() ? GetStudioApiKey() : StudioApiKeyOverride;
-    GetInworldStudioResource<FInworldStudioApiKeys>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/apikeys"), { Workspace }), InworldStudioApiKey);
+    GetInworldStudioResource<FInworldStudioApiKeys>(Callback, FString::Format(TEXT("https://{0}/studio/v1/workspaces/{1}/apikeys"), { GetStudioApiUrl(), Workspace }), InworldStudioApiKey);
 }
 
 void UInworldBlueprintFunctionLibrary::GetInworldStudioCharacters(const FOnInworldStudioCharacters& Callback, const FString& Workspace, const FString& StudioApiKeyOverride)
 {
     const FString InworldStudioApiKey = StudioApiKeyOverride.IsEmpty() ? GetStudioApiKey() : StudioApiKeyOverride;
-    GetInworldStudioResource<FInworldStudioCharacters>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/characters"), { Workspace }), InworldStudioApiKey);
+    GetInworldStudioResource<FInworldStudioCharacters>(Callback, FString::Format(TEXT("https://{0}/studio/v1/workspaces/{1}/characters"), { GetStudioApiUrl(), Workspace }), InworldStudioApiKey);
 }
 
 void UInworldBlueprintFunctionLibrary::GetInworldStudioScenes(const FOnInworldStudioScenes& Callback, const FString& Workspace, const FString& StudioApiKeyOverride)

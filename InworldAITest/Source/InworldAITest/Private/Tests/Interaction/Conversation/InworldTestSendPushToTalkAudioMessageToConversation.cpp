@@ -15,7 +15,7 @@ bool Inworld::Test::FSendPushToTalkAudioMessageToConversation::RunTest(const FSt
 {
 	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
-		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->Scene, TestObject->Workspace, TestObject->RuntimeAuth);
 
 		AddPlayerTargetCharacter(TestObject->Player, TestObject->Characters[0]);
 

@@ -25,7 +25,7 @@ bool Inworld::Test::FDestroySpeechProcessorCommand::Update()
 
 bool Inworld::Test::FStartSessionBySceneCommand::Update()
 {
-	Session->StartSession({}, Auth, SceneId, {}, {}, {}, {});
+	Session->StartSessionFromScene(Scene, {}, {}, {}, Workspace, Auth);
 	return true;
 }
 
@@ -61,10 +61,10 @@ bool Inworld::Test::FWaitUntilSessionLoadedCommand::Update()
 	return Session->IsLoaded();
 }
 
-Inworld::Test::FScopedSessionScene::FScopedSessionScene(UInworldSession* InSession, const FString& InSceneName, const FInworldAuth& InRuntimeAuth)
+Inworld::Test::FScopedSessionScene::FScopedSessionScene(UInworldSession* InSession, const FInworldScene& InScene, const FString& InWorkspace, const FInworldAuth& InRuntimeAuth)
 	: Session(InSession)
 {
-	StartSessionByScene(Session, InRuntimeAuth, InSceneName);
+	StartSessionByScene(Session, InScene, InWorkspace, InRuntimeAuth);
 	WaitUntilSessionLoadedWithTimeout(Session, 30.f);
 	TestEqualConnectionState(Session, EInworldConnectionState::Connected);
 }

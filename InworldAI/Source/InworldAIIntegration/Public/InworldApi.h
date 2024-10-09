@@ -55,8 +55,8 @@ public:
      * @param UniqueUserIdOverride Override for unique user ID
      * @param SavedSessionState Saved session state data
      */
-    UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DisplayName = "StartSession", AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Capabilities, Auth, SessionToken, Environment"))
-    void StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldSessionToken& SessionToken, const FInworldEnvironment& Environment, FString UniqueUserIdOverride, FInworldSave SavedSessionState);
+    UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (DisplayName = "StartSession", AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Capabilities, Auth, SessionToken"))
+    void StartSession_V2(const FString& SceneName, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& Capabilities, const FInworldAuth& Auth, const FInworldToken& SessionToken, FString UniqueUserIdOverride, FInworldSave SavedSessionState);
 
     /**
      * Start an Inworld session with the specified parameters.
@@ -64,14 +64,12 @@ public:
      * @param PlayerName Name of the player
      * @param ApiKey API key for authentication
      * @param ApiSecret API secret for authentication
-     * @param AuthUrlOverride Optional override for authentication URL
-     * @param TargetUrlOverride Optional override for target URL
      * @param Token Authentication token
      * @param TokenExpiration Token expiration time
      * @param SessionId Session ID
      */
     UFUNCTION(BlueprintCallable, Category = "Inworld", meta = (AdvancedDisplay = "4", DeprecatedFunction, DeprecationMessage = "Please recreate 'Start Session' node with updated parameters."))
-    void StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& AuthUrlOverride = "", const FString& TargetUrlOverride = "", const FString& Token = "", int64 TokenExpiration = 0, const FString& SessionId = "");
+    void StartSession(const FString& SceneName, const FString& PlayerName, const FString& ApiKey, const FString& ApiSecret, const FString& Token = "", int64 TokenExpiration = 0, const FString& SessionId = "");
 
     /**
      * Pause InworldAI session

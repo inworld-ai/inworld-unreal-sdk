@@ -17,7 +17,8 @@ UInworldTestObjectSession::UInworldTestObjectSession()
 	Session->Init();
 
 	const UInworldAITestSettings* InworldAITestSettings = GetDefault<UInworldAITestSettings>();
-	SceneName = InworldAITestSettings->SceneName;
+	Workspace = InworldAITestSettings->Workspace;
+	Scene = InworldAITestSettings->Scene;
 
 	Player->SetSession(Session);
 

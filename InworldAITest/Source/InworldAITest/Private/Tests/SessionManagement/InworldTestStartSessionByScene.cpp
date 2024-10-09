@@ -13,7 +13,7 @@ bool Inworld::Test::FStartSessionByScene::RunTest(const FString& Parameters)
 {
 	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
-		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->Scene, TestObject->Workspace, TestObject->RuntimeAuth);
 	}
 	return true;
 }

@@ -6,10 +6,10 @@
  */
 
 
-#include "InworldAIIntegrationSettings.h"
+#include "InworldAIClientSettings.h"
 
-UInworldAIIntegrationSettings::UInworldAIIntegrationSettings(const FObjectInitializer& ObjectInitializer)
+UInworldAIClientSettings::UInworldAIClientSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	StudioApiUrl = { "api.inworld.ai" };
+	Environment = {"api-engine.inworld.ai:443"};
 }

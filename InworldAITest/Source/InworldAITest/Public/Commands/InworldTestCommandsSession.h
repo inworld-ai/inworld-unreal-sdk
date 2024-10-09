@@ -20,7 +20,7 @@ namespace Inworld
 
 		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(DestroySpeechProcessor, UInworldSession*, Session);
 
-		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(StartSessionByScene, UInworldSession*, Session, const FInworldAuth&, Auth, const FString&, SceneId);
+		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_FOUR_PARAMETER(StartSessionByScene, UInworldSession*, Session, const FInworldScene&, Scene, const FString&, Workspace, const FInworldAuth&, Auth);
 
 		DEFINE_INWORLD_TEST_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(StopSession, UInworldSession*, Session);
 
@@ -34,7 +34,7 @@ namespace Inworld
 
 		struct FScopedSessionScene
 		{
-			FScopedSessionScene(UInworldSession* InSession, const FString& InSceneName, const FInworldAuth& InRuntimeAuth);
+			FScopedSessionScene(UInworldSession* InSession, const FInworldScene& InScene, const FString& InWorkspace, const FInworldAuth& InRuntimeAuth);
 			~FScopedSessionScene();
 		private:
 			UInworldSession* Session;

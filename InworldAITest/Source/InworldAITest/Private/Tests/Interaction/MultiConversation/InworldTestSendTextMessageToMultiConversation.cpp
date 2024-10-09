@@ -17,7 +17,7 @@ bool Inworld::Test::FSendTextMessageToMultiConversation::RunTest(const FString& 
 {
 	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
-		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->Scene, TestObject->Workspace, TestObject->RuntimeAuth);
 
 		for (UInworldCharacter* const Character : TestObject->Characters)
 		{
