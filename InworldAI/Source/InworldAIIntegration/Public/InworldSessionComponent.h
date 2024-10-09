@@ -55,13 +55,41 @@ public:
 	FOnInworldSessionLoadedNative& OnLoaded() { return OnSessionLoadedDelegateNative; }
 
 	/**
-	 * Start a new session.
-	 * @param SceneId The ID of the scene for the session.
-	 * @param Save The save data for the session.
-	 * @param Token The session token.
+	 * Start a session from a scene.
+	 * @param Scene The scene to initialize.
+	 * @param PlayerProfile The player's profile.
+	 * @param CapabilitySet The capability set.
+	 * @param Metadata Additional metadata.
+	 * @param WorkspaceOverride The workspace to use instead of the project default.
+	 * @param AuthOverride The authentication to use instead of project default.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Session", meta = (DisplayName = "StartSession", AdvancedDisplay = "1", AutoCreateRefTerm = "Save, Token"))
-	void StartSession(const FString& SceneId, const FInworldSave& Save, const FInworldSessionToken& Token);
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void StartSessionFromScene(const FInworldScene& Scene);
+  
+  /**
+	 * Start a session from a save.
+	 * @param Save The save data.
+	 * @param PlayerProfile The player's profile.
+	 * @param CapabilitySet The capability set.
+	 * @param Metadata Additional metadata.
+	 * @param WorkspaceOverride The workspace to use instead of the project default.
+	 * @param AuthOverride The authentication to use instead of project default.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void StartSessionFromSave(const FInworldSave& Save);
+  
+  /**
+	 * Start a session from a token.
+	 * @param SessionToken The session token.
+	 * @param PlayerProfile The player's profile.
+	 * @param CapabilitySet The capability set.
+	 * @param Metadata Additional metadata.
+	 * @param WorkspaceOverride The workspace to use instead of the project default.
+	 * @param AuthOverride The authentication to use instead of project default.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void StartSessionFromToken(const FInworldToken& Token);
+
 	/**
 	 * Stop the current session.
 	 */
@@ -79,11 +107,31 @@ public:
 	void ResumeSession();
 
 	/**
+	 * Get the session Token.
+	 * @return The session Token.
+	 */
+	UFUNCTION(BlueprintPure, Category = "Session")
+	FInworldToken GetSessionToken() const;
+	/**
 	 * Get the session ID.
 	 * @return The session ID.
 	 */
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FString GetSessionId() const;
+
+	/**
+	 * Set the Player Profile.
+	 * @param InPlayerProfile The Player Profile.
+	 */
+	UFUNCTION(BlueprintSetter)
+	void SetPlayerProfile(const FInworldPlayerProfile& InPlayerProfile);
+
+	/**
+	 * Set the Capability Set.
+	 * @param InCapabilitySet The Capability Set.
+	 */
+	UFUNCTION(BlueprintSetter)
+	void SetCapabilitySet(const FInworldCapabilitySet& InCapabilitySet);
 
 	/**
 	 * Save the session with a callback.
@@ -125,10 +173,10 @@ public:
 
 protected:
 	/**
-	 * Player profile configuration.
+	 * Workspace configuration.
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config")
-	FInworldPlayerProfile PlayerProfile;
+	FString Workspace;
 
 	/**
 	 * Authentication configuration.
@@ -137,9 +185,15 @@ protected:
 	FInworldAuth Auth;
 
 	/**
-	 * Capability set configuration.
+	 * Player Profile configuration.
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")
+	UPROPERTY(EditAnywhere, BlueprintSetter=SetPlayerProfile, Category = "Config")
+	FInworldPlayerProfile PlayerProfile;
+
+	/**
+	 * CapabilitySet configuration.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintSetter=SetCapabilitySet, Category = "Config")
 	FInworldCapabilitySet CapabilitySet;
 
 	/**
@@ -147,12 +201,6 @@ protected:
 	 */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Config")
 	TMap<FString, FString> Metadata;
-
-	/**
-	 * Environment configuration for internal settings.
-	 */
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Config|Internal")
-	FInworldEnvironment Environment;
 
 	FTimerHandle RetryConnectionTimerHandle;
 

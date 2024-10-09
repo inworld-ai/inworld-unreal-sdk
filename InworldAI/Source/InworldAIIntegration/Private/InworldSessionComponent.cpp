@@ -95,12 +95,25 @@ bool UInworldSessionComponent::GetIsLoaded() const
 	return InworldSession->IsLoaded();
 }
 
-void UInworldSessionComponent::StartSession(const FString& SceneId, const FInworldSave& Save, const FInworldSessionToken& Token)
+void UInworldSessionComponent::StartSessionFromScene(const FInworldScene& Scene)
 {
 	NO_CLIENT_RETURN(void())
 
-	InworldSession->GetClient()->SetEnvironment(Environment);
-	InworldSession->StartSession(PlayerProfile, Auth, SceneId, Save, Token, CapabilitySet, Metadata);
+	InworldSession->StartSessionFromScene(Scene, PlayerProfile, CapabilitySet, Metadata, Workspace, Auth);
+}
+
+void UInworldSessionComponent::StartSessionFromSave(const FInworldSave& Save)
+{
+	NO_CLIENT_RETURN(void())
+
+	InworldSession->StartSessionFromSave(Save, PlayerProfile, CapabilitySet, Metadata, Workspace, Auth);
+}
+
+void UInworldSessionComponent::StartSessionFromToken(const FInworldToken& Token)
+{
+	NO_CLIENT_RETURN(void())
+
+	InworldSession->StartSessionFromToken(Token, PlayerProfile, CapabilitySet, Metadata, Workspace, Auth);
 }
 
 void UInworldSessionComponent::StopSession()
@@ -124,11 +137,52 @@ void UInworldSessionComponent::ResumeSession()
 	InworldSession->ResumeSession();
 }
 
+FInworldToken UInworldSessionComponent::GetSessionToken() const
+{
+	NO_SESSION_RETURN({})
+
+	return InworldSession->GetSessionToken();
+}
+
 FString UInworldSessionComponent::GetSessionId() const
 {
 	NO_SESSION_RETURN({})
 
 	return InworldSession->GetSessionId();
+}
+
+void UInworldSessionComponent::SetPlayerProfile(const FInworldPlayerProfile& InPlayerProfile)
+{
+	PlayerProfile = InPlayerProfile;
+
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
+	{
+		NO_SESSION_RETURN(void())
+
+		const EInworldConnectionState ConnectionState = GetConnectionState();
+		if (ConnectionState == EInworldConnectionState::Connected)
+		{
+			InworldSession->LoadPlayerProfile(PlayerProfile);
+		}
+	}
+}
+
+void UInworldSessionComponent::SetCapabilitySet(const FInworldCapabilitySet& InCapabilitySet)
+{
+	CapabilitySet = InCapabilitySet;
+
+	UWorld* World = GetWorld();
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
+	{
+		NO_SESSION_RETURN(void())
+		
+		const EInworldConnectionState ConnectionState = GetConnectionState();
+		if (ConnectionState == EInworldConnectionState::Connected)
+		{
+			InworldSession->LoadCapabilities(CapabilitySet);
+		}
+	}
 }
 
 void UInworldSessionComponent::SaveSession(FOnInworldSessionSavedCallback Callback)

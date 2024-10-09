@@ -51,15 +51,21 @@ public:
 	 * Get the version of the Inworld AI Plugin.
 	 * @return The version of the Inworld AI Plugin.
 	 */
-	UFUNCTION(BlueprintPure, Category = "Inworld|Component", meta = (DisplayName = "Get Inworld AI Plugin Version"))
+	UFUNCTION(BlueprintPure, Category = "Inworld|Plugin", meta = (DisplayName = "Get Inworld AI Plugin Version"))
 	static FString GetInworldAIPluginVersion();
 
+	/**
+	 * Get the Studio API URL.
+	 * @return The Studio API URL.
+	 */
+	UFUNCTION(BlueprintPure, Category = "Inworld|Studio")
+	static const FString& GetStudioApiUrl();
 	/**
 	 * Get the Studio API key.
 	 * @return The Studio API key.
 	 */
-	UFUNCTION(BlueprintPure, Category = "Inworld|Component")
-	static FString GetStudioApiKey();
+	UFUNCTION(BlueprintPure, Category = "Inworld|Studio")
+	static const FString& GetStudioApiKey();
 
 	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnInworldStudioWorkspaces, const FInworldStudioWorkspaces&, Workspaces, bool, bSuccess, const FString&, Error);
 	/**

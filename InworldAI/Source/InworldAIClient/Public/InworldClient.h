@@ -61,20 +61,42 @@ public:
 
 	UInworldClient();
 	~UInworldClient();
-
-	/**
-	* Start a session with the specified parameters.
+  
+ 	/**
+	* Start a session from a scene.
+	* @param Scene The scene to initialize.
 	* @param PlayerProfile The player's profile.
-	* @param Auth The authentication information.
-	* @param SceneId The ID of the scene.
-	* @param Save The save data.
-	* @param SessionToken The session token.
 	* @param CapabilitySet The capability set.
 	* @param Metadata Additional metadata.
+  * @param WorkspaceOverride The workspace to use instead of the project default.
+	* @param AuthOverride The authentication to use instead of project default.
 	*/
-	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "4", AutoCreateRefTerm = "PlayerProfile, Auth, Save, SessionToken, CapabilitySet"))
-	void StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
-		const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata);
+	UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride"))
+	void StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
+	/**
+	* Start a session from a save.
+	* @param Save The save data.
+	* @param PlayerProfile The player's profile.
+	* @param CapabilitySet The capability set.
+	* @param Metadata Additional metadata.
+  * @param WorkspaceOverride The workspace to use instead of the project default.
+	* @param AuthOverride The authentication to use instead of project default.
+	*/
+  UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride"))
+	void StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
+	
+  /**
+	* Start a session from a token.
+	* @param SessionToken The session token.
+	* @param PlayerProfile The player's profile.
+	* @param CapabilitySet The capability set.
+	* @param Metadata Additional metadata.
+  * @param WorkspaceOverride The workspace to use instead of the project default.
+	* @param AuthOverride The authentication to use instead of project default.
+	*/
+  UFUNCTION(BlueprintCallable, Category = "Session", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride"))
+	void StartSessionFromToken(const FInworldToken& Token, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
+
 	/**
 	* Stop the current session.
 	*/
@@ -96,7 +118,14 @@ public:
 	* @return The session ID.
 	*/
 	UFUNCTION(BlueprintPure, Category = "Session")
-	FString GetSessionId() const;
+	FInworldToken GetSessionToken() const;
+
+	/**
+	* Load the Player Profile.
+	* @param PlayerProfile The player profile.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Load|Configuration")
+	void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile);
 
 	/**
 	* Get the capabilities of the current session.
@@ -104,6 +133,13 @@ public:
 	*/
 	UFUNCTION(BlueprintPure, Category = "Session")
 	FInworldCapabilitySet GetCapabilities() const;
+
+	/**
+	* Load the CapabilitySet.
+	* @param CapabilitySet The capabilities.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Load|Configuration")
+	void LoadCapabilities(const FInworldCapabilitySet& CapabilitySet);
 
 	/**
 	* Save the current session.
@@ -366,10 +402,6 @@ public:
 	FOnInworldPerceivedLatency OnPerceivedLatencyDelegate;
 	FOnInworldPerceivedLatencyNative& OnPerceivedLatency() { return OnPerceivedLatencyDelegateNative; }
 
-	// Used for internal Inworld SDK testing - not documented, do not use.
-	UFUNCTION(BlueprintCallable, Category = "Inworld Development")
-	void SetEnvironment(const FInworldEnvironment& InEnvironment) { Environment = InEnvironment; }
-
 private:
 	FOnInworldSessionPrePauseNative OnPrePauseDelegateNative;
 	FOnInworldSessionPreStopNative OnPreStopDelegateNative;
@@ -386,8 +418,6 @@ private:
 	static FAutoConsoleVariableSink CVarSink;
 	static void OnCVarsChanged();
 #endif
-
-	FInworldEnvironment Environment;
 
 	TUniquePtr<NDKClient> Client;
 };

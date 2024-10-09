@@ -17,7 +17,8 @@ public class InworldAITest : ModuleRules
 			new string[]
 			{
 				"Core",
-			}
+                "InworldAIClient",
+            }
 			);
 		
 		PrivateDependencyModuleNames.AddRange(
@@ -25,7 +26,6 @@ public class InworldAITest : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
-				"InworldAIClient",
 				"InworldAIIntegration",
 				"Projects",
             }

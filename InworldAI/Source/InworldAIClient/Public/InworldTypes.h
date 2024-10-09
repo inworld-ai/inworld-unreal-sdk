@@ -158,7 +158,7 @@ struct FInworldAuth
 };
 
 USTRUCT(BlueprintType)
-struct FInworldSessionToken
+struct FInworldToken
 {
     GENERATED_BODY()
 
@@ -182,27 +182,44 @@ struct FInworldSessionToken
 };
 
 USTRUCT(BlueprintType)
+struct FInworldScene
+{
+    GENERATED_BODY()
+
+    /**
+     * Type of scene. Scene, Character
+     */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Scene")
+    EInworldSceneType Type = EInworldSceneType::SCENE;
+    /**
+     * Data array for saving in the Inworld environment state.
+     */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Scene")
+    FString Name = "";
+};
+
+USTRUCT(BlueprintType)
 struct FInworldSave
 {
     GENERATED_BODY()
 
     /**
-     * Data array for saving in the Inworld environment.
+     * Scene info for the Inworld environment state.
      */
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Data")
-    TArray<uint8> Data;
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "State")
+    FInworldScene Scene;
+
+    /**
+     * Data array representing the Inworld environment state.
+     */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "State")
+    TArray<uint8> State;
 };
 
 USTRUCT(BlueprintType)
 struct FInworldEnvironment
 {
     GENERATED_BODY()
-
-    /**
-     * The authentication URL for the Inworld environment.
-     */
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
-    FString AuthUrl = "";
 
     /**
      * The target URL for the Inworld environment.

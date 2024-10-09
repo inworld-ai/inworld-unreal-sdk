@@ -23,7 +23,7 @@ public:
 	 * The URL for the Inworld AI service.
 	 */
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
-	FString URL;
+	FString ApiUrl;
 
 	/**
 	 * The API key for the Inworld AI service.
