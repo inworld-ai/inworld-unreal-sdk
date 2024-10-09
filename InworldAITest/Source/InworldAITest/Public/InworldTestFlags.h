@@ -13,7 +13,7 @@ namespace Inworld
 {
 	namespace Test
 	{
-		static const int Flags = (
+		static const EAutomationTestFlags Flags = (
 			EAutomationTestFlags::EditorContext
 			| EAutomationTestFlags::CommandletContext
 			| EAutomationTestFlags::ClientContext
