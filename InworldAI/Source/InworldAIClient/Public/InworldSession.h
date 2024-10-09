@@ -46,7 +46,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoaded, bool, bLoad
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoadedNative, bool /*bLoaded*/);
 
 UCLASS(BlueprintType)
-class INWORLDAIINTEGRATION_API UInworldSession : public UObject
+class INWORLDAICLIENT_API UInworldSession : public UObject
 {
 	GENERATED_BODY()
 public:
@@ -512,7 +512,7 @@ class UInworldSessionOwnerInterface : public UInterface
 	GENERATED_BODY()
 };
 
-class INWORLDAIINTEGRATION_API IInworldSessionOwnerInterface
+class INWORLDAICLIENT_API IInworldSessionOwnerInterface
 {
 	GENERATED_BODY()
 
