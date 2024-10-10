@@ -8,7 +8,7 @@
 #pragma once
 
 #include "InworldPackets.h"
-
+#ifdef INWORLD_WITH_NDK
 THIRD_PARTY_INCLUDES_START
 #include "Packets.h"
 THIRD_PARTY_INCLUDES_END
@@ -52,3 +52,4 @@ protected:
 		Packet = NewPacket;
 	}
 };
+#endif

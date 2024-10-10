@@ -14,12 +14,14 @@
 #include "Misc/FileHelper.h"
 #include <Engine/World.h>
 
+#ifdef INWORLD_WITH_NDK
 #define UI UI_ST
 THIRD_PARTY_INCLUDES_START
 #include "Utils/SslCredentials.h"
 #include "Utils/Utils.h"
 THIRD_PARTY_INCLUDES_END
 #undef UI
+#endif
 
 USoundWave* Inworld::Utils::StringToSoundWave(const std::string& String)
 {
@@ -266,6 +268,7 @@ USoundWave* Inworld::Utils::VecToSoundWave(const std::vector<int16>& data)
 	return SoundWave;
 }
 
+#ifdef INWORLD_WITH_NDK
 TArray<uint8> Inworld::Utils::HmacSha256(const TArray<uint8>& Data, const TArray<uint8>& Key)
 {
 	std::vector<uint8> VData, VKey;
@@ -278,6 +281,7 @@ TArray<uint8> Inworld::Utils::HmacSha256(const TArray<uint8>& Data, const TArray
     VecToDataArray(VRes, Res);
     return Res;
 }
+#endif
 
 std::string Inworld::Utils::ToHex(const TArray<uint8>& Data)
 {

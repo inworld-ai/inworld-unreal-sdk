@@ -31,8 +31,17 @@ public class InworldAIClient : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Projects",
+            });
+
+        if (Target.Platform != UnrealTargetPlatform.Linux)
+        {
+            PublicDefinitions.Add("INWORLD_WITH_NDK=1");
+            PrivateDependencyModuleNames.AddRange(
+            new string[]
+            {
                 "InworldAINDK",
                 "InworldAINDKLibrary",
             });
+        }
     }
 }

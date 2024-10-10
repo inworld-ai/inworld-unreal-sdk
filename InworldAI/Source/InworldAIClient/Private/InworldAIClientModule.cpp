@@ -6,11 +6,11 @@
  */
 
 #include "InworldAIClientModule.h"
-
+#ifdef INWORLD_WITH_NDK
 THIRD_PARTY_INCLUDES_START
 #include "Utils/Log.h"
 THIRD_PARTY_INCLUDES_END
-
+#endif
 #define LOCTEXT_NAMESPACE "FInworldAIClientModule"
 
 DEFINE_LOG_CATEGORY(LogInworldAIClient);
@@ -19,6 +19,7 @@ DEFINE_LOG_CATEGORY(LogInworldAINDK);
 
 void FInworldAIClientModule::StartupModule()
 {
+#ifdef INWORLD_WITH_NDK
 	Inworld::SetLogCallbacks(
 		[](const char* message)
 		{
@@ -33,11 +34,14 @@ void FInworldAIClientModule::StartupModule()
 			UE_LOG(LogInworldAINDK, Error, TEXT("%s"), UTF8_TO_TCHAR(message));
 		}
 	);
+#endif
 }
 
 void FInworldAIClientModule::ShutdownModule()
 {
+#ifdef INWORLD_WITH_NDK
 	Inworld::ClearLogCallbacks();
+#endif
 }
 
 #undef LOCTEXT_NAMESPACE

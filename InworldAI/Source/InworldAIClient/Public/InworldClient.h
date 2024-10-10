@@ -41,6 +41,7 @@ DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldSessionSavedCallback, FInworldSave,
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldVADNative, UObject*, bool);
 
+#ifdef INWORLD_WITH_NDK
 namespace Inworld
 {
 	class Client;
@@ -54,6 +55,7 @@ public:
 
 	virtual Inworld::Client& Get() const = 0;
 };
+#endif
 
 UCLASS(BlueprintType)
 class INWORLDAICLIENT_API UInworldClient : public UObject
@@ -205,6 +207,7 @@ private:
 #endif
 
 	FInworldEnvironment Environment;
-
+#ifdef INWORLD_WITH_NDK
 	TUniquePtr<NDKClient> Client;
+#endif
 };

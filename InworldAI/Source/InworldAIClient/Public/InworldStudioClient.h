@@ -11,6 +11,7 @@
 
 #include "InworldStudioClient.generated.h"
 
+#ifdef INWORLD_WITH_NDK
 namespace Inworld
 {
 	class StudioClient;
@@ -24,6 +25,7 @@ public:
 
 	virtual Inworld::StudioClient& Get() const = 0;
 };
+#endif
 
 UCLASS()
 class INWORLDAICLIENT_API UInworldStudioClient : public UObject
@@ -44,5 +46,7 @@ public:
 
 private:
 	mutable FInworldStudioUserData Data;
+#ifdef INWORLD_WITH_NDK
 	TUniquePtr<NDKStudioClient> StudioClient;
+#endif
 };

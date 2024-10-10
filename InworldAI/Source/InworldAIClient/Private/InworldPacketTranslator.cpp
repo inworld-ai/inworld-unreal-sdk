@@ -4,7 +4,7 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
-
+#ifdef INWORLD_WITH_NDK
 #include "InworldPacketTranslator.h"
 THIRD_PARTY_INCLUDES_START
 #include "Utils/Utils.h"
@@ -186,3 +186,4 @@ void InworldPacketTranslator::TranslateEvent<Inworld::RelationEvent, FInworldRel
 	New.Respect = Original.GetRespect();
 	New.Trust = Original.GetTrust();
 }
+#endif

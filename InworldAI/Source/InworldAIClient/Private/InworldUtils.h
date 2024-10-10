@@ -55,7 +55,9 @@ namespace Inworld
         bool SoundWaveToDataArray(USoundWave* SoundWave, TArray<int16>& Data);
         USoundWave* VecToSoundWave(const std::vector<int16>& data);
 
+#ifdef INWORLD_WITH_NDK
         TArray<uint8> HmacSha256(const TArray<uint8>& Data, const TArray<uint8>& Key);
+#endif
         std::string ToHex(const TArray<uint8>& Data);
     }
 }

@@ -9,7 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/AudioComponent.h"
-#include "InworldIntegrationtypes.h"
+#include "InworldIntegrationTypes.h"
 #include "InworldCharacterMessage.h"
 #include "InworldCharacterMessageQueue.h"
 #include "InworldCharacterAudioComponent.generated.h"

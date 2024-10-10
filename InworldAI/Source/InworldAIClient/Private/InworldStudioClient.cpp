@@ -8,9 +8,11 @@
 #include "InworldStudioClient.h"
 #include "InworldAIClientModule.h"
 
+
 #include "Async/Async.h"
 #include "Async/TaskGraphInterfaces.h"
 
+#ifdef INWORLD_WITH_NDK
 THIRD_PARTY_INCLUDES_START
 // UNREAL ENGINE 4
 #pragma warning(push)
@@ -93,48 +95,69 @@ FInworldStudioUserData ConvertStudioUserData(const Inworld::StudioUserData& Data
 	}
 	return D;
 }
+#endif
 
 UInworldStudioClient::UInworldStudioClient()
 {
+#ifdef INWORLD_WITH_NDK
 	StudioClient = MakeUnique<NDKStudioClientImpl>();
+#endif
 }
 
 UInworldStudioClient::~UInworldStudioClient()
 {
+#ifdef INWORLD_WITH_NDK
 	StudioClient.Reset();
+#endif
 }
 
 void UInworldStudioClient::CancelRequests()
 {
+#ifdef INWORLD_WITH_NDK
 	StudioClient->Get().CancelRequests();
+#endif
 }
 
 bool UInworldStudioClient::IsRequestInProgress() const
 {
+#ifdef INWORLD_WITH_NDK
 	return StudioClient->Get().IsRequestInProgress();
+#else
+	return false;
+#endif
 }
 
 void UInworldStudioClient::RequestStudioUserData(const FString& Token, const FString& ServerUrl, TFunction<void(bool bSuccess)> InCallback)
 {
+#ifdef INWORLD_WITH_NDK
 	StudioClient->Get().RequestStudioUserDataAsync(TCHAR_TO_UTF8(*Token), TCHAR_TO_UTF8(*ServerUrl), [InCallback](bool bSuccess)
 		{
 			AsyncTask(ENamedThreads::GameThread, [InCallback, bSuccess]()
 				{
 					InCallback(bSuccess);
 				});
-		});	
+		});
+#else
+	InCallback(false);
+#endif
 }
 
 FString UInworldStudioClient::GetError() const
 {
+#ifdef INWORLD_WITH_NDK
 	return UTF8_TO_TCHAR(StudioClient->Get().GetError().c_str());
+#else
+	return {};
+#endif
 }
 
 FInworldStudioUserData UInworldStudioClient::GetStudioUserData() const
 {
+#ifdef INWORLD_WITH_NDK
 	if (Data.Workspaces.Num() == 0)
 	{
 		Data = ConvertStudioUserData(StudioClient->Get().GetStudioUserData());
 	}
+#endif
 	return Data;
 }
