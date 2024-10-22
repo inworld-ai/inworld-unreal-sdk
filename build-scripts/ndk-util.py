@@ -58,11 +58,11 @@ build_configurations = {
         ['cmake --build . --target inworld-ndk --config Release -- CODE_SIGNING_ALLOWED=NO']
     ),
     'Android': BuildConfiguration(
-        ['cmake .. -DINWORLD_SHARED=False -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/25.2.9519653 -DINWORLD_LOG_CALLBACK=True'],
+        ['cmake .. -DINWORLD_SHARED=False -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/26.3.11579264 -DINWORLD_LOG_CALLBACK=True'],
         ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Android-shared': BuildConfiguration(
-        ['cmake .. -DINWORLD_SHARED=True -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/25.2.9519653 -DINWORLD_LOG_CALLBACK=True'],
+        ['cmake .. -DINWORLD_SHARED=True -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/26.3.11579264 -DINWORLD_LOG_CALLBACK=True'],
         ['cmake --build . --target inworld-ndk --config Release']
     )
 }
