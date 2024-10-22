@@ -1,3 +1,6 @@
+# 1.7.1
+- Inactivity reconnection fix
+
 # 1.7.0
 - Voice Activity Detection (VAD)
 - Feedback API
