@@ -25,10 +25,12 @@ public:
 	 * @param ApiKeyOverride (Optional) Override for the API key.
 	 * @param UserIdOverride (Optional) Override for the user ID.
 	 * @param ModelOverride (Optional) Override for the model.
+	 * @param ServiceProviderOverride (Optional) Override for service provider.
+	 * @param JsonMode (Optional) Coerce model to return valid JSON. Only available for OpenAI models.
 	 * @return A pointer to the async action for completing the chat.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LLMService", meta = (AdvancedDisplay = "2", AutoCreateRefTerm = "TextGenerationConfig", BlueprintInternalUseOnly = "true"))
-	static UInworldLLMCompleteChatAsyncAction* CompleteChat(const TArray<FInworldLLMCompleteChatMessage>& Messages, const FInworldLLMTextGenerationConfig& TextGenerationConfig, const FString& ApiKeyOverride = "", const FString& UserIdOverride = "", const FString& ModelOverride = "");
+	static UInworldLLMCompleteChatAsyncAction* CompleteChat(const TArray<FInworldLLMCompleteChatMessage>& Messages, const FInworldLLMTextGenerationConfig& TextGenerationConfig, const FString& ApiKeyOverride = "", const FString& UserIdOverride = "", const FString& ModelOverride = "", const FString& ServiceProviderOverride = "", bool JsonMode = false);
 
 protected:
 	virtual FString GetCompletionType() const override { return "completeChat"; }
@@ -41,4 +43,5 @@ protected:
 private:
 	FInworldLLMRequestCompleteChat Request;
 	FString AccumulatedResponse;
+	bool bJsonMode;
 };

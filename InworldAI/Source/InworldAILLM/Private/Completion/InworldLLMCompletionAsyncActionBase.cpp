@@ -23,6 +23,7 @@ UInworldLLMCompletionAsyncActionBase::UInworldLLMCompletionAsyncActionBase(const
         ApiKey = LLMSettings->RuntimeApiKey;
         UserId = LLMSettings->UserId;
         Model = LLMSettings->Model;
+        ServiceProvider = LLMSettings->ServiceProvider;
     }
 }
 
