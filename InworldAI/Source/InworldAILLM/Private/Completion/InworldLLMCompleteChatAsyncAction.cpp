@@ -9,15 +9,22 @@
 #include "JsonObjectConverter.h"
 #include "Algo/Transform.h"
 
-UInworldLLMCompleteChatAsyncAction* UInworldLLMCompleteChatAsyncAction::CompleteChat(const TArray<FInworldLLMCompleteChatMessage>& Messages, const FInworldLLMTextGenerationConfig& TextGenerationConfig, const FString& ApiKeyOverride, const FString& UserIdOverride, const FString& ModelOverride)
+UInworldLLMCompleteChatAsyncAction* UInworldLLMCompleteChatAsyncAction::CompleteChat(const TArray<FInworldLLMCompleteChatMessage>& Messages, const FInworldLLMTextGenerationConfig& TextGenerationConfig, const FString& ApiKeyOverride, const FString& UserIdOverride, const FString& ModelOverride, const FString& ServiceProviderOverride, bool JsonMode)
 {
     UInworldLLMCompleteChatAsyncAction* Action = NewObject<UInworldLLMCompleteChatAsyncAction>();
     if (!ApiKeyOverride.IsEmpty()) Action->ApiKey = ApiKeyOverride;
     if (!UserIdOverride.IsEmpty()) Action->UserId = UserIdOverride;
     if (!ModelOverride.IsEmpty()) Action->Model = ModelOverride;
+    if (!ServiceProviderOverride.IsEmpty()) Action->ServiceProvider = ServiceProviderOverride;
 
     Action->Request.serving_id.user_id = Action->UserId;
     Action->Request.serving_id.model_id.model = Action->Model;
+    Action->Request.serving_id.model_id.service_provider = Action->ServiceProvider;
+
+    if (JsonMode)
+    {
+        Action->Request.response_format = "RESPONSE_FORMAT_JSON";
+    }
 
     Action->Request.messages.Reserve(Messages.Num());
     Algo::Transform(Messages, Action->Request.messages, [](const FInworldLLMCompleteChatMessage& Message) { return FInworldLLMRequestCompleteChatMessage{(int32)Message.Role, Message.Content}; });
