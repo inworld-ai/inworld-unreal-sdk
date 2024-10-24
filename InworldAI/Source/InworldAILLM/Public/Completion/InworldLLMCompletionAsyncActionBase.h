@@ -54,6 +54,7 @@ protected:
 	FString ApiKey;
 	FString UserId;
 	FString Model;
+	FString ServiceProvider;
 
 protected:
 	virtual FString GetCompletionType() const PURE_VIRTUAL(UInworldLLMCompletionAsyncActionBase::GetCompletionType, return FString{};)
