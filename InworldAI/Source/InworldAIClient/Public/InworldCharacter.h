@@ -23,7 +23,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldCharacterTargetPlayerChanged);
 DECLARE_MULTICAST_DELEGATE(FOnInworldCharacterTargetPlayerChangedNative);
 
 UCLASS(BlueprintType)
-class INWORLDAIINTEGRATION_API UInworldCharacter : public UObject
+class INWORLDAICLIENT_API UInworldCharacter : public UObject
 {
 	GENERATED_BODY()
 public:
@@ -303,7 +303,7 @@ class UInworldCharacterOwnerInterface : public UInterface
 	GENERATED_BODY()
 };
 
-class INWORLDAIINTEGRATION_API IInworldCharacterOwnerInterface
+class INWORLDAICLIENT_API IInworldCharacterOwnerInterface
 {
 	GENERATED_BODY()
 

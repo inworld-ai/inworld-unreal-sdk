@@ -34,7 +34,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetection, bool
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldPlayerVoiceDetectionNative, bool /*bVoiceDetected*/);
 
 UCLASS(BlueprintType)
-class INWORLDAIINTEGRATION_API UInworldPlayer : public UObject
+class INWORLDAICLIENT_API UInworldPlayer : public UObject
 {
 	GENERATED_BODY()
 public:
@@ -252,7 +252,7 @@ class UInworldPlayerOwnerInterface : public UInterface
 	GENERATED_BODY()
 };
 
-class INWORLDAIINTEGRATION_API IInworldPlayerOwnerInterface
+class INWORLDAICLIENT_API IInworldPlayerOwnerInterface
 {
 	GENERATED_BODY()
 

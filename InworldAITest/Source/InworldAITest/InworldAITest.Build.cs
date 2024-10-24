@@ -26,7 +26,6 @@ public class InworldAITest : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
-				"InworldAIIntegration",
 				"Projects",
             }
 			);
