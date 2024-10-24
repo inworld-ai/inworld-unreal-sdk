@@ -225,7 +225,10 @@ struct FInworldEnvironment
      * The target URL for the Inworld environment.
      */
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
-    FString TargetUrl = "";
+	FString TargetUrl = "";
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Multiplayer")
+	int32 AudioPort = 0;
 };
 
 USTRUCT(BlueprintType)

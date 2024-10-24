@@ -20,6 +20,7 @@
 class UInworldPlayer;
 class UInworldCharacter;
 class UInworldClient;
+class UInworldAudioRepl;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldTextEvent, const FInworldTextEvent&, TextEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldTextEventNative, const FInworldTextEvent& /*TextEvent*/);
@@ -441,6 +442,10 @@ public:
 	FOnInworldPerceivedLatency OnPerceivedLatencyDelegate;
 	FOnInworldPerceivedLatencyNative& OnPerceivedLatency() { return OnPerceivedLatencyDelegateNative; }
 
+	void InitAudioReplication(int32 Port);
+	void ReplicateAudioEventFromServer(const FInworldAudioDataEvent& Packet);
+	void HandleAudioEventOnClient(const TSharedPtr<FInworldAudioDataEvent>& Packet);
+
 private:
 	void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
 	void UnpossessAgents();
@@ -504,6 +509,9 @@ private:
 	};
 
 	TSharedRef<FInworldSessionPacketVisitor> PacketVisitor;
+
+	UPROPERTY()
+	UInworldAudioRepl* AudioRepl;
 };
 
 UINTERFACE(MinimalAPI, BlueprintType)
