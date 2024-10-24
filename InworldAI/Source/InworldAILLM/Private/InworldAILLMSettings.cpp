@@ -13,4 +13,5 @@ UInworldAILLMSettings::UInworldAILLMSettings(const FObjectInitializer& ObjectIni
 {
 	ApiUrl = { "api.inworld.ai" };
 	Model = { "inworld-dragon" };
+	ServiceProvider = { "SERVICE_PROVIDER_INWORLD" };
 }
