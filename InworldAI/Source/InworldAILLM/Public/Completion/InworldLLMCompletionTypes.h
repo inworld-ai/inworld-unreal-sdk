@@ -22,6 +22,9 @@ public:
 	 */
 	UPROPERTY()
 	FString model;
+
+	UPROPERTY()
+	FString service_provider;
 };
 
 USTRUCT()
@@ -109,6 +112,9 @@ public:
 	 */
 	UPROPERTY()
 	FInworldLLMTextGenerationConfig text_generation_config;
+
+	UPROPERTY()
+	FString response_format = "";
 };
 
 USTRUCT()

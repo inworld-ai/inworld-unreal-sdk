@@ -42,4 +42,10 @@ public:
 	 */
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
 	FString Model;
+
+	/**
+	 * The service provider used for the Inworld AI service.
+	 */
+	UPROPERTY(config, EditAnywhere, Category = "Inworld")
+	FString ServiceProvider;
 };
