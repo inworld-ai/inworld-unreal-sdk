@@ -11,7 +11,7 @@
 #include "InworldSession.h"
 #include "InworldMacros.h"
 
-#include "InworldAIIntegrationModule.h"
+#include "InworldAIClientModule.h"
 
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Engine/NetDriver.h"
@@ -19,7 +19,7 @@
 
 #include "Net/UnrealNetwork.h"
 
-#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldPlayer, Arg, Return)
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIClient, UInworldPlayer, Arg, Return)
 #define NO_SESSION_RETURN(Return) EMPTY_ARG_RETURN(Session, Return)
 
 UInworldPlayer::UInworldPlayer()

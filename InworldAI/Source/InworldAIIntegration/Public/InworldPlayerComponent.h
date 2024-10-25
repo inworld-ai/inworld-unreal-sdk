@@ -182,9 +182,9 @@ protected:
     /**
      * Inworld session owner (hidden if bFindSession is false).
      * Must implement the InworldSessionOwnerInterface.
-     * @see /Script/InworldAIIntegration.InworldSessionOwnerInterface
+     * @see /Script/InworldAIClient.InworldSessionOwnerInterface
      */
-    UPROPERTY(EditInstanceOnly, Category = "Inworld", meta = (EditCondition = "!bFindSession", EditConditionHides, MustImplement = "/Script/InworldAIIntegration.InworldSessionOwnerInterface"))
+    UPROPERTY(EditInstanceOnly, Category = "Inworld", meta = (EditCondition = "!bFindSession", EditConditionHides, MustImplement = "/Script/InworldAIClient.InworldSessionOwnerInterface"))
     AActor* InworldSessionOwner;
 
     /**
