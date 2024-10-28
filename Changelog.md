@@ -1,3 +1,6 @@
+# 1.7.2
+- Crash on audio component cleanup fix
+
 # 1.7.1
 - Inactivity reconnection fix
 
