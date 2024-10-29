@@ -44,6 +44,16 @@ void UInworldCharacterAudioComponent::BeginPlay()
 	}
 }
 
+void UInworldCharacterAudioComponent::EndPlay(EEndPlayReason::Type Reason)
+{
+	Super::EndPlay(Reason);
+
+	SoundStreaming->OnSoundWaveProceduralUnderflow = {};
+	SoundStreaming = nullptr;
+
+	SetSound(nullptr);
+}
+
 void UInworldCharacterAudioComponent::OnCharacterUtterance(const FCharacterMessageUtterance& Message)
 {
 	FScopeLock ScopeLock(&QueueLock);
