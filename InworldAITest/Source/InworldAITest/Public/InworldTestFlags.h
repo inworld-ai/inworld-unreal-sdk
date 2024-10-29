@@ -8,15 +8,21 @@
 #pragma once
 
 #include "Misc/AutomationTest.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 namespace Inworld
 {
 	namespace Test
 	{
-		static const EAutomationTestFlags Flags = (
+		
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
+		static const EAutomationTestFlags Flags =
+#else
+		static const uint32 Flags =
+#endif
 			EAutomationTestFlags::EditorContext
 			| EAutomationTestFlags::CommandletContext
 			| EAutomationTestFlags::ClientContext
-			| EAutomationTestFlags::ProductFilter);
+			| EAutomationTestFlags::ProductFilter;
 	}
 }
