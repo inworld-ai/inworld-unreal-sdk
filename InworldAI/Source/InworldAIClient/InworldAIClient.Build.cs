@@ -39,7 +39,6 @@ public class InworldAIClient : ModuleRules
             PrivateDependencyModuleNames.AddRange(
                 new string[]
                 {
-                    "InworldAINDK",
                     "InworldAINDKLibrary",
                 });
         }

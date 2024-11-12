@@ -17,14 +17,9 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "InworldAINDK",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
 			"Name": "InworldAIClient",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "PreDefault"
 		},
 		{
 			"Name": "InworldAIIntegration",

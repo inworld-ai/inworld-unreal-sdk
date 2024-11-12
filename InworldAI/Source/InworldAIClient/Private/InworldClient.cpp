@@ -15,7 +15,8 @@
 #include "SocketSubsystem.h"
 #include "IPAddress.h"
 
-#include "InworldAINDKModule.h"
+#ifdef INWORLD_WITH_NDK
+#include "InworldAIClientModule.h"
 #include "InworldPacketTranslator.h"
 
 THIRD_PARTY_INCLUDES_START
@@ -24,6 +25,7 @@ THIRD_PARTY_INCLUDES_START
 #include "Utils/Log.h"
 #include "Utils/Utils.h"
 THIRD_PARTY_INCLUDES_END
+#endif
 
 #include "Async/Async.h"
 #include "Async/TaskGraphInterfaces.h"
@@ -36,6 +38,8 @@ THIRD_PARTY_INCLUDES_END
 #include <string>
 #include <memory>
 
+
+#ifdef INWORLD_WITH_NDK
 #if !UE_BUILD_SHIPPING
 
 static TAutoConsoleVariable<bool> CVarEnableSoundDump(
@@ -57,7 +61,9 @@ UInworldClient::FOnAudioDumperCVarChanged UInworldClient::OnAudioDumperCVarChang
 
 FAutoConsoleVariableSink UInworldClient::CVarSink(FConsoleCommandDelegate::CreateStatic(&UInworldClient::OnCVarsChanged));
 #endif
+#endif
 
+#ifdef INWORLD_WITH_NDK
 class NDKClientImpl : public NDKClient
 {
 public:
@@ -74,9 +80,14 @@ public:
 private:
 	std::unique_ptr<Inworld::Client> _Client;
 };
+#endif
 
 #define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIClient, UInworldClient, Arg, Return)
+#ifdef INWORLD_WITH_NDK
 #define NO_CLIENT_RETURN(Return) EMPTY_ARG_RETURN(Client, Return)
+#else
+#define NO_CLIENT_RETURN(Return) UE_LOG(LogInworldAIClient, Warning, TEXT("UInworldClient::%s skipped: Platform not supported."), *FString(__func__)); return Return;
+#endif
 
 std::vector<std::string> ToStd(const TArray<FString>& Array)
 {
@@ -117,6 +128,7 @@ void VecToDataArray(const std::vector<T>& VecData, TArray<T>& ArrData)
 	FMemory::Memcpy((void*)ArrData.GetData(), (void*)VecData.data(), ArrData.Num());
 }
 
+#ifdef INWORLD_WITH_NDK
 static TArray<uint8> HmacSha256(const TArray<uint8>& Data, const TArray<uint8>& Key)
 {
 	std::vector<uint8> data;
@@ -130,6 +142,7 @@ static TArray<uint8> HmacSha256(const TArray<uint8>& Data, const TArray<uint8>& 
 	VecToDataArray(result, Result);
 	return Result;
 }
+#endif
 
 static FString ToHex(const TArray<uint8>& Data)
 {
@@ -145,8 +158,9 @@ static FString ToHex(const TArray<uint8>& Data)
 UInworldClient::UInworldClient()
 	: Super()
 {
+#ifdef INWORLD_WITH_NDK
 	// Ensure dependencies are loaded
-	FInworldAINDKModule::Get();
+	FInworldAIClientModule::Get();
 
 	FString ClientVer;
 	TSharedPtr<IPlugin> InworldAIPlugin = IPluginManager::Get().FindPlugin("InworldAI");
@@ -237,17 +251,21 @@ UInworldClient::UInworldClient()
 	OnAudioDumperCVarChangedHandle = OnAudioDumperCVarChanged.AddLambda(OnAudioDumperCVarChangedCallback);
 	OnAudioDumperCVarChangedCallback(CVarEnableSoundDump.GetValueOnGameThread(), CVarSoundDumpPath.GetValueOnGameThread());
 #endif
+#endif
 }
 
 UInworldClient::~UInworldClient()
 {
 	bIsBeingDestroyed = true;
+#ifdef INWORLD_WITH_NDK
 #if !UE_BUILD_SHIPPING
 	OnAudioDumperCVarChanged.Remove(OnAudioDumperCVarChangedHandle);
 #endif
 	Client.Reset();
+#endif
 }
 
+#ifdef INWORLD_WITH_NDK
 static FString GetResourceFromSettings(const FString& WorkspaceOverride)
 {
 	const UInworldAIClientSettings* InworldAIClientSettings = GetDefault<UInworldAIClientSettings>();
@@ -294,8 +312,10 @@ static FString GenerateUserId()
 	if (Id.IsEmpty())
 	{
 		UE_LOG(LogInworldAIClient, Error, TEXT("Couldn't generate user id."));
-		return FString();
+		return FString{};
 	}
+
+#ifdef INWORLD_WITH_NDK
 
 	UE_LOG(LogInworldAIClient, Log, TEXT("Device Id: %s"), *Id);
 
@@ -307,6 +327,9 @@ static FString GenerateUserId()
 	Data = HmacSha256(Data, Data);
 
 	return ToHex(Data);
+#else
+	return FString{};
+#endif
 }
 
 static void ConvertSceneToSceneId(const FInworldScene& Scene, const FString& Resource, std::string& SceneId)
@@ -417,19 +440,26 @@ static Inworld::ClientOptions CreateClientOptions(const FInworldScene& Scene, co
 
 	return Options;
 }
+#endif
 
 void UInworldClient::StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
+	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	Inworld::ClientOptions Options = CreateClientOptions(Scene, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
 	Client->Get().SetOptions(Options);
 
 	std::string SceneId;
 	ConvertSceneToSceneId(Scene, UTF8_TO_TCHAR(Options.Resource.c_str()), SceneId);
 	Client->Get().StartClientFromSceneId(SceneId);
+#endif
 }
 
 void UInworldClient::StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
+	NO_CLIENT_RETURN(void())
+
+#ifdef INWORLD_WITH_NDK
 	Inworld::ClientOptions Options = CreateClientOptions(Save.Scene, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
 	Client->Get().SetOptions(Options);
 
@@ -438,10 +468,14 @@ void UInworldClient::StartSessionFromSave(const FInworldSave& Save, const FInwor
 	SessionSave.State.resize(Save.State.Num());
 	FMemory::Memcpy((uint8*)SessionSave.State.data(), (uint8*)Save.State.GetData(), SessionSave.State.size());
 	Client->Get().StartClientFromSave(SessionSave);
+#endif
 }
 
 void UInworldClient::StartSessionFromToken(const FInworldToken& Token, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
+	NO_CLIENT_RETURN(void())
+
+#ifdef INWORLD_WITH_NDK
 	Inworld::ClientOptions Options = CreateClientOptions({}, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
 	Client->Get().SetOptions(Options);
 
@@ -450,78 +484,94 @@ void UInworldClient::StartSessionFromToken(const FInworldToken& Token, const FIn
 	SessionToken.ExpirationTime = Token.ExpirationTime;
 	SessionToken.SessionId = TCHAR_TO_UTF8(*Token.SessionId);
 	Client->Get().StartClientFromToken(SessionToken);
+#endif
 }
 
 void UInworldClient::StopSession()
 {
 	NO_CLIENT_RETURN(void())
 
+#ifdef INWORLD_WITH_NDK
 	OnPreStopDelegateNative.Broadcast();
 	OnPreStopDelegate.Broadcast();
 
 	Client->Get().StopClient();
+#endif
 }
 
 void UInworldClient::PauseSession()
 {
 	NO_CLIENT_RETURN(void())
 
+#ifdef INWORLD_WITH_NDK
 	OnPrePauseDelegateNative.Broadcast();
 	OnPrePauseDelegate.Broadcast();
 
 	Client->Get().PauseClient();
+#endif
 }
 
 void UInworldClient::ResumeSession()
 {
 	NO_CLIENT_RETURN(void())
 
+#ifdef INWORLD_WITH_NDK
 	Client->Get().ResumeClient();
+#endif
 }
 
 FInworldToken UInworldClient::GetSessionToken() const
 {
 	NO_CLIENT_RETURN({})
 
+#ifdef INWORLD_WITH_NDK
 	FInworldToken Token;
 	Inworld::SessionToken SessionToken = Client->Get().GetSessionToken();
 	Token.Token = UTF8_TO_TCHAR(SessionToken.Token.c_str());
 	Token.ExpirationTime = SessionToken.ExpirationTime;
 	Token.SessionId = UTF8_TO_TCHAR(SessionToken.SessionId.c_str());
 	return Token;
+#endif
 }
 
 void UInworldClient::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
 {
 	NO_CLIENT_RETURN(void())
 
+#ifdef INWORLD_WITH_NDK
 	Inworld::UserConfiguration UserConfig;
 	ConvertPlayerProfile(PlayerProfile, UserConfig);
 	Client->Get().LoadUserConfiguration(UserConfig);
+#endif
 }
 
 FInworldCapabilitySet UInworldClient::GetCapabilities() const
 {
 	NO_CLIENT_RETURN({})
 
+#ifdef INWORLD_WITH_NDK
 	FInworldCapabilitySet CapabilitySet;
 	ConvertCapabilities(Client->Get().GetOptions().Capabilities, CapabilitySet);
 	return CapabilitySet;
+#endif
 }
 
 void UInworldClient::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet)
 {
 	NO_CLIENT_RETURN(void())
 
+#ifdef INWORLD_WITH_NDK
 	Inworld::Capabilities Capabilities;
 	ConvertCapabilities(CapabilitySet, Capabilities);
 	Client->Get().LoadCapabilities(Capabilities);
+#endif
 }
 
 void UInworldClient::SaveSession(FOnInworldSessionSavedCallback Callback)
 {
 	NO_CLIENT_RETURN(void())
 
+#ifdef INWORLD_WITH_NDK
 	Client->Get().SaveSessionStateAsync([Callback](const Inworld::SessionSave& SessionSave, bool bSuccess)
 		{
 			FInworldSave Save;
@@ -541,11 +591,13 @@ void UInworldClient::SaveSession(FOnInworldSessionSavedCallback Callback)
 				}
 			);
 		});
+#endif
 }
 
 void UInworldClient::SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(InteractionId, void())
 
 	Inworld::InteractionFeedback InteractionFeedback;
@@ -553,27 +605,33 @@ void UInworldClient::SendInteractionFeedback(const FString& InteractionId, bool 
 	InteractionFeedback.comment = TCHAR_TO_UTF8(*Message);
 	std::string interaction = TCHAR_TO_UTF8(*InteractionId);
 	Client->Get().SendFeedbackAsync(interaction, InteractionFeedback);
+#endif
 }
 
 void UInworldClient::LoadCharacters(const TArray<FString>& Ids)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(Ids, void())
 
 	Client->Get().LoadCharacters(ToStd(Ids));
+#endif
 }
 
 void UInworldClient::UnloadCharacters(const TArray<FString>& Ids)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(Ids, void())
 
 	Client->Get().UnloadCharacters(ToStd(Ids));
+#endif
 }
 
 FString UInworldClient::UpdateConversation(const FString& ConversationId, const TArray<FString>& AgentIds, bool bIncludePlayer)
 {
 	NO_CLIENT_RETURN({})
+#ifdef INWORLD_WITH_NDK
 
 	if (AgentIds.Num() == 0)
 	{
@@ -582,18 +640,22 @@ FString UInworldClient::UpdateConversation(const FString& ConversationId, const 
 
 	auto Packet = Client->Get().UpdateConversation(ToStd(AgentIds), TCHAR_TO_UTF8(*ConversationId), bIncludePlayer);
 	return UTF8_TO_TCHAR(Packet->_Routing._ConversationId.c_str());
+#endif
 }
 
 EInworldConnectionState UInworldClient::GetConnectionState() const
 {
 	NO_CLIENT_RETURN(EInworldConnectionState::Idle)
+#ifdef INWORLD_WITH_NDK
 
 	return static_cast<EInworldConnectionState>(Client->Get().GetConnectionState());
+#endif
 }
 
 void UInworldClient::GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 
 	std::string ErrorMessage;
 	int32_t ErrorCode;
@@ -607,11 +669,13 @@ void UInworldClient::GetConnectionError(FString& OutErrorMessage, int32& OutErro
 	OutErrorDetails.ReconnectionType = static_cast<EInworldReconnectionType>(ErrorDetails.Reconnect);
 	OutErrorDetails.ReconnectTime = ErrorDetails.ReconnectTime;
 	OutErrorDetails.MaxRetries = ErrorDetails.MaxRetries;
+#endif
 }
 
 FInworldWrappedPacket UInworldClient::SendTextMessage(const FString& AgentId, const FString& Text)
 {
 	NO_CLIENT_RETURN({})
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(AgentId, {})
 	EMPTY_ARG_RETURN(Text, {})
 
@@ -619,11 +683,13 @@ FInworldWrappedPacket UInworldClient::SendTextMessage(const FString& AgentId, co
 	InworldPacketTranslator PacketTranslator;
 	Packet->Accept(PacketTranslator);
 	return PacketTranslator.GetPacket();
+#endif
 }
 
 FInworldWrappedPacket UInworldClient::SendTextMessageToConversation(const FString& ConversationId, const FString& Text)
 {
 	NO_CLIENT_RETURN({})
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(ConversationId, {})
 	EMPTY_ARG_RETURN(Text, {})
 
@@ -631,11 +697,13 @@ FInworldWrappedPacket UInworldClient::SendTextMessageToConversation(const FStrin
 	InworldPacketTranslator PacketTranslator;
 	Packet->Accept(PacketTranslator);
 	return PacketTranslator.GetPacket();
+#endif
 }
 
 void UInworldClient::InitSpeechProcessor(EInworldPlayerSpeechMode Mode, const FInworldPlayerSpeechOptions& SpeechOptions)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 
 	const FString Path = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("InworldAI"))->GetBaseDir(), TEXT("Source/ThirdParty/InworldAINDKLibrary/resource/silero_vad_10_27_2022.onnx"));
 
@@ -657,18 +725,22 @@ void UInworldClient::InitSpeechProcessor(EInworldPlayerSpeechMode Mode, const FI
 		Client->Get().InitSpeechProcessor(Inworld::ClientSpeechOptions_VAD_DetectAndFilterAudio{ Options_VAD });
 		break;
 	}
+#endif
 }
 
 void UInworldClient::DestroySpeechProcessor()
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 
 	Client->Get().DestroySpeechProcessor();
+#endif
 }
 
 void UInworldClient::SendSoundMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(AgentId, void())
 	EMPTY_ARG_RETURN(InputData, void())
 
@@ -683,11 +755,13 @@ void UInworldClient::SendSoundMessage(const FString& AgentId, const TArray<uint8
 		std::vector<int16> outputdata((int16*)OutputData.GetData(), ((int16*)OutputData.GetData()) + (OutputData.Num() / 2));
 		Client->Get().SendSoundMessageWithAEC(TCHAR_TO_UTF8(*AgentId), inputdata, outputdata);
 	}
+#endif
 }
 
 void UInworldClient::SendSoundMessageToConversation(const FString& ConversationId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(ConversationId, void())
 	EMPTY_ARG_RETURN(InputData, void())
 
@@ -702,84 +776,102 @@ void UInworldClient::SendSoundMessageToConversation(const FString& ConversationI
 		std::vector<int16> outputdata((int16*)OutputData.GetData(), ((int16*)OutputData.GetData()) + (OutputData.Num() / 2));
 		Client->Get().SendSoundMessageWithAECToConversation(TCHAR_TO_UTF8(*ConversationId), inputdata, outputdata);
 	}
+#endif
 }
 
 void UInworldClient::SendAudioSessionStart(const FString& AgentId, FInworldAudioSessionOptions SessionOptions)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(AgentId, void())
 
 	Inworld::AudioSessionStartPayload AudioPayload;
 	AudioPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(SessionOptions.MicrophoneMode);
 	AudioPayload.UndMode = static_cast<Inworld::AudioSessionStartPayload::UnderstandingMode>(SessionOptions.UnderstandingMode);
 	Client->Get().StartAudioSession(TCHAR_TO_UTF8(*AgentId), AudioPayload);
+#endif
 }
 
 void UInworldClient::SendAudioSessionStartToConversation(const FString& ConversationId, FInworldAudioSessionOptions SessionOptions)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(ConversationId, void())
 
 	Inworld::AudioSessionStartPayload AudioPayload;
 	AudioPayload.MicMode = static_cast<Inworld::AudioSessionStartPayload::MicrophoneMode>(SessionOptions.MicrophoneMode);
 	AudioPayload.UndMode = static_cast<Inworld::AudioSessionStartPayload::UnderstandingMode>(SessionOptions.UnderstandingMode);
 	Client->Get().StartAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId), AudioPayload);
+#endif
 }
 
 void UInworldClient::SendAudioSessionStop(const FString& AgentId)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(AgentId, void())
 
 	Client->Get().StopAudioSession(TCHAR_TO_UTF8(*AgentId));
+#endif
 }
 
 void UInworldClient::SendAudioSessionStopToConversation(const FString& ConversationId)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(ConversationId, void())
 
 	Client->Get().StopAudioSessionInConversation(TCHAR_TO_UTF8(*ConversationId));
+#endif
 }
 
 void UInworldClient::SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(AgentId, void())
 	EMPTY_ARG_RETURN(Name, void())
 
 	Client->Get().SendCustomEvent(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*Name), ToStd(Params));
+#endif
 }
 
 void UInworldClient::SendTriggerToConversation(const FString& ConversationId, const FString& Name, const TMap<FString, FString>& Params)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(ConversationId, void())
 	EMPTY_ARG_RETURN(Name, void())
 
 	Client->Get().SendCustomEventToConversation(TCHAR_TO_UTF8(*ConversationId), TCHAR_TO_UTF8(*Name), ToStd(Params));
+#endif
 }
 
 void UInworldClient::SendChangeSceneEvent(const FString& SceneName)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(SceneName, void())
 
 	Client->Get().LoadScene(TCHAR_TO_UTF8(*SceneName));
+#endif
 }
 
 void UInworldClient::SendNarrationEvent(const FString& AgentId, const FString& Content)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(AgentId, void())
 	EMPTY_ARG_RETURN(Content, void())
 
 	Client->Get().SendNarrationEvent(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*Content));
+#endif
 }
 
 void UInworldClient::CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(AgentId, void())
 	EMPTY_ARG_RETURN(InteractionId, void())
 	EMPTY_ARG_RETURN(UtteranceIds, void())
@@ -792,11 +884,13 @@ void UInworldClient::CancelResponse(const FString& AgentId, const FString& Inter
 	}
 
 	Client->Get().CancelResponse(TCHAR_TO_UTF8(*AgentId), TCHAR_TO_UTF8(*InteractionId), utteranceIds);
+#endif
 }
 
 void UInworldClient::CreateOrUpdateItems(const TArray<FInworldEntityItem>& Items, const TArray<FString>& AddToEntities)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(Items, void())
 	EMPTY_ARG_RETURN(AddToEntities, void())
 
@@ -812,43 +906,53 @@ void UInworldClient::CreateOrUpdateItems(const TArray<FInworldEntityItem>& Items
 	}
 
 	Client->Get().CreateOrUpdateItems(items, ToStd(AddToEntities));
+#endif
 }
 
 void UInworldClient::RemoveItems(const TArray<FString>& ItemIds)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(ItemIds, void())
 
 	Client->Get().RemoveItems(ToStd(ItemIds));
+#endif
 }
 
 void UInworldClient::AddItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(ItemIds, void())
 	EMPTY_ARG_RETURN(EntityNames, void())
 
 	Client->Get().AddItemsInEntities(ToStd(ItemIds), ToStd(EntityNames));
+#endif
 }
 
 void UInworldClient::RemoveItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(ItemIds, void())
 	EMPTY_ARG_RETURN(EntityNames, void())
 
 	Client->Get().RemoveItemsInEntities(ToStd(ItemIds), ToStd(EntityNames));
+#endif
 }
 
 void UInworldClient::ReplaceItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames)
 {
 	NO_CLIENT_RETURN(void())
+#ifdef INWORLD_WITH_NDK
 	EMPTY_ARG_RETURN(ItemIds, void())
 	EMPTY_ARG_RETURN(EntityNames, void())
 
 	Client->Get().ReplaceItemsInEntities(ToStd(ItemIds), ToStd(EntityNames));
+#endif
 }
 
+#ifdef INWORLD_WITH_NDK
 #if !UE_BUILD_SHIPPING
 void UInworldClient::OnCVarsChanged()
 {
@@ -865,6 +969,7 @@ void UInworldClient::OnCVarsChanged()
 		OnAudioDumperCVarChanged.Broadcast(GEnableSoundDump, GSoundDumpPath);
 	}
 }
+#endif
 #endif
 
 #undef EMPTY_ARG_RETURN

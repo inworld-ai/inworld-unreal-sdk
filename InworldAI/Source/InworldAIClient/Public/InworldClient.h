@@ -44,6 +44,7 @@ namespace Inworld
 	class Client;
 }
 
+#ifdef INWORLD_WITH_NDK
 class NDKClient
 {
 public:
@@ -52,6 +53,7 @@ public:
 
 	virtual Inworld::Client& Get() const = 0;
 };
+#endif
 
 UCLASS(BlueprintType)
 class INWORLDAICLIENT_API UInworldClient : public UObject
@@ -411,6 +413,7 @@ private:
 
 	bool bIsBeingDestroyed = false;
 
+#ifdef INWORLD_WITH_NDK
 #if !UE_BUILD_SHIPPING
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAudioDumperCVarChanged, bool /*Enabled*/, FString /*Path*/);
 	static FOnAudioDumperCVarChanged OnAudioDumperCVarChanged;
@@ -418,6 +421,9 @@ private:
 	static FAutoConsoleVariableSink CVarSink;
 	static void OnCVarsChanged();
 #endif
+#endif
 
+#ifdef INWORLD_WITH_NDK
 	TUniquePtr<NDKClient> Client;
+#endif
 };
