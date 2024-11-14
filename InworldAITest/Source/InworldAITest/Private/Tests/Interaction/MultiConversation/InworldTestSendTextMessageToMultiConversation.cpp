@@ -5,8 +5,6 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
-#pragma once
-
 #include "Tests/Interaction/MultiConversation/InworldTestSendTextMessageToMultiConversation.h"
 #include "Commands/InworldTestCommandsGarbageCollection.h"
 #include "Commands/InworldTestCommandsPlayer.h"
