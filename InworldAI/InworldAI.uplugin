@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.8.1.rc-1",
+	"VersionName": "1.8.1.rc-2",
 	"FriendlyName": "InworldAI",
 	"Description": "Integrate Characters from https://studio.inworld.ai",
 	"Category": "AI",
