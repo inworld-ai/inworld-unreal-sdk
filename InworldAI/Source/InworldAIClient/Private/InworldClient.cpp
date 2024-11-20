@@ -299,9 +299,9 @@ static void ConvertCapabilities(const T& Capabilities, U& OutCapabilities)
 	OutCapabilities.Audio2Face = Capabilities.Audio2Face;
 	OutCapabilities.MultiModalActionPlanning = Capabilities.MultiModalActionPlanning;
 	OutCapabilities.Logs = Capabilities.Logs;
-	OutCapabilities.Logs_warning = Capabilities.Logs_warning;
-	OutCapabilities.Logs_info = Capabilities.Logs_info;
-	OutCapabilities.Logs_debug = Capabilities.Logs_debug;
+	OutCapabilities.LogsWarning = Capabilities.LogsWarning;
+	OutCapabilities.LogsInfo = Capabilities.LogsInfo;
+	OutCapabilities.LogsDebug = Capabilities.LogsDebug;
 }
 
 static FString GenerateUserId()

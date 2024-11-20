@@ -141,20 +141,20 @@ struct FInworldCapabilitySet
     /**
     * Indicates if the capability for warning logs is enabled.
     */
-     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
-     bool Logs_warning = true;
+     UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(EditCondition = "Logs", EditConditionHides))
+     bool LogsWarning = true;
 
     /**
     * Indicates if the capability for info logs is enabled.
     */
-     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
-     bool Logs_info = true;
+     UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(EditCondition = "Logs", EditConditionHides))
+     bool LogsInfo = true;
 
     /**
     * Indicates if the capability for debug logs is enabled.
     */
-     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Capability")
-     bool Logs_debug = false;
+     UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(EditCondition = "Logs", EditConditionHides))
+     bool LogsDebug = false;
 };
 
 USTRUCT(BlueprintType)
