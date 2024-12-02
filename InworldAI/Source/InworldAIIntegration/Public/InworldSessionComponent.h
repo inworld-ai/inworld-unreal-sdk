@@ -55,13 +55,17 @@ public:
 	FOnInworldSessionLoadedNative& OnLoaded() { return OnSessionLoadedDelegateNative; }
 
 	/**
+	 * Start a session.
+	 * @param SceneId The scene to initialize.
+	 * @param Save The save data.
+	 * @param SessionToken The session token.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Session", meta = (DisplayName = "StartSession", AdvancedDisplay = "1", AutoCreateRefTerm = "Save, Token", DeprecatedFunction, DeprecationMessage = "UInworldSessionComponent::StartSession has been depricated, please use StartSessionFrom(Scene/Save/Token)."))
+	void StartSession(const FString& SceneId, const FInworldSave& Save, const FInworldToken& Token);
+
+	/**
 	 * Start a session from a scene.
 	 * @param Scene The scene to initialize.
-	 * @param PlayerProfile The player's profile.
-	 * @param CapabilitySet The capability set.
-	 * @param Metadata Additional metadata.
-	 * @param WorkspaceOverride The workspace to use instead of the project default.
-	 * @param AuthOverride The authentication to use instead of project default.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StartSessionFromScene(const FInworldScene& Scene);
@@ -69,11 +73,6 @@ public:
   /**
 	 * Start a session from a save.
 	 * @param Save The save data.
-	 * @param PlayerProfile The player's profile.
-	 * @param CapabilitySet The capability set.
-	 * @param Metadata Additional metadata.
-	 * @param WorkspaceOverride The workspace to use instead of the project default.
-	 * @param AuthOverride The authentication to use instead of project default.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StartSessionFromSave(const FInworldSave& Save);
@@ -81,11 +80,6 @@ public:
   /**
 	 * Start a session from a token.
 	 * @param SessionToken The session token.
-	 * @param PlayerProfile The player's profile.
-	 * @param CapabilitySet The capability set.
-	 * @param Metadata Additional metadata.
-	 * @param WorkspaceOverride The workspace to use instead of the project default.
-	 * @param AuthOverride The authentication to use instead of project default.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void StartSessionFromToken(const FInworldToken& Token);

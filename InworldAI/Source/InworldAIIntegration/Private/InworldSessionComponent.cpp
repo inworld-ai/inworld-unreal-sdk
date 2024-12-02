@@ -95,6 +95,29 @@ bool UInworldSessionComponent::GetIsLoaded() const
 	return InworldSession->IsLoaded();
 }
 
+void UInworldSessionComponent::StartSession(const FString& SceneId, const FInworldSave& Save, const FInworldToken& Token)
+{
+	if (!Token.Token.IsEmpty())
+	{
+		StartSessionFromToken(Token);
+	}
+	else if (!Save.State.IsEmpty())
+	{
+		if (Save.Scene.Name.IsEmpty())
+		{
+			StartSessionFromSave({ { EInworldSceneType::SCENE, SceneId }, Save.State });
+		}
+		else
+		{
+			StartSessionFromSave(Save);
+		}
+	}
+	else
+	{
+		StartSessionFromScene({ EInworldSceneType::SCENE, SceneId });
+	}
+}
+
 void UInworldSessionComponent::StartSessionFromScene(const FInworldScene& Scene)
 {
 	NO_CLIENT_RETURN(void())
