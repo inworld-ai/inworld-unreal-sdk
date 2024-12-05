@@ -160,7 +160,7 @@ public:
 UInworldPlayerAudioCaptureComponent::UInworldPlayerAudioCaptureComponent(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
     , AudioSessionOptions{ EInworldMicrophoneMode::OPEN_MIC, EInworldUnderstandingMode::FULL }
-    , PlayerSpeechMode{ EInworldPlayerSpeechMode::VAD_DETECT_ONLY }
+    , PlayerSpeechMode{ EInworldPlayerSpeechMode::DEFAULT }
 {
     PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.bTickEvenWhenPaused = true;
