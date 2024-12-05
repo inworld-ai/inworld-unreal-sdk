@@ -5,8 +5,6 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
-#pragma once
-
 #include "Tests/Interaction/MultiConversation/InworldTestSendTextMessageToMultiConversation.h"
 #include "Commands/InworldTestCommandsGarbageCollection.h"
 #include "Commands/InworldTestCommandsPlayer.h"
@@ -17,7 +15,7 @@ bool Inworld::Test::FSendTextMessageToMultiConversation::RunTest(const FString& 
 {
 	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
-		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->Scene, TestObject->Workspace, TestObject->RuntimeAuth);
 
 		for (UInworldCharacter* const Character : TestObject->Characters)
 		{

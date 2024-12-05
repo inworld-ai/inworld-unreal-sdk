@@ -29,22 +29,32 @@ public:
 
 	virtual void Activate() override;
 
+	/**
+	 * Event dispatcher for progress updates during the completion action.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "LLMService")
 	FInworldLLMApiDelegate OnProgress;
 
+	/**
+	 * Event dispatcher for completion of the asynchronous action.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "LLMService")
 	FInworldLLMApiDelegate OnComplete;
 
+	/**
+	 * Event dispatcher for handling failures during the asynchronous action.
+	 */
 	UPROPERTY(BlueprintAssignable, Category = "LLMService")
 	FInworldLLMApiDelegate OnFailure;
 
 private:
-	FString URL;
+	FString ApiUrl;
 
 protected:
 	FString ApiKey;
 	FString UserId;
 	FString Model;
+	FString ServiceProvider;
 
 protected:
 	virtual FString GetCompletionType() const PURE_VIRTUAL(UInworldLLMCompletionAsyncActionBase::GetCompletionType, return FString{};)

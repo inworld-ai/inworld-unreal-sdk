@@ -1,3 +1,21 @@
+# 1.8.1
+- Unsupported platforms compilation support
+
+# 1.8.0
+- UE 5.5 support
+- Project environment config
+- Short scene and brain names
+- Studio API
+- Latency reporting
+- Remove unused utilities
+- Cleanup NDK logging
+
+# 1.7.2
+- Crash on audio component cleanup fix
+
+# 1.7.1
+- Inactivity reconnect fix
+
 # 1.7.0
 - Voice Activity Detection (VAD)
 - Feedback API

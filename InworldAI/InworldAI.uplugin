@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.7.0",
+	"VersionName": "1.8.1.rc-2",
 	"FriendlyName": "InworldAI",
 	"Description": "Integrate Characters from https://studio.inworld.ai",
 	"Category": "AI",
@@ -17,59 +17,24 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "InworldAINDK",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Android",
-				"IOS"
-			]
-		},
-		{
 			"Name": "InworldAIClient",
 			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Android",
-				"IOS"
-			]
+			"LoadingPhase": "PreDefault"
 		},
 		{
 			"Name": "InworldAIIntegration",
 			"Type": "Runtime",
-			"LoadingPhase": "PreDefault",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Android",
-				"IOS"
-			]
+			"LoadingPhase": "PreDefault"
 		},
 		{
 			"Name": "InworldAILLM",
 			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Android",
-				"IOS"
-			]
+			"LoadingPhase": "Default"
 		},
 		{
 			"Name": "InworldAIPlatform",
 			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Android",
-				"IOS"
-			]
+			"LoadingPhase": "Default"
 		},
 		{
 			"Name": "InworldAIEditor",

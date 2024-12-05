@@ -15,7 +15,7 @@ bool Inworld::Test::FSendTextMessageToCharacter::RunTest(const FString& Paramete
 {
 	TScopedGCObject<UInworldTestObjectSession> TestObject;
 	{
-		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->Scene, TestObject->Workspace, TestObject->RuntimeAuth);
 		SendCharacterTextMessage(TestObject->Characters[0], TEXT("Hello!"));
 
 		WaitUntilInteractionEndWithTimeout(TestObject->ControlEvents, 1);

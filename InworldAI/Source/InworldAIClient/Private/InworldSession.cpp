@@ -12,7 +12,7 @@
 #include "InworldClient.h"
 #include "InworldMacros.h"
 
-#include "InworldAIIntegrationModule.h"
+#include "InworldAIClientModule.h"
 
 #include "Runtime/Launch/Resources/Version.h"
 #include "Engine/BlueprintGeneratedClass.h"
@@ -22,7 +22,7 @@
 
 #include "Net/UnrealNetwork.h"
 
-#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIIntegration, UInworldSession, Arg, Return)
+#define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIClient, UInworldSession, Arg, Return)
 #define NO_CLIENT_RETURN(Return) EMPTY_ARG_RETURN(Client, Return)
 #define INVALID_CHARACTER_RETURN(Return) EMPTY_ARG_RETURN(Character, Return) EMPTY_ARG_RETURN(Character->GetAgentInfo().AgentId, Return)
 #define INVALID_PLAYER_RETURN(Return) EMPTY_ARG_RETURN(Player, Return) EMPTY_ARG_RETURN(Player->GetConversationId(), Return)
@@ -267,12 +267,25 @@ void UInworldSession::UnregisterPlayer(UInworldPlayer* Player)
 	RegisteredPlayers.Remove(Player);
 }
 
-void UInworldSession::StartSession(const FInworldPlayerProfile& PlayerProfile, const FInworldAuth& Auth, const FString& SceneId, const FInworldSave& Save,
-	const FInworldSessionToken& SessionToken, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata)
+void UInworldSession::StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
 	NO_CLIENT_RETURN(void())
 
-	Client->StartSession(PlayerProfile, Auth, SceneId, Save, SessionToken, CapabilitySet, Metadata);
+	Client->StartSessionFromScene(Scene, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
+}
+
+void UInworldSession::StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->StartSessionFromSave(Save, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
+}
+
+void UInworldSession::StartSessionFromToken(const FInworldToken& Token, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->StartSessionFromToken(Token, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
 }
 
 void UInworldSession::StopSession()
@@ -298,11 +311,37 @@ void UInworldSession::ResumeSession()
 	Client->ResumeSession();
 }
 
-FString UInworldSession::GetSessionId() const
+FInworldToken UInworldSession::GetSessionToken() const
 {
 	NO_CLIENT_RETURN({})
 
-	return Client->GetSessionId();
+	return Client->GetSessionToken();
+}
+
+FString UInworldSession::GetSessionId() const
+{
+	return GetSessionToken().SessionId;
+}
+
+void UInworldSession::LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->LoadPlayerProfile(PlayerProfile);
+}
+
+FInworldCapabilitySet UInworldSession::GetCapabilities() const
+{
+	NO_CLIENT_RETURN({})
+
+	return Client->GetCapabilities();
+}
+
+void UInworldSession::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet)
+{
+	NO_CLIENT_RETURN(void())
+
+	Client->LoadCapabilities(CapabilitySet);
 }
 
 void UInworldSession::SaveSession(FOnInworldSessionSavedCallback Callback)
@@ -526,7 +565,7 @@ void UInworldSession::PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos)
 		}
 		else if (BrainName != FString("__DUMMY__"))
 		{
-			UE_LOG(LogInworldAIIntegration, Warning, TEXT("No character found for BrainName: %s"), *BrainName);
+			UE_LOG(LogInworldAIClient, Warning, TEXT("No character found for BrainName: %s"), *BrainName);
 		}
 	}
 
@@ -583,7 +622,7 @@ void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldControlE
 {
 	if (Event.Action == EInworldControlEventAction::WARNING)
 	{
-		UE_LOG(LogInworldAIIntegration, Warning, TEXT("%s"), *Event.Description);
+		UE_LOG(LogInworldAIClient, Warning, TEXT("%s"), *Event.Description);
 	}
 }
 
@@ -597,13 +636,13 @@ void UInworldSession::FInworldSessionPacketVisitor::Visit(const FInworldConversa
 	{
 		Session->ConversationIdToAgentIds.FindOrAdd(Event.Routing.ConversationId) = Event.Agents;
 	}
-	UE_LOG(LogInworldAIIntegration, Log, TEXT("Conversation %s: %s, %d character(s):"),
+	UE_LOG(LogInworldAIClient, Log, TEXT("Conversation %s: %s, %d character(s):"),
 		Event.EventType == EInworldConversationUpdateType::STARTED ? TEXT("STARTED") : Event.EventType == EInworldConversationUpdateType::EVICTED ? TEXT("EVICTED") : TEXT("UPDATED"),
 		*Event.Routing.ConversationId,
 		Event.Agents.Num())
 	for (const auto& Agent : Event.Agents)
 	{
-		UE_LOG(LogInworldAIIntegration, Log, TEXT("   Agent Id: %s."), *Agent);
+		UE_LOG(LogInworldAIClient, Log, TEXT("   Agent Id: %s."), *Agent);
 	}
 }
 

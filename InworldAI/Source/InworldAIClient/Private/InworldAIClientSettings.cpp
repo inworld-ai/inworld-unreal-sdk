@@ -6,12 +6,10 @@
  */
 
 
-#include "InworldAILLMSettings.h"
+#include "InworldAIClientSettings.h"
 
-UInworldAILLMSettings::UInworldAILLMSettings(const FObjectInitializer& ObjectInitializer)
+UInworldAIClientSettings::UInworldAIClientSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	ApiUrl = { "api.inworld.ai" };
-	Model = { "inworld-dragon" };
-	ServiceProvider = { "SERVICE_PROVIDER_INWORLD" };
+	Environment = {"api-engine.inworld.ai:443"};
 }

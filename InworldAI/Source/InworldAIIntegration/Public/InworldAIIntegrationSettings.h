@@ -17,7 +17,16 @@ class INWORLDAIINTEGRATION_API UInworldAIIntegrationSettings : public UObject
 	GENERATED_BODY()
 public:
 	UInworldAIIntegrationSettings(const FObjectInitializer& ObjectInitializer);
+	
+	/**
+	 * The URL for Inworld Studio.
+	 */
+	UPROPERTY(config, EditAnywhere, Category = "Inworld")
+	FString StudioApiUrl;
 
+	/**
+	 * Studio API key for authenticating with Inworld AI.
+	 */
 	UPROPERTY(config, EditAnywhere, Category = "Inworld")
 	FString StudioApiKey;
 };

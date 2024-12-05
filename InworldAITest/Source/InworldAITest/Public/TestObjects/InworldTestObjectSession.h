@@ -24,7 +24,10 @@ public:
 	UInworldTestObjectSession();
 
 	UPROPERTY()
-	FString SceneName;
+	FString Workspace;
+
+	UPROPERTY()
+	FInworldScene Scene;
 
 	UPROPERTY()
 	TObjectPtr<UInworldSession> Session;

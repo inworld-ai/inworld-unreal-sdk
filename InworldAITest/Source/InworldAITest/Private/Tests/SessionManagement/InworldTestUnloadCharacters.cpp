@@ -25,7 +25,7 @@ bool Inworld::Test::FUnloadCharacters::RunTest(const FString& Parameters)
 {
 	TScopedGCObject<UInworldTestObjectUnloadCharacters> TestObject;
 	{
-		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->SceneName, TestObject->RuntimeAuth);
+		FScopedSessionScene SessionScenePinned(TestObject->Session, TestObject->Scene, TestObject->Workspace, TestObject->RuntimeAuth);
 
 		for (UInworldCharacter* const Character : TestObject->UnloadCharacters)
 		{
