@@ -63,7 +63,7 @@ public:
 	 * Event dispatcher for when the player talks with the Inworld character.
 	 */
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Interaction")
-	FOnInworldCharacterPlayerTalk OnPlayerTalk;
+    FOnInworldCharacterPlayerTalk OnPlayerTalk;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInworldCharacterEmotionalBehaviorChanged, EInworldCharacterEmotionalBehavior, EmotionalBehavior, EInworldCharacterEmotionStrength, Strength);
 	/**
@@ -118,6 +118,13 @@ public:
 	FOnInworldCharacterTrigger OnTrigger;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterInteractionEnd, const FCharacterMessageInteractionEnd&, InteractionEnd);
+    /**
+     * Event dispatcher for when an action event is received from the Inworld character.
+     */
+    UPROPERTY(BlueprintAssignable, Category = "EventDispatchers|Action")
+    FOnInworldCharacterMessageAction OnAction;
+
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCharacterAction, const FCharacterMessageAction&, Action);
 	/**
 	 * Event dispatcher for when an interaction with the Inworld character ends.
 	 */
@@ -334,6 +341,8 @@ private:
 	void OnInworldCustomEvent(const FInworldCustomEvent& Event);
 	UFUNCTION()
 	void OnInworldRelationEvent(const FInworldRelationEvent& Event);
+    UFUNCTION()
+    void OnInworldActionEvent(const FInworldActionEvent& Event);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitText(const FInworldTextEvent& Event);
@@ -349,6 +358,8 @@ private:
 	void Multicast_VisitCustom(const FInworldCustomEvent& Event);
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitRelation(const FInworldRelationEvent& Event);
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_VisitAction(const FInworldActionEvent& Event);
 
 	bool IsCustomGesture(const FString& CustomEventName) const;
 
@@ -371,6 +382,8 @@ private:
 
 	virtual void Handle(const FCharacterMessageTrigger& Message) override;
 
+    virtual void Handle(const FCharacterMessageAction& Message) override;
+    
 	virtual void Handle(const FCharacterMessageInteractionEnd& Message) override;
 
 	TMap<FString, TArray<FString>> PendingCancelResponses;

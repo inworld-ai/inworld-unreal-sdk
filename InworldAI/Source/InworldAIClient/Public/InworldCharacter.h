@@ -243,6 +243,13 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Event")
 	FOnInworldCustomEvent OnInworldCustomEventDelegate;
 	FOnInworldCustomEventNative& OnInworldCustomEvent() { return OnInworldCustomEventDelegateNative; }
+    
+    /**
+     * Delegate for  Inworld action events.
+     */
+    UPROPERTY(BlueprintAssignable, Category = "Event")
+    FOnInworldActionEvent OnInworldActionEventDelegate;
+    FOnInworldActionEventNative& OnInworldActionEvent() { return OnInworldActionEventDelegateNative; }
 
 private:
 	UPROPERTY(Replicated)
@@ -268,6 +275,7 @@ private:
 	FOnInworldControlEventNative OnInworldControlEventDelegateNative;
 	FOnInworldEmotionEventNative OnInworldEmotionEventDelegateNative;
 	FOnInworldCustomEventNative OnInworldCustomEventDelegateNative;
+    FOnInworldActionEventNative OnInworldActionEventDelegateNative;
 
 	class FInworldCharacterPacketVisitor : public TSharedFromThis<FInworldCharacterPacketVisitor>, public InworldPacketVisitor
 	{
@@ -289,6 +297,7 @@ private:
 		virtual void Visit(const FInworldControlEvent& Event) override;
 		virtual void Visit(const FInworldEmotionEvent& Event) override;
 		virtual void Visit(const FInworldCustomEvent& Event) override;
+        virtual void Visit(const FInworldActionEvent& Event) override;
 
 	private:
 		UInworldCharacter* Character;

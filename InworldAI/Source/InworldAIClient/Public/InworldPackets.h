@@ -167,6 +167,7 @@ public:
 	virtual void Visit(const FInworldCustomGestureEvent& Event) {  }
 	virtual void Visit(const FInworldCustomEvent& Event) {  }
 	virtual void Visit(const FInworldRelationEvent& Event) {  }
+    virtual void Visit(const FInworldActionEvent& Event) {  }
 };
 
 struct FInworldPacket;
@@ -483,4 +484,18 @@ struct INWORLDAICLIENT_API FInworldRelationEvent : public FInworldPacket
 	int32 Trust = 0;
 
 	virtual void AppendDebugString(FString& Str) const override;
+};
+
+USTRUCT()
+struct INWORLDAICLIENT_API FInworldActionEvent : public FInworldPacket
+{
+    GENERATED_BODY()
+    
+    FInworldActionEvent() = default;
+    virtual ~FInworldActionEvent() = default;
+    
+    virtual void Accept(InworldPacketVisitor& Visitor) override { Visitor.Visit(*this); }
+    
+    UPROPERTY()
+    FString Content;
 };

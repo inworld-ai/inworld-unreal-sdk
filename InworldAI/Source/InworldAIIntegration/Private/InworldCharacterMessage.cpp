@@ -145,6 +145,12 @@ void operator<<(FCharacterMessageTrigger& Message, const FInworldRelationEvent& 
 	Message.Params.Add(TEXT("Trust"), FString::FromInt(Event.Trust));
 }
 
+void operator<<(FCharacterMessageAction& Message, const FInworldActionEvent& Event)
+{
+    ((FCharacterMessage&)(Message)) << Event;
+    Message.Content = Event.Content;
+}
+
 void operator<<(FCharacterMessageInteractionEnd& Message, const FInworldControlEvent& Event)
 {
 	((FCharacterMessage&)(Message)) << Event;

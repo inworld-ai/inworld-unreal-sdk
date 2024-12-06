@@ -215,6 +215,18 @@ struct FCharacterMessageTrigger : public FCharacterMessage
 };
 
 USTRUCT(BlueprintType)
+struct FCharacterMessageAction : public FCharacterMessage
+{
+    GENERATED_BODY()
+    
+    /** The content of the action. */
+    UPROPERTY(BlueprintReadOnly, Category = "Message")
+    FString Content;
+    
+    virtual FString ToDebugString() const override { return FString::Printf(TEXT("Action. Content %s"), *Content); }
+};
+
+USTRUCT(BlueprintType)
 struct FCharacterMessageInteractionEnd : public FCharacterMessage
 {
 	GENERATED_BODY()
@@ -231,4 +243,5 @@ void operator<<(FCharacterMessagePlayerTalk& Message, const FInworldTextEvent& E
 void operator<<(FCharacterMessageSilence& Message, const FInworldSilenceEvent& Event);
 void operator<<(FCharacterMessageTrigger& Message, const FInworldCustomEvent& Event);
 void operator<<(FCharacterMessageTrigger& Message, const FInworldRelationEvent& Event);
+void operator<<(FCharacterMessageAction& Message, const FInworldActionEvent& Event);
 void operator<<(FCharacterMessageInteractionEnd& Message, const FInworldControlEvent& Event);

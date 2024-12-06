@@ -463,6 +463,16 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 	}
 }
 
+void UInworldCharacterComponent::Multicast_VisitAction_Implementation(const FInworldActionEvent& Event)
+{
+    if(GetNetMode() == NM_DedicatedServer)
+    {
+        return;
+    }
+    
+    MessageQueue->AddOrUpdateMessage<FCharacterMessageAction>(Event);
+}
+
 void UInworldCharacterComponent::OnInworldTextEvent(const FInworldTextEvent& Event)
 {
     Multicast_VisitText(Event);
@@ -548,6 +558,11 @@ void UInworldCharacterComponent::OnInworldRelationEvent(const FInworldRelationEv
 	Multicast_VisitRelation(Event);
 }
 
+void UInworldCharacterComponent::OnInworldActionEvent(const FInworldActionEvent& Event)
+{
+    Multicast_VisitAction(Event);
+}
+
 void UInworldCharacterComponent::Handle(const FCharacterMessageUtterance& Message)
 {
 	OnUtterance.Broadcast(Message);
@@ -590,6 +605,11 @@ void UInworldCharacterComponent::Handle(const FCharacterMessageTrigger& Message)
 	OnTrigger.Broadcast(Message);
 }
 
+void UInworldCharacterComponent::Handle(const FCharacterMessageAction& Message)
+{
+    OnAction.Broadcast(Message);
+}
+
 void UInworldCharacterComponent::Handle(const FCharacterMessageInteractionEnd& Message)
 {
 	const FString& InteractionId = Message.InteractionId;
@@ -621,6 +641,7 @@ void UInworldCharacterComponent::OnRep_InworldCharacter()
 		InworldCharacter->OnInworldControlEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldControlEvent);
 		InworldCharacter->OnInworldEmotionEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldEmotionEvent);
 		InworldCharacter->OnInworldCustomEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldCustomEvent);
+        InworldCharacter->OnInworldActionEvent().AddUObject(this, &UInworldCharacterComponent::OnInworldActionEvent);
 	}
 }
 
