@@ -293,5 +293,11 @@ void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldCust
 	Character->OnInworldCustomEventDelegate.Broadcast(Event);
 }
 
+void UInworldCharacter::FInworldCharacterPacketVisitor::Visit(const FInworldActionEvent& Event)
+{
+    Character->OnInworldActionEventDelegateNative.Broadcast(Event);
+    Character->OnInworldActionEventDelegate.Broadcast(Event);
+}
+
 #undef EMPTY_ARG_RETURN
 #undef NO_SESSION_RETURN

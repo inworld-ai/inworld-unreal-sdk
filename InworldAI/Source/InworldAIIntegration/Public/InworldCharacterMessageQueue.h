@@ -100,6 +100,15 @@ template<>
 inline void FCharacterMessageQueueEntry<FCharacterMessageTrigger>::AcceptResume(ICharacterMessageVisitor& Visitor) { }
 
 template<>
+inline void FCharacterMessageQueueEntry<FCharacterMessageAction>::AcceptInterrupt(ICharacterMessageVisitor& Visitor) { }
+template<>
+inline void FCharacterMessageQueueEntry<FCharacterMessageAction>::AcceptCancel(ICharacterMessageVisitor& Visitor) { }
+template<>
+inline void FCharacterMessageQueueEntry<FCharacterMessageAction>::AcceptPause(ICharacterMessageVisitor& Visitor) { }
+template<>
+inline void FCharacterMessageQueueEntry<FCharacterMessageAction>::AcceptResume(ICharacterMessageVisitor& Visitor) { }
+
+template<>
 inline void FCharacterMessageQueueEntry<FCharacterMessageInteractionEnd>::AcceptInterrupt(ICharacterMessageVisitor& Visitor) { Visitor.Handle(*Message); }
 template<>
 inline void FCharacterMessageQueueEntry<FCharacterMessageInteractionEnd>::AcceptCancel(ICharacterMessageVisitor& Visitor) { Visitor.Handle(*Message); }
@@ -162,7 +171,7 @@ struct FCharacterMessageQueue : public TSharedFromThis<FCharacterMessageQueue>
 		{
 			(*Message) << Event;
 
-			OnUpdated(*Message);
+            OnUpdated(*Message);
 		}
 
 		TryToProgress();
@@ -210,6 +219,7 @@ private:
 	void OnUpdated(const FCharacterMessageUtterance& Message) {}
 	void OnUpdated(const FCharacterMessageSilence& Message) {}
 	void OnUpdated(const FCharacterMessageTrigger& Message);
+    void OnUpdated(const FCharacterMessageAction& Message) {}
 	void OnUpdated(const FCharacterMessageInteractionEnd& Message);
 
 	void EndInteraction(const FString& InteractionId);

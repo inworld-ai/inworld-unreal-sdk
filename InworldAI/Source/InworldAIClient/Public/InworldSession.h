@@ -41,6 +41,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEvent, const FInwor
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldEmotionEventNative, const FInworldEmotionEvent& /*EmotionEvent*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEvent, const FInworldCustomEvent&, CustomEvent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldCustomEventNative, const FInworldCustomEvent& /*CustomEvent*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldActionEvent, const FInworldActionEvent&, ActionEvent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldActionEventNative, const FInworldActionEvent& /*ActionEvent*/);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoaded, bool, bLoaded);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInworldSessionLoadedNative, bool /*bLoaded*/);

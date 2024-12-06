@@ -195,4 +195,11 @@ void InworldPacketTranslator::TranslateEvent<Inworld::RelationEvent, FInworldRel
 	New.Trust = Original.GetTrust();
 }
 
+template <>
+ void InworldPacketTranslator::TranslateEvent<Inworld::ActionEvent, FInworldActionEvent>(const Inworld::ActionEvent& Original, FInworldActionEvent& New)
+ {
+     TranslateInworldPacket(Original, New);
+     New.Content = UTF8_TO_TCHAR(Original.GetContent().c_str());
+ }
+
 #endif
