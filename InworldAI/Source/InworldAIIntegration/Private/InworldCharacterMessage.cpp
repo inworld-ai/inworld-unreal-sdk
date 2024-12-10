@@ -35,14 +35,6 @@ void operator<<(FCharacterMessageUtterance& Message, const FInworldAudioDataEven
 
 	UtteranceData->SoundData.Append(Event.Chunk);
 
-	FWaveModInfo WaveInfo;
-	if (WaveInfo.ReadWaveInfo(UtteranceData->SoundData.GetData(), UtteranceData->SoundData.Num()))
-	{
-		UtteranceData->ChannelCount = *WaveInfo.pChannels;
-		UtteranceData->SamplesPerSecond = *WaveInfo.pSamplesPerSec;
-		UtteranceData->BitsPerSample = *WaveInfo.pBitsPerSample;
-	}
-
 	ensure(!UtteranceData->bAudioFinal);
 	UtteranceData->bAudioFinal = Event.bFinal;
 
@@ -59,10 +51,19 @@ void operator<<(FCharacterMessageUtterance& Message, const FInworldAudioDataEven
 			UtteranceData->VisemeInfos.Add({ VisemeInfo.Code, VisemeInfo.Timestamp });
 		}
 	}
-	if (UtteranceData->bAudioFinal)
+
+	FWaveModInfo WaveInfo;
+	if (WaveInfo.ReadWaveInfo(UtteranceData->SoundData.GetData(), UtteranceData->SoundData.Num()))
 	{
-		const float Duration = *WaveInfo.pWaveDataSize / (*WaveInfo.pChannels * (*WaveInfo.pBitsPerSample / 8.f) * *WaveInfo.pSamplesPerSec);
-		UtteranceData->VisemeInfos.Add({ TEXT("STOP"), Duration });
+		UtteranceData->ChannelCount = *WaveInfo.pChannels;
+		UtteranceData->SamplesPerSecond = *WaveInfo.pSamplesPerSec;
+		UtteranceData->BitsPerSample = *WaveInfo.pBitsPerSample;
+
+		if (UtteranceData->bAudioFinal)
+		{
+			const float Duration = *WaveInfo.pWaveDataSize / (*WaveInfo.pChannels * (*WaveInfo.pBitsPerSample / 8.f) * *WaveInfo.pSamplesPerSec);
+			UtteranceData->VisemeInfos.Add({ TEXT("STOP"), Duration });
+		}
 	}
 }
 
