@@ -39,12 +39,12 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldPerceivedLatencyNative, FString /
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldSessionSavedCallback, FInworldSave, Save, bool, bSuccess);
 
+#ifdef INWORLD_WITH_NDK
 namespace Inworld
 {
 	class Client;
 }
 
-#ifdef INWORLD_WITH_NDK
 class NDKClient
 {
 public:
@@ -52,6 +52,20 @@ public:
 	virtual ~NDKClient() = default;
 
 	virtual Inworld::Client& Get() const = 0;
+};
+#else
+
+class IHttpRequest;
+class IWebSocket;
+
+class WSClient
+{
+public:
+	WSClient() = default;
+	virtual ~WSClient() = default;
+
+	TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> TokenRequest;
+	TSharedPtr<IWebSocket> ServiceSocket;
 };
 #endif
 
@@ -63,7 +77,7 @@ public:
 
 	UInworldClient();
 	~UInworldClient();
-  
+	FString RequestToken(const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
  	/**
 	* Start a session from a scene.
 	* @param Scene The scene to initialize.
@@ -421,9 +435,9 @@ private:
 	static FAutoConsoleVariableSink CVarSink;
 	static void OnCVarsChanged();
 #endif
-#endif
 
-#ifdef INWORLD_WITH_NDK
 	TUniquePtr<NDKClient> Client;
+#else
+	TUniquePtr<WSClient> Client;
 #endif
 };

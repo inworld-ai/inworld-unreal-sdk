@@ -33,7 +33,7 @@ public class InworldAIClient : ModuleRules
                 "Projects",
             });
 
-        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.IOS || Target.Platform == UnrealTargetPlatform.Android)
+        if (true || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.IOS || Target.Platform == UnrealTargetPlatform.Android)
         {
             PublicDefinitions.Add("INWORLD_WITH_NDK=1");
             PrivateDependencyModuleNames.AddRange(
@@ -41,6 +41,17 @@ public class InworldAIClient : ModuleRules
                 {
                     "InworldAINDKLibrary",
                 });
+        }
+        else
+        {
+            PrivateDependencyModuleNames.AddRange(
+            new string[]
+            {
+                "WebSockets",
+                "SSL",
+                "HTTP",
+            });
+            AddEngineThirdPartyPrivateStaticDependencies(Target, "OpenSSL");
         }
     }
 }

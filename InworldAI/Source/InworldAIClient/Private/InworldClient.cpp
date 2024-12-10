@@ -25,6 +25,20 @@ THIRD_PARTY_INCLUDES_START
 #include "Utils/Log.h"
 #include "Utils/Utils.h"
 THIRD_PARTY_INCLUDES_END
+#else
+#define UI UI_ST
+THIRD_PARTY_INCLUDES_START
+#include "Ssl.h"
+#include <openssl/hmac.h>
+#include <openssl/sha.h>
+#include <openssl/ssl.h>
+THIRD_PARTY_INCLUDES_END
+#undef UI
+#include "HttpModule.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
+#include "WebSocketsModule.h"
+#include "IWebSocket.h"
 #endif
 
 #include "Async/Async.h"
@@ -80,6 +94,113 @@ public:
 private:
 	std::unique_ptr<Inworld::Client> _Client;
 };
+#endif
+
+#ifdef INWORLD_WITH_NDK
+#else
+namespace Security
+{
+
+	class FStringAnsi
+	{
+	public:
+		FStringAnsi()
+		{
+			Inner.Add(0);
+		}
+
+		FStringAnsi(const ANSICHAR* Text)
+		{
+			Inner.Append(Text, FCStringAnsi::Strlen(Text) + 1);
+		}
+
+		void Append(ANSICHAR Character)
+		{
+			Inner[Inner.Num() - 1] = Character;
+			Inner.Add(0);
+		}
+
+		void Append(const FStringAnsi& Other)
+		{
+			Inner.RemoveAt(Inner.Num() - 1);
+			Inner.Append(Other.Inner);
+		}
+
+		void Append(const ANSICHAR* Text)
+		{
+			Inner.RemoveAt(Inner.Num() - 1);
+			Inner.Append(Text, FCStringAnsi::Strlen(Text) + 1);
+		}
+
+		void Append(const ANSICHAR* Start, const ANSICHAR* End)
+		{
+			Inner.RemoveAt(Inner.Num() - 1);
+			Inner.Append(Start, UE_PTRDIFF_TO_INT32(End - Start));
+			Inner.Add(0);
+		}
+
+		static FStringAnsi Printf(const ANSICHAR* Format, ...)
+		{
+			ANSICHAR Buffer[1024];
+			GET_TYPED_VARARGS(ANSICHAR, Buffer, UE_ARRAY_COUNT(Buffer), UE_ARRAY_COUNT(Buffer) - 1, Format, Format);
+			return Buffer;
+		}
+
+		FString ToWideString() const
+		{
+			return ANSI_TO_TCHAR(Inner.GetData());
+		}
+
+		const ANSICHAR* operator*() const
+		{
+			return Inner.GetData();
+		}
+
+		int32 Len() const
+		{
+			return Inner.Num() - 1;
+		}
+
+	private:
+		TArray<ANSICHAR> Inner;
+	};
+
+	////////////////////////////////////////////////////////////////////////////////
+	struct FSHA256
+	{
+		using ByteArray = uint8[32];
+
+		FSHA256() = default;
+
+		void ToString(FAnsiStringBuilderBase& Sb)
+		{
+			UE::String::BytesToHexLower(Hash, Sb);
+		}
+
+		alignas(uint32) ByteArray Hash {};
+	};
+
+	FSHA256 Sha256(const uint8* Input, size_t InputLen)
+	{
+		FSHA256 Output;
+		SHA256(Input, InputLen, Output.Hash);
+		return Output;
+	}
+
+	FSHA256 HmacSha256(const uint8* Input, size_t InputLen, const uint8* Key, size_t KeyLen)
+	{
+		FSHA256 Output;
+		unsigned int OutputLen = 0;
+		HMAC(EVP_sha256(), Key, KeyLen, (const unsigned char*)Input, InputLen, Output.Hash, &OutputLen);
+		return Output;
+	}
+
+	FSHA256 HmacSha256(const char* Input, const uint8* Key, size_t KeyLen)
+	{
+		return HmacSha256((const uint8*)Input, (size_t)FCStringAnsi::Strlen(Input), Key, KeyLen);
+	}
+
+} // namespace Security
 #endif
 
 #define EMPTY_ARG_RETURN(Arg, Return) INWORLD_WARN_AND_RETURN_EMPTY(LogInworldAIClient, UInworldClient, Arg, Return)
@@ -251,6 +372,8 @@ UInworldClient::UInworldClient()
 	OnAudioDumperCVarChangedHandle = OnAudioDumperCVarChanged.AddLambda(OnAudioDumperCVarChangedCallback);
 	OnAudioDumperCVarChangedCallback(CVarEnableSoundDump.GetValueOnGameThread(), CVarSoundDumpPath.GetValueOnGameThread());
 #endif
+#else
+	Client = MakeUnique<WSClient>();
 #endif
 }
 
@@ -261,11 +384,10 @@ UInworldClient::~UInworldClient()
 #if !UE_BUILD_SHIPPING
 	OnAudioDumperCVarChanged.Remove(OnAudioDumperCVarChangedHandle);
 #endif
-	Client.Reset();
 #endif
+	Client.Reset();
 }
 
-#ifdef INWORLD_WITH_NDK
 static FString GetResourceFromSettings(const FString& WorkspaceOverride)
 {
 	const UInworldAIClientSettings* InworldAIClientSettings = GetDefault<UInworldAIClientSettings>();
@@ -281,6 +403,7 @@ static FString GetResourceFromSettings(const FString& WorkspaceOverride)
 	return {};
 }
 
+#ifdef INWORLD_WITH_NDK
 template<class T, class U>
 static void ConvertCapabilities(const T& Capabilities, U& OutCapabilities)
 {
@@ -446,9 +569,55 @@ static Inworld::ClientOptions CreateClientOptions(const FInworldScene& Scene, co
 }
 #endif
 
+FString UInworldClient::RequestToken(const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
+{
+#ifdef INWORLD_WITH_NDK
+	return {};
+#else
+	const UInworldAIClientSettings* InworldAIClientSettings = GetDefault<UInworldAIClientSettings>();
+	const FInworldAuth DefaultAuth = InworldAIClientSettings->Auth;
+	const FString Base64{ TCHAR_TO_UTF8(AuthOverride.Base64Signature.IsEmpty() ? *DefaultAuth.Base64Signature : *AuthOverride.Base64Signature) };
+	const FString ApiKey{"LEZY7iMDGozI9TTnOqussz43YHq2MqgA"};// { TCHAR_TO_UTF8(AuthOverride.ApiKey.IsEmpty() ? *DefaultAuth.ApiKey : *AuthOverride.ApiKey) };
+	const FString ApiSecret{"XoUwDJFYit7m0mR9AaiZUrhk2MKahsDfH81w4pmFyCsMeRBzLOQxadYyRveecn2r"};// { TCHAR_TO_UTF8(AuthOverride.ApiSecret.IsEmpty() ? *DefaultAuth.ApiSecret : *AuthOverride.ApiSecret) };
+
+	const FString DateString{ FDateTime::UtcNow().ToString(TEXT("%Y%m%d%H%M%S")) };
+
+	const FString Chars{ FString("1234567890") };
+	FString Nonce{ "00000000000" };
+
+	for (int32 i = 0; i < Nonce.Len(); i++)
+	{
+		Nonce[i] = Chars.GetCharArray()[FMath::RandRange(0, Chars.Len() - 1)];
+	}
+
+	const FString Url{"api-engine.inworld.ai"};// { InworldAIClientSettings->Environment.TargetUrl };
+
+	const FString Service{ "ai.inworld.engine.v1.SessionTokens/GenerateSessionToken" };
+	const FString Request{ "iw1_request" };
+
+	TAnsiStringBuilder<64> Key;
+	Key.Appendf("IW1%s", StringCast<ANSICHAR>(*ApiSecret).Get());
+	Security::FSHA256 DateHash = Security::HmacSha256(StringCast<ANSICHAR>(*DateString).Get(), (const uint8*)*Key, Key.Len());
+	Security::FSHA256 UrlHash = Security::HmacSha256(StringCast<ANSICHAR>(*Url).Get(), DateHash.Hash, sizeof(DateHash.Hash));
+	Security::FSHA256 ServiceHash = Security::HmacSha256(StringCast<ANSICHAR>(*Service).Get(), UrlHash.Hash, sizeof(UrlHash.Hash));
+	Security::FSHA256 NonceHash = Security::HmacSha256(StringCast<ANSICHAR>(*Nonce).Get(), ServiceHash.Hash, sizeof(ServiceHash.Hash));
+	Security::FSHA256 SigningKeyHash = Security::HmacSha256(StringCast<ANSICHAR>(*Request).Get(), NonceHash.Hash, sizeof(NonceHash.Hash));
+
+	FAnsiStringBuilderBase SB;
+	SigningKeyHash.ToString(SB);
+	FString Signature = SB.ToString();
+
+	return FString("IW1-HMAC-SHA256 ApiKey=") + ApiKey +
+		",DateTime=" + DateString +
+		",Nonce=" + Nonce +
+		",Signature=" + Signature;
+	//return "IW1-HMAC-SHA256 ApiKey=LEZY7iMDGozI9TTnOqussz43YHq2MqgA,DateTime=20241210063233,Nonce=22062565433,Signature=d5a532e6075fa4d90c4f3dd7bb633d99bf8dbb4729062f2e84a5aa963d63db40";
+#endif
+}
+
 void UInworldClient::StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride)
 {
-	NO_CLIENT_RETURN(void())
+	//NO_CLIENT_RETURN(void())
 #ifdef INWORLD_WITH_NDK
 	Inworld::ClientOptions Options = CreateClientOptions(Scene, PlayerProfile, CapabilitySet, Metadata, WorkspaceOverride, AuthOverride);
 	Client->Get().SetOptions(Options);
@@ -456,6 +625,25 @@ void UInworldClient::StartSessionFromScene(const FInworldScene& Scene, const FIn
 	std::string SceneId;
 	ConvertSceneToSceneId(Scene, UTF8_TO_TCHAR(Options.Resource.c_str()), SceneId);
 	Client->Get().StartClientFromSceneId(SceneId);
+#else
+	Client->TokenRequest = FHttpModule::Get().CreateRequest();
+	const UInworldAIClientSettings* InworldAIClientSettings = GetDefault<UInworldAIClientSettings>();
+	Client->TokenRequest->SetURL(FString{ "https://" } + FString{ "api.inworld.ai" }/*InworldAIClientSettings->Environment.TargetUrl*/ + FString{"/v1/sessionTokens/token:generate"});
+	const FString Authorization = RequestToken(WorkspaceOverride, AuthOverride);
+	Client->TokenRequest->SetHeader("Authorization", Authorization);
+	Client->TokenRequest->SetHeader("Content-Type", "application/json");
+	Client->TokenRequest->SetVerb("POST");
+	Client->TokenRequest->SetContentAsString("{\"api_key\":\"LEZY7iMDGozI9TTnOqussz43YHq2MqgA\", \"resource_id\" : \"workspaces/13e89de0-7e87-46d1-a420-87e93758f757\"}");
+	Client->TokenRequest->OnProcessRequestComplete().BindLambda(
+		[](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)
+		{
+			const int32 ResponseCode = Response->GetResponseCode();
+			const FString ResponseString = Response->GetContentAsString();
+
+			const FString ResponseContentString = Response->GetContentAsString();
+		}
+	);
+	Client->TokenRequest->ProcessRequest();
 #endif
 }
 
