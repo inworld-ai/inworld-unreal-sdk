@@ -250,6 +250,11 @@ struct FInworldEnvironment
      */
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
     FString TargetUrl = "";
+    /**
+     * The api URL for the Inworld environment.
+     */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Environment")
+    FString ApiUrl = "";
 };
 
 USTRUCT(BlueprintType)

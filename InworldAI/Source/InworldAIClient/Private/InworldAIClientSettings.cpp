@@ -11,5 +11,5 @@
 UInworldAIClientSettings::UInworldAIClientSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	Environment = {"api-engine.inworld.ai:443"};
+	Environment = { "api-engine.inworld.ai:443", "api.inworld.ai"};
 }

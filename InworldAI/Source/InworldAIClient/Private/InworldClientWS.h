@@ -14,6 +14,8 @@
 #include "InworldTypes.h"
 #include "InworldPackets.h"
 
+#include "HttpModule.h"
+
 class InworldClientWS : public IInworldClientImplInterface
 {
 public:
@@ -98,6 +100,12 @@ private:
     FOnInworldPacketReceivedNative OnPacketReceivedDelegateNative;
     FOnInworldConnectionStateChangedNative OnConnectionStateChangedDelegateNative;
     FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
+
+    FInworldToken ActiveToken;
+    FHttpRequestPtr TokenRequest;
+
+    DECLARE_DELEGATE_OneParam(FOnTokenGenerated, bool)
+    void GenerateToken(FOnTokenGenerated Callback, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
 };
 
 #endif
