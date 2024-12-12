@@ -6,7 +6,9 @@
  */
 #ifdef INWORLD_WITH_WS
 
-#include "InworldClientWS.h"
+#include "WS/InworldClientWS.h"
+#include "WS/InworldWSTypes.h"
+
 #include "InworldAIClientModule.h"
 #include "InworldAIClientSettings.h"
 

@@ -6,7 +6,8 @@
  */
 #ifdef INWORLD_WITH_NDK
 
-#include "InworldClientNDK.h"
+#include "NDK/InworldClientNDK.h"
+
 #include "InworldAIClientModule.h"
 #include "InworldAIClientSettings.h"
 

@@ -14,9 +14,9 @@
 #endif
 
 #if defined(INWORLD_WITH_NDK)
-#include "InworldClientNDK.h"
+#include "NDK/InworldClientNDK.h"
 #elif defined(INWORLD_WITH_WS)
-#include "InworldClientWS.h"
+#include "WS/InworldClientWS.h"
 #else
 #error A client type must be defined.
 #endif
