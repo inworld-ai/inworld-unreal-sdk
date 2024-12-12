@@ -11,12 +11,6 @@
 #include "InworldTypes.h"
 #include "InworldPackets.h"
 
-#if !UE_BUILD_SHIPPING
-#include "HAL/IConsoleManager.h"
-#endif
-
-#include <memory>
-
 #include "InworldClient.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInworldPacketReceived, const FInworldWrappedPacket&, WrappedPacket);
@@ -39,35 +33,85 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInworldPerceivedLatencyNative, FString /
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnInworldSessionSavedCallback, FInworldSave, Save, bool, bSuccess);
 
-#ifdef INWORLD_WITH_NDK
-namespace Inworld
-{
-	class Client;
-}
-
-class NDKClient
+class IInworldClientImplInterface
 {
 public:
-	NDKClient() = default;
-	virtual ~NDKClient() = default;
+	IInworldClientImplInterface() = default;
+	virtual ~IInworldClientImplInterface() = default;
+	// Session Management
+	virtual void StartSessionFromScene(const FInworldScene& Scene, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride) = 0;
+	virtual void StartSessionFromSave(const FInworldSave& Save, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride) = 0;
+	virtual void StartSessionFromToken(const FInworldToken& Token, const FInworldPlayerProfile& PlayerProfile, const FInworldCapabilitySet& CapabilitySet, const TMap<FString, FString>& Metadata, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride) = 0;
 
-	virtual Inworld::Client& Get() const = 0;
+	virtual void StopSession() = 0;
+	virtual void PauseSession() = 0;
+	virtual void ResumeSession() = 0;
+
+	// Session Information
+	virtual FInworldToken GetSessionToken() const = 0;
+
+	// Player Profile and Capabilities
+	virtual void LoadPlayerProfile(const FInworldPlayerProfile& PlayerProfile) = 0;
+	virtual FInworldCapabilitySet GetCapabilities() const = 0;
+	virtual void LoadCapabilities(const FInworldCapabilitySet& CapabilitySet) = 0;
+
+	// Session Persistence
+	virtual void SaveSession(FOnInworldSessionSavedCallback Callback) = 0;
+
+	// Interaction Feedback
+	virtual void SendInteractionFeedback(const FString& InteractionId, bool bIsLike, const FString& Message) = 0;
+
+	// Character Management
+	virtual void LoadCharacter(const FString& Id) = 0;
+	virtual void LoadCharacters(const TArray<FString>& Ids) = 0;
+	virtual void UnloadCharacter(const FString& Id) = 0;
+	virtual void UnloadCharacters(const TArray<FString>& Ids) = 0;
+
+	// Conversation Management
+	virtual FString UpdateConversation(const FString& ConversationId, const TArray<FString>& AgentIds, bool bIncludePlayer) = 0;
+
+	// Messaging
+	virtual FInworldWrappedPacket SendTextMessage(const FString& AgentId, const FString& Text) = 0;
+	virtual FInworldWrappedPacket SendTextMessageToConversation(const FString& ConversationId, const FString& Text) = 0;
+
+	// Speech Processing
+	virtual void InitSpeechProcessor(EInworldPlayerSpeechMode Mode, const FInworldPlayerSpeechOptions& SpeechOptions) = 0;
+	virtual void DestroySpeechProcessor() = 0;
+
+	// Audio Messaging
+	virtual void SendSoundMessage(const FString& AgentId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData) = 0;
+	virtual void SendSoundMessageToConversation(const FString& ConversationId, const TArray<uint8>& InputData, const TArray<uint8>& OutputData) = 0;
+
+	// Audio Session Management
+	virtual void SendAudioSessionStart(const FString& AgentId, FInworldAudioSessionOptions SessionOptions) = 0;
+	virtual void SendAudioSessionStartToConversation(const FString& ConversationId, FInworldAudioSessionOptions SessionOptions) = 0;
+	virtual void SendAudioSessionStop(const FString& AgentId) = 0;
+	virtual void SendAudioSessionStopToConversation(const FString& ConversationId) = 0;
+
+	// Narration and Trigger Events
+	virtual void SendNarrationEvent(const FString& AgentId, const FString& Content) = 0;
+	virtual void SendTrigger(const FString& AgentId, const FString& Name, const TMap<FString, FString>& Params) = 0;
+	virtual void SendTriggerToConversation(const FString& ConversationId, const FString& Name, const TMap<FString, FString>& Params) = 0;
+
+	// Scene and Mutation Events
+	virtual void SendChangeSceneEvent(const FString& SceneName) = 0;
+	virtual void CancelResponse(const FString& AgentId, const FString& InteractionId, const TArray<FString>& UtteranceIds) = 0;
+
+	// Entity Management
+	virtual void CreateOrUpdateItems(const TArray<FInworldEntityItem>& Items, const TArray<FString>& AddToEntities) = 0;
+	virtual void RemoveItems(const TArray<FString>& ItemIds) = 0;
+	virtual void AddItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames) = 0;
+	virtual void RemoveItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames) = 0;
+	virtual void ReplaceItemsInEntities(const TArray<FString>& ItemIds, const TArray<FString>& EntityNames) = 0;
+
+	// Connection Information
+	virtual EInworldConnectionState GetConnectionState() const = 0;
+	virtual void GetConnectionError(FString& OutErrorMessage, int32& OutErrorCode, FInworldConnectionErrorDetails& OutErrorDetails) const = 0;
+
+	virtual FOnInworldPacketReceivedNative& OnPacketReceived() = 0;
+	virtual FOnInworldConnectionStateChangedNative& OnConnectionStateChanged() = 0;
+	virtual FOnInworldPerceivedLatencyNative& OnPerceivedLatency() = 0;
 };
-#else
-
-class IHttpRequest;
-class IWebSocket;
-
-class WSClient
-{
-public:
-	WSClient() = default;
-	virtual ~WSClient() = default;
-
-	TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> TokenRequest;
-	TSharedPtr<IWebSocket> ServiceSocket;
-};
-#endif
 
 UCLASS(BlueprintType)
 class INWORLDAICLIENT_API UInworldClient : public UObject
@@ -178,7 +222,7 @@ public:
 	* @param Id The ID of the character to load.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
-	void LoadCharacter(const FString& Id) { LoadCharacters({ Id }); }
+	void LoadCharacter(const FString& Id);
 	
 	/**
 	* Load multiple characters with the specified IDs.
@@ -192,7 +236,7 @@ public:
 	 * @param Id The ID of the character to unload.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Load|Character")
-	void UnloadCharacter(const FString& Id) { UnloadCharacters({ Id }); }
+	void UnloadCharacter(const FString& Id);
 
 	/**
 	 * Unload multiple characters with the specified IDs.
@@ -426,18 +470,5 @@ private:
 	FOnInworldPerceivedLatencyNative OnPerceivedLatencyDelegateNative;
 
 	bool bIsBeingDestroyed = false;
-
-#ifdef INWORLD_WITH_NDK
-#if !UE_BUILD_SHIPPING
-	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAudioDumperCVarChanged, bool /*Enabled*/, FString /*Path*/);
-	static FOnAudioDumperCVarChanged OnAudioDumperCVarChanged;
-	FDelegateHandle OnAudioDumperCVarChangedHandle;
-	static FAutoConsoleVariableSink CVarSink;
-	static void OnCVarsChanged();
-#endif
-
-	TUniquePtr<NDKClient> Client;
-#else
-	TUniquePtr<WSClient> Client;
-#endif
+	TUniquePtr<IInworldClientImplInterface> Client;
 };
