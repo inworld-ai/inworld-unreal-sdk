@@ -51,6 +51,8 @@ public class InworldAIClient : ModuleRules
                 "WebSockets",
                 "SSL",
                 "HTTP",
+                "Json",
+                "JsonUtilities",
             });
             AddEngineThirdPartyPrivateStaticDependencies(Target, "OpenSSL");
         }

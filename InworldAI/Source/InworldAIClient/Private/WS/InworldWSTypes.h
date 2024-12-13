@@ -23,5 +23,11 @@ public:
 
 	UPROPERTY()
 	FString type;
+
+	UPROPERTY()
+	FString expirationTime;
+
+	UPROPERTY()
+	FString sessionId;
 };
 

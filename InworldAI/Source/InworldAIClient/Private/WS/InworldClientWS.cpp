@@ -76,7 +76,11 @@ void InworldClientWS::StartSessionFromScene(const FInworldScene& Scene, const FI
 	FOnTokenGenerated Callback;
 	Callback.BindLambda([this](bool bTokenValid)
 		{
-			// Start Session w/ token
+			if (bTokenValid)
+			{
+				UE_LOG(LogInworldAIClient, Log, TEXT("StartSessionFromScene Session Id:%s"), *ActiveToken.SessionId);
+				OpenSession();
+			}
 		}
 	);
 	GenerateToken(Callback, WorkspaceOverride, AuthOverride);
@@ -289,7 +293,9 @@ static FString GetAuthHeader(const FInworldAuth& AuthOverride)
 		Nonce[i] = Chars.GetCharArray()[FMath::RandRange(0, Chars.Len() - 1)];
 	}
 
-	const FString Url {"api-engine.inworld.ai"};
+	TArray<FString> Split{};
+	InworldAIClientSettings->Environment.TargetUrl.ParseIntoArray(Split, TEXT(":"), true);
+	const FString Url{ Split[0] };
 
 	const FString Service{ "ai.inworld.engine.v1.SessionTokens/GenerateSessionToken" };
 	const FString Request{ "iw1_request" };
@@ -327,15 +333,77 @@ void InworldClientWS::GenerateToken(FOnTokenGenerated Callback, const FString& W
 	const FString Workspace{ WorkspaceOverride.IsEmpty() ? DefaultWorkspace : WorkspaceOverride };
 	TokenRequest->SetContentAsString(FString::Printf(TEXT("{\"api_key\":\"%s\", \"resource_id\" : \"workspaces/%s\"}"), *ApiKey, *Workspace));
 	TokenRequest->OnProcessRequestComplete().BindLambda(
-		[](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)
+		[this, Callback](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)
 		{
-			const int32 ResponseCode = Response->GetResponseCode();
-			const FString ResponseString = Response->GetContentAsString();
+			const int32 ResponseCode{ Response->GetResponseCode() };
+			const FString ResponseString{ Response->GetContentAsString() };
 
-			const FString ResponseContentString = Response->GetContentAsString();
+			FInworldWSToken Token{};
+			bool bValid{ false };
+			FString Error{};
+			if (EHttpResponseCodes::IsOk(Response->GetResponseCode()))
+			{
+				if (FJsonObjectConverter::JsonObjectStringToUStruct(Response->GetContentAsString(), &Token))
+				{
+					bValid = true;
+					ActiveToken.Token = Token.token;
+					ActiveToken.SessionId = Token.sessionId;
+				}
+				else
+				{
+					Error = FString::Format(TEXT("Invalid token response. json={0}"), { ResponseString });
+				}
+			}
+			else
+			{
+				Error = FString::Format(TEXT("Invalid token response. code={0} error={1}"), { FString::FromInt(ResponseCode), ResponseString });
+			}
+			if (!bValid)
+			{
+				UE_LOG(LogInworldAIClient, Error, TEXT("InworldClientWS::%s"), *Error);
+			}
+			Callback.ExecuteIfBound(bValid);
 		}
 	);
 	TokenRequest->ProcessRequest();
+}
+
+void InworldClientWS::OpenSession()
+{
+	const UInworldAIClientSettings* InworldAIClientSettings = GetDefault<UInworldAIClientSettings>();
+
+	const FString ServerURL{ FString::Printf(TEXT("wss://%s/v1/session/open?session_id=%s"), *InworldAIClientSettings->Environment.ApiUrl, *ActiveToken.SessionId) };
+
+	const TMap<FString, FString> Headers{
+		{"Authorization", FString::Printf(TEXT("Bearer %s"), *ActiveToken.Token)},
+		{"Grpc-Metadata-session-id", *ActiveToken.SessionId}
+	};
+
+	WebSocket = FWebSocketsModule::Get().CreateWebSocket(ServerURL, FString{ "ws" }, Headers);
+	WebSocket->OnConnected().AddLambda([]() -> void {
+		UE_LOG(LogInworldAIClient, Log, TEXT("WS::OnConnected"));
+		});
+
+	WebSocket->OnConnectionError().AddLambda([](const FString& Error) -> void {
+		UE_LOG(LogInworldAIClient, Error, TEXT("WS::OnConnectionError Error:%s"), *Error);
+		});
+
+	WebSocket->OnClosed().AddLambda([](int32 StatusCode, const FString& Reason, bool bWasClean) -> void {
+		UE_LOG(LogInworldAIClient, Log, TEXT("WS::OnClosed: %s"), *Reason);
+		});
+
+	WebSocket->OnMessage().AddLambda([](const FString& Message) -> void {
+		UE_LOG(LogInworldAIClient, Log, TEXT("WS::OnMessage: %s"), *Message);
+		});
+
+	WebSocket->OnRawMessage().AddLambda([](const void* Data, SIZE_T Size, SIZE_T BytesRemaining) -> void {
+		// This code will run when we receive a raw (binary) message from the server.
+		});
+
+	WebSocket->OnMessageSent().AddLambda([](const FString& MessageString) -> void {
+		UE_LOG(LogInworldAIClient, Log, TEXT("WS::OnMessageSent: %s"), *MessageString);
+		});
+	WebSocket->Connect();
 }
 
 #endif

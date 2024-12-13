@@ -106,6 +106,10 @@ private:
 
     DECLARE_DELEGATE_OneParam(FOnTokenGenerated, bool)
     void GenerateToken(FOnTokenGenerated Callback, const FString& WorkspaceOverride, const FInworldAuth& AuthOverride);
+
+    TSharedPtr<class IWebSocket> WebSocket;
+
+    void OpenSession();
 };
 
 #endif
