@@ -45,6 +45,12 @@ public class InworldAINDKLibrary : ModuleRules
         Type = ModuleType.External;
 
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        
+        bool bNDKPlatform = Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.IOS || Target.Platform == UnrealTargetPlatform.Android;
+        if(!bNDKPlatform)
+        {
+            return;
+        }
 
         PublicDependencyModuleNames.AddRange(
             new string[]
