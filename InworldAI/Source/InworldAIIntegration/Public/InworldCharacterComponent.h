@@ -336,7 +336,7 @@ private:
 	void OnInworldRelationEvent(const FInworldRelationEvent& Event);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_VisitText(const FInworldTextEvent& Event);
+	void Multicast_VisitText(const FInworldTextEvent& Event, bool bTextOnly);
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_VisitVAD(const FInworldVADEvent& Event);
 	UFUNCTION(NetMulticast, Reliable)

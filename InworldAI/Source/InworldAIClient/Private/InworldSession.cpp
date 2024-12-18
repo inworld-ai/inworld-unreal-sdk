@@ -133,6 +133,10 @@ void UInworldSession::Destroy()
 	TArray<UInworldCharacter*> RegisteredCharactersCopy = RegisteredCharacters;
 	for (UInworldCharacter* RegisteredCharacter : RegisteredCharactersCopy)
 	{
+		if (RegisteredCharacter == nullptr || RegisteredCharacter->IsReadyForFinishDestroy())
+		{
+			continue;
+		}
 		UnregisterCharacter(RegisteredCharacter);
 	}
 	if (IsValid(Client))
