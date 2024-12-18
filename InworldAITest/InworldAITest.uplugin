@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.8.2.rc-2",
+	"VersionName": "1.8.2",
 	"FriendlyName": "Inworld Test",
 	"Description": "Test suite for InworldAI",
 	"Category": "Inworld",
