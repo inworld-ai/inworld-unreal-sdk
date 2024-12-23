@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: git-update-dependecies
-      run: git submodule update --force --recursive --init --remote
+      run: git submodule update --init --recursive
     - name: Find NDK SHA
       run: |
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
