@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
+      submodules: true
     - name: git-update-dependecies
       run: |
         git submodule sync --recursive
