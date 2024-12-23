@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
+    - name: git-sync-dependecies
+      run: git submodule sync --recursive
     - name: git-update-dependecies
-      run: |
-        git submodule sync --recursive
-        git submodule update --init --recursive
+      run: git submodule update --init --recursive
     - name: Find NDK SHA
       run: |
         INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
