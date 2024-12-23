@@ -9,8 +9,6 @@ jobs:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:
     - uses: actions/checkout@v4
-    - name: git-sync-dependecies
-      run: git submodule sync --recursive
     - name: git-update-dependecies
       run: git submodule update --init --recursive
     - name: Find NDK SHA
