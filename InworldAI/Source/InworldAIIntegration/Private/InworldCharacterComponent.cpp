@@ -331,7 +331,7 @@ bool IsAudioEnabled(UInworldSession* InworldSession)
 	return InworldClient->GetCapabilities().Audio;
 }
 
-void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInworldTextEvent& Event)
+void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInworldTextEvent& Event, bool bTextOnly)
 {
     if (GetNetMode() == NM_DedicatedServer)
     {
@@ -347,7 +347,7 @@ void UInworldCharacterComponent::Multicast_VisitText_Implementation(const FInwor
 		}
 
 		auto Message = MessageQueue->AddOrUpdateMessage<FCharacterMessageUtterance>(Event);
-		if (!IsAudioEnabled(InworldCharacter->GetSession()))
+		if (bTextOnly)
 		{
 			Message->UtteranceData = MakeShared<FCharacterMessageUtteranceData>();
 			MessageQueue->TryToProgress();
@@ -465,7 +465,7 @@ void UInworldCharacterComponent::Multicast_VisitEmotion_Implementation(const FIn
 
 void UInworldCharacterComponent::OnInworldTextEvent(const FInworldTextEvent& Event)
 {
-    Multicast_VisitText(Event);
+    Multicast_VisitText(Event, !IsAudioEnabled(InworldCharacter->GetSession()));
 }
 
 void UInworldCharacterComponent::OnInworldVADEvent(const FInworldVADEvent& Event)

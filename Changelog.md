@@ -1,3 +1,7 @@
+# 1.8.2
+- S2C Logging support
+- Multiplayer fixes
+
 # 1.8.1
 - Unsupported platforms compilation support
 
