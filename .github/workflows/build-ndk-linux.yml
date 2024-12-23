@@ -1,0 +1,44 @@
+
+name: Build NDK (Linux)
+
+on:
+  workflow_call:
+
+jobs:
+  build-ndk-linux:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: git-update-dependecies
+      run: git submodule update --init
+    - name: Find NDK SHA
+      run: |
+        INWORLD_NDK_SHA=$(git submodule status | cut -d " " -f 2)
+        echo $INWORLD_NDK_SHA
+        echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
+    - uses: actions/cache/restore@v4
+      id: ndk-cache-linux
+      with:
+        path: InworldAI/inworld-ndk/build/Package
+        key: ndk-cache-linux-${{ env.INWORLD_NDK_SHA }}
+        enableCrossOsArchive: true
+    - name: git-update-dependecies
+      if: steps.ndk-cache-linux.outputs.cache-hit != 'true'
+      run: git submodule update --init --recursive
+    - name: Build NDK (Linux)
+      shell: bash
+      if: steps.ndk-cache-linux.outputs.cache-hit != 'true'
+      run: |
+        python3 "scripts/ndk/ndk-util.py" --clean
+        python3 "scripts/ndk/ndk-util.py" --platform=Linux --build
+    - uses: actions/cache/save@v4
+      if: steps.ndk-cache-linux.outputs.cache-hit != 'true'
+      with:
+        path: InworldAI/inworld-ndk/build/Package
+        key: ndk-cache-linux-${{ env.INWORLD_NDK_SHA }}
+        enableCrossOsArchive: true
+    - uses: actions/upload-artifact@v4
+      with:
+        name: NDK-linux
+        path: |
+          InworldAI/inworld-ndk/build/Package
