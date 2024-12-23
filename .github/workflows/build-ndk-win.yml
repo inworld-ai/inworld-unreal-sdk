@@ -9,6 +9,8 @@ jobs:
     runs-on: [ self-hosted, Windows, X64, w10-1344 ]
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: true
     - name: git-update-dependecies
       run: git submodule update --init --recursive
     - name: Find NDK SHA
