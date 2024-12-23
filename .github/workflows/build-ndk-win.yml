@@ -10,8 +10,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: git-update-dependecies
-      run: git submodule sync --recursive
-      run: git submodule update --init --recursive
+      run: |
+        git submodule sync --recursive
+        git submodule update --init --recursive
     - name: Find NDK SHA
       run: |
         $INWORLD_NDK_SHA=(git submodule status).Trim().Split()[0]
