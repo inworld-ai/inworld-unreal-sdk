@@ -9,7 +9,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 ndk_path = os.path.join(os.getcwd(), '../../InworldAI/inworld-ndk')
 build_path = os.path.join(os.getcwd(), '../../InworldAI/inworld-ndk/build')
-package_path = os.path.join(os.getcwd(), '../../InworldAI/inworld-ndk/build/package')
+package_path = os.path.join(os.getcwd(), '../../InworldAI/inworld-ndk/build/Package')
 copy_path = os.path.join(os.getcwd(), '../../InworldAI/Source/ThirdParty/InworldAINDKLibrary/')
 
 print(ndk_path)
@@ -64,6 +64,10 @@ build_configurations = {
     'Android-shared': BuildConfiguration(
         ['cmake .. -DINWORLD_SHARED=True -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/26.3.11579264 -DINWORLD_LOG_CALLBACK=True'],
         ['cmake --build . --target inworld-ndk --config Release']
+    ),
+    'Linux': BuildConfiguration(
+        ['cmake .. -DINWORLD_SHARED=False -DAEC=False -DLINUX=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_LINUX_ARCH_ABI=x86_64 -DCMAKE_CXX_STANDARD=17 -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE'],
+        ['cmake --build . --target inworld-ndk --config Release']
     )
 }
 
@@ -73,7 +77,7 @@ build = False
 copy = False
 
 def usage():
-    print('[-p=, --platform=] [Win64, Mac, iOS, Android]')
+    print('[-p=, --platform=] [Win64, Mac, iOS, Android, Linux]')
     print('[-c, --clean]')
     print('[-b, --build]')
     print('[-x, --copy]')
