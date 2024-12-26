@@ -8,6 +8,12 @@ jobs:
   build-ndk-mac:
     runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
     steps:
+    - name: Cleanup build folder
+      run: |
+        ls -la ./
+        rm -rf ./* || true
+        rm -rf ./.??* || true
+        ls -la ./
     - uses: actions/checkout@v4
       with:
         submodules: true
