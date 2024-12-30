@@ -41,6 +41,7 @@ THIRD_PARTY_INCLUDES_END
 
 #ifdef INWORLD_WITH_NDK
 #if !UE_BUILD_SHIPPING
+#ifdef INWORLD_AUDIO_DUMP
 
 static TAutoConsoleVariable<bool> CVarEnableSoundDump(
 	TEXT("Inworld.Debug.EnableSoundDump"), false,
@@ -60,6 +61,7 @@ static TAutoConsoleVariable<FString> CVarSoundDumpPath(
 UInworldClient::FOnAudioDumperCVarChanged UInworldClient::OnAudioDumperCVarChanged;
 
 FAutoConsoleVariableSink UInworldClient::CVarSink(FConsoleCommandDelegate::CreateStatic(&UInworldClient::OnCVarsChanged));
+#endif
 #endif
 #endif
 
@@ -230,6 +232,7 @@ UInworldClient::UInworldClient()
 	);
 
 #if !UE_BUILD_SHIPPING
+#ifdef INWORLD_AUDIO_DUMP
 	auto OnAudioDumperCVarChangedCallback = [this](bool bEnable, FString Path)
 		{
 			NO_CLIENT_RETURN(void())
@@ -252,6 +255,7 @@ UInworldClient::UInworldClient()
 	OnAudioDumperCVarChangedCallback(CVarEnableSoundDump.GetValueOnGameThread(), CVarSoundDumpPath.GetValueOnGameThread());
 #endif
 #endif
+#endif
 }
 
 UInworldClient::~UInworldClient()
@@ -259,7 +263,9 @@ UInworldClient::~UInworldClient()
 	bIsBeingDestroyed = true;
 #ifdef INWORLD_WITH_NDK
 #if !UE_BUILD_SHIPPING
+#ifdef INWORLD_AUDIO_DUMP
 	OnAudioDumperCVarChanged.Remove(OnAudioDumperCVarChangedHandle);
+#endif
 #endif
 	Client.Reset();
 #endif
@@ -958,6 +964,7 @@ void UInworldClient::ReplaceItemsInEntities(const TArray<FString>& ItemIds, cons
 
 #ifdef INWORLD_WITH_NDK
 #if !UE_BUILD_SHIPPING
+#ifdef INWORLD_AUDIO_DUMP
 void UInworldClient::OnCVarsChanged()
 {
 	static bool GEnableSoundDump = CVarEnableSoundDump.GetValueOnGameThread();
@@ -973,6 +980,7 @@ void UInworldClient::OnCVarsChanged()
 		OnAudioDumperCVarChanged.Broadcast(GEnableSoundDump, GSoundDumpPath);
 	}
 }
+#endif
 #endif
 #endif
 

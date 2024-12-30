@@ -30,15 +30,19 @@ class BuildConfiguration:
 
 build_configurations = {
     'Win64': BuildConfiguration(
-        ['cmake .. -G "Visual Studio 16 2019" -DINWORLD_SHARED=False -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake .. -G "Visual Studio 16 2019" -DWINDOWS=True -DINWORLD_SHARED=False -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Win64-shared': BuildConfiguration(
-        ['cmake .. -G "Visual Studio 16 2019" -DINWORLD_SHARED=True -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake .. -G "Visual Studio 16 2019" -DWINDOWS=True -DINWORLD_SHARED=True -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Win64-test': BuildConfiguration(
         ['cmake .. -DINWORLD_SHARED=True -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake --build . --target inworld-ndk --config Release']
+    ),
+    'XSX': BuildConfiguration(
+        ['cmake -G "Visual Studio 16 2019" .. -DINWORLD_SHARED=False -DXSX=True -DWINAPI_FAMILY=WINAPI_FAMILY_GAMES -DCMAKE_TOOLCHAIN_FILE=./CMakeGDKXbox.cmake -DAEC=False -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=False'],
         ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Mac': BuildConfiguration(

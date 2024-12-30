@@ -33,6 +33,10 @@ public class InworldAINDKLibrary : ModuleRules
             {
                 return Path.Combine(ModuleDirectory, "lib/Android/arm64-v8a");
             }
+            else if (Target.Platform == UnrealTargetPlatform.XSX)
+            {
+                return Path.Combine(ModuleDirectory, "lib/XSX");
+            }
             else
             {
                 return Path.Combine(ModuleDirectory, "lib/Unknown");
@@ -46,7 +50,7 @@ public class InworldAINDKLibrary : ModuleRules
 
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         
-        bool bNDKPlatform = Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.IOS || Target.Platform == UnrealTargetPlatform.Android;
+        bool bNDKPlatform = Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.IOS || Target.Platform == UnrealTargetPlatform.Android || Target.Platform == UnrealTargetPlatform.XSX;
         if(!bNDKPlatform)
         {
             return;
@@ -82,7 +86,7 @@ public class InworldAINDKLibrary : ModuleRules
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_LOG_CALLBACK=1");
 
-        bool bUseSharedInworldNDK = Target.Platform != UnrealTargetPlatform.IOS;
+        bool bUseSharedInworldNDK = Target.Platform != UnrealTargetPlatform.IOS && Target.Platform != UnrealTargetPlatform.XSX;
         if (bUseSharedInworldNDK)
         {
             PublicDefinitions.Add("INWORLD_NDK_SHARED=1");
@@ -130,7 +134,7 @@ public class InworldAINDKLibrary : ModuleRules
             foreach (string NdkLib in NdkLibs)
             {
                 string Name = NdkLib;
-                if (Target.Platform == UnrealTargetPlatform.Win64)
+                if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.XSX)
                 {
                     Name = string.Concat(Name, ".lib");
                 }
@@ -201,7 +205,7 @@ public class InworldAINDKLibrary : ModuleRules
             AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModulePath, "InworldNDK_UPL.xml"));
         }
 
-        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android)
+        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android || Target.Platform == UnrealTargetPlatform.XSX)
         {
             AddEngineThirdPartyPrivateStaticDependencies(Target, "zlib");
         }
