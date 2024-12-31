@@ -5,6 +5,13 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  */
 
+#define WIN64
+#define MAC
+#define IOS
+#define ANDROID
+#define LINUX
+//#define XSX // Requires GDK, must request from Epic @  https://forms.unrealengine.com/s/form-console-access-request
+
 using System.IO;
 using UnrealBuildTool;
 
@@ -39,5 +46,59 @@ public class InworldAIPlatform : ModuleRules
             PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public/Generic"));
             PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private/Generic"));
         }
+    }
+
+    public static bool IsWin64(ReadOnlyTargetRules Target)
+    {
+#if WIN64
+        return Target.Platform == UnrealTargetPlatform.Win64;
+#else
+        return false;
+#endif
+    }
+
+    public static bool IsMac(ReadOnlyTargetRules Target)
+    {
+#if MAC
+        return Target.Platform == UnrealTargetPlatform.Mac;
+#else
+        return false;
+#endif
+    }
+
+    public static bool IsIOS(ReadOnlyTargetRules Target)
+    {
+#if IOS
+        return Target.Platform == UnrealTargetPlatform.IOS;
+#else
+        return false;
+#endif
+    }
+
+    public static bool IsAndroid(ReadOnlyTargetRules Target)
+    {
+#if ANDROID
+        return Target.Platform == UnrealTargetPlatform.Android;
+#else
+        return false;
+#endif
+    }
+
+    public static bool IsLinux(ReadOnlyTargetRules Target)
+    {
+#if LINUX
+        return Target.Platform == UnrealTargetPlatform.Linux;
+#else
+        return false;
+#endif
+    }
+
+    public static bool IsXSX(ReadOnlyTargetRules Target)
+    {
+#if XSX
+        return Target.Platform == UnrealTargetPlatform.XSX;
+#else
+        return false;
+#endif
     }
 }
