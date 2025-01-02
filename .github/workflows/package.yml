@@ -21,6 +21,8 @@ jobs:
     uses: ./.github/workflows/build-ndk-ios.yml
   build-ndk-android:
     uses: ./.github/workflows/build-ndk-android.yml
+  build-ndk-linux:
+    uses: ./.github/workflows/build-ndk-linux.yml
 
   build-sdk-win:
     needs: [ build-ndk-win ]
@@ -37,7 +39,7 @@ jobs:
 
   package:
     runs-on: ubuntu-latest
-    needs: [ build-sdk-win, build-sdk-android, build-sdk-mac, build-sdk-ios ]
+    needs: [ build-sdk-win, build-sdk-android, build-sdk-mac, build-sdk-ios, build-ndk-linux ]
     steps:
       - uses: actions/checkout@v4
       - name: git-update-dependecies
