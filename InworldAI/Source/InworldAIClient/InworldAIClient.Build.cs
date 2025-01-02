@@ -33,11 +33,7 @@ public class InworldAIClient : ModuleRules
                 "Projects",
             });
 
-<<<<<<< HEAD
         if (IsNDKPlatform)
-=======
-        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.IOS || Target.Platform == UnrealTargetPlatform.Android || Target.Platform == UnrealTargetPlatform.Linux)
->>>>>>> 3ec73530cd2d0f8e9b027851e8d84265d9ac88f7
         {
             PublicDefinitions.Add("INWORLD_WITH_NDK=1");
             PrivateDependencyModuleNames.AddRange(
@@ -55,6 +51,7 @@ public class InworldAIClient : ModuleRules
                 || InworldAIPlatform.IsMac(Target)
                 || InworldAIPlatform.IsIOS(Target)
                 || InworldAIPlatform.IsAndroid(Target)
+                || InworldAIPlatform.IsLinux(Target)
                 || InworldAIPlatform.IsXSX(Target);
         } 
     }
