@@ -565,7 +565,7 @@ void UInworldClient::LoadCapabilities(const FInworldCapabilitySet& CapabilitySet
 	NO_CLIENT_RETURN(void())
 
 #ifdef INWORLD_WITH_NDK
-	Inworld::Capabilities Capabilities;
+	Inworld::SessionCapabilities Capabilities;
 	ConvertCapabilities(CapabilitySet, Capabilities);
 	Client->Get().LoadCapabilities(Capabilities);
 #endif
