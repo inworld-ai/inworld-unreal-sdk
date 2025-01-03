@@ -33,7 +33,7 @@ public class InworldAIClient : ModuleRules
                 "Projects",
             });
 
-        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.IOS || Target.Platform == UnrealTargetPlatform.Android || Target.Platform == UnrealTargetPlatform.Linux)
+        if (IsNDKPlatform)
         {
             PublicDefinitions.Add("INWORLD_WITH_NDK=1");
             PrivateDependencyModuleNames.AddRange(
@@ -42,5 +42,17 @@ public class InworldAIClient : ModuleRules
                     "InworldAINDKLibrary",
                 });
         }
+    }
+    private bool IsNDKPlatform
+    {
+        get
+        {
+            return InworldAIPlatform.IsWin64(Target)
+                || InworldAIPlatform.IsMac(Target)
+                || InworldAIPlatform.IsIOS(Target)
+                || InworldAIPlatform.IsAndroid(Target)
+                || InworldAIPlatform.IsLinux(Target)
+                || InworldAIPlatform.IsXSX(Target);
+        } 
     }
 }
