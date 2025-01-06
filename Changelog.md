@@ -1,3 +1,7 @@
+# 1.8.3
+- Linux support
+- XSX support
+
 # 1.8.2
 - S2C Logging support
 - Multiplayer fixes
