@@ -11,6 +11,7 @@
 #include "CoreMinimal.h"
 
 #include "EditorSubsystem.h"
+#include "InworldAIClientSettings.h"
 #include "TickableEditorObject.h"
 #include "InworldStudioTypes.h"
 #include "InworldEditorApi.generated.h"
@@ -127,12 +128,28 @@ public:
 	 * @param Scene The scene for the Studio.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Inworld|Studio API")
-	void SetStudioApiWidgetData(const FString& StudioApiKey, const FString& Workspace, const FString& RuntimeApiKey, const FString& Scene)
+	void SetStudioApiWidgetData(const FString& StudioApiKey, const FString& Project, const FString& Workspace, const FString& RuntimeApiKey, const FString& RuntimeApiSecret, const FString& Scene)
 	{
 		CacheStudioWidgetStudioApiKey = StudioApiKey;
+		CacheStudioWidgetProject = Project;
 		CacheStudioWidgetWorkspace = Workspace;
 		CacheStudioWidgetRuntimeApiKey = RuntimeApiKey;
 		CacheStudioWidgetScene = Scene;
+
+		UInworldAIClientSettings* InworldAIClientSettings = GetMutableDefault<UInworldAIClientSettings>();
+
+		FString Prefix = "workspaces/";
+		FString WorkspaceID = Workspace;
+		if(!WorkspaceID.IsEmpty() && WorkspaceID.StartsWith(Prefix))
+		{
+			WorkspaceID = WorkspaceID.RightChop(Prefix.Len());
+		}
+		
+		InworldAIClientSettings->Workspace = WorkspaceID;
+		InworldAIClientSettings->Auth.ApiKey = RuntimeApiKey;
+		InworldAIClientSettings->Auth.ApiSecret = RuntimeApiSecret;
+		InworldAIClientSettings->SaveConfig();
+		
 		SaveConfig();
 	}
 
@@ -144,9 +161,10 @@ public:
 	 * @param Scene The scene for the Studio.
 	 */
 	UFUNCTION(BlueprintPure, Category = "Inworld|Studio Api")
-	void GetStudioApiWidgetData(FString& StudioApiKey, FString& Workspace, FString& RuntimeApiKey, FString& Scene)
+	void GetStudioApiWidgetData(FString& StudioApiKey, FString& Project, FString& Workspace, FString& RuntimeApiKey, FString& Scene)
 	{
 		StudioApiKey = CacheStudioWidgetStudioApiKey;
+		Project = CacheStudioWidgetProject;
 		Workspace = CacheStudioWidgetWorkspace;
 		RuntimeApiKey = CacheStudioWidgetRuntimeApiKey;
 		Scene = CacheStudioWidgetScene;
@@ -155,6 +173,9 @@ public:
 private:
 	UPROPERTY(config)
 	FString CacheStudioWidgetStudioApiKey;
+	
+    UPROPERTY(config)
+    FString CacheStudioWidgetProject;
 
 	UPROPERTY(config)
 	FString CacheStudioWidgetWorkspace;

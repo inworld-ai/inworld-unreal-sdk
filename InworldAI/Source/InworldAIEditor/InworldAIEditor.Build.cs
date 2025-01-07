@@ -24,6 +24,7 @@ public class InworldAIEditor : ModuleRules
                 "CoreUObject",
                 "Engine", 
                 "InputCore",
+                "InworldAIClient",
             });
 
         PrivateDependencyModuleNames.AddRange(
