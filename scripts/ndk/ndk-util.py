@@ -9,7 +9,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 ndk_path = os.path.join(os.getcwd(), '../../InworldAI/inworld-ndk')
 build_path = os.path.join(os.getcwd(), '../../InworldAI/inworld-ndk/build')
-package_path = os.path.join(os.getcwd(), '../../InworldAI/inworld-ndk/build/package')
+package_path = os.path.join(os.getcwd(), '../../InworldAI/inworld-ndk/build/Package')
 copy_path = os.path.join(os.getcwd(), '../../InworldAI/Source/ThirdParty/InworldAINDKLibrary/')
 
 print(ndk_path)
@@ -30,15 +30,19 @@ class BuildConfiguration:
 
 build_configurations = {
     'Win64': BuildConfiguration(
-        ['cmake .. -G "Visual Studio 16 2019" -DINWORLD_SHARED=False -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake .. -G "Visual Studio 16 2019" -DWINDOWS=True -DINWORLD_SHARED=False -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Win64-shared': BuildConfiguration(
-        ['cmake .. -G "Visual Studio 16 2019" -DINWORLD_SHARED=True -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake .. -G "Visual Studio 16 2019" -DWINDOWS=True -DINWORLD_SHARED=True -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
         ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Win64-test': BuildConfiguration(
         ['cmake .. -DINWORLD_SHARED=True -DAEC=True -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=True'],
+        ['cmake --build . --target inworld-ndk --config Release']
+    ),
+    'XSX': BuildConfiguration(
+        ['cmake -G "Visual Studio 16 2019" .. -DINWORLD_SHARED=False -DXSX=True -DWINAPI_FAMILY=WINAPI_FAMILY_GAMES -DCMAKE_TOOLCHAIN_FILE=./CMakeGDKXbox.cmake -DAEC=False -DINWORLD_LOG_CALLBACK=True -DINWORLD_AUDIO_DUMP=False'],
         ['cmake --build . --target inworld-ndk --config Release']
     ),
     'Mac': BuildConfiguration(
@@ -64,6 +68,10 @@ build_configurations = {
     'Android-shared': BuildConfiguration(
         ['cmake .. -DINWORLD_SHARED=True -DAEC=False -DANDROID=True -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=31 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/runner/Library/Android/sdk/ndk/26.3.11579264 -DINWORLD_LOG_CALLBACK=True'],
         ['cmake --build . --target inworld-ndk --config Release']
+    ),
+    'Linux': BuildConfiguration(
+        ['cmake .. -DINWORLD_SHARED=False -DAEC=False -DLINUX=True -DINWORLD_LOG_CALLBACK=True -DCMAKE_LINUX_ARCH_ABI=x86_64 -DCMAKE_CXX_STANDARD=17 -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE'],
+        ['cmake --build . --target inworld-ndk --config Release']
     )
 }
 
@@ -73,7 +81,7 @@ build = False
 copy = False
 
 def usage():
-    print('[-p=, --platform=] [Win64, Mac, iOS, Android]')
+    print('[-p=, --platform=] [Win64, Mac, iOS, Android, Linux]')
     print('[-c, --clean]')
     print('[-b, --build]')
     print('[-x, --copy]')

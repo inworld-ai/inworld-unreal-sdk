@@ -1,12 +1,12 @@
 
-name: Build NDK (iOS)
+name: Build NDK (Linux)
 
 on:
   workflow_call:
 
 jobs:
-  build-ndk-ios:
-    runs-on: [ self-hosted, macOS, ARM64, m1-1317 ]
+  build-ndk-linux:
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -19,32 +19,28 @@ jobs:
         echo $INWORLD_NDK_SHA
         echo "INWORLD_NDK_SHA=$INWORLD_NDK_SHA" >> $GITHUB_ENV
     - uses: actions/cache/restore@v4
-      id: ndk-cache-ios
+      id: ndk-cache-linux
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-linux-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
     - name: git-update-dependecies
-      if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
+      if: steps.ndk-cache-linux.outputs.cache-hit != 'true'
       run: git submodule update --init --recursive
-    - name: Build NDK (iOS)
+    - name: Build NDK (Linux)
       shell: bash
-      if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
+      if: steps.ndk-cache-linux.outputs.cache-hit != 'true'
       run: |
         python3 "scripts/ndk/ndk-util.py" --clean
-        sudo xcode-select -s /Applications/Xcode_13_0.app/Contents/Developer
-        python3 "scripts/ndk/ndk-util.py" --platform=iOS --build
-        rm InworldAI/inworld-ndk/build/CMakeCache.txt
-        python3 "scripts/ndk/ndk-util.py" --platform=iOS-shared --build
-        sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+        python3 "scripts/ndk/ndk-util.py" --platform=Linux --build
     - uses: actions/cache/save@v4
-      if: steps.ndk-cache-ios.outputs.cache-hit != 'true'
+      if: steps.ndk-cache-linux.outputs.cache-hit != 'true'
       with:
         path: InworldAI/inworld-ndk/build/Package
-        key: ndk-cache-iOS-${{ env.INWORLD_NDK_SHA }}
+        key: ndk-cache-linux-${{ env.INWORLD_NDK_SHA }}
         enableCrossOsArchive: true
     - uses: actions/upload-artifact@v4
       with:
-        name: NDK-iOS
+        name: NDK-linux
         path: |
           InworldAI/inworld-ndk/build/Package

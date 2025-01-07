@@ -415,11 +415,13 @@ private:
 
 #ifdef INWORLD_WITH_NDK
 #if !UE_BUILD_SHIPPING
+#ifdef INWORLD_AUDIO_DUMP
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAudioDumperCVarChanged, bool /*Enabled*/, FString /*Path*/);
 	static FOnAudioDumperCVarChanged OnAudioDumperCVarChanged;
 	FDelegateHandle OnAudioDumperCVarChangedHandle;
 	static FAutoConsoleVariableSink CVarSink;
 	static void OnCVarsChanged();
+#endif
 #endif
 #endif
 
