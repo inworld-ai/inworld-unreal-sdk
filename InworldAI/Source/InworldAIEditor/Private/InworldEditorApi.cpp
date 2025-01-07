@@ -366,7 +366,8 @@ void UInworldEditorApiSubsystem::Initialize(FSubsystemCollectionBase& Collection
 	}
 
 	if (IPluginManager::Get().FindPlugin("InworldInnequin").IsValid())
-	{		FOnCharacterStudioDataPermission PermissionDelegate;
+	{
+		FOnCharacterStudioDataPermission PermissionDelegate;
 		PermissionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CanCreateInnequinActor);
 		FOnCharacterStudioDataAction ActionDelegate;
 		ActionDelegate.BindDynamic(this, &UInworldEditorApiSubsystem::CreateInnequinActor);
