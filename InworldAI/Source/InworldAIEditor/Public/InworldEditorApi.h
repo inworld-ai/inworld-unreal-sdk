@@ -135,7 +135,7 @@ public:
 		CacheStudioWidgetWorkspace = Workspace;
 		CacheStudioWidgetRuntimeApiKey = RuntimeApiKey;
 		CacheStudioWidgetScene = Scene;
-gitg
+
 		UInworldAIClientSettings* InworldAIClientSettings = GetMutableDefault<UInworldAIClientSettings>();
 
 		FString Prefix = "workspaces/";
