@@ -12,26 +12,33 @@ using System;
 
 public class InworldAINDKLibrary : ModuleRules
 {
-
     private string ThirdPartyLibrariesDirectory
     {
         get
         {
-            if (Target.Platform == UnrealTargetPlatform.Win64)
+            if (IsWin64)
             {
                 return Path.Combine(ModuleDirectory, "lib/Win64");
             }
-            else if (Target.Platform == UnrealTargetPlatform.Mac)
+            else if (IsMac)
             {
                 return Path.Combine(ModuleDirectory, "lib/Mac");
             }
-            else if (Target.Platform == UnrealTargetPlatform.IOS)
+            else if (IsIOS)
             {
                 return Path.Combine(ModuleDirectory, "lib/iOS");
             }
-            else if (Target.Platform == UnrealTargetPlatform.Android)
+            else if (IsAndroid)
             {
                 return Path.Combine(ModuleDirectory, "lib/Android/arm64-v8a");
+            }
+            else if (IsLinux)
+            {
+            	return Path.Combine(ModuleDirectory, "lib/Linux/x86_64");
+            }
+            else if (IsXSX)
+            {
+                return Path.Combine(ModuleDirectory, "lib/XSX");
             }
             else
             {
@@ -39,12 +46,17 @@ public class InworldAINDKLibrary : ModuleRules
             }
         }
     }
-
     public InworldAINDKLibrary(ReadOnlyTargetRules Target) : base(Target)
     {
         Type = ModuleType.External;
 
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        
+        bool bNDKPlatform = IsWin64 || IsMac || IsIOS || IsAndroid || IsLinux || IsXSX;
+        if(!bNDKPlatform)
+        {
+            return;
+        }
 
         PublicDependencyModuleNames.AddRange(
             new string[]
@@ -60,14 +72,14 @@ public class InworldAINDKLibrary : ModuleRules
             });
 
         // Audio Echo Cancellation (AEC) and Audio Dump supported on Windows and Mac only
-        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac)
+        if (IsWin64 || IsMac)
         {
             PublicDefinitions.Add("INWORLD_AEC=1");
             PublicDefinitions.Add("INWORLD_AUDIO_DUMP=1");
         }
         
         // Voice Activity Detection (VAD) supported on Windows and Mac
-        bool bVAD = Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac;
+        bool bVAD = IsWin64 || IsMac;
         if (bVAD)
         {
 	        PublicDefinitions.Add("INWORLD_VAD=1");
@@ -76,7 +88,7 @@ public class InworldAINDKLibrary : ModuleRules
         PublicDefinitions.Add("INWORLD_LOG=1");
         PublicDefinitions.Add("INWORLD_LOG_CALLBACK=1");
 
-        bool bUseSharedInworldNDK = Target.Platform != UnrealTargetPlatform.IOS;
+        bool bUseSharedInworldNDK = !IsIOS && !IsLinux && !IsXSX;
         if (bUseSharedInworldNDK)
         {
             PublicDefinitions.Add("INWORLD_NDK_SHARED=1");
@@ -124,13 +136,11 @@ public class InworldAINDKLibrary : ModuleRules
             foreach (string NdkLib in NdkLibs)
             {
                 string Name = NdkLib;
-                if (Target.Platform == UnrealTargetPlatform.Win64)
+                if (IsWin64 || IsXSX)
                 {
                     Name = string.Concat(Name, ".lib");
                 }
-                else if (Target.Platform == UnrealTargetPlatform.Mac ||
-                    Target.Platform == UnrealTargetPlatform.IOS ||
-                    Target.Platform == UnrealTargetPlatform.Android)
+                else if (IsMac || IsIOS || IsAndroid || IsLinux)
                 {
                     Name = Name.IndexOf("lib") != 0 ?
                         string.Concat("lib", Name, ".a") : string.Concat(Name, ".a");
@@ -139,7 +149,7 @@ public class InworldAINDKLibrary : ModuleRules
             }
         }
 
-        if (Target.Platform == UnrealTargetPlatform.Win64)
+        if (IsWin64)
         {
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "webrtc_aec_plugin.lib"));
             PublicDelayLoadDLLs.Add("webrtc_aec_plugin.dll");
@@ -161,7 +171,7 @@ public class InworldAINDKLibrary : ModuleRules
 	            RuntimeDependencies.Add(Path.Combine(ModuleDirectory, "resource/silero_vad_10_27_2022.onnx"));
             }
         }
-        else if(Target.Platform == UnrealTargetPlatform.Mac)
+        else if(IsMac)
         {
             PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libwebrtc_aec_plugin.dylib"));
             RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libwebrtc_aec_plugin.dylib"));
@@ -180,13 +190,13 @@ public class InworldAINDKLibrary : ModuleRules
 	            RuntimeDependencies.Add(Path.Combine(ModuleDirectory, "resource/silero_vad_10_27_2022.onnx"));
             }
         }
-        else if(Target.Platform == UnrealTargetPlatform.IOS && bUseSharedInworldNDK)
+        else if(IsIOS && bUseSharedInworldNDK)
         {
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
             RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
             PublicDelayLoadDLLs.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.dylib"));
         }
-        else if(Target.Platform == UnrealTargetPlatform.Android && bUseSharedInworldNDK)
+        else if(IsAndroid && bUseSharedInworldNDK)
         {
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.so"));
             RuntimeDependencies.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libinworld-ndk.so"));
@@ -195,13 +205,19 @@ public class InworldAINDKLibrary : ModuleRules
             AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModulePath, "InworldNDK_UPL.xml"));
         }
 
-        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.Android)
+        if (IsWin64 || IsMac || IsAndroid || IsLinux || IsXSX)
         {
             AddEngineThirdPartyPrivateStaticDependencies(Target, "zlib");
         }
-        else if (Target.Platform == UnrealTargetPlatform.IOS)
+        else if (IsIOS)
         {
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyLibrariesDirectory, "libz.a"));
         }
     }
+    private bool IsWin64 { get { return InworldAIPlatform.IsWin64(Target); } }
+    private bool IsMac { get { return InworldAIPlatform.IsMac(Target); } }
+    private bool IsIOS { get { return InworldAIPlatform.IsIOS(Target); } }
+    private bool IsAndroid { get { return InworldAIPlatform.IsAndroid(Target); } }
+    private bool IsLinux { get { return InworldAIPlatform.IsLinux(Target); } }
+    private bool IsXSX { get { return InworldAIPlatform.IsXSX(Target); } }
 }

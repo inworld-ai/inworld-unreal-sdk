@@ -133,6 +133,10 @@ void UInworldSession::Destroy()
 	TArray<UInworldCharacter*> RegisteredCharactersCopy = RegisteredCharacters;
 	for (UInworldCharacter* RegisteredCharacter : RegisteredCharactersCopy)
 	{
+		if (RegisteredCharacter == nullptr || RegisteredCharacter->IsReadyForFinishDestroy())
+		{
+			continue;
+		}
 		UnregisterCharacter(RegisteredCharacter);
 	}
 	if (IsValid(Client))
@@ -142,7 +146,10 @@ void UInworldSession::Destroy()
 		Client->OnPerceivedLatency().Remove(OnClientPerceivedLatencyHandle);
 
 #if ENGINE_MAJOR_VERSION == 5
-		Client->MarkAsGarbage();
+		if (!IsRooted())
+		{
+			Client->MarkAsGarbage();
+		}
 #endif
 
 #if ENGINE_MAJOR_VERSION == 4
