@@ -285,13 +285,13 @@ struct FInworldConnectionErrorDetails
      * Type of connection error.
      */
     UPROPERTY(BlueprintReadOnly, Category = "Agent")
-    EInworldConnectionErrorType ConnectionErrorType;
+    EInworldConnectionErrorType ConnectionErrorType = EInworldConnectionErrorType::SESSION_INVALID;
 
     /**
      * Type of reconnection attempt.
      */
     UPROPERTY(BlueprintReadOnly, Category = "Agent")
-    EInworldReconnectionType ReconnectionType;
+    EInworldReconnectionType ReconnectionType = EInworldReconnectionType::UNDEFINED;
 
     /**
      * Time for the next reconnection attempt.

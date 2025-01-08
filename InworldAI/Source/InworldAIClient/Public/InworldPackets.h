@@ -394,9 +394,9 @@ struct INWORLDAICLIENT_API FInworldConversationUpdateEvent : public FInworldCont
 	UPROPERTY()
 	TArray<FString> Agents;
 	UPROPERTY()
-	EInworldConversationUpdateType EventType;
+	EInworldConversationUpdateType EventType = EInworldConversationUpdateType::UNKNOWN;
 	UPROPERTY()
-	bool bIncludePlayer;
+	bool bIncludePlayer = false;
 
 	virtual void AppendDebugString(FString& Str) const override;
 };
