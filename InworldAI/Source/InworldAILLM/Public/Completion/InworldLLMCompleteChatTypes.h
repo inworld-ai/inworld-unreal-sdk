@@ -50,7 +50,7 @@ public:
 	 * The role of the author of the chat message.
 	 */
 	UPROPERTY()
-	int32 role;
+	int32 role = 0;
 
 	/**
 	 * The content of the chat message.
@@ -82,7 +82,7 @@ public:
 	 * The role of the author of the chat message.
 	 */
 	UPROPERTY()
-	FString role;
+	FString role = "";
 
 	/**
 	 * The content of the chat message.

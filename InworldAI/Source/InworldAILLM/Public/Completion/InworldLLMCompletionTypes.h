@@ -127,13 +127,13 @@ public:
 	 * Number of completion tokens in the response.
 	 */
 	UPROPERTY()
-	int32 completionTokens;
+	int32 completionTokens = 0;
 
 	/**
 	 * Number of prompt tokens in the response.
 	 */
 	UPROPERTY()
-	int32 promptTokens;
+	int32 promptTokens = 0;
 };
 
 USTRUCT(BlueprintType)
