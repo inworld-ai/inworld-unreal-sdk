@@ -12,6 +12,57 @@
 #include "InworldStudioTypes.generated.h"
 
 USTRUCT(BlueprintType)
+struct FInworldStudioWorkspaceInfo {
+public:
+	GENERATED_BODY()
+	
+	/**
+	 * The name of the workspace.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "Workspace", meta = (DisplayName = "Workspace"))
+	FString workspace;
+	/**
+	 * The display name of the workspace.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "Workspace", meta = (DisplayName = "Display Name"))
+	FString displayName;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioProject {
+public:
+	GENERATED_BODY()
+	
+	/**
+	* The name of the collection.
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Project", meta = (DisplayName = "Name"))
+	FString name;
+	/**
+	* The workspace collection's display name.
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Project", meta = (DisplayName = "Display Name"))
+	FString displayName;
+	/**
+	* The workspaces in this collection that are visible to the user.
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Project", meta = (DisplayName = "Workspaces"))
+	TArray<FInworldStudioWorkspaceInfo> workspaceInfo;
+};
+
+USTRUCT(BlueprintType)
+struct FInworldStudioProjects {
+public:
+	GENERATED_BODY()
+	
+	/**
+	* The workspace collections visible to the user.
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Project", meta = (DisplayName = "Projects"))
+	TArray<FInworldStudioProject> workspaceCollections;
+};
+
+USTRUCT(BlueprintType)
 struct FInworldStudioWorkspace
 {
 public:

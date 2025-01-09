@@ -67,6 +67,16 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Inworld|Studio")
 	static const FString& GetStudioApiKey();
 
+	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnInworldStudioProjects, const FInworldStudioProjects&, Projects, bool, bSuccess, const FString&, Error);
+	/**
+	 * Get Inworld Studio Projects.
+	 * @param Callback The delegate to be called upon completion.
+	 * @param StudioApiKeyOverride The optional Studio API key override.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Inworld|Studio", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "StudioApiKeyOverride"))
+	static void GetInworldStudioProjects(const FOnInworldStudioProjects& Callback, const FString& StudioApiKeyOverride);
+
+
 	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnInworldStudioWorkspaces, const FInworldStudioWorkspaces&, Workspaces, bool, bSuccess, const FString&, Error);
 	/**
 	 * Get Inworld Studio Workspaces.

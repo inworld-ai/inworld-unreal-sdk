@@ -103,6 +103,12 @@ void GetInworldStudioResource(const U& Callback, const FString& URL, const FStri
     HttpRequest->ProcessRequest();
 }
 
+void UInworldBlueprintFunctionLibrary::GetInworldStudioProjects(const FOnInworldStudioProjects& Callback, const FString& StudioApiKeyOverride)
+{
+    const FString InworldStudioApiKey = StudioApiKeyOverride.IsEmpty() ? GetStudioApiKey() : StudioApiKeyOverride;
+    GetInworldStudioResource<FInworldStudioProjects>(Callback, FString::Format(TEXT("https://{0}/studio/v1/workspace-collections"), { GetStudioApiUrl() }), InworldStudioApiKey);
+}
+
 void UInworldBlueprintFunctionLibrary::GetInworldStudioWorkspaces(const FOnInworldStudioWorkspaces& Callback, const FString& StudioApiKeyOverride)
 {
     const FString InworldStudioApiKey = StudioApiKeyOverride.IsEmpty() ? GetStudioApiKey() : StudioApiKeyOverride;
@@ -124,7 +130,7 @@ void UInworldBlueprintFunctionLibrary::GetInworldStudioCharacters(const FOnInwor
 void UInworldBlueprintFunctionLibrary::GetInworldStudioScenes(const FOnInworldStudioScenes& Callback, const FString& Workspace, const FString& StudioApiKeyOverride)
 {
     const FString InworldStudioApiKey = StudioApiKeyOverride.IsEmpty() ? GetStudioApiKey() : StudioApiKeyOverride;
-    GetInworldStudioResource<FInworldStudioScenes>(Callback, FString::Format(TEXT("https://api.inworld.ai/studio/v1/workspaces/{0}/scenes"), { Workspace }), InworldStudioApiKey);
+    GetInworldStudioResource<FInworldStudioScenes>(Callback, FString::Format(TEXT("https://{0}/studio/v1/workspaces/{1}/scenes"), { GetStudioApiUrl(), Workspace }), InworldStudioApiKey);
 }
 
 bool UInworldBlueprintFunctionLibrary::SoundWaveToDataArray(USoundWave* SoundWave, TArray<uint8>& OutDataArray)
