@@ -95,6 +95,13 @@ bool UInworldSessionComponent::GetIsLoaded() const
 	return InworldSession->IsLoaded();
 }
 
+void UInworldSessionComponent::HandleUndefinedReconnection_Implementation(const FString& OutErrorMessage, const int32 OutErrorCode)
+{
+	UE_LOG(LogInworldAIIntegration, Log, TEXT("Undefined Reconnection - Attempting reconnection after 5 second timeout: (%s, Code: %d)"), *OutErrorMessage, OutErrorCode);
+	UWorld* World = GetWorld();
+	World->GetTimerManager().SetTimer(RetryConnectionTimerHandle, this, &UInworldSessionComponent::ResumeSession, 5);
+}
+
 void UInworldSessionComponent::StartSession(const FString& SceneId, const FInworldSave& Save, const FInworldToken& Token)
 {
 	if (!Token.Token.IsEmpty())
@@ -293,9 +300,13 @@ void UInworldSessionComponent::OnRep_InworldSession()
 						UE_LOG(LogInworldAIIntegration, Log, TEXT("Attempting reconnection after timeout: (%s, Code: %d)"), *OutErrorMessage, OutErrorCode);
 						World->GetTimerManager().SetTimer(RetryConnectionTimerHandle, this, &UInworldSessionComponent::ResumeSession, OutErrorDetails.ReconnectTime);
 					}
-					else
+					else if (OutErrorDetails.ReconnectionType == EInworldReconnectionType::NO_RETRY)
 					{
 						UE_LOG(LogInworldAIIntegration, Warning, TEXT("Will not reattempt Reconnection for: (%s, Code: %d)"), *OutErrorMessage, OutErrorCode);
+					}
+					else
+					{
+						HandleUndefinedReconnection(OutErrorMessage, OutErrorCode);
 					}
 				}
 			}
