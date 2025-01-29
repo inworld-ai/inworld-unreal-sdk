@@ -543,6 +543,14 @@ void UInworldSession::CancelResponse(UInworldCharacter* Character, const FString
 	Client->CancelResponse(Character->GetAgentInfo().AgentId, InteractionId, UtteranceIds);
 }
 
+void UInworldSession::ResetConversations()
+{
+	for(auto RegisteredPlayer : RegisteredPlayers)
+	{
+		RegisteredPlayer->ClearAllTargetCharacters();
+	}
+}
+
 EInworldConnectionState UInworldSession::GetConnectionState() const
 {
 	return ConnectionState;

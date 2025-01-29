@@ -286,6 +286,8 @@ void UInworldSessionComponent::OnRep_InworldSession()
 
 				if (ConnectionState == EInworldConnectionState::Disconnected)
 				{
+					InworldSession->ResetConversations();
+					
 					FString OutErrorMessage;
 					int32 OutErrorCode;
 					FInworldConnectionErrorDetails OutErrorDetails;
