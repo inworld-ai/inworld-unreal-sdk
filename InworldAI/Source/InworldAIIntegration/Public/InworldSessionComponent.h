@@ -15,7 +15,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInworldSessionCreated);
 DECLARE_MULTICAST_DELEGATE(FOnInworldSessionCreatedNative);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class INWORLDAIINTEGRATION_API UInworldSessionComponent : public UActorComponent, public IInworldSessionOwnerInterface
 {
 	GENERATED_BODY()
@@ -54,6 +54,9 @@ public:
 	FOnInworldSessionLoaded OnSessionLoadedDelegate;
 	FOnInworldSessionLoadedNative& OnLoaded() { return OnSessionLoadedDelegateNative; }
 
+	UFUNCTION(BlueprintNativeEvent, Category = "Connection")
+	void HandleUndefinedReconnection(const FString& OutErrorMessage, const int32 OutErrorCode);
+	
 	/**
 	 * Start a session.
 	 * @param SceneId The scene to initialize.
