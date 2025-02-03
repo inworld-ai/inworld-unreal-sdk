@@ -15,6 +15,7 @@
 #include "InworldTypes.h"
 #include "InworldPackets.h"
 #include "InworldEnums.h"
+#include "InworldPlayer.h"
 #include "InworldSession.generated.h"
 
 class UInworldPlayer;
@@ -440,6 +441,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Connection")
 	FOnInworldPerceivedLatency OnPerceivedLatencyDelegate;
 	FOnInworldPerceivedLatencyNative& OnPerceivedLatency() { return OnPerceivedLatencyDelegateNative; }
+
+	void ResetConversations();
 
 private:
 	void PossessAgents(const TArray<FInworldAgentInfo>& AgentInfos);
